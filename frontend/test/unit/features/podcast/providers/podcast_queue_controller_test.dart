@@ -233,9 +233,17 @@ void main() {
 
       await controller.reorderQueue(<int>[2, 1]);
       expect(container.read(podcastQueueControllerProvider).value?.revision, 2);
+      expect(
+        container.read(podcastQueueControllerProvider).value?.currentEpisodeId,
+        2,
+      );
 
       await controller.loadQueue(forceRefresh: true);
       expect(container.read(podcastQueueControllerProvider).value?.revision, 2);
+      expect(
+        container.read(podcastQueueControllerProvider).value?.currentEpisodeId,
+        2,
+      );
     });
   });
 }

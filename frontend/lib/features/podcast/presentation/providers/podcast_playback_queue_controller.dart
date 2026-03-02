@@ -1,6 +1,5 @@
 part of 'podcast_playback_providers.dart';
 
-
 final podcastQueueControllerProvider =
     AsyncNotifierProvider<PodcastQueueController, PodcastQueueModel>(
       PodcastQueueController.new,
@@ -56,6 +55,13 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
   }
 
   PodcastQueueModel _applyQueue(PodcastQueueModel queue) {
+    if (queue.revision < _latestAppliedQueueRevision) {
+      logger.AppLogger.debug(
+        '[Queue] Ignore stale queue snapshot: incoming_revision=${queue.revision}, latest_revision=$_latestAppliedQueueRevision',
+      );
+      return state.value ?? queue;
+    }
+
     state = AsyncValue.data(queue);
     _lastQueueRefreshAt = DateTime.now();
     if (queue.revision > _latestAppliedQueueRevision) {
@@ -78,10 +84,6 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
     final cachedQueue = state.value;
     if (!forceRefresh && cachedQueue != null && _hasFreshQueueState()) {
       return Future.value(cachedQueue);
-    }
-
-    if (forceRefresh) {
-      _latestAppliedQueueRevision = -1;
     }
 
     if (trackSyncing) {
@@ -196,12 +198,14 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
     // trigger a rebuild while RenderSliverList is still performing layout.
     final previousQueue = state.value;
     if (previousQueue != null) {
-      final updatedItems =
-          previousQueue.items.where((i) => i.episodeId != episodeId).toList();
+      final updatedItems = previousQueue.items
+          .where((i) => i.episodeId != episodeId)
+          .toList();
       int? updatedCurrentEpisodeId = previousQueue.currentEpisodeId;
       if (updatedCurrentEpisodeId == episodeId) {
-        final oldIndex = previousQueue.items
-            .indexWhere((i) => i.episodeId == episodeId);
+        final oldIndex = previousQueue.items.indexWhere(
+          (i) => i.episodeId == episodeId,
+        );
         if (oldIndex >= 0 && oldIndex + 1 < previousQueue.items.length) {
           updatedCurrentEpisodeId = previousQueue.items[oldIndex + 1].episodeId;
         } else if (updatedItems.isNotEmpty) {

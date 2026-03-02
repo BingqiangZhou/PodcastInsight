@@ -28,6 +28,9 @@ final audioPlayerProvider =
       AudioPlayerNotifier.new,
     );
 
+const String kLastPlaybackSnapshotStorageKeyPrefix =
+    'podcast_last_playback_snapshot_v1';
+
 class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   late PodcastRepository _repository;
   bool _isDisposed = false;
@@ -43,8 +46,6 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   Timer? _sleepTimerTickTimer;
   DateTime? _lastPlaybackSyncAt;
   static const Duration _syncInterval = Duration(seconds: 2);
-  static const String _lastPlaybackSnapshotKey =
-      'podcast_last_playback_snapshot_v1';
   static const Duration _lastPlaybackSnapshotDebounce = Duration(seconds: 2);
   Timer? _snapshotPersistTimer;
 
@@ -85,6 +86,28 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     return const AudioPlayerState();
   }
 
+  String? _currentUserId() {
+    final authState = ref.read(authProvider);
+    if (!authState.isAuthenticated) {
+      return null;
+    }
+
+    final userId = authState.user?.id;
+    if (userId == null || userId.isEmpty) {
+      return null;
+    }
+
+    return userId;
+  }
+
+  String? _lastPlaybackSnapshotStorageKey() {
+    final userId = _currentUserId();
+    if (userId == null) {
+      return null;
+    }
+    return playbackSnapshotStorageKeyForUser(userId);
+  }
+
   void _schedulePersistLastPlaybackSnapshot({bool immediate = false}) {
     if (_isDisposed || !ref.mounted) return;
     if (state.currentEpisode == null) return;
@@ -107,6 +130,8 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     if (_isDisposed || !ref.mounted) return;
     final episode = state.currentEpisode;
     if (episode == null) return;
+    final snapshotKey = _lastPlaybackSnapshotStorageKey();
+    if (snapshotKey == null) return;
 
     final payload = <String, dynamic>{
       'episode': <String, dynamic>{
@@ -149,14 +174,16 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
     try {
       final storage = ref.read(localStorageServiceProvider);
-      await storage.saveString(_lastPlaybackSnapshotKey, jsonEncode(payload));
+      await storage.saveString(snapshotKey, jsonEncode(payload));
     } catch (_) {}
   }
 
   Future<_LastPlaybackSnapshot?> _loadLastPlaybackSnapshot() async {
     try {
+      final snapshotKey = _lastPlaybackSnapshotStorageKey();
+      if (snapshotKey == null) return null;
       final storage = ref.read(localStorageServiceProvider);
-      final raw = await storage.getString(_lastPlaybackSnapshotKey);
+      final raw = await storage.getString(snapshotKey);
       if (raw == null || raw.isEmpty) return null;
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return null;
@@ -326,8 +353,22 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       return;
     }
 
-    state = state.copyWith(isPlaying: false, position: 0);
-    unawaited(_updatePlaybackStateOnServer(immediate: true));
+    final completedEpisode = state.currentEpisode;
+    final completedPositionMs = resolveCompletedPositionMs(
+      state.position,
+      state.duration,
+    );
+    state = state.copyWith(isPlaying: false, position: completedPositionMs);
+    if (completedEpisode != null &&
+        shouldSyncPlaybackToServer(completedEpisode)) {
+      unawaited(
+        _syncImmediatePlaybackSnapshot(
+          episode: completedEpisode,
+          positionMs: completedPositionMs,
+          isPlaying: false,
+        ),
+      );
+    }
 
     // If sleep timer is set to "after episode", stop here
     if (state.sleepTimerAfterEpisode) {
@@ -734,7 +775,10 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
             : null,
       );
 
-      if (!ref.mounted || _isDisposed) return;
+      if (!ref.mounted || _isDisposed) {
+        _isPlayingEpisode = false;
+        return;
+      }
 
       // ===== STEP 2: Set new episode info with duration from backend =====
       logger.AppLogger.debug('[Playback] Step 2: Setting new episode info');
@@ -787,7 +831,10 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         throw Exception('Failed to load audio: $loadError');
       }
 
-      if (!ref.mounted || _isDisposed) return;
+      if (!ref.mounted || _isDisposed) {
+        _isPlayingEpisode = false;
+        return;
+      }
 
       // ===== STEP 4: Restore playback position =====
       if (resumePositionMs > 0) {
@@ -802,7 +849,10 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         }
       }
 
-      if (!ref.mounted || _isDisposed) return;
+      if (!ref.mounted || _isDisposed) {
+        _isPlayingEpisode = false;
+        return;
+      }
 
       // ===== STEP 5: Restore playback rate =====
       logger.AppLogger.debug(
@@ -908,7 +958,14 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       );
 
       if (ref.mounted && !_isDisposed) {
-        await _updatePlaybackStateOnServer(immediate: true);
+        final episode = state.currentEpisode;
+        if (episode != null && shouldSyncPlaybackToServer(episode)) {
+          await _syncImmediatePlaybackSnapshot(
+            episode: episode,
+            positionMs: state.position,
+            isPlaying: false,
+          );
+        }
       }
     } catch (error) {
       logger.AppLogger.debug('[Error] pause() error: $error');
@@ -975,7 +1032,14 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       await _audioHandler.seek(Duration(milliseconds: position));
       if (ref.mounted && !_isDisposed) {
         state = state.copyWith(position: position);
-        await _updatePlaybackStateOnServer(immediate: true);
+        final episode = state.currentEpisode;
+        if (episode != null && shouldSyncPlaybackToServer(episode)) {
+          await _syncImmediatePlaybackSnapshot(
+            episode: episode,
+            positionMs: position,
+            isPlaying: state.isPlaying,
+          );
+        }
       }
     } catch (error) {
       if (ref.mounted && !_isDisposed) {
@@ -1007,7 +1071,14 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
       if (ref.mounted && !_isDisposed) {
         state = state.copyWith(playbackRate: applied.effectivePlaybackRate);
-        await _updatePlaybackStateOnServer(immediate: true);
+        final episode = state.currentEpisode;
+        if (episode != null && shouldSyncPlaybackToServer(episode)) {
+          await _syncImmediatePlaybackSnapshot(
+            episode: episode,
+            positionMs: state.position,
+            isPlaying: state.isPlaying,
+          );
+        }
       }
     } catch (error) {
       if (ref.mounted && !_isDisposed) {
@@ -1020,8 +1091,16 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     if (_isDisposed) return;
 
     try {
-      if (ref.mounted && !_isDisposed) {
-        await _updatePlaybackStateOnServer(immediate: true);
+      final episode = state.currentEpisode;
+      if (ref.mounted &&
+          !_isDisposed &&
+          episode != null &&
+          shouldSyncPlaybackToServer(episode)) {
+        await _syncImmediatePlaybackSnapshot(
+          episode: episode,
+          positionMs: state.position,
+          isPlaying: false,
+        );
       }
       await _audioHandler.stop();
       if (ref.mounted && !_isDisposed) {
@@ -1163,14 +1242,32 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
     // If immediate (pause/seek/stop/completed), send right away
     if (immediate) {
-      _syncThrottleTimer?.cancel();
-      _syncThrottleTimer = null;
-      await _sendPlaybackUpdate(episode);
-      _lastPlaybackSyncAt = DateTime.now();
+      await _syncImmediatePlaybackSnapshot(
+        episode: episode,
+        positionMs: state.position,
+        isPlaying: state.isPlaying,
+      );
       return;
     }
 
     await _scheduleThrottledSync(episode);
+  }
+
+  Future<void> _syncImmediatePlaybackSnapshot({
+    required PodcastEpisodeModel episode,
+    required int positionMs,
+    required bool isPlaying,
+  }) async {
+    _syncThrottleTimer?.cancel();
+    _syncThrottleTimer = null;
+    final success = await _sendPlaybackSnapshot(
+      episode: episode,
+      positionMs: positionMs,
+      isPlaying: isPlaying,
+    );
+    if (success) {
+      _lastPlaybackSyncAt = DateTime.now();
+    }
   }
 
   Future<void> _scheduleThrottledSync(PodcastEpisodeModel episode) async {
@@ -1178,8 +1275,10 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     final lastSync = _lastPlaybackSyncAt;
 
     if (lastSync == null || now.difference(lastSync) >= _syncInterval) {
-      await _sendPlaybackUpdate(episode);
-      _lastPlaybackSyncAt = DateTime.now();
+      final success = await _sendPlaybackUpdate(episode);
+      if (success) {
+        _lastPlaybackSyncAt = DateTime.now();
+      }
       return;
     }
 
@@ -1193,21 +1292,31 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       final currentEpisode = state.currentEpisode;
       if (currentEpisode == null) return;
 
-      _sendPlaybackUpdate(currentEpisode).then((_) {
-        _lastPlaybackSyncAt = DateTime.now();
+      _sendPlaybackUpdate(currentEpisode).then((success) {
+        if (success) {
+          _lastPlaybackSyncAt = DateTime.now();
+        }
       });
     });
   }
 
-  Future<void> _sendPlaybackUpdate(PodcastEpisodeModel episode) async {
-    if (_isDisposed) return;
-    if (!shouldSyncPlaybackToServer(episode)) return;
-
-    final payload = buildPersistPayload(
-      state.position,
-      state.duration,
-      state.isPlaying,
+  Future<bool> _sendPlaybackUpdate(PodcastEpisodeModel episode) async {
+    return _sendPlaybackSnapshot(
+      episode: episode,
+      positionMs: state.position,
+      isPlaying: state.isPlaying,
     );
+  }
+
+  Future<bool> _sendPlaybackSnapshot({
+    required PodcastEpisodeModel episode,
+    required int positionMs,
+    required bool isPlaying,
+  }) async {
+    if (_isDisposed) return false;
+    if (!shouldSyncPlaybackToServer(episode)) return false;
+
+    final payload = buildPersistPayload(positionMs, state.duration, isPlaying);
 
     try {
       await _repository.updatePlaybackProgress(
@@ -1216,6 +1325,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         isPlaying: payload.isPlaying,
         playbackRate: state.playbackRate,
       );
+      return true;
     } catch (error) {
       // Log more detailed error for debugging
       logger.AppLogger.debug(
@@ -1223,9 +1333,9 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       );
       logger.AppLogger.debug('[Playback] Episode ID: ${episode.id}');
       logger.AppLogger.debug(
-        '[Playback] Position: ${state.position}ms (${(state.position / 1000).round()}s)',
+        '[Playback] Position: ${positionMs}ms (${(positionMs / 1000).round()}s)',
       );
-      logger.AppLogger.debug('[Playback] Is Playing: ${state.isPlaying}');
+      logger.AppLogger.debug('[Playback] Is Playing: $isPlaying');
       logger.AppLogger.debug('[Playback] Playback Rate: ${state.playbackRate}');
 
       // Check if it's an authentication error
@@ -1237,6 +1347,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       }
 
       // Don't update the UI state for server errors - continue playback
+      return false;
     }
   }
 }

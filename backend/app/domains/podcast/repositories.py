@@ -784,11 +784,13 @@ class PodcastRepository:
         state = await self.get_playback_state(user_id, episode_id)
 
         if state:
+            was_playing = bool(state.is_playing)
             state.current_position = position
-            state.is_playing = is_playing
             state.playback_rate = playback_rate
-            if is_playing:
+            # Count only real playback starts, not heartbeat updates.
+            if not was_playing and is_playing:
                 state.play_count += 1
+            state.is_playing = is_playing
             state.last_updated_at = datetime.now(timezone.utc)
         else:
             state = PodcastPlaybackState(

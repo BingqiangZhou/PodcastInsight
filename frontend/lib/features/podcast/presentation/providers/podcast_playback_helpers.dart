@@ -1,5 +1,21 @@
 part of 'podcast_playback_providers.dart';
 
+@visibleForTesting
+String playbackSnapshotStorageKeyForUser(String userId) {
+  return '${kLastPlaybackSnapshotStorageKeyPrefix}_$userId';
+}
+
+@visibleForTesting
+int resolveCompletedPositionMs(int currentPositionMs, int durationMs) {
+  if (durationMs > 0) {
+    return durationMs;
+  }
+  if (currentPositionMs < 0) {
+    return 0;
+  }
+  return currentPositionMs;
+}
+
 String? _extractSubscriptionTitle(Map<String, dynamic>? subscription) {
   if (subscription == null) {
     return null;

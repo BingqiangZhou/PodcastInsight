@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -10,6 +11,7 @@ import '../../data/datasources/auth_remote_datasource.dart';
 import '../../../../core/auth/auth_event.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/network/exceptions/network_exceptions.dart';
+import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/secure_storage_service.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
@@ -17,6 +19,17 @@ import '../../../../core/utils/app_logger.dart' as logger;
 // Token refresh constants
 const int _tokenRefreshBufferMinutes = 5; // Refresh 5 minutes before expiry
 const int _tokenCheckIntervalSeconds = 60; // Check every minute
+const String _lastPlaybackSnapshotStorageKeyPrefix =
+    'podcast_last_playback_snapshot_v1';
+
+@visibleForTesting
+List<String> playbackSnapshotKeysToClearOnLogout(String? userId) {
+  final keys = <String>[_lastPlaybackSnapshotStorageKeyPrefix];
+  if (userId != null && userId.isNotEmpty) {
+    keys.add('${_lastPlaybackSnapshotStorageKeyPrefix}_$userId');
+  }
+  return keys;
+}
 
 // Storage provider
 final secureStorageProvider = Provider<SecureStorageService>((ref) {
@@ -369,17 +382,20 @@ class AuthNotifier extends Notifier<AuthState> {
     // Stop auto-refresh timer
     _disableAutoRefresh();
 
+    final currentUserId = state.user?.id;
     final refreshToken = await _secureStorage.getRefreshToken();
     final result = await _authRepository.logout(refreshToken);
-    result.fold(
-      (error) {
+    await result.fold(
+      (error) async {
         // Even if logout API fails, clear local state
-        _clearAuthState();
+        await _clearAuthState();
+        await _clearPlaybackSnapshot(currentUserId);
         ref.read(dioClientProvider).clearETagCache();
         state = state.copyWith(isLoading: false, currentOperation: null);
       },
-      (_) {
-        _clearAuthState();
+      (_) async {
+        await _clearAuthState();
+        await _clearPlaybackSnapshot(currentUserId);
         ref.read(dioClientProvider).clearETagCache();
         state = const AuthState(isAuthenticated: false, isLoading: false);
       },
@@ -490,6 +506,14 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> _clearAuthState() async {
     await _secureStorage.clearTokens();
     await _secureStorage.clearTokenExpiry();
+  }
+
+  Future<void> _clearPlaybackSnapshot(String? userId) async {
+    final storage = ref.read(localStorageServiceProvider);
+    final keys = playbackSnapshotKeysToClearOnLogout(userId);
+    for (final key in keys) {
+      await storage.remove(key);
+    }
   }
 
   Future<TokenRefreshResult> _attemptTokenRefresh() async {
