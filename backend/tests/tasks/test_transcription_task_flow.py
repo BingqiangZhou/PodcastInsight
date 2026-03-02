@@ -35,6 +35,7 @@ class _FakeStateManager:
         self.progress_updates: list[tuple[int, str, int, str]] = []
         self.cleared: list[tuple[int, int]] = []
         self.released: list[tuple[int, int]] = []
+        self.failed: list[tuple[int, int, str]] = []
 
     async def acquire_task_lock(self, _episode_id, _task_id, expire_seconds=3600):
         return self.lock_ok
@@ -49,7 +50,7 @@ class _FakeStateManager:
         self.cleared.append((task_id, episode_id))
 
     async def fail_task_state(self, _task_id, _episode_id, _error):
-        return None
+        self.failed.append((_task_id, _episode_id, _error))
 
     async def release_task_lock(self, episode_id, task_id):
         self.released.append((episode_id, task_id))
@@ -61,8 +62,11 @@ async def test_transcription_handler_lock_conflict(monkeypatch):
     session = _FakeSession([fake_task])
     state = _FakeStateManager(lock_ok=False)
 
-    async def _claim(_task_id: int) -> bool:
+    async def _claim(_session, _task_id: int) -> bool:
         return True
+
+    async def _clear(_task_id: int) -> None:
+        return None
 
     async def _get_state():
         return state
@@ -72,14 +76,16 @@ async def test_transcription_handler_lock_conflict(monkeypatch):
         _claim,
     )
     monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_transcription._clear_dispatched",
+        _clear,
+    )
+    monkeypatch.setattr(
         "app.domains.podcast.tasks.handlers_transcription.get_transcription_state_manager",
         _get_state,
     )
 
-    result = await process_audio_transcription_handler(session=session, task_id=10)
-    assert result["status"] == "skipped"
-    assert result["reason"] == "episode_locked"
-    assert result["locked_by"] == 999
+    with pytest.raises(RuntimeError, match="locked"):
+        await process_audio_transcription_handler(session=session, task_id=10)
 
 
 @pytest.mark.asyncio
@@ -104,8 +110,11 @@ async def test_transcription_handler_updates_status_and_releases_lock(monkeypatc
                 "halfway",
             )
 
-    async def _claim(_task_id: int) -> bool:
+    async def _claim(_session, _task_id: int) -> bool:
         return True
+
+    async def _clear(_task_id: int) -> None:
+        return None
 
     async def _get_state():
         return state
@@ -113,6 +122,10 @@ async def test_transcription_handler_updates_status_and_releases_lock(monkeypatc
     monkeypatch.setattr(
         "app.domains.podcast.tasks.handlers_transcription._claim_dispatched",
         _claim,
+    )
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_transcription._clear_dispatched",
+        _clear,
     )
     monkeypatch.setattr(
         "app.domains.podcast.tasks.handlers_transcription.get_transcription_state_manager",
@@ -125,7 +138,12 @@ async def test_transcription_handler_updates_status_and_releases_lock(monkeypatc
 
     result = await process_audio_transcription_handler(session=session, task_id=1)
     assert result["status"] == "success"
-    assert (1, "pending", 0, "Worker starting transcription process...") in state.progress_updates
+    assert (
+        1,
+        "pending",
+        0,
+        "Worker starting transcription process...",
+    ) in state.progress_updates
     assert (1, "in_progress", 50, "halfway") in state.progress_updates
     assert state.cleared == [(1, 2)]
     assert state.released == [(2, 1)]
@@ -158,3 +176,53 @@ def test_transcription_task_retries_on_failure(monkeypatch):
 
     assert logs
     assert logs[-1]["status"] == "failed"
+
+
+@pytest.mark.asyncio
+async def test_transcription_handler_raises_when_execution_fails(monkeypatch):
+    fake_task = SimpleNamespace(id=33, episode_id=44)
+    session = _FakeSession([fake_task])
+    state = _FakeStateManager(lock_ok=True)
+
+    class _FailingService:
+        def __init__(self, _session):
+            self._update_task_progress_with_session = self._default_update
+
+        async def _default_update(self, *_args, **_kwargs):
+            return None
+
+        async def execute_transcription_task(self, *_args, **_kwargs):
+            raise RuntimeError("transcription boom")
+
+    async def _claim(_session, _task_id: int) -> bool:
+        return True
+
+    async def _clear(_task_id: int) -> None:
+        return None
+
+    async def _get_state():
+        return state
+
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_transcription._claim_dispatched",
+        _claim,
+    )
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_transcription._clear_dispatched",
+        _clear,
+    )
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_transcription.get_transcription_state_manager",
+        _get_state,
+    )
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_transcription.DatabaseBackedTranscriptionService",
+        _FailingService,
+    )
+
+    with pytest.raises(RuntimeError, match="transcription boom"):
+        await process_audio_transcription_handler(session=session, task_id=33)
+
+    assert state.failed
+    assert state.failed[-1][0] == 33
+    assert state.released == [(44, 33)]

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import select
 
 from app.core.exceptions import ValidationError
 from app.domains.podcast.models import PodcastEpisode, TranscriptionTask
@@ -25,9 +25,9 @@ async def generate_pending_summaries_handler(session) -> dict:
     """Generate summaries for pending episodes."""
     repo = PodcastRepository(session)
     summary_service = DatabaseBackedAISummaryService(session)
-    pending_episodes = await repo.get_unsummarized_episodes()
-
     max_episodes_per_run = 10
+    pending_fetch_window = max_episodes_per_run * 5
+    pending_episodes = await repo.get_unsummarized_episodes(limit=pending_fetch_window)
     if len(pending_episodes) > max_episodes_per_run:
         logger.info(
             "Found %s pending summaries, attempting up to %s eligible episodes this run",
@@ -40,29 +40,34 @@ async def generate_pending_summaries_handler(session) -> dict:
     skipped_running_count = 0
     skipped_no_transcript_count = 0
     eligible_attempt_count = 0
+    episodes_with_transcript = [
+        episode
+        for episode in pending_episodes
+        if (episode.transcript_content or "").strip()
+    ]
+    skipped_no_transcript_count = len(pending_episodes) - len(episodes_with_transcript)
 
-    for episode in pending_episodes:
+    if not episodes_with_transcript:
+        return {
+            "status": "success",
+            "processed": 0,
+            "failed": 0,
+            "processed_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+    candidate_episode_ids = [episode.id for episode in episodes_with_transcript]
+    running_stmt = select(TranscriptionTask.episode_id).where(
+        TranscriptionTask.episode_id.in_(candidate_episode_ids),
+        TranscriptionTask.status.in_(["pending", "in_progress"]),
+    )
+    running_result = await session.execute(running_stmt)
+    running_episode_ids = set(running_result.scalars().all())
+
+    for episode in episodes_with_transcript:
         if eligible_attempt_count >= max_episodes_per_run:
             break
-
-        transcript_content = episode.transcript_content or ""
-        if not transcript_content.strip():
-            skipped_no_transcript_count += 1
-            continue
-
         try:
-            trans_stmt = select(TranscriptionTask).where(
-                and_(
-                    TranscriptionTask.episode_id == episode.id,
-                    or_(
-                        TranscriptionTask.status == "pending",
-                        TranscriptionTask.status == "in_progress",
-                    ),
-                )
-            )
-            trans_result = await session.execute(trans_stmt)
-            running_task = trans_result.scalar_one_or_none()
-            if running_task:
+            if episode.id in running_episode_ids:
                 skipped_running_count += 1
                 continue
 
@@ -114,7 +119,11 @@ async def generate_summary_for_episode_handler(
     episode_result = await session.execute(episode_stmt)
     episode = episode_result.scalar_one_or_none()
     if episode is None:
-        return {"status": "error", "message": "Episode not found", "episode_id": episode_id}
+        return {
+            "status": "error",
+            "message": "Episode not found",
+            "episode_id": episode_id,
+        }
 
     summary_service = DatabaseBackedAISummaryService(session)
     summary_result = await summary_service.generate_summary(episode_id)

@@ -33,7 +33,13 @@ celery_app.conf.update(
         "app.domains.podcast.tasks.summary_generation.generate_pending_summaries": {
             "queue": "ai_generation"
         },
+        "app.domains.podcast.tasks.summary_generation.generate_summary_for_episode": {
+            "queue": "ai_generation"
+        },
         "app.domains.podcast.tasks.transcription.process_audio_transcription": {
+            "queue": "transcription"
+        },
+        "app.domains.podcast.tasks.transcription.process_podcast_episode_with_transcription": {
             "queue": "transcription"
         },
         "app.domains.podcast.tasks.maintenance.cleanup_old_playback_states": {

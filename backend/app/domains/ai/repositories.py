@@ -2,7 +2,6 @@
 AI模型配置数据访问层
 """
 
-
 from sqlalchemy import and_, delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,7 +50,7 @@ class AIModelConfigRepository:
         is_active: bool | None = None,
         provider: str | None = None,
         page: int = 1,
-        size: int = 20
+        size: int = 20,
     ) -> tuple[list[AIModelConfig], int]:
         """获取模型配置列表"""
         try:
@@ -93,7 +92,7 @@ class AIModelConfigRepository:
                 and_(
                     AIModelConfig.model_type == model_type,
                     AIModelConfig.is_default,
-                    AIModelConfig.is_active
+                    AIModelConfig.is_active,
                 )
             )
             result = await self.db.execute(stmt)
@@ -102,8 +101,7 @@ class AIModelConfigRepository:
             raise DatabaseError(f"Failed to get default model: {str(e)}") from e
 
     async def get_active_models(
-        self,
-        model_type: ModelType | None = None
+        self, model_type: ModelType | None = None
     ) -> list[AIModelConfig]:
         """获取所有活跃的模型，按优先级排序"""
         try:
@@ -112,7 +110,9 @@ class AIModelConfigRepository:
                 stmt = stmt.where(AIModelConfig.model_type == model_type)
 
             # 按优先级升序排序（数字越小优先级越高），然后按创建时间降序
-            stmt = stmt.order_by(AIModelConfig.priority.asc(), AIModelConfig.created_at.desc())
+            stmt = stmt.order_by(
+                AIModelConfig.priority.asc(), AIModelConfig.created_at.desc()
+            )
 
             result = await self.db.execute(stmt)
             return list(result.scalars().all())
@@ -120,8 +120,7 @@ class AIModelConfigRepository:
             raise DatabaseError(f"Failed to get active models: {str(e)}") from e
 
     async def get_active_models_by_priority(
-        self,
-        model_type: ModelType | None = None
+        self, model_type: ModelType | None = None
     ) -> list[AIModelConfig]:
         """获取所有活跃的模型，按优先级排序（用于API调用fallback）"""
         return await self.get_active_models(model_type)
@@ -129,7 +128,11 @@ class AIModelConfigRepository:
     async def update(self, model_id: int, update_data: dict) -> AIModelConfig | None:
         """更新模型配置"""
         try:
-            stmt = update(AIModelConfig).where(AIModelConfig.id == model_id).values(**update_data)
+            stmt = (
+                update(AIModelConfig)
+                .where(AIModelConfig.id == model_id)
+                .values(**update_data)
+            )
             await self.db.execute(stmt)
             await self.db.commit()
 
@@ -147,20 +150,23 @@ class AIModelConfigRepository:
                 update(AIModelConfig)
                 .where(
                     and_(
-                        AIModelConfig.model_type == model_type,
-                        AIModelConfig.is_default
+                        AIModelConfig.model_type == model_type, AIModelConfig.is_default
                     )
                 )
                 .values(is_default=False)
             )
 
             # 设置新的默认模型
-            stmt = update(AIModelConfig).where(
-                and_(
-                    AIModelConfig.id == model_id,
-                    AIModelConfig.model_type == model_type
+            stmt = (
+                update(AIModelConfig)
+                .where(
+                    and_(
+                        AIModelConfig.id == model_id,
+                        AIModelConfig.model_type == model_type,
+                    )
                 )
-            ).values(is_default=True)
+                .values(is_default=True)
+            )
 
             result = await self.db.execute(stmt)
             await self.db.commit()
@@ -188,16 +194,13 @@ class AIModelConfigRepository:
             raise DatabaseError(f"Failed to delete model config: {str(e)}") from e
 
     async def increment_usage(
-        self,
-        model_id: int,
-        success: bool = True,
-        tokens_used: int = 0
+        self, model_id: int, success: bool = True, tokens_used: int = 0
     ) -> bool:
         """增加使用统计"""
         try:
             update_data = {
                 "usage_count": AIModelConfig.usage_count + 1,
-                "last_used_at": func.now()
+                "last_used_at": func.now(),
             }
 
             if success:
@@ -206,9 +209,15 @@ class AIModelConfigRepository:
                 update_data["error_count"] = AIModelConfig.error_count + 1
 
             if tokens_used > 0:
-                update_data["total_tokens_used"] = AIModelConfig.total_tokens_used + tokens_used
+                update_data["total_tokens_used"] = (
+                    AIModelConfig.total_tokens_used + tokens_used
+                )
 
-            stmt = update(AIModelConfig).where(AIModelConfig.id == model_id).values(**update_data)
+            stmt = (
+                update(AIModelConfig)
+                .where(AIModelConfig.id == model_id)
+                .values(**update_data)
+            )
             result = await self.db.execute(stmt)
             await self.db.commit()
 
@@ -217,10 +226,48 @@ class AIModelConfigRepository:
             await self.db.rollback()
             raise DatabaseError(f"Failed to increment usage: {str(e)}") from e
 
-    async def get_usage_stats(
+    async def increment_usage_bulk(
         self,
-        model_type: ModelType | None = None,
-        limit: int = 50
+        model_id: int,
+        *,
+        success_count: int = 0,
+        error_count: int = 0,
+        tokens_used: int = 0,
+    ) -> bool:
+        """Increment usage counters in a single DB write."""
+        total_attempts = success_count + error_count
+        if total_attempts <= 0 and tokens_used <= 0:
+            return True
+
+        try:
+            update_data = {"last_used_at": func.now()}
+            if total_attempts > 0:
+                update_data["usage_count"] = AIModelConfig.usage_count + total_attempts
+            if success_count > 0:
+                update_data["success_count"] = (
+                    AIModelConfig.success_count + success_count
+                )
+            if error_count > 0:
+                update_data["error_count"] = AIModelConfig.error_count + error_count
+            if tokens_used > 0:
+                update_data["total_tokens_used"] = (
+                    AIModelConfig.total_tokens_used + tokens_used
+                )
+
+            stmt = (
+                update(AIModelConfig)
+                .where(AIModelConfig.id == model_id)
+                .values(**update_data)
+            )
+            result = await self.db.execute(stmt)
+            await self.db.commit()
+            return result.rowcount > 0
+        except Exception as e:
+            await self.db.rollback()
+            raise DatabaseError(f"Failed to increment usage in bulk: {str(e)}") from e
+
+    async def get_usage_stats(
+        self, model_type: ModelType | None = None, limit: int = 50
     ) -> list[dict]:
         """获取使用统计"""
         try:
@@ -232,7 +279,7 @@ class AIModelConfigRepository:
                 AIModelConfig.success_count,
                 AIModelConfig.error_count,
                 AIModelConfig.total_tokens_used,
-                AIModelConfig.last_used_at
+                AIModelConfig.last_used_at,
             )
 
             if model_type:
@@ -251,17 +298,19 @@ class AIModelConfigRepository:
                 if row.usage_count > 0:
                     success_rate = (row.success_count / row.usage_count) * 100
 
-                stats.append({
-                    "model_id": row.id,
-                    "model_name": row.name,
-                    "model_type": row.model_type,
-                    "usage_count": row.usage_count,
-                    "success_count": row.success_count,
-                    "error_count": row.error_count,
-                    "success_rate": success_rate,
-                    "total_tokens_used": row.total_tokens_used,
-                    "last_used_at": row.last_used_at
-                })
+                stats.append(
+                    {
+                        "model_id": row.id,
+                        "model_name": row.name,
+                        "model_type": row.model_type,
+                        "usage_count": row.usage_count,
+                        "success_count": row.success_count,
+                        "error_count": row.error_count,
+                        "success_rate": success_rate,
+                        "total_tokens_used": row.total_tokens_used,
+                        "last_used_at": row.last_used_at,
+                    }
+                )
 
             return stats
         except Exception as e:
@@ -272,7 +321,7 @@ class AIModelConfigRepository:
         query: str,
         model_type: ModelType | None = None,
         page: int = 1,
-        size: int = 20
+        size: int = 20,
     ) -> tuple[list[AIModelConfig], int]:
         """搜索模型配置"""
         try:
@@ -281,7 +330,7 @@ class AIModelConfigRepository:
                 or_(
                     AIModelConfig.name.ilike(f"%{query}%"),
                     AIModelConfig.display_name.ilike(f"%{query}%"),
-                    AIModelConfig.description.ilike(f"%{query}%")
+                    AIModelConfig.description.ilike(f"%{query}%"),
                 )
             ]
 

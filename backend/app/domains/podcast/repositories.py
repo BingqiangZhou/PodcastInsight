@@ -410,19 +410,23 @@ class PodcastRepository:
         return processed_episodes, new_episodes
 
     async def get_unsummarized_episodes(
-        self, subscription_id: int | None = None
+        self,
+        subscription_id: int | None = None,
+        limit: int | None = None,
     ) -> list[PodcastEpisode]:
         """Get episodes that are pending AI summaries."""
         stmt = select(PodcastEpisode).where(
             and_(
                 PodcastEpisode.ai_summary.is_(None),
-                PodcastEpisode.status == "pending_summary",
+                PodcastEpisode.status.in_(["pending_summary", "summary_failed"]),
             )
         )
         if subscription_id:
             stmt = stmt.where(PodcastEpisode.subscription_id == subscription_id)
 
         stmt = stmt.order_by(PodcastEpisode.published_at.desc())
+        if limit and limit > 0:
+            stmt = stmt.limit(limit)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
@@ -513,7 +517,9 @@ class PodcastRepository:
         metadata = episode.metadata_json or {}
         metadata["transcript_used"] = transcript_used
         metadata["summarized_at"] = datetime.now(timezone.utc).isoformat()
-        episode.metadata = metadata
+        metadata.pop("summary_error", None)
+        metadata.pop("summary_failed_at", None)
+        episode.metadata_json = metadata
 
         await self.db.commit()
         await self.db.refresh(episode)

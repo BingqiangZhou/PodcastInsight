@@ -557,6 +557,7 @@ class DatabaseBackedAISummaryService:
                 .values(
                     ai_summary=summary_content,
                     summary_version="1.0",
+                    status="summarized",
                     updated_at=datetime.now(timezone.utc),
                 )
             )

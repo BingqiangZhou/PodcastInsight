@@ -156,7 +156,9 @@ async def start_transcription(
             return db_response
 
         if transcription_request.force_regenerate:
-            existing_task = await transcription_service.get_episode_transcription(episode_id)
+            existing_task = await transcription_service.get_episode_transcription(
+                episode_id
+            )
             if existing_task:
                 logger.info(
                     "[FORCE] Deleting existing task %s for regeneration",
@@ -175,7 +177,9 @@ async def start_transcription(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Failed to start transcription for episode %s: %s", episode_id, exc)
+        logger.error(
+            "Failed to start transcription for episode %s: %s", episode_id, exc
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to start transcription: {exc}",
@@ -200,12 +204,21 @@ async def _handle_lock_and_create_task(
             transcription_service,
         )
 
-    task = await transcription_service.start_transcription(
-        episode_id,
-        transcription_request.transcription_model,
-    )
+    task = None
+    try:
+        task = await transcription_service.start_transcription(
+            episode_id,
+            transcription_request.transcription_model,
+        )
+    finally:
+        await state_manager.release_task_lock(episode_id, 0)
 
-    await state_manager.release_task_lock(episode_id, 0)
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create transcription task for episode {episode_id}",
+        )
+
     await state_manager.acquire_task_lock(episode_id, task.id)
     await state_manager.set_episode_task(episode_id, task.id)
 
@@ -216,7 +229,9 @@ async def _handle_lock_and_create_task(
         "Transcription task created, waiting for worker to start...",
     )
 
-    logger.info("[CREATED] New transcription task %s for episode %s", task.id, episode_id)
+    logger.info(
+        "[CREATED] New transcription task %s for episode %s", task.id, episode_id
+    )
     return _build_transcription_response(task, episode)
 
 
@@ -230,9 +245,13 @@ async def _handle_locked_episode(
     locked_task_id = await state_manager.is_episode_locked(episode_id)
 
     if locked_task_id:
-        logger.info("[LOCK] Episode %s already locked by task %s", episode_id, locked_task_id)
+        logger.info(
+            "[LOCK] Episode %s already locked by task %s", episode_id, locked_task_id
+        )
         try:
-            existing_task = await transcription_service.get_transcription_status(locked_task_id)
+            existing_task = await transcription_service.get_transcription_status(
+                locked_task_id
+            )
             if existing_task:
                 logger.info(
                     "[LOCK] Returning existing task %s (status: %s)",
@@ -247,7 +266,9 @@ async def _handle_locked_episode(
             )
             await _cleanup_stale_lock(state_manager, episode_id, locked_task_id)
         except Exception as exc:
-            logger.error("[LOCK] Error fetching locked task %s: %s", locked_task_id, exc)
+            logger.error(
+                "[LOCK] Error fetching locked task %s: %s", locked_task_id, exc
+            )
             await _cleanup_stale_lock(state_manager, episode_id, locked_task_id)
     else:
         logger.warning(
@@ -262,7 +283,9 @@ async def _handle_locked_episode(
     )
 
 
-async def _cleanup_stale_lock(state_manager, episode_id: int, task_id: Optional[int]) -> None:
+async def _cleanup_stale_lock(
+    state_manager, episode_id: int, task_id: Optional[int]
+) -> None:
     """Safely clean stale lock data."""
     try:
         if task_id:
@@ -325,7 +348,9 @@ def _build_transcription_response(task, episode) -> PodcastTranscriptionResponse
 )
 async def get_transcription(
     episode_id: int,
-    include_content: bool = Query(True, description="Whether to include full transcript"),
+    include_content: bool = Query(
+        True, description="Whether to include full transcript"
+    ),
     episode_service: PodcastEpisodeService = Depends(get_episode_service),
     transcription_service: DatabaseBackedTranscriptionService = Depends(
         get_transcription_service
@@ -387,14 +412,18 @@ async def get_transcription(
             hours = task.duration_seconds // 3600
             minutes = (task.duration_seconds % 3600) // 60
             seconds = task.duration_seconds % 60
-            response_data["formatted_duration"] = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+            response_data["formatted_duration"] = (
+                f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+            )
 
         if task.total_processing_time:
             response_data["formatted_processing_time"] = (
                 f"{task.total_processing_time:.2f} seconds"
             )
 
-        response_data["formatted_created_at"] = task.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        response_data["formatted_created_at"] = task.created_at.strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
         if task.started_at:
             response_data["formatted_started_at"] = task.started_at.strftime(
                 "%Y-%m-%d %H:%M:%S"
@@ -465,14 +494,21 @@ async def delete_transcription(
                     await state_manager.release_task_lock(episode_id, locked_task_id)
                     await state_manager.clear_task_progress(locked_task_id)
             except Exception as redis_error:
-                logger.warning("[DELETE] Failed to cleanup stale locks: %s", redis_error)
+                logger.warning(
+                    "[DELETE] Failed to cleanup stale locks: %s", redis_error
+                )
 
-        return {"message": "Transcription task deleted successfully", "episode_id": episode_id}
+        return {
+            "message": "Transcription task deleted successfully",
+            "episode_id": episode_id,
+        }
 
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Failed to delete transcription for episode %s: %s", episode_id, exc)
+        logger.error(
+            "Failed to delete transcription for episode %s: %s", episode_id, exc
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete transcription: {exc}",
@@ -526,7 +562,9 @@ async def get_transcription_status(
         if task.chunk_info and "chunks" in task.chunk_info:
             total_chunks = len(task.chunk_info["chunks"])
             if status_key == "transcribing" and task.progress_percentage > 45:
-                current_chunk = int(((task.progress_percentage - 45) / 50) * total_chunks)
+                current_chunk = int(
+                    ((task.progress_percentage - 45) / 50) * total_chunks
+                )
 
         eta_seconds = None
         if task.started_at and status_key not in ["completed", "failed", "cancelled"]:
@@ -606,7 +644,9 @@ async def schedule_episode_transcription_endpoint(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Failed to schedule transcription for episode %s: %s", episode_id, exc)
+        logger.error(
+            "Failed to schedule transcription for episode %s: %s", episode_id, exc
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to schedule transcription: {exc}",
@@ -666,12 +706,16 @@ async def get_episode_transcript_endpoint(
 async def batch_transcribe_subscription_endpoint(
     subscription_id: int,
     skip_existing: bool = Body(True, description="Skip episodes already transcribed"),
-    subscription_service: PodcastSubscriptionService = Depends(get_subscription_service),
+    subscription_service: PodcastSubscriptionService = Depends(
+        get_subscription_service
+    ),
     db: AsyncSession = Depends(get_db_session),
 ):
     """Batch schedule transcription for a subscription."""
     try:
-        subscription = await subscription_service.get_subscription_details(subscription_id)
+        subscription = await subscription_service.get_subscription_details(
+            subscription_id
+        )
         if not subscription:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -723,7 +767,9 @@ async def get_transcription_schedule_status(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Failed to get transcription status for episode %s: %s", episode_id, exc)
+        logger.error(
+            "Failed to get transcription status for episode %s: %s", episode_id, exc
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get transcription status: {exc}",
@@ -752,13 +798,17 @@ async def cancel_transcription_endpoint(
         success = await scheduler.cancel_transcription(episode_id)
         return {
             "success": success,
-            "message": "Transcription cancelled" if success else "No active transcription to cancel",
+            "message": "Transcription cancelled"
+            if success
+            else "No active transcription to cancel",
         }
 
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Failed to cancel transcription for episode %s: %s", episode_id, exc)
+        logger.error(
+            "Failed to cancel transcription for episode %s: %s", episode_id, exc
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to cancel transcription: {exc}",
@@ -773,12 +823,16 @@ async def cancel_transcription_endpoint(
 async def check_and_transcribe_new_episodes(
     subscription_id: int,
     hours_since_published: int = Body(24, description="Hours window for new episodes"),
-    subscription_service: PodcastSubscriptionService = Depends(get_subscription_service),
+    subscription_service: PodcastSubscriptionService = Depends(
+        get_subscription_service
+    ),
     scheduler: TranscriptionScheduler = Depends(get_scheduler),
 ):
     """Check recent episodes and schedule transcription."""
     try:
-        subscription = await subscription_service.get_subscription_details(subscription_id)
+        subscription = await subscription_service.get_subscription_details(
+            subscription_id
+        )
         if not subscription:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
