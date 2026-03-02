@@ -211,7 +211,7 @@ async def validate_api_key(
                 "messages": [{"role": "user", "content": "Hello"}],
             }
 
-            timeout = aiohttp.ClientTimeout(total=10)
+            timeout = aiohttp.ClientTimeout(total=600)
 
             logger.info(
                 f"Validating API key against URL: {target_url} with model: {model_id}"
@@ -302,7 +302,7 @@ async def validate_api_key(
                     )
                 except asyncio.TimeoutError:
                     # Timeout errors
-                    error_message = f"Timeout error: Request to {target_url} timed out after 10 seconds"
+                    error_message = f"Timeout error: Request to {target_url} timed out after 600 seconds"
                     logger.error(
                         f"TimeoutError connecting to {target_url}", exc_info=True
                     )
