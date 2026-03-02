@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.13.6](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.13.5...v0.13.6) - 2026-03-02 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.13.6))
+
+### 🐛 Bug Fixes
+
+- *(ai)* Increase API key validation timeout to handle slow model responses ([41ff87f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/41ff87f20e6f4fd8ef02973a7861b950275e62bf))
+- *(ai)* Use exact matching for invalid API key detection to avoid false positives ([68714f5](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/68714f5daafca1b97622521204b74ac18431f90b))
+- *(podcast)* Handle Redis client lifecycle across Celery event loops and refactor lock ownership ([6a61f4f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6a61f4fa625be377929df670656d519278cacdaf))
+- *(podcast)* Prevent play_count inflation on heartbeat updates and add per-user playback snapshot isolation ([5b9da86](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/5b9da86bcbe0e5ce848c2dd41f441886cb839f94))
+- *(podcast)* Defer queue expiration until after logging to prevent accessing stale items ([8b46490](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8b46490fe5b94e4ce3db52f38fe9e2ffa7a64938))
+
+### 🚀 Features
+
+- *(admin)* Support testing stored API keys directly from database ([ba32f15](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ba32f15233b0e17224edd43e88e4fec29de35a76))
+- *(podcast)* Add pending transcription backlog processing with scheduled dispatch ([80fd3b2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/80fd3b2af4f5fdb9c96c76b490750d548278ddbe))
+
+### 🚜 Refactor
+
+- *(podcast)* Filter missing transcripts before applying processing limit and add comprehensive tests ([4858726](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4858726b76524d0e790108c68f8fd6873123e447))
+- *(podcast)* Improve Celery task routing and transcription pipeline handling ([1047688](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/10476884e526598daa52a45bc64cd34a894cf922))
+- *(podcast)* Consolidate transcription and summary pipeline with centralized locking ([f2a5c67](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f2a5c67a694c740a43fd7ce3a793391edb7989c1))
+
+
+
 ## [0.13.5](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.13.4...v0.13.5) - 2026-03-01 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.13.5))
 
 ### 🎨 Styling
