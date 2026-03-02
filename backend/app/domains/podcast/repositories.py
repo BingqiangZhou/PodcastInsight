@@ -1015,6 +1015,7 @@ class PodcastRepository:
         queue = await self.get_queue_with_items(user_id)
         revision_before = queue.revision or 0
         ordered_items = self._sorted_queue_items(queue)
+        should_expire_queue = False
 
         target = next(
             (item for item in ordered_items if item.episode_id == episode_id),
@@ -1049,16 +1050,21 @@ class PodcastRepository:
             await self.db.commit()
             # expire_on_commit=False means the identity map is stale after commit.
             # Expire the queue so get_queue_with_items re-fetches fresh items.
-            self.db.expire(queue)
+            should_expire_queue = True
+
+        queue_size = len(ordered_items)
+        revision_after = queue.revision or revision_before
 
         self._queue_operation_log(
             "remove_item",
             user_id=user_id,
-            queue_size=len(self._sorted_queue_items(queue)),
+            queue_size=queue_size,
             revision_before=revision_before,
-            revision_after=queue.revision or revision_before,
+            revision_after=revision_after,
             elapsed_ms=(perf_counter() - started_at) * 1000,
         )
+        if should_expire_queue:
+            self.db.expire(queue)
         return await self.get_queue_with_items(user_id)
 
     async def activate_episode(

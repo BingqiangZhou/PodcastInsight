@@ -40,6 +40,7 @@ def _mock_db() -> SimpleNamespace:
         flush=AsyncMock(),
         commit=AsyncMock(),
         delete=AsyncMock(),
+        expire=Mock(),
     )
 
 
@@ -194,3 +195,55 @@ async def test_add_or_move_to_tail_compacts_positions_when_threshold_reached() -
 
     repo._rewrite_queue_positions.assert_awaited_once()
     db.commit.assert_awaited_once()
+
+
+class _ExpirableQueue:
+    def __init__(
+        self,
+        *,
+        queue_id: int,
+        user_id: int,
+        items: list[SimpleNamespace],
+        current_episode_id: int | None,
+        revision: int = 0,
+    ) -> None:
+        self.id = queue_id
+        self.user_id = user_id
+        self._items = items
+        self.current_episode_id = current_episode_id
+        self.revision = revision
+        self.updated_at = None
+        self._expired = False
+
+    @property
+    def items(self) -> list[SimpleNamespace]:
+        if self._expired:
+            raise AssertionError("queue.items accessed after expire")
+        return self._items
+
+
+@pytest.mark.asyncio
+async def test_remove_item_does_not_access_queue_after_expire() -> None:
+    db = _mock_db()
+    repo = PodcastRepository(db=db, redis=AsyncMock())
+    first = _queue_item(item_id=1, episode_id=10, position=0)
+    second = _queue_item(item_id=2, episode_id=11, position=repo._queue_position_step)
+    queue = _ExpirableQueue(
+        queue_id=1,
+        user_id=1,
+        items=[first, second],
+        current_episode_id=10,
+        revision=0,
+    )
+
+    db.delete = AsyncMock(side_effect=lambda item: queue.items.remove(item))
+    db.expire = Mock(side_effect=lambda obj: setattr(obj, "_expired", True))
+
+    repo.get_queue_with_items = AsyncMock(side_effect=[queue, queue])
+    repo._rewrite_queue_positions = AsyncMock()
+
+    result = await repo.remove_item(user_id=1, episode_id=11)
+
+    assert result is queue
+    db.commit.assert_awaited_once()
+    db.expire.assert_called_once_with(queue)
