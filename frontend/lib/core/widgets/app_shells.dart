@@ -658,27 +658,29 @@ class ProfileShell extends StatelessWidget {
           children: [
             const AppPageBackdrop(),
             ResponsiveContainer(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HeroHeader(
-                      key: const Key('profile_hero_header'),
-                      title: title,
-                      subtitle: subtitle,
-                      trailing: trailing,
-                      badges: badges,
-                    ),
-                    if (showSummary) ...[
-                      SizedBox(height: topSectionSpacing),
-                      summary,
-                      const SizedBox(height: 12),
-                    ],
-                    if (!showSummary) SizedBox(height: topSectionSpacing),
-                    child,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HeroHeader(
+                    key: const Key('profile_hero_header'),
+                    title: title,
+                    subtitle: subtitle,
+                    trailing: trailing,
+                    badges: badges,
+                  ),
+                  if (showSummary) ...[
+                    SizedBox(height: topSectionSpacing),
+                    summary,
+                    const SizedBox(height: 12),
                   ],
-                ),
+                  if (!showSummary) SizedBox(height: topSectionSpacing),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: child,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
