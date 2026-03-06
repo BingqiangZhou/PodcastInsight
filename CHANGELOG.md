@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.14.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.13.6...v0.14.0) - 2026-03-06 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.14.0))
+
+### 🐛 Bug Fixes
+
+- *(podcast)* Fix row extraction after adding published_at to pending episodes query ([8e148d7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8e148d76c1b2b11668346dafeeae56e77a5326f1))
+
+### 🚀 Features
+
+- *(podcast)* Redesign queue sheet with improved state management and UI ([732be59](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/732be599f2df2a7f9037ae191ae5498615dcc9bc))
+
+### 🚜 Refactor
+
+- *(podcast)* Restructure expanded player into reusable components with modal overlay ([c75cde8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c75cde8dc50dc13d54448e9616c9f47c31a4e981))
+- *(core)* Implement Mindriver glassmorphism design system with reusable app shells ([36db611](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/36db6118eaf08b09c2ff462115a09297e007f6b8))
+- *(profile)* Enable podcast player on profile tab with improved spacing and positioning ([92ed51d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/92ed51d80681b353394d3a07478dcfd355e92085))
+- *(podcast)* Replace expand/collapse with scroll-based pagination for discover charts ([82fc419](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/82fc4196be61ce46ec19ff42c2c772766262ec7a))
+- *(core)* Unify shell layouts with rounded viewport and remove compact variants ([b9d8dca](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b9d8dca14c1cfbd4d670edd14ceb670e4d9a593e))
+- *(core)* Apply glassmorphism design system to profile and podcast pages ([60cf340](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/60cf340b413a72f3cb57dbdc59fe281f83a1ffa4))
+- *(core)* Extract reusable header components and simplify navigation elements ([220bdf8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/220bdf85b9f7781945abc22be90bbfc519b01589))
+- *(core)* Extract LoadingStatusContent and add circular button variant ([f068471](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f06847183490ccc95e1524fc9b860c686476eb3e))
+- *(core)* Unify system UI overlay and add bottom backdrop to mobile navigation ([9866f09](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9866f09ac6aba57e5651dc1e9848b6622364c597))
+- *(settings)* Improve update dialog platform handling and navigation bar design ([3cb5c34](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3cb5c345a54d3e9ce3fce7647e49c7debc935f56))
+
+
+
 ## [0.13.6](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.13.5...v0.13.6) - 2026-03-02 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.13.6))
 
 ### 🐛 Bug Fixes

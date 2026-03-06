@@ -1,6 +1,6 @@
 # Personal AI Assistant
 
-[![Version](https://img.shields.io/badge/version-0.13.6-blue)](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.13.6)
+[![Version](https://img.shields.io/badge/version-0.14.0-blue)](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.14.0)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](https://www.python.org/)
 [![Flutter](https://img.shields.io/badge/flutter-3.0+-cyan)](https://flutter.dev/)
@@ -10,7 +10,7 @@
 
 An extensible personal AI assistant that integrates podcast subscription, audio playback, and AI features. Designed to create a personalized information processing center through local deployment and AI capabilities.
 
-**📦 当前版本 / Current Version: [v0.13.6](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.13.6)** (2026-03-02)
+**📦 当前版本 / Current Version: [v0.14.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.14.0)** (2026-03-07)
 
 ## 📋 [更新日志 / Changelog](CHANGELOG.md)
 
