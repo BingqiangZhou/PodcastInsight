@@ -317,8 +317,20 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
               maxHeight: MediaQuery.of(sheetContext).size.height * 0.8,
             ),
             child: DiscoverShowEpisodesSheet(
+              showId: showId,
               showTitle: lookup.collectionName ?? item.title,
               episodes: lookup.episodes,
+              onEpisodeSelected: (episode) async {
+                Navigator.of(sheetContext).pop();
+                await _showEpisodeDetailSheetFromSearch(episode);
+              },
+              onPlayEpisode: (episode) async {
+                Navigator.of(sheetContext).pop();
+                await _playDiscoverEpisode(
+                  episode: episode,
+                  showId: showId,
+                );
+              },
             ),
           );
         },

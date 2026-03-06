@@ -2,16 +2,24 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/app_localizations.dart';
 import '../../data/models/itunes_episode_lookup_model.dart';
+import '../../data/models/podcast_episode_model.dart';
+import 'simplified_episode_card.dart';
 
 class DiscoverShowEpisodesSheet extends StatelessWidget {
   const DiscoverShowEpisodesSheet({
     super.key,
+    required this.showId,
     required this.showTitle,
     required this.episodes,
+    required this.onEpisodeSelected,
+    required this.onPlayEpisode,
   });
 
+  final int showId;
   final String showTitle;
   final List<ITunesPodcastEpisodeResult> episodes;
+  final void Function(ITunesPodcastEpisodeResult episode) onEpisodeSelected;
+  final void Function(ITunesPodcastEpisodeResult episode) onPlayEpisode;
 
   @override
   Widget build(BuildContext context) {
@@ -50,30 +58,38 @@ class DiscoverShowEpisodesSheet extends StatelessWidget {
                         style: theme.textTheme.bodyMedium,
                       ),
                     )
-                  : ListView.separated(
+                  : ListView.builder(
                       shrinkWrap: true,
                       itemCount: episodes.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final episode = episodes[index];
-                        return ListTile(
-                          key: Key(
-                            'discover_show_episode_row_${episode.trackId}',
-                          ),
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            episode.trackName,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              _buildMetaText(episode),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
+                        final now = DateTime.now();
+                        final discoverEpisode = PodcastEpisodeModel(
+                          id: episode.trackId,
+                          subscriptionId: 0,
+                          title: episode.trackName,
+                          subscriptionTitle: episode.collectionName,
+                          description: episode.description ?? episode.shortDescription ?? '',
+                          audioUrl: episode.resolvedAudioUrl ?? '',
+                          audioDuration: episode.trackTimeMillis == null
+                              ? null
+                              : (episode.trackTimeMillis! / 1000).round(),
+                          publishedAt: episode.releaseDate ?? now,
+                          imageUrl: episode.artworkUrl600 ?? episode.artworkUrl100,
+                          itemLink: episode.trackViewUrl,
+                          metadata: {
+                            'discover_preview': true,
+                            'source': 'top_charts',
+                            'show_id': showId,
+                            'track_id': episode.trackId,
+                          },
+                          createdAt: now,
+                        );
+
+                        return SimplifiedEpisodeCard(
+                          episode: discoverEpisode,
+                          onTap: () => onEpisodeSelected(episode),
+                          onPlay: () => onPlayEpisode(episode),
                         );
                       },
                     ),
@@ -84,33 +100,5 @@ class DiscoverShowEpisodesSheet extends StatelessWidget {
     );
   }
 
-  String _buildMetaText(ITunesPodcastEpisodeResult episode) {
-    final parts = <String>[];
-    if (episode.releaseDate != null) {
-      parts.add(_formatDate(episode.releaseDate!));
-    }
-    if (episode.trackTimeMillis != null && episode.trackTimeMillis! > 0) {
-      parts.add(
-        _formatDuration(Duration(milliseconds: episode.trackTimeMillis!)),
-      );
-    }
-    return parts.join(' · ');
-  }
 
-  String _formatDate(DateTime dateTime) {
-    final date = dateTime.toLocal();
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '${date.year}-$month-$day';
-  }
-
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-    if (hours > 0) {
-      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    }
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
 }
