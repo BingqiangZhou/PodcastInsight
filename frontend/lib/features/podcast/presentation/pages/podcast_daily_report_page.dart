@@ -140,6 +140,7 @@ class _PodcastDailyReportPageState
         unawaited(_showCalendarPanel());
       },
       icon: Icons.calendar_month_outlined,
+      circular: true,
     );
   }
 

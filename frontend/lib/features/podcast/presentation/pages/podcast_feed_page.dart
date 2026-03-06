@@ -77,12 +77,13 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
         children: [
           _buildDailyReportEntryTile(context, compact: false, heroStyle: true),
           const SizedBox(width: 8),
-          IconButton(
+          HeaderCapsuleActionButton(
+            tooltip: l10n.profile_subscriptions,
             onPressed: () {
               context.push('/profile/subscriptions');
             },
-            icon: const Icon(Icons.subscriptions_outlined),
-            tooltip: l10n.profile_subscriptions,
+            icon: Icons.subscriptions_outlined,
+            circular: true,
           ),
         ],
       ),

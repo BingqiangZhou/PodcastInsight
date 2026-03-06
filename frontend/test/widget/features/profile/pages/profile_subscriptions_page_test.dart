@@ -147,7 +147,11 @@ void main() {
       tester.widget<HeaderCapsuleActionButton>(
         find.byKey(const Key('profile_subscriptions_action_add')),
       ),
-      isNotNull,
+      isA<HeaderCapsuleActionButton>().having(
+        (button) => button.circular,
+        'circular',
+        isTrue,
+      ),
     );
     expect(
       find.byKey(const Key('profile_subscriptions_action_bulk_import')),
@@ -157,7 +161,11 @@ void main() {
       tester.widget<HeaderCapsuleActionButton>(
         find.byKey(const Key('profile_subscriptions_action_bulk_import')),
       ),
-      isNotNull,
+      isA<HeaderCapsuleActionButton>().having(
+        (button) => button.circular,
+        'circular',
+        isTrue,
+      ),
     );
 
     await tester.tap(find.byKey(const Key('profile_subscriptions_action_add')));

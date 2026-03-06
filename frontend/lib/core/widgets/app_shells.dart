@@ -247,6 +247,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
     this.label,
     this.trailingIcon,
     this.padding,
+    this.circular = false,
   });
 
   final IconData icon;
@@ -255,11 +256,21 @@ class HeaderCapsuleActionButton extends StatelessWidget {
   final Widget? label;
   final IconData? trailingIcon;
   final EdgeInsetsGeometry? padding;
+  final bool circular;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasLabel = label != null;
+    final iconOnlyCircular = circular && !hasLabel && trailingIcon == null;
+    final effectivePadding =
+        padding ??
+        (iconOnlyCircular
+            ? EdgeInsets.zero
+            : EdgeInsets.symmetric(
+                horizontal: hasLabel ? 10 : 12,
+                vertical: hasLabel ? 8 : 10,
+              ));
     final button = Material(
       color: theme.colorScheme.primary.withValues(
         alpha: onPressed == null ? 0.05 : 0.09,
@@ -275,46 +286,48 @@ class HeaderCapsuleActionButton extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
         onTap: onPressed,
-        child: Padding(
-          padding:
-              padding ??
-              EdgeInsets.symmetric(
-                horizontal: hasLabel ? 10 : 12,
-                vertical: hasLabel ? 8 : 10,
-              ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant.withValues(
-                  alpha: onPressed == null ? 0.6 : 1,
-                ),
-              ),
-              if (hasLabel) ...[
-                const SizedBox(width: 5),
-                DefaultTextStyle(
-                  style: theme.textTheme.labelMedium!.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.onSurface.withValues(
+        child: ConstrainedBox(
+          constraints: iconOnlyCircular
+              ? const BoxConstraints.tightFor(width: 40, height: 40)
+              : const BoxConstraints(),
+          child: Center(
+            child: Padding(
+              padding: effectivePadding,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
                       alpha: onPressed == null ? 0.6 : 1,
                     ),
                   ),
-                  child: label!,
-                ),
-              ],
-              if (trailingIcon != null) ...[
-                SizedBox(width: hasLabel ? 4 : 0),
-                Icon(
-                  trailingIcon,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant.withValues(
-                    alpha: onPressed == null ? 0.6 : 1,
-                  ),
-                ),
-              ],
-            ],
+                  if (hasLabel) ...[
+                    const SizedBox(width: 5),
+                    DefaultTextStyle(
+                      style: theme.textTheme.labelMedium!.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: onPressed == null ? 0.6 : 1,
+                        ),
+                      ),
+                      child: label!,
+                    ),
+                  ],
+                  if (trailingIcon != null) ...[
+                    SizedBox(width: hasLabel ? 4 : 0),
+                    Icon(
+                      trailingIcon,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: onPressed == null ? 0.6 : 1,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

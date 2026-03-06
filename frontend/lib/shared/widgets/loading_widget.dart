@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../core/widgets/app_shells.dart';
-
 class LoadingWidget extends StatelessWidget {
   final double? size;
   final Color? color;
+  final double strokeWidth;
 
-  const LoadingWidget({super.key, this.size, this.color});
+  const LoadingWidget({
+    super.key,
+    this.size,
+    this.color,
+    this.strokeWidth = 2.5,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +21,71 @@ class LoadingWidget extends StatelessWidget {
       width: size ?? 24,
       height: size ?? 24,
       child: CircularProgressIndicator(
-        strokeWidth: 2.5,
+        strokeWidth: strokeWidth,
         valueColor: AlwaysStoppedAnimation<Color>(resolvedColor),
+      ),
+    );
+  }
+}
+
+class LoadingStatusContent extends StatelessWidget {
+  const LoadingStatusContent({
+    super.key,
+    this.title,
+    this.subtitle,
+    this.spinnerSize = 48,
+    this.spinnerStrokeWidth = 2.5,
+    this.spinnerColor,
+    this.maxWidth = 420,
+    this.gapAfterSpinner = 16,
+    this.gapAfterTitle = 8,
+  });
+
+  final String? title;
+  final String? subtitle;
+  final double spinnerSize;
+  final double spinnerStrokeWidth;
+  final Color? spinnerColor;
+  final double maxWidth;
+  final double gapAfterSpinner;
+  final double gapAfterTitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LoadingWidget(
+            size: spinnerSize,
+            color: spinnerColor ?? scheme.primary,
+            strokeWidth: spinnerStrokeWidth,
+          ),
+          if (title != null) ...[
+            SizedBox(height: gapAfterSpinner),
+            Text(
+              title!,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+          if (subtitle != null) ...[
+            SizedBox(height: title != null ? gapAfterTitle : gapAfterSpinner),
+            Text(
+              subtitle!,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -46,23 +113,13 @@ class LoadingOverlay extends StatelessWidget {
           Container(
             color: scheme.scrim.withValues(alpha: 0.5),
             child: Center(
-              child: GlassPanel(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 20,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const LoadingWidget(size: 48),
-                    if (loadingText != null) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        loadingText!,
-                        style: TextStyle(color: scheme.onSurface, fontSize: 16),
-                      ),
-                    ],
-                  ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: LoadingStatusContent(
+                  key: const Key('loading_overlay_content'),
+                  subtitle: loadingText,
+                  spinnerSize: 48,
+                  spinnerColor: scheme.primary,
                 ),
               ),
             ),

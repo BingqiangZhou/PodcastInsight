@@ -10,10 +10,10 @@ import '../localization/locale_provider.dart';
 import '../providers/route_provider.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
-import '../theme/app_colors.dart';
 import '../theme/theme_provider.dart';
 import '../widgets/app_shells.dart';
 import '../utils/app_logger.dart' as logger;
+import '../../shared/widgets/loading_widget.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/settings/presentation/providers/app_update_provider.dart';
 import '../../features/settings/presentation/widgets/update_dialog.dart';
@@ -34,8 +34,8 @@ class _SplashScreenWidget extends StatelessWidget {
         children: [
           const AppPageBackdrop(),
           Center(
-            child: GlassPanel(
-              padding: const EdgeInsets.fromLTRB(32, 32, 32, 28),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -69,10 +69,10 @@ class _SplashScreenWidget extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 24),
-                  const SizedBox(
-                    width: 30,
-                    height: 30,
-                    child: CircularProgressIndicator(strokeWidth: 3),
+                  const LoadingWidget(
+                    key: Key('app_init_loading_indicator'),
+                    size: 30,
+                    strokeWidth: 3,
                   ),
                 ],
               ),

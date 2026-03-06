@@ -225,7 +225,11 @@ void main() {
         tester.widget<HeaderCapsuleActionButton>(
           find.byKey(const Key('daily_report_calendar_menu_button')),
         ),
-        isNotNull,
+        isA<HeaderCapsuleActionButton>().having(
+          (button) => button.circular,
+          'circular',
+          isTrue,
+        ),
       );
       expect(find.byKey(const Key('daily_report_calendar')), findsNothing);
       expect(find.text('Daily Report'), findsOneWidget);

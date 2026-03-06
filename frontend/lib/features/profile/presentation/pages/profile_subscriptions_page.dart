@@ -184,6 +184,7 @@ class _ProfileSubscriptionsPageState
       tooltip: tooltip,
       onPressed: onPressed,
       icon: icon,
+      circular: true,
     );
   }
 

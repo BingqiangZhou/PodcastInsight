@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +15,31 @@ const _queueSubtitleSeparator = ' • ';
 
 void main() {
   group('PodcastQueueSheet', () {
+    testWidgets('opening load shows bare loading content without state card', (
+      tester,
+    ) async {
+      final controller = PendingPodcastQueueController();
+      await tester.pumpWidget(_createWidget(controller));
+      await tester.pump();
+
+      expect(find.text('Loading queue'), findsOneWidget);
+      expect(find.text('Fetching the latest playback order.'), findsOneWidget);
+      expect(find.byKey(const Key('queue_loading_content')), findsOneWidget);
+      expect(find.byKey(const Key('queue_state_card')), findsNothing);
+    });
+
+    testWidgets('empty queue keeps state card styling', (tester) async {
+      final controller = TestPodcastQueueController(
+        const PodcastQueueModel(currentEpisodeId: null, items: []),
+      );
+      await tester.pumpWidget(_createWidget(controller));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Queue is empty'), findsOneWidget);
+      expect(find.byKey(const Key('queue_state_card')), findsOneWidget);
+      expect(find.byKey(const Key('queue_loading_content')), findsNothing);
+    });
+
     testWidgets(
       'uses custom left drag handle and does not overlap delete icon',
       (tester) async {
@@ -230,7 +257,7 @@ void main() {
 }
 
 Widget _createWidget(
-  TestPodcastQueueController controller, {
+  PodcastQueueController controller, {
   TestAudioPlayerNotifier? audioNotifier,
 }) {
   return ProviderScope(
@@ -349,6 +376,14 @@ class TestPodcastQueueController extends PodcastQueueController {
   Future<PodcastQueueModel> activateEpisode(int episodeId) async {
     return state.value ?? initialQueue;
   }
+}
+
+class PendingPodcastQueueController extends PodcastQueueController {
+  final Completer<PodcastQueueModel> _completer =
+      Completer<PodcastQueueModel>();
+
+  @override
+  Future<PodcastQueueModel> build() => _completer.future;
 }
 
 PodcastEpisodeModel _episode({required int id}) {

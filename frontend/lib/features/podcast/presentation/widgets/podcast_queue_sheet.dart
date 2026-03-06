@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/adaptive_sheet_helper.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
+import '../../../../shared/widgets/loading_widget.dart';
 import '../../data/models/podcast_queue_model.dart';
 import '../constants/podcast_ui_constants.dart';
 import '../providers/podcast_providers.dart';
@@ -76,11 +77,9 @@ class PodcastQueueSheet extends ConsumerWidget {
         queueOperation: queueOperation,
         queueSyncing: queueSyncing,
         onRefresh: () => notifier.loadQueue(),
-        body: const _QueueStateList(
-          icon: Icons.autorenew_rounded,
+        body: const _QueueLoadingState(
           title: 'Loading queue',
           subtitle: 'Fetching the latest playback order.',
-          showSpinner: true,
         ),
       );
     } else if (queue != null) {
@@ -310,6 +309,33 @@ class _QueueInfoChip extends StatelessWidget {
   }
 }
 
+class _QueueLoadingState extends StatelessWidget {
+  const _QueueLoadingState({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+      children: [
+        SizedBox(height: MediaQuery.of(context).size.height * 0.08),
+        Center(
+          child: LoadingStatusContent(
+            key: const Key('queue_loading_content'),
+            title: title,
+            subtitle: subtitle,
+            spinnerSize: 40,
+            spinnerStrokeWidth: 2.5,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _QueueStateList extends StatelessWidget {
   const _QueueStateList({
     required this.icon,
@@ -334,6 +360,7 @@ class _QueueStateList extends StatelessWidget {
       children: [
         SizedBox(height: MediaQuery.of(context).size.height * 0.08),
         Container(
+          key: const Key('queue_state_card'),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerLow,
