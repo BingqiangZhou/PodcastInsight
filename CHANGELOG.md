@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.14.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.14.0...v0.14.1) - 2026-03-06 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.14.1))
+
+### 🎨 Styling
+
+- *(core)* Disable inkwell splash effects on navigation items ([392024e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/392024ec5edf5cc0145fa544ece44c963d71856e))
+- *(podcast)* Adjust summary text style in daily report page ([217556d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/217556dcc0429285b319eb89f4d7701acf5a8f01))
+
+### 🚜 Refactor
+
+- *(core)* Restructure profile shell layout for better scroll behavior ([f790515](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f7905151c18b867d7750371786cdd5f29f53ff78))
+
+
+
 ## [0.14.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.13.6...v0.14.0) - 2026-03-06 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.14.0))
 
 ### 🐛 Bug Fixes
