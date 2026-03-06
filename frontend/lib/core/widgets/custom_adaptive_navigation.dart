@@ -375,6 +375,9 @@ class CustomAdaptiveNavigation extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.transparent,
           child: Container(
             width: 52,
             height: 52,
@@ -409,6 +412,9 @@ class CustomAdaptiveNavigation extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         child: Container(
           height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -489,6 +495,9 @@ class CustomAdaptiveNavigation extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Column(
