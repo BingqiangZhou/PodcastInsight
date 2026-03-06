@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_daily_report_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
@@ -158,6 +159,45 @@ void main() {
   });
 
   group('PodcastDailyReportPage', () {
+    testWidgets('renders glass loading state while initial report is pending', (
+      tester,
+    ) async {
+      final previousDay = _dateOnlyNowMinus(1);
+      await tester.pumpWidget(
+        _buildReportApp(
+          dailyReportNotifier: _LoadingDailyReportNotifier(),
+          datesNotifier: _StaticDailyReportDatesNotifier(_dates([previousDay])),
+          selectedDateNotifier: _FixedSelectedDailyReportDateNotifier(
+            previousDay,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Daily Report'), findsOneWidget);
+      expect(find.text('Loading daily report...'), findsWidgets);
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+    });
+
+    testWidgets('renders retry action when initial report load fails', (
+      tester,
+    ) async {
+      final previousDay = _dateOnlyNowMinus(1);
+      await tester.pumpWidget(
+        _buildReportApp(
+          dailyReportNotifier: _ErrorDailyReportNotifier(),
+          datesNotifier: _StaticDailyReportDatesNotifier(_dates([previousDay])),
+          selectedDateNotifier: _FixedSelectedDailyReportDateNotifier(
+            previousDay,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Failed to load feed'), findsWidgets);
+      expect(find.text('Retry'), findsOneWidget);
+    });
+
     testWidgets('renders daily report page with calendar action and items', (
       tester,
     ) async {
@@ -181,7 +221,7 @@ void main() {
       );
       expect(find.byKey(const Key('daily_report_calendar')), findsNothing);
       expect(find.text('Daily Report'), findsOneWidget);
-      expect(find.text(_dateKey(previousDay)), findsOneWidget);
+      expect(find.text(_dateKey(previousDay)), findsWidgets);
       expect(find.text('Report summary ${previousDay.day}'), findsOneWidget);
     });
 
@@ -309,8 +349,8 @@ void main() {
       await tester.tap(find.byKey(_calendarDayKey(twoDaysAgo)));
       await tester.pumpAndSettle();
 
-      expect(find.text('No daily report available yet'), findsOneWidget);
-      expect(find.text(_dateKey(twoDaysAgo)), findsOneWidget);
+      expect(find.text('No daily report available yet'), findsWidgets);
+      expect(find.text(_dateKey(twoDaysAgo)), findsWidgets);
       expect(
         find.byKey(const Key('daily_report_regenerate_button')),
         findsOneWidget,
@@ -413,7 +453,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('No daily report available yet'), findsOneWidget);
+      expect(find.text('No daily report available yet'), findsWidgets);
     });
 
     testWidgets('shows refresh button and generates report', (tester) async {
@@ -540,6 +580,8 @@ Widget _buildReportApp({
         ),
     ],
     child: MaterialApp.router(
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -721,6 +763,34 @@ class _GeneratingDailyReportNotifier extends DailyReportNotifier {
     lastGenerateDate = date;
     state = AsyncValue.data(generatedReport);
     return generatedReport;
+  }
+}
+
+class _LoadingDailyReportNotifier extends DailyReportNotifier {
+  @override
+  FutureOr<PodcastDailyReportResponse?> build() => null;
+
+  @override
+  Future<PodcastDailyReportResponse?> load({
+    DateTime? date,
+    bool forceRefresh = false,
+  }) async {
+    state = const AsyncValue.loading();
+    return null;
+  }
+}
+
+class _ErrorDailyReportNotifier extends DailyReportNotifier {
+  @override
+  FutureOr<PodcastDailyReportResponse?> build() => null;
+
+  @override
+  Future<PodcastDailyReportResponse?> load({
+    DateTime? date,
+    bool forceRefresh = false,
+  }) async {
+    state = AsyncValue.error(StateError('load failed'), StackTrace.empty);
+    return null;
   }
 }
 
