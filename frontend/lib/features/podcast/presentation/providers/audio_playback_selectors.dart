@@ -20,6 +20,14 @@ typedef AudioMiniProgress = ({
   int durationMs,
 });
 
+typedef AudioCurrentQueueProgress = ({
+  int? currentEpisodeId,
+  int positionMs,
+  int durationMs,
+  String formattedPosition,
+  String formattedDuration,
+});
+
 final audioCurrentEpisodeProvider = Provider<PodcastEpisodeModel?>((ref) {
   return ref.watch(audioPlayerProvider.select((state) => state.currentEpisode));
 });
@@ -54,6 +62,22 @@ final audioMiniProgressProvider = Provider<AudioMiniProgress>((ref) {
         formattedDuration: state.formattedDuration,
         positionMs: state.position,
         durationMs: state.duration,
+      ),
+    ),
+  );
+});
+
+final audioCurrentQueueProgressProvider = Provider<AudioCurrentQueueProgress>((
+  ref,
+) {
+  return ref.watch(
+    audioPlayerProvider.select(
+      (state) => (
+        currentEpisodeId: state.currentEpisode?.id,
+        positionMs: state.position,
+        durationMs: state.duration,
+        formattedPosition: state.formattedPosition,
+        formattedDuration: state.formattedDuration,
       ),
     ),
   );

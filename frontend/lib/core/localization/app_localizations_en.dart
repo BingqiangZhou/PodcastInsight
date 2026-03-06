@@ -1419,6 +1419,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get queue_is_empty => 'Queue is empty';
 
   @override
+  String get queue_up_next => 'Up Next';
+
+  @override
+  String get queue_now_playing => 'Now playing';
+
+  @override
+  String get queue_in_queue => 'in queue';
+
+  @override
+  String get queue_remaining_label => 'Remaining';
+
+  @override
+  String get queue_syncing => 'Syncing queue';
+
+  @override
+  String get queue_saving_order => 'Saving order';
+
+  @override
+  String get queue_updating => 'Updating queue';
+
+  @override
+  String get queue_subtitle_separator => ' • ';
+
+  @override
   String failed_to_load_queue(String error) {
     return 'Failed to load queue: $error';
   }

@@ -1919,6 +1919,38 @@
     "@queue_is_empty":  {
                             "description":  "队列为空时显示的消息"
                         },
+    "queue_up_next":  "接下来",
+    "@queue_up_next":  {
+                           "description":  "播放队列面板标题"
+                       },
+    "queue_now_playing":  "正在播放",
+    "@queue_now_playing":  {
+                              "description":  "播放列表中当前播放区域标签"
+                          },
+    "queue_in_queue":  "待播",
+    "@queue_in_queue":  {
+                           "description":  "队列数量后缀"
+                       },
+    "queue_remaining_label":  "剩余",
+    "@queue_remaining_label":  {
+                                  "description":  "队列剩余时长前的标签"
+                              },
+    "queue_syncing":  "正在同步队列",
+    "@queue_syncing":  {
+                           "description":  "队列同步时的状态文案"
+                       },
+    "queue_saving_order":  "正在保存顺序",
+    "@queue_saving_order":  {
+                                "description":  "保存队列排序时的状态文案"
+                            },
+    "queue_updating":  "正在更新队列",
+    "@queue_updating":  {
+                            "description":  "队列内容更新时的状态文案"
+                        },
+    "queue_subtitle_separator":  " · ",
+    "@queue_subtitle_separator":  {
+                                      "description":  "播客名称和播放进度之间的分隔符"
+                                  },
     "failed_to_load_queue":  "加载队列失败：{error}",
     "@failed_to_load_queue":  {
                                   "description":  "加载队列失败时的错误消息",

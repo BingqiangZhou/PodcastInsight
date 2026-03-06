@@ -977,6 +977,15 @@ String _formatMilliseconds(int value) {
 
 Future<void> _showQueueSheet(BuildContext context, WidgetRef ref) async {
   final queueController = ref.read(podcastQueueControllerProvider.notifier);
-  unawaited(queueController.refreshQueueInBackground());
+  final queueState = ref.read(podcastQueueControllerProvider);
+  if (queueState.hasValue && queueState.value != null) {
+    unawaited(queueController.refreshQueueInBackground());
+  } else {
+    unawaited(
+      queueController.loadQueue(forceRefresh: false).catchError((_) {
+        // Let the sheet render its own error state if the initial fetch fails.
+      }),
+    );
+  }
   await PodcastQueueSheet.show(context);
 }

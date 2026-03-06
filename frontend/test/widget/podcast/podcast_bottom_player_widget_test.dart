@@ -36,7 +36,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(PodcastQueueSheet), findsOneWidget);
-      expect(queueController.refreshQueueInBackgroundCalls, 1);
+      expect(queueController.queueOpenPreparationCalls, 1);
       await _closeQueueSheet(tester);
     });
 
@@ -65,7 +65,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 250));
 
         expect(find.byType(PodcastQueueSheet), findsOneWidget);
-        expect(queueController.refreshQueueInBackgroundCalls, 1);
+        expect(queueController.queueOpenPreparationCalls, 1);
         await tester.pump(const Duration(seconds: 1));
         await _closeQueueSheet(tester);
       },
@@ -212,7 +212,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(PodcastQueueSheet), findsOneWidget);
-      expect(queueController.refreshQueueInBackgroundCalls, 1);
+      expect(queueController.queueOpenPreparationCalls, 1);
       await _closeQueueSheet(tester);
     });
 
@@ -821,6 +821,10 @@ class TestPodcastQueueController extends PodcastQueueController {
 
   final Duration refreshDelay;
   int refreshQueueInBackgroundCalls = 0;
+  int loadQueueCalls = 0;
+
+  int get queueOpenPreparationCalls =>
+      refreshQueueInBackgroundCalls + loadQueueCalls;
 
   @override
   Future<PodcastQueueModel> build() async {
@@ -829,6 +833,7 @@ class TestPodcastQueueController extends PodcastQueueController {
 
   @override
   Future<PodcastQueueModel> loadQueue({bool forceRefresh = true}) async {
+    loadQueueCalls += 1;
     state = const AsyncValue.data(PodcastQueueModel());
     return PodcastQueueModel.empty();
   }

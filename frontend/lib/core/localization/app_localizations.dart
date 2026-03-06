@@ -2678,6 +2678,54 @@ abstract class AppLocalizations {
   /// **'Queue is empty'**
   String get queue_is_empty;
 
+  /// Title for the playback queue sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Up Next'**
+  String get queue_up_next;
+
+  /// Label for the current playing section in the queue sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Now playing'**
+  String get queue_now_playing;
+
+  /// Suffix label for queue item count
+  ///
+  /// In en, this message translates to:
+  /// **'in queue'**
+  String get queue_in_queue;
+
+  /// Label before remaining queue duration
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get queue_remaining_label;
+
+  /// Status label when the queue is syncing
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing queue'**
+  String get queue_syncing;
+
+  /// Status label when queue reorder is being saved
+  ///
+  /// In en, this message translates to:
+  /// **'Saving order'**
+  String get queue_saving_order;
+
+  /// Status label when queue content is being updated
+  ///
+  /// In en, this message translates to:
+  /// **'Updating queue'**
+  String get queue_updating;
+
+  /// Separator between podcast title and playback progress in queue items
+  ///
+  /// In en, this message translates to:
+  /// **' • '**
+  String get queue_subtitle_separator;
+
   /// Error message when failing to load queue
   ///
   /// In en, this message translates to:

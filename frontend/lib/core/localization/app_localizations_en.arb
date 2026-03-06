@@ -1918,6 +1918,38 @@
     "@queue_is_empty":  {
                             "description":  "Message shown when queue is empty"
                         },
+    "queue_up_next":  "Up Next",
+    "@queue_up_next":  {
+                           "description":  "Title for the playback queue sheet"
+                       },
+    "queue_now_playing":  "Now playing",
+    "@queue_now_playing":  {
+                              "description":  "Label for the current playing section in the queue sheet"
+                          },
+    "queue_in_queue":  "in queue",
+    "@queue_in_queue":  {
+                           "description":  "Suffix label for queue item count"
+                       },
+    "queue_remaining_label":  "Remaining",
+    "@queue_remaining_label":  {
+                                  "description":  "Label before remaining queue duration"
+                              },
+    "queue_syncing":  "Syncing queue",
+    "@queue_syncing":  {
+                           "description":  "Status label when the queue is syncing"
+                       },
+    "queue_saving_order":  "Saving order",
+    "@queue_saving_order":  {
+                                "description":  "Status label when queue reorder is being saved"
+                            },
+    "queue_updating":  "Updating queue",
+    "@queue_updating":  {
+                            "description":  "Status label when queue content is being updated"
+                        },
+    "queue_subtitle_separator":  " \u2022 ",
+    "@queue_subtitle_separator":  {
+                                      "description":  "Separator between podcast title and playback progress in queue items"
+                                  },
     "failed_to_load_queue":  "Failed to load queue: {error}",
     "@failed_to_load_queue":  {
                                   "description":  "Error message when failing to load queue",

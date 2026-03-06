@@ -1375,6 +1375,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get queue_is_empty => '播放队列为空';
 
   @override
+  String get queue_up_next => '接下来';
+
+  @override
+  String get queue_now_playing => '正在播放';
+
+  @override
+  String get queue_in_queue => '待播';
+
+  @override
+  String get queue_remaining_label => '剩余';
+
+  @override
+  String get queue_syncing => '正在同步队列';
+
+  @override
+  String get queue_saving_order => '正在保存顺序';
+
+  @override
+  String get queue_updating => '正在更新队列';
+
+  @override
+  String get queue_subtitle_separator => ' · ';
+
+  @override
   String failed_to_load_queue(String error) {
     return '加载队列失败：$error';
   }

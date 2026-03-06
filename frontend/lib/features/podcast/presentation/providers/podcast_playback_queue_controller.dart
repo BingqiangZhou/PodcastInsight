@@ -1,9 +1,73 @@
 part of 'podcast_playback_providers.dart';
 
+enum QueueOperationKind {
+  idle,
+  initialLoading,
+  refreshing,
+  reordering,
+  removing,
+  activating,
+}
+
+class QueueOperationState {
+  const QueueOperationState._(this.kind, {this.episodeId});
+
+  const QueueOperationState.idle() : this._(QueueOperationKind.idle);
+
+  const QueueOperationState.initialLoading()
+    : this._(QueueOperationKind.initialLoading);
+
+  const QueueOperationState.refreshing()
+    : this._(QueueOperationKind.refreshing);
+
+  const QueueOperationState.reordering()
+    : this._(QueueOperationKind.reordering);
+
+  const QueueOperationState.removing({int? episodeId})
+    : this._(QueueOperationKind.removing, episodeId: episodeId);
+
+  const QueueOperationState.activating({int? episodeId})
+    : this._(QueueOperationKind.activating, episodeId: episodeId);
+
+  final QueueOperationKind kind;
+  final int? episodeId;
+
+  bool get isBusy => kind != QueueOperationKind.idle;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is QueueOperationState &&
+        other.kind == kind &&
+        other.episodeId == episodeId;
+  }
+
+  @override
+  int get hashCode => Object.hash(kind, episodeId);
+}
+
 final podcastQueueControllerProvider =
     AsyncNotifierProvider<PodcastQueueController, PodcastQueueModel>(
       PodcastQueueController.new,
     );
+
+final podcastQueueOperationProvider =
+    NotifierProvider<QueueOperationNotifier, QueueOperationState>(
+      QueueOperationNotifier.new,
+    );
+
+class QueueOperationNotifier extends Notifier<QueueOperationState> {
+  @override
+  QueueOperationState build() {
+    return const QueueOperationState.idle();
+  }
+
+  void setState(QueueOperationState operation) {
+    state = operation;
+  }
+}
 
 class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
   late PodcastRepository _repository;
@@ -18,6 +82,7 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
   @override
   FutureOr<PodcastQueueModel> build() async {
     _repository = ref.read(podcastRepositoryProvider);
+    _setQueueOperation(const QueueOperationState.initialLoading());
     try {
       return await _loadQueueInternal(
         forceRefresh: false,
@@ -26,6 +91,8 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
       );
     } catch (_) {
       return PodcastQueueModel.empty();
+    } finally {
+      _clearQueueOperation();
     }
   }
 
@@ -54,8 +121,120 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
     }
   }
 
-  PodcastQueueModel _applyQueue(PodcastQueueModel queue) {
-    if (queue.revision < _latestAppliedQueueRevision) {
+  void _setQueueOperation(QueueOperationState operation) {
+    ref.read(podcastQueueOperationProvider.notifier).setState(operation);
+  }
+
+  void _clearQueueOperation() {
+    ref
+        .read(podcastQueueOperationProvider.notifier)
+        .setState(const QueueOperationState.idle());
+  }
+
+  void _setErrorStateIfNeeded(Object error, StackTrace stackTrace) {
+    if (state.value == null) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  PodcastQueueItemModel _copyQueueItemWithPosition(
+    PodcastQueueItemModel item,
+    int position,
+  ) {
+    return PodcastQueueItemModel(
+      episodeId: item.episodeId,
+      position: position,
+      playbackPosition: item.playbackPosition,
+      title: item.title,
+      podcastId: item.podcastId,
+      audioUrl: item.audioUrl,
+      duration: item.duration,
+      publishedAt: item.publishedAt,
+      imageUrl: item.imageUrl,
+      subscriptionTitle: item.subscriptionTitle,
+      subscriptionImageUrl: item.subscriptionImageUrl,
+    );
+  }
+
+  List<PodcastQueueItemModel> _reindexItems(List<PodcastQueueItemModel> items) {
+    return items
+        .asMap()
+        .entries
+        .map((entry) => _copyQueueItemWithPosition(entry.value, entry.key))
+        .toList();
+  }
+
+  int? _resolveCurrentEpisodeIdAfterRemoval(
+    PodcastQueueModel queue,
+    int removedEpisodeId,
+    List<PodcastQueueItemModel> updatedItems,
+  ) {
+    final currentEpisodeId = queue.currentEpisodeId;
+    if (currentEpisodeId != removedEpisodeId) {
+      return currentEpisodeId;
+    }
+
+    final oldIndex = queue.items.indexWhere(
+      (item) => item.episodeId == removedEpisodeId,
+    );
+    if (oldIndex >= 0 && oldIndex + 1 < queue.items.length) {
+      return queue.items[oldIndex + 1].episodeId;
+    }
+    if (updatedItems.isNotEmpty) {
+      return updatedItems.first.episodeId;
+    }
+    return null;
+  }
+
+  PodcastQueueModel _buildOptimisticRemovedQueue(
+    PodcastQueueModel queue,
+    int episodeId,
+  ) {
+    final updatedItems = _reindexItems(
+      queue.items.where((item) => item.episodeId != episodeId).toList(),
+    );
+    return PodcastQueueModel(
+      items: updatedItems,
+      currentEpisodeId: _resolveCurrentEpisodeIdAfterRemoval(
+        queue,
+        episodeId,
+        updatedItems,
+      ),
+      revision: queue.revision + 1,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  PodcastQueueModel _buildOptimisticReorderedQueue(
+    PodcastQueueModel queue,
+    List<int> episodeIds,
+  ) {
+    final itemById = <int, PodcastQueueItemModel>{
+      for (final item in queue.items) item.episodeId: item,
+    };
+    final orderedItems = <PodcastQueueItemModel>[];
+    for (final episodeId in episodeIds) {
+      final item = itemById.remove(episodeId);
+      if (item != null) {
+        orderedItems.add(item);
+      }
+    }
+    orderedItems.addAll(itemById.values);
+
+    return PodcastQueueModel(
+      currentEpisodeId: queue.currentEpisodeId,
+      revision: queue.revision + 1,
+      updatedAt: DateTime.now(),
+      items: _reindexItems(orderedItems),
+    );
+  }
+
+  PodcastQueueModel _commitQueueState(
+    PodcastQueueModel queue, {
+    required bool updateLastRefreshAt,
+    bool enforceRevisionGuard = true,
+  }) {
+    if (enforceRevisionGuard && queue.revision < _latestAppliedQueueRevision) {
       logger.AppLogger.debug(
         '[Queue] Ignore stale queue snapshot: incoming_revision=${queue.revision}, latest_revision=$_latestAppliedQueueRevision',
       );
@@ -63,12 +242,32 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
     }
 
     state = AsyncValue.data(queue);
-    _lastQueueRefreshAt = DateTime.now();
-    if (queue.revision > _latestAppliedQueueRevision) {
-      _latestAppliedQueueRevision = queue.revision;
+    if (updateLastRefreshAt) {
+      _lastQueueRefreshAt = DateTime.now();
     }
+    _latestAppliedQueueRevision = queue.revision;
     ref.read(audioPlayerProvider.notifier).syncQueueState(queue);
     return queue;
+  }
+
+  PodcastQueueModel _applyQueue(PodcastQueueModel queue) {
+    return _commitQueueState(queue, updateLastRefreshAt: true);
+  }
+
+  PodcastQueueModel _applyOptimisticQueue(PodcastQueueModel queue) {
+    return _commitQueueState(
+      queue,
+      updateLastRefreshAt: false,
+      enforceRevisionGuard: false,
+    );
+  }
+
+  PodcastQueueModel _restoreQueueSnapshot(PodcastQueueModel queue) {
+    return _commitQueueState(
+      queue,
+      updateLastRefreshAt: false,
+      enforceRevisionGuard: false,
+    );
   }
 
   Future<PodcastQueueModel> _loadQueueInternal({
@@ -112,14 +311,24 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
   }
 
   Future<PodcastQueueModel> loadQueue({bool forceRefresh = true}) async {
-    return _loadQueueInternal(
-      forceRefresh: forceRefresh,
-      trackSyncing: true,
-      setErrorStateOnFailure: true,
+    _setQueueOperation(
+      state.value == null
+          ? const QueueOperationState.initialLoading()
+          : const QueueOperationState.refreshing(),
     );
+    try {
+      return await _loadQueueInternal(
+        forceRefresh: forceRefresh,
+        trackSyncing: true,
+        setErrorStateOnFailure: true,
+      );
+    } finally {
+      _clearQueueOperation();
+    }
   }
 
   Future<void> refreshQueueInBackground() async {
+    _setQueueOperation(const QueueOperationState.refreshing());
     try {
       await _loadQueueInternal(
         forceRefresh: false,
@@ -128,6 +337,8 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
       );
     } catch (_) {
       // Keep existing queue UI state when background refresh fails.
+    } finally {
+      _clearQueueOperation();
     }
   }
 
@@ -175,7 +386,7 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
 
         return queue;
       } catch (error, stackTrace) {
-        state = AsyncValue.error(error, stackTrace);
+        _setErrorStateIfNeeded(error, stackTrace);
         rethrow;
       } finally {
         _endQueueSync();
@@ -193,102 +404,83 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
   }
 
   Future<PodcastQueueModel> removeFromQueue(int episodeId) async {
-    // --- Optimistic UI update: remove item instantly ---
-    // Use addPostFrameCallback to defer the state mutation so it does not
-    // trigger a rebuild while RenderSliverList is still performing layout.
     final previousQueue = state.value;
     if (previousQueue != null) {
-      final updatedItems = previousQueue.items
-          .where((i) => i.episodeId != episodeId)
-          .toList();
-      int? updatedCurrentEpisodeId = previousQueue.currentEpisodeId;
-      if (updatedCurrentEpisodeId == episodeId) {
-        final oldIndex = previousQueue.items.indexWhere(
-          (i) => i.episodeId == episodeId,
-        );
-        if (oldIndex >= 0 && oldIndex + 1 < previousQueue.items.length) {
-          updatedCurrentEpisodeId = previousQueue.items[oldIndex + 1].episodeId;
-        } else if (updatedItems.isNotEmpty) {
-          updatedCurrentEpisodeId = updatedItems.first.episodeId;
-        } else {
-          updatedCurrentEpisodeId = null;
-        }
-      }
-      final optimistic = PodcastQueueModel(
-        items: updatedItems,
-        currentEpisodeId: updatedCurrentEpisodeId,
-        revision: previousQueue.revision + 1,
-        updatedAt: DateTime.now(),
-      );
-      // Defer state update until after the current frame completes layout/paint.
-      final completer = Completer<void>();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
-      });
-      await completer.future;
-      state = AsyncValue.data(optimistic);
-      _latestAppliedQueueRevision = optimistic.revision;
-      ref.read(audioPlayerProvider.notifier).syncQueueState(optimistic);
+      final optimistic = _buildOptimisticRemovedQueue(previousQueue, episodeId);
+      await Future<void>.delayed(Duration.zero);
+      _applyOptimisticQueue(optimistic);
     }
 
-    // --- Background API call (no rollback) ---
     _beginQueueSync();
+    _setQueueOperation(QueueOperationState.removing(episodeId: episodeId));
     try {
       final queue = await _repository.removeQueueItem(episodeId);
       return _applyQueue(queue);
-    } catch (error) {
-      // Server likely already completed the delete.
-      // Refresh in background to reconcile state rather than rolling back.
-      unawaited(
-        _loadQueueInternal(
-          forceRefresh: true,
-          trackSyncing: false,
-          setErrorStateOnFailure: false,
-        ),
-      );
-      return state.value ?? PodcastQueueModel.empty();
+    } catch (error, stackTrace) {
+      if (previousQueue != null) {
+        _restoreQueueSnapshot(previousQueue);
+      } else {
+        _setErrorStateIfNeeded(error, stackTrace);
+      }
+      rethrow;
     } finally {
+      _clearQueueOperation();
       _endQueueSync();
     }
   }
 
   Future<PodcastQueueModel> reorderQueue(List<int> episodeIds) async {
+    final previousQueue = state.value;
+    if (previousQueue != null) {
+      _applyOptimisticQueue(
+        _buildOptimisticReorderedQueue(previousQueue, episodeIds),
+      );
+    }
+
     _beginQueueSync();
+    _setQueueOperation(const QueueOperationState.reordering());
     try {
       final queue = await _repository.reorderQueueItems(episodeIds);
       return _applyQueue(queue);
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      if (previousQueue != null) {
+        _restoreQueueSnapshot(previousQueue);
+      } else {
+        _setErrorStateIfNeeded(error, stackTrace);
+      }
       rethrow;
     } finally {
+      _clearQueueOperation();
       _endQueueSync();
     }
   }
 
   Future<PodcastQueueModel> setCurrentEpisode(int episodeId) async {
     _beginQueueSync();
+    _setQueueOperation(QueueOperationState.activating(episodeId: episodeId));
     try {
       final queue = await _repository.setQueueCurrent(episodeId);
       return _applyQueue(queue);
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      _setErrorStateIfNeeded(error, stackTrace);
       rethrow;
     } finally {
+      _clearQueueOperation();
       _endQueueSync();
     }
   }
 
   Future<PodcastQueueModel> activateEpisode(int episodeId) async {
     _beginQueueSync();
+    _setQueueOperation(QueueOperationState.activating(episodeId: episodeId));
     try {
       final queue = await _repository.activateQueueEpisode(episodeId);
       return _applyQueue(queue);
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      _setErrorStateIfNeeded(error, stackTrace);
       rethrow;
     } finally {
+      _clearQueueOperation();
       _endQueueSync();
     }
   }
@@ -309,7 +501,7 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
       }
       return queue;
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      _setErrorStateIfNeeded(error, stackTrace);
       rethrow;
     }
   }
@@ -319,7 +511,7 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
       final queue = await _repository.completeQueueCurrent();
       return _applyQueue(queue);
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      _setErrorStateIfNeeded(error, stackTrace);
       rethrow;
     }
   }

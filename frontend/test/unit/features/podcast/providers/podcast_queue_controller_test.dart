@@ -246,6 +246,113 @@ void main() {
       );
     });
   });
+
+  group('PodcastQueueController optimistic operations', () {
+    test(
+      'reorder applies optimistic state and rolls back on failure',
+      () async {
+        final initialQueue = _queueWithIds(
+          [1, 2, 3],
+          revision: 5,
+          currentEpisodeId: 1,
+        );
+        final repository = _FakePodcastRepository(
+          queuedGetQueueResponses: <PodcastQueueModel>[initialQueue],
+        );
+        repository.reorderCompleter = Completer<void>();
+        repository.reorderError = StateError('reorder failed');
+
+        final container = ProviderContainer(
+          overrides: [
+            podcastRepositoryProvider.overrideWithValue(repository),
+            audioPlayerProvider.overrideWith(() => _FakeAudioPlayerNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final controller = container.read(
+          podcastQueueControllerProvider.notifier,
+        );
+        await controller.loadQueue(forceRefresh: true);
+
+        final reorderFuture = controller.reorderQueue(<int>[2, 1, 3]);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          _episodeIds(container.read(podcastQueueControllerProvider).value!),
+          <int>[2, 1, 3],
+        );
+        expect(
+          container.read(podcastQueueOperationProvider).kind,
+          QueueOperationKind.reordering,
+        );
+
+        repository.reorderCompleter!.complete();
+        await expectLater(reorderFuture, throwsStateError);
+
+        expect(
+          _episodeIds(container.read(podcastQueueControllerProvider).value!),
+          <int>[1, 2, 3],
+        );
+        expect(
+          container.read(podcastQueueOperationProvider),
+          const QueueOperationState.idle(),
+        );
+      },
+    );
+
+    test(
+      'remove failure keeps usable queue state instead of async error',
+      () async {
+        final initialQueue = _queueWithIds(
+          [1, 2, 3],
+          revision: 8,
+          currentEpisodeId: 1,
+        );
+        final repository = _FakePodcastRepository(
+          queuedGetQueueResponses: <PodcastQueueModel>[initialQueue],
+        );
+        repository.removeCompleter = Completer<void>();
+        repository.removeError = StateError('remove failed');
+
+        final container = ProviderContainer(
+          overrides: [
+            podcastRepositoryProvider.overrideWithValue(repository),
+            audioPlayerProvider.overrideWith(() => _FakeAudioPlayerNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final controller = container.read(
+          podcastQueueControllerProvider.notifier,
+        );
+        await controller.loadQueue(forceRefresh: true);
+
+        final removeFuture = controller.removeFromQueue(2);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          _episodeIds(container.read(podcastQueueControllerProvider).value!),
+          <int>[1, 3],
+        );
+        expect(
+          container.read(podcastQueueOperationProvider).kind,
+          QueueOperationKind.removing,
+        );
+
+        repository.removeCompleter!.complete();
+        await expectLater(removeFuture, throwsStateError);
+
+        final queueState = container.read(podcastQueueControllerProvider);
+        expect(queueState.hasError, isFalse);
+        expect(_episodeIds(queueState.value!), <int>[1, 2, 3]);
+        expect(
+          container.read(podcastQueueOperationProvider),
+          const QueueOperationState.idle(),
+        );
+      },
+    );
+  });
 }
 
 PodcastQueueModel _queue({
@@ -357,6 +464,8 @@ class _FakePodcastRepository extends PodcastRepository {
   List<int>? lastReorderEpisodeIds;
   Completer<void>? removeCompleter;
   Completer<void>? reorderCompleter;
+  Object? removeError;
+  Object? reorderError;
 
   @override
   Future<PodcastQueueModel> getQueue() async {
@@ -399,6 +508,10 @@ class _FakePodcastRepository extends PodcastRepository {
     if (completer != null) {
       await completer.future;
     }
+    final error = removeError;
+    if (error != null) {
+      throw error;
+    }
     return const PodcastQueueModel(revision: 10);
   }
 
@@ -408,6 +521,10 @@ class _FakePodcastRepository extends PodcastRepository {
     final completer = reorderCompleter;
     if (completer != null) {
       await completer.future;
+    }
+    final error = reorderError;
+    if (error != null) {
+      throw error;
     }
     return _reorderQueueResult;
   }

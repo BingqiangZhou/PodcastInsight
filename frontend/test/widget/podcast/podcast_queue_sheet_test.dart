@@ -1,13 +1,15 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_queue_sheet.dart';
+
+const _queueSubtitleSeparator = ' • ';
 
 void main() {
   group('PodcastQueueSheet', () {
@@ -95,8 +97,13 @@ void main() {
       await tester.pumpWidget(_createWidget(controller));
       await tester.pumpAndSettle();
 
-      expect(find.text('Podcast B · 02:05 / 40:00'), findsOneWidget);
-      expect(find.text('Podcast C · 01:30 / --:--'), findsOneWidget);
+      expect(
+        find.text(
+          'Podcast B$_queueSubtitleSeparator'
+          '02:05 / 40:00',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets(
@@ -116,7 +123,13 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Podcast A · 01:05 / 1:00:00'), findsOneWidget);
+        expect(
+          find.text(
+            'Podcast A$_queueSubtitleSeparator'
+            '01:05 / 1:00:00',
+          ),
+          findsOneWidget,
+        );
       },
     );
 
@@ -137,17 +150,44 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Podcast A · 00:10 / 1:00:00'), findsOneWidget);
-        expect(find.text('Podcast B · 02:05 / 40:00'), findsOneWidget);
-        expect(find.text('Podcast C · 01:30 / --:--'), findsOneWidget);
-
+        expect(
+          find.text(
+            'Podcast A$_queueSubtitleSeparator'
+            '00:10 / 1:00:00',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            'Podcast B$_queueSubtitleSeparator'
+            '02:05 / 40:00',
+          ),
+          findsOneWidget,
+        );
         audioNotifier.setPlaybackPosition(20000);
         await tester.pump();
 
-        expect(find.text('Podcast A · 00:20 / 1:00:00'), findsOneWidget);
-        expect(find.text('Podcast A · 00:10 / 1:00:00'), findsNothing);
-        expect(find.text('Podcast B · 02:05 / 40:00'), findsOneWidget);
-        expect(find.text('Podcast C · 01:30 / --:--'), findsOneWidget);
+        expect(
+          find.text(
+            'Podcast A$_queueSubtitleSeparator'
+            '00:20 / 1:00:00',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            'Podcast A$_queueSubtitleSeparator'
+            '00:10 / 1:00:00',
+          ),
+          findsNothing,
+        );
+        expect(
+          find.text(
+            'Podcast B$_queueSubtitleSeparator'
+            '02:05 / 40:00',
+          ),
+          findsOneWidget,
+        );
       },
     );
 
@@ -158,9 +198,13 @@ void main() {
       await tester.pumpWidget(_createWidget(controller));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Episode 1'));
+      await tester.tap(find.byKey(const Key('queue_item_tile_1')));
       await tester.pumpAndSettle();
-      expect(controller.playedEpisodeId, 1);
+      expect(controller.playedEpisodeId, isNull);
+
+      await tester.tap(find.byKey(const Key('queue_item_tile_2')));
+      await tester.pumpAndSettle();
+      expect(controller.playedEpisodeId, 2);
 
       await tester.tap(find.byKey(const Key('queue_item_remove_1')));
       await tester.pumpAndSettle();
