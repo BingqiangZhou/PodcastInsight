@@ -4,7 +4,9 @@ from app.core.providers import (
     get_conversation_service,
     get_daily_report_service,
     get_summary_service,
+    get_summary_workflow_service,
     get_transcription_service,
+    get_transcription_workflow_service,
 )
 from app.core.providers import (
     get_podcast_episode_service as get_episode_service,
@@ -48,5 +50,7 @@ __all__ = [
     "get_stats_service",
     "get_subscription_service",
     "get_summary_service",
+    "get_summary_workflow_service",
     "get_transcription_service",
+    "get_transcription_workflow_service",
 ]

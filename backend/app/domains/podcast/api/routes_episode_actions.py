@@ -1,18 +1,15 @@
 """Podcast summary, playback, search, and recommendation routes."""
 
 import logging
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.domains.podcast.api.dependencies import (
     get_current_user_id,
-    get_episode_service,
     get_playback_service,
     get_search_service,
-    get_summary_service,
+    get_summary_workflow_service,
 )
-from app.domains.podcast.repositories import PodcastRepository
 from app.domains.podcast.schemas import (
     PlaybackRateApplyRequest,
     PlaybackRateEffectiveResponse,
@@ -26,10 +23,9 @@ from app.domains.podcast.schemas import (
     SummaryModelInfo,
     SummaryModelsResponse,
 )
-from app.domains.podcast.services.episode_service import PodcastEpisodeService
 from app.domains.podcast.services.playback_service import PodcastPlaybackService
 from app.domains.podcast.services.search_service import PodcastSearchService
-from app.domains.podcast.summary_manager import DatabaseBackedAISummaryService
+from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
 from app.http.errors import bilingual_http_exception
 
 
@@ -45,38 +41,22 @@ logger = logging.getLogger(__name__)
 async def generate_summary(
     episode_id: int,
     request: PodcastSummaryRequest,
-    service: PodcastEpisodeService = Depends(get_episode_service),
-    ai_summary_service: DatabaseBackedAISummaryService = Depends(get_summary_service),
+    summary_workflow: SummaryWorkflowService = Depends(get_summary_workflow_service),
 ):
     try:
-        episode = await service.get_episode_by_id(episode_id)
-        if not episode:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Episode {episode_id} not found",
-            )
-
-        summary_result = await ai_summary_service.generate_summary(
+        summary_result = await summary_workflow.generate_episode_summary(
             episode_id,
-            request.summary_model,
-            request.custom_prompt,
+            summary_model=request.summary_model,
+            custom_prompt=request.custom_prompt,
         )
-
-        episode_detail = await service.get_episode_with_summary(episode_id)
-        final_summary = ""
-        final_version = "1.0"
-        if episode_detail:
-            final_summary = episode_detail.get("ai_summary") or ""
-            final_version = episode_detail.get("summary_version") or "1.0"
-
         return PodcastSummaryResponse(
             episode_id=episode_id,
-            summary=final_summary,
-            version=final_version,
+            summary=summary_result["summary"],
+            version=summary_result["version"],
             confidence_score=None,
             transcript_used=True,
-            generated_at=datetime.now(timezone.utc),
-            word_count=len(final_summary.split()),
+            generated_at=summary_result["generated_at"],
+            word_count=len(summary_result["summary"].split()),
             model_used=summary_result["model_name"],
             processing_time=summary_result["processing_time"],
         )
@@ -226,11 +206,9 @@ async def apply_playback_rate_preference(
 )
 async def get_pending_summaries(
     user_id: int = Depends(get_current_user_id),
-    ai_summary_service: DatabaseBackedAISummaryService = Depends(get_summary_service),
+    summary_workflow: SummaryWorkflowService = Depends(get_summary_workflow_service),
 ):
-    pending = await PodcastRepository(
-        ai_summary_service.db
-    ).get_pending_summaries_for_user(user_id)
+    pending = await summary_workflow.list_pending_summaries_for_user(user_id)
     return PodcastSummaryPendingResponse(count=len(pending), episodes=pending)
 
 
@@ -240,10 +218,10 @@ async def get_pending_summaries(
     summary="List available summary models",
 )
 async def get_summary_models(
-    ai_summary_service: DatabaseBackedAISummaryService = Depends(get_summary_service),
+    summary_workflow: SummaryWorkflowService = Depends(get_summary_workflow_service),
 ):
     try:
-        models = await ai_summary_service.get_summary_models()
+        models = await summary_workflow.get_summary_models()
         model_infos = [
             SummaryModelInfo(
                 id=model["id"],

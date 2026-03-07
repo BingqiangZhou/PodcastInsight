@@ -7,16 +7,22 @@ from fastapi import APIRouter
 
 def test_service_files_exist() -> None:
     backend_root = Path(__file__).resolve().parents[2]
-    files = [
+    required_paths = [
         "app/domains/podcast/models.py",
-        "app/domains/podcast/repositories.py",
         "app/domains/podcast/services/__init__.py",
         "app/domains/podcast/api/routes.py",
         "app/domains/ai/llm_privacy.py",
         "app/domains/podcast/integration/security.py",
     ]
-    for file in files:
+    for file in required_paths:
         assert (backend_root / file).exists(), f"Missing required file: {file}"
+
+    repository_module = backend_root / "app/domains/podcast/repositories.py"
+    repository_package = backend_root / "app/domains/podcast/repositories/__init__.py"
+    assert repository_module.exists() or repository_package.exists(), (
+        "Missing required podcast repository entrypoint: "
+        "expected repositories.py or repositories/__init__.py"
+    )
 
 
 def test_api_routes_shape() -> None:

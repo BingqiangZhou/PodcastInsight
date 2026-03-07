@@ -64,7 +64,6 @@ async def settings_page(
 
 # ==================== Audio Settings ====================
 
-
 @router.get("/settings/api/audio")
 async def get_audio_settings(
     user: User = Depends(admin_required),
@@ -74,39 +73,12 @@ async def get_audio_settings(
     try:
         payload = await AdminSettingsService(db).get_audio_settings()
         return JSONResponse(content=payload)
-
-        # Get chunk size setting
-        chunk_size_result = await db.execute(
-            select(SystemSettings).where(SystemSettings.key == "audio.chunk_size_mb")
-        )
-        chunk_size_setting = chunk_size_result.scalar_one_or_none()
-
-        # Get max threads setting
-        threads_result = await db.execute(
-            select(SystemSettings).where(SystemSettings.key == "audio.max_concurrent_threads")
-        )
-        threads_setting = threads_result.scalar_one_or_none()
-
-        chunk_size_mb = 10  # Default
-        max_concurrent_threads = 2  # Default
-
-        if chunk_size_setting and chunk_size_setting.value:
-            chunk_size_mb = chunk_size_setting.value.get("value", 10)
-
-        if threads_setting and threads_setting.value:
-            max_concurrent_threads = threads_setting.value.get("value", 2)
-
-        return JSONResponse(content={
-            "chunk_size_mb": chunk_size_mb,
-            "max_concurrent_threads": max_concurrent_threads,
-        })
     except Exception as e:
         logger.error(f"Get audio settings error: {e}")
         raise HTTPException(
             status_code=500,
             detail="Failed to get audio settings",
         ) from e
-
 
 @router.post("/settings/api/audio")
 async def update_audio_settings(
@@ -118,28 +90,24 @@ async def update_audio_settings(
 ):
     """Update audio processing settings."""
     try:
-        # Validate chunk_size_mb range
         if not (5 <= chunk_size_mb <= 25):
             raise HTTPException(
                 status_code=400,
-                detail="chunk_size_mb must be between 5 and 25"
+                detail="chunk_size_mb must be between 5 and 25",
             )
-
-        # Validate max_concurrent_threads range
         if not (1 <= max_concurrent_threads <= 16):
             raise HTTPException(
                 status_code=400,
-                detail="max_concurrent_threads must be between 1 and 16"
+                detail="max_concurrent_threads must be between 1 and 16",
             )
 
         await AdminSettingsService(db).update_audio_settings(
             chunk_size_mb=chunk_size_mb,
             max_concurrent_threads=max_concurrent_threads,
         )
-
-        logger.info(f"Audio settings updated by user {user.username}: chunk_size_mb={chunk_size_mb}, max_concurrent_threads={max_concurrent_threads}")
-
-        # Log audit action
+        logger.info(
+            f"Audio settings updated by user {user.username}: chunk_size_mb={chunk_size_mb}, max_concurrent_threads={max_concurrent_threads}"
+        )
         await log_admin_action(
             db=db,
             user_id=user.id,
@@ -153,71 +121,12 @@ async def update_audio_settings(
             },
             request=request,
         )
-
         return JSONResponse(
             content={
                 "success": True,
                 "message": "Settings saved",
             }
         )
-
-        # Update chunk size setting
-        chunk_size_result = await db.execute(
-            select(SystemSettings).where(SystemSettings.key == "audio.chunk_size_mb")
-        )
-        chunk_size_setting = chunk_size_result.scalar_one_or_none()
-
-        if chunk_size_setting:
-            chunk_size_setting.value = {"value": chunk_size_mb, "min": 5, "max": 25}
-        else:
-            new_setting = SystemSettings(
-                key="audio.chunk_size_mb",
-                value={"value": chunk_size_mb, "min": 5, "max": 25},
-                description="Audio chunk size in MB / 音频切块大小（MB）",
-                category="audio"
-            )
-            db.add(new_setting)
-
-        # Update max threads setting
-        threads_result = await db.execute(
-            select(SystemSettings).where(SystemSettings.key == "audio.max_concurrent_threads")
-        )
-        threads_setting = threads_result.scalar_one_or_none()
-
-        if threads_setting:
-            threads_setting.value = {"value": max_concurrent_threads, "min": 1, "max": 16}
-        else:
-            new_setting = SystemSettings(
-                key="audio.max_concurrent_threads",
-                value={"value": max_concurrent_threads, "min": 1, "max": 16},
-                description="Maximum concurrent processing threads / 最大并发处理线程数",
-                category="audio"
-            )
-            db.add(new_setting)
-
-        await db.commit()
-
-        logger.info(f"Audio settings updated by user {user.username}: chunk_size_mb={chunk_size_mb}, max_concurrent_threads={max_concurrent_threads}")
-
-        # Log audit action
-        await log_admin_action(
-            db=db,
-            user_id=user.id,
-            username=user.username,
-            action="update",
-            resource_type="system_settings",
-            resource_name="Audio processing settings",
-            details={
-                "chunk_size_mb": chunk_size_mb,
-                "max_concurrent_threads": max_concurrent_threads,
-            },
-            request=request,
-        )
-
-        return JSONResponse(content={
-            "success": True,
-            "message": "设置已保存"
-        })
     except HTTPException:
         raise
     except Exception as e:

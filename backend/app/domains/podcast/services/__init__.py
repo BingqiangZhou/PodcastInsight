@@ -8,7 +8,9 @@ from .schedule_service import PodcastScheduleService
 from .search_service import PodcastSearchService
 from .stats_service import PodcastStatsService
 from .subscription_service import PodcastSubscriptionService
+from .summary_workflow_service import SummaryWorkflowService
 from .sync_service import PodcastSyncService
+from .transcription_workflow_service import TranscriptionWorkflowService
 
 
 __all__ = [
@@ -20,5 +22,7 @@ __all__ = [
     "PodcastSearchService",
     "PodcastStatsService",
     "PodcastSubscriptionService",
+    "SummaryWorkflowService",
     "PodcastSyncService",
+    "TranscriptionWorkflowService",
 ]

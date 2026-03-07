@@ -17,6 +17,10 @@ from app.domains.podcast.services.schedule_service import PodcastScheduleService
 from app.domains.podcast.services.search_service import PodcastSearchService
 from app.domains.podcast.services.stats_service import PodcastStatsService
 from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
+from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
+from app.domains.podcast.services.transcription_workflow_service import (
+    TranscriptionWorkflowService,
+)
 from app.domains.podcast.summary_manager import DatabaseBackedAISummaryService
 from app.domains.podcast.transcription_manager import DatabaseBackedTranscriptionService
 from app.domains.podcast.transcription_scheduler import TranscriptionScheduler
@@ -135,11 +139,25 @@ def get_summary_service(
     return DatabaseBackedAISummaryService(db)
 
 
+def get_summary_workflow_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> SummaryWorkflowService:
+    """Provide request-scoped summary orchestration service."""
+    return SummaryWorkflowService(db)
+
+
 def get_transcription_scheduler(
     db: AsyncSession = Depends(get_db_session),
 ) -> TranscriptionScheduler:
     """Provide request-scoped transcription scheduler."""
     return TranscriptionScheduler(db)
+
+
+def get_transcription_workflow_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> TranscriptionWorkflowService:
+    """Provide request-scoped transcription orchestration service."""
+    return TranscriptionWorkflowService(db)
 
 
 def get_conversation_service(

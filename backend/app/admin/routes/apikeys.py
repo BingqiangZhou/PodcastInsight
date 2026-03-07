@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.audit import log_admin_action
@@ -64,71 +64,6 @@ async def apikeys_page(
                 "user": user,
                 "messages": [],
                 **context,
-            },
-        )
-
-        # Build base query
-        query = select(AIModelConfig)
-
-        # Apply model type filter if specified
-        if model_type_filter and model_type_filter in ['transcription', 'text_generation']:
-            query = query.where(AIModelConfig.model_type == model_type_filter)
-
-        # Get total count
-        count_query = select(func.count()).select_from(query.subquery())
-        total_count_result = await db.execute(count_query)
-        total_count = total_count_result.scalar() or 0
-
-        # Calculate pagination
-        total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
-        offset = (page - 1) * per_page
-
-        # Get paginated results, ordered by priority then created_at
-        result = await db.execute(
-            query.order_by(AIModelConfig.priority.asc(), AIModelConfig.created_at.desc())
-            .limit(per_page)
-            .offset(offset)
-        )
-        apikeys = result.scalars().all()
-
-        # Decrypt and mask API keys for display
-        for config in apikeys:
-            # Check if API key exists (truthy check for both string and None)
-            if not config.api_key or not config.api_key.strip():
-                logger.warning(f"API key for config {config.id} ({config.name}) is empty or None")
-                config.api_key = '****'
-            elif config.api_key_encrypted:
-                try:
-                    decrypted_key = decrypt_data(config.api_key)
-                    # Mask the API key: show first 4 and last 4 characters
-                    if len(decrypted_key) > 8:
-                        config.api_key = decrypted_key[:4] + '****' + decrypted_key[-4:]
-                    else:
-                        logger.warning(f"Decrypted API key for config {config.id} ({config.name}) is too short: {len(decrypted_key)} chars")
-                        config.api_key = '****'
-                except Exception as e:
-                    logger.warning(f"Failed to decrypt API key for config {config.id} ({config.name}): {type(e).__name__}: {e}. Encrypted key length: {len(config.api_key)}, starts with: {config.api_key[:20] if len(config.api_key) >= 20 else config.api_key}")
-                    # Show clear message that the key needs to be re-entered
-                    config.api_key = '[密钥无法解密-请重新编辑]'
-            else:
-                # Not encrypted - mask the original value
-                if len(config.api_key) > 8:
-                    config.api_key = config.api_key[:4] + '****' + config.api_key[-4:]
-                else:
-                    config.api_key = '****'
-
-        return templates.TemplateResponse(
-            "apikeys.html",
-            {
-                "request": request,
-                "user": user,
-                "apikeys": apikeys,
-                "model_type_filter": model_type_filter or '',
-                "page": page,
-                "per_page": per_page,
-                "total_count": total_count,
-                "total_pages": total_pages,
-                "messages": [],
             },
         )
     except Exception as e:
