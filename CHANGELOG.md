@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.14.3](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.14.2...v0.14.3) - 2026-03-07 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.14.3))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update Flutter dependencies ([7a8d16b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7a8d16b4064f0767899becd804e522f588778307))
+
+### 🎨 Styling
+
+- *(podcast)* Simplify FilterChip side border configuration ([7dcf917](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7dcf917d27d2148175a6d4bbbc817769edd9c05f))
+- *(podcast)* Add rounded top corners to expanded player panel ([55666ca](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/55666ca97c3260d857e41869ec403bf09fa9ca82))
+- *(ui)* Hide back button on mobile for detail pages ([284053c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/284053ca50dfdd2c974a71de3f498412a8bca658))
+
+
+
 ## [0.14.2](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.14.1...v0.14.2) - 2026-03-06 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.14.2))
 
 ### 🎨 Styling
