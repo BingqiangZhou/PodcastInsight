@@ -1118,11 +1118,9 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
       onSelected: onSelected,
       showCheckmark: false,
       visualDensity: const VisualDensity(horizontal: -1, vertical: -2),
-      side: BorderSide(
-        color: selected
-            ? selectedBackgroundColor
-            : theme.colorScheme.outlineVariant,
-      ),
+      side: selected
+          ? BorderSide(color: selectedBackgroundColor)
+          : BorderSide.none,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       labelStyle: theme.textTheme.labelLarge?.copyWith(
         fontWeight: FontWeight.w600,
