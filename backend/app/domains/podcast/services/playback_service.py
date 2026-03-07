@@ -29,7 +29,14 @@ class PodcastPlaybackService:
     - Tracking listening streaks
     """
 
-    def __init__(self, db: AsyncSession, user_id: int):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: int,
+        *,
+        repo: PodcastPlaybackRepository | None = None,
+        redis: PodcastRedis | None = None,
+    ):
         """
         Initialize playback service.
 
@@ -39,15 +46,15 @@ class PodcastPlaybackService:
         """
         self.db = db
         self.user_id = user_id
-        self.repo = PodcastPlaybackRepository(db)
-        self.redis = PodcastRedis()
+        self.repo = repo or PodcastPlaybackRepository(db)
+        self.redis = redis or PodcastRedis()
 
     async def update_playback_progress(
         self,
         episode_id: int,
         progress_seconds: int,
         is_playing: bool = False,
-        playback_rate: float = 1.0
+        playback_rate: float = 1.0,
     ) -> dict:
         """
         Update playback progress for an episode.
@@ -70,18 +77,16 @@ class PodcastPlaybackService:
             raise ValueError("Episode not found")
 
         playback = await self.repo.update_playback_progress(
-            self.user_id,
-            episode_id,
-            progress_seconds,
-            is_playing,
-            playback_rate
+            self.user_id, episode_id, progress_seconds, is_playing, playback_rate
         )
         await self._invalidate_stats_cache()
 
         progress_percentage = 0
         remaining_time = 0
         if episode.audio_duration and episode.audio_duration > 0:
-            progress_percentage = (playback.current_position / episode.audio_duration) * 100
+            progress_percentage = (
+                playback.current_position / episode.audio_duration
+            ) * 100
             remaining_time = max(0, episode.audio_duration - playback.current_position)
 
         return {
@@ -152,7 +157,9 @@ class PodcastPlaybackService:
         progress_percentage = 0
         remaining_time = 0
         if episode.audio_duration and episode.audio_duration > 0:
-            progress_percentage = (playback.current_position / episode.audio_duration) * 100
+            progress_percentage = (
+                playback.current_position / episode.audio_duration
+            ) * 100
             remaining_time = max(0, episode.audio_duration - playback.current_position)
 
         return {
@@ -163,12 +170,11 @@ class PodcastPlaybackService:
             "play_count": playback.play_count,
             "last_updated_at": playback.last_updated_at,
             "progress_percentage": round(progress_percentage, 2),
-            "remaining_time": remaining_time
+            "remaining_time": remaining_time,
         }
 
     async def get_playback_states_batch(
-        self,
-        episode_ids: list[int]
+        self, episode_ids: list[int]
     ) -> dict[int, PodcastPlaybackState]:
         """
         Batch fetch playback states for multiple episodes.
@@ -181,10 +187,7 @@ class PodcastPlaybackService:
         """
         return await self.repo.get_playback_states_batch(self.user_id, episode_ids)
 
-    async def get_recent_play_dates(
-        self,
-        days: int = 30
-    ) -> set[date]:
+    async def get_recent_play_dates(self, days: int = 30) -> set[date]:
         """
         Get dates when user listened to podcasts.
 
@@ -221,10 +224,7 @@ class PodcastPlaybackService:
 
         return streak
 
-    async def get_recently_played(
-        self,
-        limit: int = 5
-    ) -> list[dict[str, Any]]:
+    async def get_recently_played(self, limit: int = 5) -> list[dict[str, Any]]:
         """
         Get recently played episodes.
 
@@ -236,10 +236,7 @@ class PodcastPlaybackService:
         """
         return await self.repo.get_recently_played(self.user_id, limit)
 
-    async def get_liked_episodes(
-        self,
-        limit: int = 20
-    ) -> list[PodcastEpisode]:
+    async def get_liked_episodes(self, limit: int = 20) -> list[PodcastEpisode]:
         """
         Get user's liked episodes (high completion rate).
 

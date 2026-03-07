@@ -114,7 +114,9 @@ class PodcastFeedRepositoryMixin:
         total = int(total_result.scalar() or 0)
 
         query = (
-            base_query.order_by(PodcastEpisode.published_at.desc(), PodcastEpisode.id.desc())
+            base_query.order_by(
+                PodcastEpisode.published_at.desc(), PodcastEpisode.id.desc()
+            )
             .offset(skip)
             .limit(size)
         )

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
-from app.domains.podcast.api.dependencies import get_episode_service, get_stats_service
+from app.core.providers import get_podcast_episode_service, get_podcast_stats_service
 from app.main import app
 
 
@@ -16,11 +16,11 @@ def client():
 @pytest.fixture
 def mock_service():
     service = AsyncMock()
-    app.dependency_overrides[get_stats_service] = lambda: service
-    app.dependency_overrides[get_episode_service] = lambda: service
+    app.dependency_overrides[get_podcast_stats_service] = lambda: service
+    app.dependency_overrides[get_podcast_episode_service] = lambda: service
     yield service
-    app.dependency_overrides.pop(get_stats_service, None)
-    app.dependency_overrides.pop(get_episode_service, None)
+    app.dependency_overrides.pop(get_podcast_stats_service, None)
+    app.dependency_overrides.pop(get_podcast_episode_service, None)
 
 
 def test_get_profile_stats_returns_lightweight_fields(

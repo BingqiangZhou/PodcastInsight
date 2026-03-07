@@ -18,18 +18,21 @@ from app.core.database import (
 from app.domains.podcast.tasks._runlog import _insert_run_async
 
 
-# Ensure model metadata is registered before worker sessions execute ORM operations.
-register_orm_models()
+def ensure_orm_models_registered() -> None:
+    """Register ORM models when the worker runtime first needs them."""
+    register_orm_models()
 
 
 def _new_session_factory(application_name: str):
     """Compatibility wrapper around the centralized worker-session runtime."""
+    ensure_orm_models_registered()
     return create_isolated_session_factory(application_name)
 
 
 @asynccontextmanager
 async def worker_session(application_name: str) -> AsyncIterator[AsyncSession]:
     """Create an isolated worker DB session and always dispose its engine."""
+    ensure_orm_models_registered()
     async with worker_db_session(application_name) as session:
         yield session
 

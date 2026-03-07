@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from app.domains.podcast.repositories import PodcastRepository
+from app.domains.podcast.repositories import PodcastEpisodeRepository
 
 
 @dataclass
@@ -21,7 +21,7 @@ class _FakeQueue:
     updated_at: object | None = None
 
 
-def _build_repository(queue: _FakeQueue) -> PodcastRepository:
+def _build_repository(queue: _FakeQueue) -> PodcastEpisodeRepository:
     db = AsyncMock()
     db.expire = Mock()
 
@@ -29,7 +29,7 @@ def _build_repository(queue: _FakeQueue) -> PodcastRepository:
         queue.items.remove(item)
 
     db.delete.side_effect = _delete
-    repository = PodcastRepository(db)
+    repository = PodcastEpisodeRepository(db)
     repository.get_queue_with_items = AsyncMock(side_effect=[queue, queue])  # type: ignore[method-assign]
     return repository
 
@@ -41,7 +41,7 @@ def _queue_items(*items: tuple[int, int, int]) -> list[_FakeQueueItem]:
     ]
 
 
-def _episode_ids(queue: _FakeQueue, repository: PodcastRepository) -> list[int]:
+def _episode_ids(queue: _FakeQueue, repository: PodcastEpisodeRepository) -> list[int]:
     return [item.episode_id for item in repository._sorted_queue_items(queue)]
 
 

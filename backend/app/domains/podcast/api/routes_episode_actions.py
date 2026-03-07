@@ -44,9 +44,7 @@ async def generate_summary(
     episode_id: int,
     request: PodcastSummaryRequest,
     service: PodcastEpisodeService = Depends(get_podcast_episode_service),
-    summary_workflow: SummaryWorkflowService = Depends(
-        get_summary_workflow_service
-    ),
+    summary_workflow: SummaryWorkflowService = Depends(get_summary_workflow_service),
 ):
     try:
         episode = await service.get_episode_by_id(episode_id)
@@ -110,18 +108,18 @@ async def update_playback_progress(
         if str(exc) == "Episode not found":
             raise bilingual_http_exception(
                 "Episode not found",
-                "鏈壘鍒拌鍗曢泦",
+                "未找到该单集",
                 status.HTTP_404_NOT_FOUND,
             ) from exc
         raise bilingual_http_exception(
             "Failed to update playback progress",
-            "鏇存柊鎾斁杩涘害澶辫触",
+            "更新播放进度失败",
             status.HTTP_400_BAD_REQUEST,
         ) from exc
     except Exception as exc:
         raise bilingual_http_exception(
             "Failed to update playback progress",
-            "鏇存柊鎾斁杩涘害澶辫触",
+            "更新播放进度失败",
             status.HTTP_500_INTERNAL_SERVER_ERROR,
         ) from exc
 
@@ -182,31 +180,31 @@ async def apply_playback_rate_preference(
         if code == "SUBSCRIPTION_ID_REQUIRED":
             raise bilingual_http_exception(
                 "subscription_id is required when apply_to_subscription is true",
-                "subscription_id is required",
+                "当 apply_to_subscription 为 true 时必须提供 subscription_id",
                 status.HTTP_400_BAD_REQUEST,
             ) from exc
         if code == "SUBSCRIPTION_NOT_FOUND":
             raise bilingual_http_exception(
                 "Subscription not found",
-                "鏈壘鍒拌璁㈤槄",
+                "未找到订阅",
                 status.HTTP_404_NOT_FOUND,
             ) from exc
         if code == "USER_NOT_FOUND":
             raise bilingual_http_exception(
                 "User not found",
-                "User not found",
+                "未找到用户",
                 status.HTTP_404_NOT_FOUND,
             ) from exc
         raise bilingual_http_exception(
             "Failed to apply playback preference",
-            "搴旂敤鎾斁鍋忓ソ澶辫触",
+            "应用播放偏好失败",
             status.HTTP_400_BAD_REQUEST,
         ) from exc
     except Exception as exc:
         logger.error("Failed to apply playback rate preference: %s", exc)
         raise bilingual_http_exception(
             "Failed to apply playback preference",
-            "搴旂敤鎾斁鍋忓ソ澶辫触",
+            "应用播放偏好失败",
             status.HTTP_500_INTERNAL_SERVER_ERROR,
         ) from exc
 
@@ -259,7 +257,8 @@ async def get_summary_models(
 async def search_podcasts(
     q: str | None = Query(None, min_length=1, description="Search keyword"),
     search_in: str | None = Query(
-        "all", description="Search scope: title, description, summary, all"
+        "all",
+        description="Search scope: title, description, summary, all",
     ),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Page size"),
@@ -269,7 +268,7 @@ async def search_podcasts(
     if not keyword:
         raise bilingual_http_exception(
             "q is required",
-            "蹇呴』鎻愪緵 q 鍙傛暟",
+            "必须提供 q 查询参数",
             status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
 

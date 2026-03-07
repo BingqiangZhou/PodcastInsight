@@ -34,7 +34,14 @@ class PodcastEpisodeService:
     - Episode metadata management
     """
 
-    def __init__(self, db: AsyncSession, user_id: int):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: int,
+        *,
+        repo: PodcastEpisodeRepository | None = None,
+        redis: PodcastRedis | None = None,
+    ):
         """
         Initialize episode service.
 
@@ -44,8 +51,8 @@ class PodcastEpisodeService:
         """
         self.db = db
         self.user_id = user_id
-        self.repo = PodcastEpisodeRepository(db)
-        self.redis = PodcastRedis()
+        self.repo = repo or PodcastEpisodeRepository(db)
+        self.redis = redis or PodcastRedis()
         self._feed_description_max_length = 320
 
     async def list_episodes(

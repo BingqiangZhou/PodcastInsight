@@ -555,7 +555,9 @@ class PodcastPlaybackQueueRepositoryMixin:
         desired_current = ordered_episode_ids[0] if ordered_episode_ids else None
         if changed:
             item_map = {item.episode_id: item for item in ordered_items}
-            reordered_items = [item_map[episode_id] for episode_id in ordered_episode_ids]
+            reordered_items = [
+                item_map[episode_id] for episode_id in ordered_episode_ids
+            ]
             await self._rewrite_queue_positions(
                 reordered_items,
                 step=self._queue_position_step,

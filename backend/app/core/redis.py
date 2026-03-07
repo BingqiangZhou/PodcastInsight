@@ -228,10 +228,7 @@ class PodcastRedis:
 
         # Celery prefork workers call asyncio.run() per task. When loop changes,
         # redis-py async clients bound to old loops must be discarded.
-        if (
-            self._client is not None
-            and self._client_loop_token != current_loop_token
-        ):
+        if self._client is not None and self._client_loop_token != current_loop_token:
             old_client = self._client
             self._client = None
             self._client_loop_token = None
@@ -614,13 +611,9 @@ class PodcastRedis:
                 self._last_health_check_at = 0.0
 
 
-# Global singleton instance
-_redis_instance = PodcastRedis()
-
-
 async def get_redis() -> PodcastRedis:
-    """Get global Redis instance"""
-    return _redis_instance
+    """Create a Redis helper through the runtime/provider layer."""
+    return PodcastRedis()
 
 
 def get_redis_runtime_metrics() -> dict[str, Any]:

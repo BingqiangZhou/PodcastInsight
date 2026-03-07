@@ -17,10 +17,16 @@ class PodcastQueueService:
 
     MAX_QUEUE_ITEMS = 500
 
-    def __init__(self, db: AsyncSession, user_id: int):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: int,
+        *,
+        repo: PodcastQueueRepository | None = None,
+    ):
         self.db = db
         self.user_id = user_id
-        self.repo = PodcastQueueRepository(db)
+        self.repo = repo or PodcastQueueRepository(db)
 
     async def get_queue(self) -> dict[str, Any]:
         queue = await self.repo.get_queue_with_items(self.user_id)

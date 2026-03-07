@@ -42,7 +42,16 @@ class PodcastSubscriptionService:
     - Removing subscriptions
     """
 
-    def __init__(self, db: AsyncSession, user_id: int):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: int,
+        *,
+        repo: PodcastSubscriptionRepository | None = None,
+        redis: PodcastRedis | None = None,
+        parser: SecureRSSParser | None = None,
+        subscription_repo: SubscriptionRepository | None = None,
+    ):
         """
         Initialize subscription service.
 
@@ -52,9 +61,10 @@ class PodcastSubscriptionService:
         """
         self.db = db
         self.user_id = user_id
-        self.repo = PodcastSubscriptionRepository(db)
-        self.redis = PodcastRedis()
-        self.parser = SecureRSSParser(user_id)
+        self.repo = repo or PodcastSubscriptionRepository(db)
+        self.redis = redis or PodcastRedis()
+        self.parser = parser or SecureRSSParser(user_id)
+        self.subscription_repo = subscription_repo or SubscriptionRepository(db)
 
     async def add_subscription(
         self, feed_url: str
@@ -601,7 +611,7 @@ class PodcastSubscriptionService:
             if not sub:
                 return False
 
-            removed = await SubscriptionRepository(self.db).delete_subscription(
+            removed = await self.subscription_repo.delete_subscription(
                 user_id=self.user_id,
                 sub_id=subscription_id,
             )

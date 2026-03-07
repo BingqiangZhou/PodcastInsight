@@ -8,7 +8,7 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
-from app.core.database import get_db_session
+from app.core.providers import get_db_session_dependency
 from app.domains.user.models import User
 from app.domains.user.repositories import UserRepository
 
@@ -33,7 +33,7 @@ class AdminAuthRequired:
         self,
         request: Request,
         admin_session: str | None = Cookie(None),
-        db: AsyncSession = Depends(get_db_session),
+        db: AsyncSession = Depends(get_db_session_dependency),
     ) -> User:
         if not admin_session:
             raise HTTPException(

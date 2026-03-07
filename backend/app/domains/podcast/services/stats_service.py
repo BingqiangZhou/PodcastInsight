@@ -24,12 +24,20 @@ logger = logging.getLogger(__name__)
 class PodcastStatsService:
     """Service for user podcast statistics."""
 
-    def __init__(self, db: AsyncSession, user_id: int):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: int,
+        *,
+        repo: PodcastStatsRepository | None = None,
+        redis: PodcastRedis | None = None,
+        playback_service: PodcastPlaybackService | None = None,
+    ):
         self.db = db
         self.user_id = user_id
-        self.repo = PodcastStatsRepository(db)
-        self.playback_service = PodcastPlaybackService(db, user_id)
-        self.redis = PodcastRedis()
+        self.repo = repo or PodcastStatsRepository(db)
+        self.playback_service = playback_service or PodcastPlaybackService(db, user_id)
+        self.redis = redis or PodcastRedis()
 
     async def get_user_stats(self) -> dict[str, Any]:
         """Get cached/aggregated user stats with playback context."""

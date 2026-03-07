@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
-from app.domains.podcast.api.dependencies import get_daily_report_service
+from app.core.providers import get_daily_report_service
 from app.main import app
 
 

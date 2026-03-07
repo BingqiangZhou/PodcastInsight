@@ -28,7 +28,14 @@ class PodcastSearchService:
     - Generating recommendations based on listening history
     """
 
-    def __init__(self, db: AsyncSession, user_id: int):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: int,
+        *,
+        repo: PodcastSearchRepository | None = None,
+        redis: PodcastRedis | None = None,
+    ):
         """
         Initialize search service.
 
@@ -38,8 +45,8 @@ class PodcastSearchService:
         """
         self.db = db
         self.user_id = user_id
-        self.repo = PodcastSearchRepository(db)
-        self.redis = PodcastRedis()
+        self.repo = repo or PodcastSearchRepository(db)
+        self.redis = redis or PodcastRedis()
 
     async def search_podcasts(
         self, query: str, search_in: str = "all", page: int = 1, size: int = 20
