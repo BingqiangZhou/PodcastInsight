@@ -11,8 +11,10 @@ from app.domains.podcast.api.routes_episodes import generate_summary
 from app.domains.podcast.schemas import PodcastSummaryRequest
 from app.domains.podcast.services.episode_service import PodcastEpisodeService
 from app.domains.podcast.services.search_service import PodcastSearchService
+from app.domains.podcast.services.summary_generation_service import (
+    PodcastSummaryGenerationService,
+)
 from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
-from app.domains.podcast.summary_manager import DatabaseBackedAISummaryService
 
 
 class _ScalarResult:
@@ -96,7 +98,7 @@ async def test_update_episode_summary_filters_thinking_and_does_not_truncate() -
     db.commit = AsyncMock()
     db.rollback = AsyncMock()
 
-    service = DatabaseBackedAISummaryService(db=db)
+    service = PodcastSummaryGenerationService(db=db)
     summary_result = {
         "summary_content": f"<think>hidden reasoning</think>{visible}",
         "model_name": "model-x",
@@ -117,7 +119,7 @@ async def test_generate_summary_reuses_existing_when_lock_contended() -> None:
     db = AsyncMock()
     db.execute.return_value = _ScalarResult("<think>hidden</think>existing summary")
 
-    service = DatabaseBackedAISummaryService(db=db)
+    service = PodcastSummaryGenerationService(db=db)
     service.model_manager = AsyncMock()
 
     class _FakeRedis:

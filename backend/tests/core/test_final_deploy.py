@@ -38,16 +38,16 @@ def test_api_routes_shape() -> None:
 
 
 def test_repository_contract() -> None:
-    from app.domains.podcast.repositories import PodcastRepository
+    from app.domains.podcast.repositories import (
+        PodcastEpisodeRepository,
+        PodcastPlaybackRepository,
+        PodcastSubscriptionRepository,
+    )
 
-    methods = [
-        "create_or_update_subscription",
-        "create_or_update_episode",
-        "update_ai_summary",
-        "update_playback_progress",
-    ]
-    for method in methods:
-        assert hasattr(PodcastRepository, method)
+    assert hasattr(PodcastSubscriptionRepository, "create_or_update_subscription")
+    assert hasattr(PodcastSubscriptionRepository, "create_or_update_episode")
+    assert hasattr(PodcastEpisodeRepository, "update_ai_summary")
+    assert hasattr(PodcastPlaybackRepository, "update_playback_progress")
 
 
 def test_specialized_service_contracts() -> None:
@@ -56,9 +56,11 @@ def test_specialized_service_contracts() -> None:
     from app.domains.podcast.services.subscription_service import (
         PodcastSubscriptionService,
     )
-    from app.domains.podcast.summary_manager import DatabaseBackedAISummaryService
+    from app.domains.podcast.services.summary_generation_service import (
+        PodcastSummaryGenerationService,
+    )
 
     assert hasattr(PodcastSubscriptionService, "add_subscription")
     assert hasattr(PodcastEpisodeService, "get_episode_with_summary")
     assert hasattr(PodcastPlaybackService, "update_playback_progress")
-    assert hasattr(DatabaseBackedAISummaryService, "regenerate_summary")
+    assert hasattr(PodcastSummaryGenerationService, "regenerate_summary")

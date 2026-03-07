@@ -14,7 +14,7 @@ from sqlalchemy import select, update
 
 from app.core.database import get_async_session_factory, init_db
 from app.domains.podcast.integration.secure_rss_parser import SecureRSSParser
-from app.domains.podcast.repositories import PodcastRepository
+from app.domains.podcast.repositories import PodcastSubscriptionRepository
 from app.domains.subscription.models import Subscription
 
 
@@ -26,7 +26,7 @@ async def main():
     await init_db()
 
     async with get_async_session_factory()() as db:
-        PodcastRepository(db)
+        PodcastSubscriptionRepository(db)
 
         # Get first subscription
         result = await db.execute(

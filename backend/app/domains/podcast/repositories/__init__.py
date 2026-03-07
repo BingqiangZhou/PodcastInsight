@@ -12,16 +12,11 @@ from app.domains.podcast.repositories.specialized import (
 )
 
 
-class PodcastRepository(PodcastEpisodeRepository):
-    """Compatibility alias for legacy tests and transitional imports."""
-
-
 __all__ = [
     "BasePodcastRepository",
     "PodcastEpisodeRepository",
     "PodcastPlaybackRepository",
     "PodcastQueueRepository",
-    "PodcastRepository",
     "PodcastSearchRepository",
     "PodcastStatsRepository",
     "PodcastSubscriptionRepository",

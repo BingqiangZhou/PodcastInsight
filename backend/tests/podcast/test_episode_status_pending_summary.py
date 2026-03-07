@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from app.domains.podcast.models import PodcastEpisode
-from app.domains.podcast.repositories import PodcastRepository
+from app.domains.podcast.repositories import PodcastSubscriptionRepository
 
 
 class _ScalarResult:
@@ -29,7 +29,7 @@ async def test_new_episode_defaults_to_pending_summary() -> None:
     db.commit = AsyncMock()
     db.refresh = AsyncMock()
     db.add = Mock()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastSubscriptionRepository(db=db, redis=AsyncMock())
 
     _, new_episodes = await repo.create_or_update_episodes_batch(
         subscription_id=1,
@@ -72,7 +72,7 @@ async def test_opml_background_reparse_does_not_override_summarized_status() -> 
     db.commit = AsyncMock()
     db.refresh = AsyncMock()
     db.add = Mock()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastSubscriptionRepository(db=db, redis=AsyncMock())
 
     payload = [
         {
@@ -114,7 +114,7 @@ async def test_pending_summary_stays_pending_summary_after_multiple_reparse() ->
     db.commit = AsyncMock()
     db.refresh = AsyncMock()
     db.add = Mock()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastSubscriptionRepository(db=db, redis=AsyncMock())
 
     payload = [
         {

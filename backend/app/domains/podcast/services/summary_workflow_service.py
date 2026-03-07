@@ -13,7 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ValidationError
 from app.domains.podcast.models import TranscriptionTask
 from app.domains.podcast.repositories import PodcastSummaryRepository
-from app.domains.podcast.summary_manager import DatabaseBackedAISummaryService
+from app.domains.podcast.services.summary_generation_service import (
+    PodcastSummaryGenerationService,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -30,8 +32,8 @@ class SummaryWorkflowService:
             PodcastSummaryRepository
         ),
         summary_service_factory: Callable[
-            [AsyncSession], DatabaseBackedAISummaryService
-        ] = DatabaseBackedAISummaryService,
+            [AsyncSession], PodcastSummaryGenerationService
+        ] = PodcastSummaryGenerationService,
     ):
         self.db = db
         self.repo = repo_factory(db)

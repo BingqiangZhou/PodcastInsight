@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.domains.podcast.repositories import PodcastRepository
+from app.domains.podcast.repositories import PodcastEpisodeRepository
 
 
 def _scalars_result(rows):
@@ -23,7 +23,7 @@ def _scalar_result(value):
 async def test_get_user_subscriptions_keeps_active_subscription_filters():
     db = AsyncMock()
     db.execute.return_value = _scalars_result([])
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastEpisodeRepository(db=db, redis=AsyncMock())
 
     items = await repo.get_user_subscriptions(user_id=42)
 
@@ -41,7 +41,7 @@ async def test_get_episodes_paginated_keeps_active_subscription_filters():
         _scalar_result(0),
         _scalars_result([]),
     ]
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastEpisodeRepository(db=db, redis=AsyncMock())
 
     episodes, total = await repo.get_episodes_paginated(
         user_id=42,

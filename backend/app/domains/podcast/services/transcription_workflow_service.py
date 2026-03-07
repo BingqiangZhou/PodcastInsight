@@ -17,9 +17,11 @@ from app.domains.podcast.models import (
     TranscriptionTask,
 )
 from app.domains.podcast.services.sync_service import PodcastSyncService
-from app.domains.podcast.transcription_manager import DatabaseBackedTranscriptionService
-from app.domains.podcast.transcription_scheduler import (
-    TranscriptionScheduler,
+from app.domains.podcast.services.transcription_runtime_service import (
+    PodcastTranscriptionRuntimeService,
+)
+from app.domains.podcast.services.transcription_schedule_service import (
+    PodcastTranscriptionScheduleService,
     batch_transcribe_subscription,
     get_episode_transcript,
 )
@@ -38,9 +40,9 @@ class TranscriptionWorkflowService:
         db: AsyncSession,
         *,
         transcription_service_factory: Callable[
-            [AsyncSession], DatabaseBackedTranscriptionService
-        ] = DatabaseBackedTranscriptionService,
-        scheduler_factory: Callable[[AsyncSession], TranscriptionScheduler] = TranscriptionScheduler,
+            [AsyncSession], PodcastTranscriptionRuntimeService
+        ] = PodcastTranscriptionRuntimeService,
+        scheduler_factory: Callable[[AsyncSession], PodcastTranscriptionScheduleService] = PodcastTranscriptionScheduleService,
         sync_service_factory: Callable[[AsyncSession, int], PodcastSyncService] = PodcastSyncService,
         state_manager_factory: Callable[[], Awaitable[Any]] = get_transcription_state_manager,
         redis_factory: Callable[[], PodcastRedis] = PodcastRedis,

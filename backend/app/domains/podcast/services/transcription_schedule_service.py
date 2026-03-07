@@ -13,18 +13,21 @@ from app.domains.podcast.models import (
     TranscriptionStatus,
     TranscriptionTask,
 )
-from app.domains.podcast.transcription_manager import DatabaseBackedTranscriptionService
+from app.domains.podcast.services.transcription_runtime_service import (
+    PodcastTranscriptionRuntimeService,
+)
 from app.domains.podcast.transcription_types import ScheduleFrequency
 
 
 logger = logging.getLogger(__name__)
 
-class TranscriptionScheduler:
+
+class PodcastTranscriptionScheduleService:
     """Scheduler facade for podcast transcription tasks."""
 
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.transcription_service = DatabaseBackedTranscriptionService(db)
+        self.transcription_service = PodcastTranscriptionRuntimeService(db)
 
     @staticmethod
     def _status_value(status: Any) -> str:
@@ -37,7 +40,7 @@ class TranscriptionScheduler:
         custom_interval: int | None = None,
         force: bool = False,
     ) -> dict[str, Any]:
-        """Schedule or reuse a transcription task for one episode."""
+        del frequency, custom_interval
         episode = await self._get_episode(episode_id)
         if not episode:
             raise ValidationError(f"Episode {episode_id} not found")
@@ -60,7 +63,6 @@ class TranscriptionScheduler:
                 "reason": "Already transcribed, use force=true to regenerate",
                 "action": action,
             }
-
         if action in {"reused_in_progress", "reused_pending", "locked_by_other_task"}:
             return {
                 "status": "processing",
@@ -71,12 +73,6 @@ class TranscriptionScheduler:
                 "action": action,
             }
 
-        logger.info(
-            "Scheduled transcription for episode %s task %s (action=%s)",
-            episode_id,
-            task.id,
-            action,
-        )
         return {
             "status": "scheduled",
             "message": "Transcription task started",
@@ -93,7 +89,6 @@ class TranscriptionScheduler:
         limit: int | None = None,
         skip_existing: bool = True,
     ) -> list[dict[str, Any]]:
-        """Schedule transcription tasks for one subscription in batch."""
         stmt = (
             select(PodcastEpisode)
             .where(PodcastEpisode.subscription_id == subscription_id)
@@ -127,7 +122,7 @@ class TranscriptionScheduler:
                 schedule_result["episode_id"] = episode.id
                 schedule_result["episode_title"] = episode.title
                 results.append(schedule_result)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 results.append(
                     {
                         "episode_id": episode.id,
@@ -136,7 +131,6 @@ class TranscriptionScheduler:
                         "error": str(exc),
                     }
                 )
-
         return results
 
     async def check_and_transcribe_new_episodes(
@@ -144,7 +138,6 @@ class TranscriptionScheduler:
         subscription_id: int,
         hours_since_published: int = 24,
     ) -> dict[str, Any]:
-        """Schedule transcription for newly published episodes."""
         cutoff_time = datetime.now(timezone.utc) - timedelta(
             hours=hours_since_published
         )
@@ -188,7 +181,7 @@ class TranscriptionScheduler:
                         "task_id": schedule_result.get("task_id"),
                     }
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 results.append(
                     {
                         "episode_id": episode.id,
@@ -209,7 +202,6 @@ class TranscriptionScheduler:
         }
 
     async def get_transcription_status(self, episode_id: int) -> dict[str, Any]:
-        """Get current transcription task status for an episode."""
         episode = await self._get_episode(episode_id)
         if not episode:
             raise ValidationError(f"Episode {episode_id} not found")
@@ -243,18 +235,15 @@ class TranscriptionScheduler:
             "summary_word_count": task.summary_word_count,
             "error_message": task.error_message,
         }
-
         if self._status_value(task.status) == TranscriptionStatus.COMPLETED.value:
             result["transcript_preview"] = (
                 task.transcript_content[:100] + "..."
                 if task.transcript_content
                 else None
             )
-
         return result
 
     async def get_pending_transcriptions(self) -> list[dict[str, Any]]:
-        """List pending/in-progress transcription tasks."""
         stmt = (
             select(TranscriptionTask)
             .where(
@@ -282,14 +271,12 @@ class TranscriptionScheduler:
         ]
 
     async def cancel_transcription(self, episode_id: int) -> bool:
-        """Cancel transcription task for an episode."""
         task = await self._get_existing_transcription_task(episode_id)
         if not task:
             return False
         return await self.transcription_service.cancel_transcription(task.id)
 
     async def get_transcript_from_existing(self, episode_id: int) -> str | None:
-        """Get transcript content from episode/task without scheduling new work."""
         episode = await self._get_episode(episode_id)
         if episode and episode.transcript_content:
             return episode.transcript_content
@@ -301,7 +288,6 @@ class TranscriptionScheduler:
             and task.transcript_content
         ):
             return task.transcript_content
-
         return None
 
     async def _get_episode(self, episode_id: int) -> PodcastEpisode | None:
@@ -318,8 +304,7 @@ class TranscriptionScheduler:
 
 
 async def get_episode_transcript(db: AsyncSession, episode_id: int) -> str | None:
-    """Convenience helper to get transcript for one episode."""
-    scheduler = TranscriptionScheduler(db)
+    scheduler = PodcastTranscriptionScheduleService(db)
     return await scheduler.get_transcript_from_existing(episode_id)
 
 
@@ -328,8 +313,7 @@ async def batch_transcribe_subscription(
     subscription_id: int,
     skip_existing: bool = True,
 ) -> dict[str, Any]:
-    """Convenience helper to batch schedule a subscription."""
-    scheduler = TranscriptionScheduler(db)
+    scheduler = PodcastTranscriptionScheduleService(db)
     results = await scheduler.batch_schedule_transcription(
         subscription_id=subscription_id,
         skip_existing=skip_existing,
@@ -343,3 +327,6 @@ async def batch_transcribe_subscription(
         "errors": sum(1 for item in results if item.get("status") == "error"),
         "details": results,
     }
+
+
+TranscriptionScheduler = PodcastTranscriptionScheduleService

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from app.domains.podcast.models import PodcastQueueItem
-from app.domains.podcast.repositories import PodcastRepository
+from app.domains.podcast.repositories import PodcastQueueRepository
 
 
 def _queue_item(item_id: int, episode_id: int, position: int) -> SimpleNamespace:
@@ -47,7 +47,7 @@ def _mock_db() -> SimpleNamespace:
 @pytest.mark.asyncio
 async def test_add_or_move_to_tail_adds_new_item_without_full_rewrite() -> None:
     db = _mock_db()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastQueueRepository(db=db, redis=AsyncMock())
     queue = _queue_with_items(
         [_queue_item(item_id=1, episode_id=10, position=0)],
         current_episode_id=10,
@@ -72,7 +72,7 @@ async def test_add_or_move_to_tail_adds_new_item_without_full_rewrite() -> None:
 @pytest.mark.asyncio
 async def test_add_or_move_to_tail_keeps_current_episode_at_head() -> None:
     db = _mock_db()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastQueueRepository(db=db, redis=AsyncMock())
     head = _queue_item(item_id=1, episode_id=10, position=0)
     tail = _queue_item(item_id=2, episode_id=11, position=repo._queue_position_step)
     queue = _queue_with_items([head, tail], current_episode_id=10)
@@ -91,7 +91,7 @@ async def test_add_or_move_to_tail_keeps_current_episode_at_head() -> None:
 @pytest.mark.asyncio
 async def test_activate_episode_moves_existing_item_to_head_and_sets_current() -> None:
     db = _mock_db()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastQueueRepository(db=db, redis=AsyncMock())
     head = _queue_item(item_id=1, episode_id=10, position=0)
     middle = _queue_item(item_id=2, episode_id=11, position=repo._queue_position_step)
     tail = _queue_item(item_id=3, episode_id=12, position=repo._queue_position_step * 2)
@@ -110,7 +110,7 @@ async def test_activate_episode_moves_existing_item_to_head_and_sets_current() -
 @pytest.mark.asyncio
 async def test_complete_current_advances_to_next_when_current_not_head() -> None:
     db = _mock_db()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastQueueRepository(db=db, redis=AsyncMock())
     first = _queue_item(item_id=1, episode_id=10, position=0)
     second = _queue_item(item_id=2, episode_id=11, position=repo._queue_position_step)
     third = _queue_item(
@@ -132,7 +132,7 @@ async def test_complete_current_advances_to_next_when_current_not_head() -> None
 @pytest.mark.asyncio
 async def test_complete_current_clears_current_when_queue_becomes_empty() -> None:
     db = _mock_db()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastQueueRepository(db=db, redis=AsyncMock())
     only = _queue_item(item_id=1, episode_id=10, position=0)
     queue = _queue_with_items([only], current_episode_id=10)
     db.delete = AsyncMock(side_effect=lambda item: queue.items.remove(item))
@@ -150,7 +150,7 @@ async def test_complete_current_clears_current_when_queue_becomes_empty() -> Non
 @pytest.mark.asyncio
 async def test_complete_current_falls_back_to_head_when_current_missing() -> None:
     db = _mock_db()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastQueueRepository(db=db, redis=AsyncMock())
     head = _queue_item(item_id=1, episode_id=10, position=0)
     next_item = _queue_item(
         item_id=2, episode_id=11, position=repo._queue_position_step
@@ -171,7 +171,7 @@ async def test_complete_current_falls_back_to_head_when_current_missing() -> Non
 @pytest.mark.asyncio
 async def test_add_or_move_to_tail_compacts_positions_when_threshold_reached() -> None:
     db = _mock_db()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastQueueRepository(db=db, redis=AsyncMock())
     queue = _queue_with_items(
         [
             _queue_item(
@@ -225,7 +225,7 @@ class _ExpirableQueue:
 @pytest.mark.asyncio
 async def test_remove_item_does_not_access_queue_after_expire() -> None:
     db = _mock_db()
-    repo = PodcastRepository(db=db, redis=AsyncMock())
+    repo = PodcastQueueRepository(db=db, redis=AsyncMock())
     first = _queue_item(item_id=1, episode_id=10, position=0)
     second = _queue_item(item_id=2, episode_id=11, position=repo._queue_position_step)
     queue = _ExpirableQueue(

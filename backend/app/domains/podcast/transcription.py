@@ -30,7 +30,9 @@ from app.domains.podcast.models import (
     TranscriptionStep,
     TranscriptionTask,
 )
-from app.domains.podcast.summary_manager import DatabaseBackedAISummaryService
+from app.domains.podcast.services.summary_generation_service import (
+    PodcastSummaryGenerationService as DatabaseBackedAISummaryService,
+)
 from app.domains.podcast.transcription_state import _progress_throttle
 
 
