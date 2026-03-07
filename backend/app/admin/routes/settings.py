@@ -19,6 +19,7 @@ from app.admin.audit import log_admin_action
 from app.admin.dependencies import admin_required
 from app.admin.models import SystemSettings
 from app.admin.routes._shared import get_templates
+from app.admin.services import AdminSettingsService
 from app.core.database import get_db_session
 from app.domains.subscription.models import (
     Subscription,
@@ -71,6 +72,9 @@ async def get_audio_settings(
 ):
     """Get audio processing settings as JSON."""
     try:
+        payload = await AdminSettingsService(db).get_audio_settings()
+        return JSONResponse(content=payload)
+
         # Get chunk size setting
         chunk_size_result = await db.execute(
             select(SystemSettings).where(SystemSettings.key == "audio.chunk_size_mb")
@@ -127,6 +131,35 @@ async def update_audio_settings(
                 status_code=400,
                 detail="max_concurrent_threads must be between 1 and 16"
             )
+
+        await AdminSettingsService(db).update_audio_settings(
+            chunk_size_mb=chunk_size_mb,
+            max_concurrent_threads=max_concurrent_threads,
+        )
+
+        logger.info(f"Audio settings updated by user {user.username}: chunk_size_mb={chunk_size_mb}, max_concurrent_threads={max_concurrent_threads}")
+
+        # Log audit action
+        await log_admin_action(
+            db=db,
+            user_id=user.id,
+            username=user.username,
+            action="update",
+            resource_type="system_settings",
+            resource_name="Audio processing settings",
+            details={
+                "chunk_size_mb": chunk_size_mb,
+                "max_concurrent_threads": max_concurrent_threads,
+            },
+            request=request,
+        )
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "message": "Settings saved",
+            }
+        )
 
         # Update chunk size setting
         chunk_size_result = await db.execute(

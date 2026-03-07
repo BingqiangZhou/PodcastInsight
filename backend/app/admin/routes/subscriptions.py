@@ -25,6 +25,7 @@ from app.admin.audit import log_admin_action
 from app.admin.dependencies import admin_required
 from app.admin.models import SystemSettings
 from app.admin.routes._shared import get_templates
+from app.admin.services import AdminSubscriptionsService
 from app.core.database import get_db_session
 from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
 from app.domains.subscription.models import (
@@ -60,6 +61,23 @@ async def subscriptions_page(
 ):
     """Display RSS subscriptions management page with pagination and status filter."""
     try:
+        context = await AdminSubscriptionsService(db).get_page_context(
+            page=page,
+            per_page=per_page,
+            status_filter=status_filter,
+            search_query=search_query,
+            user_filter=user_filter,
+        )
+        return templates.TemplateResponse(
+            "subscriptions.html",
+            {
+                "request": request,
+                "user": user,
+                "messages": [],
+                **context,
+            },
+        )
+
         # Build base query - now always with user_subscriptions join
         query = (
             select(Subscription, func.count(UserSubscription.id).label('subscriber_count'))

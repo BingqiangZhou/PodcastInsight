@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.admin.audit import log_admin_action
 from app.admin.dependencies import admin_required
 from app.admin.routes._shared import get_templates
+from app.admin.services import AdminApiKeysService
 from app.core.database import get_db_session
 from app.core.security import (
     decrypt_data,
@@ -51,6 +52,21 @@ async def apikeys_page(
 ):
     """Display API keys management page with filtering and pagination."""
     try:
+        context = await AdminApiKeysService(db).get_page_context(
+            model_type_filter=model_type_filter,
+            page=page,
+            per_page=per_page,
+        )
+        return templates.TemplateResponse(
+            "apikeys.html",
+            {
+                "request": request,
+                "user": user,
+                "messages": [],
+                **context,
+            },
+        )
+
         # Build base query
         query = select(AIModelConfig)
 
