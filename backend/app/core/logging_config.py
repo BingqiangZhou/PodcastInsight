@@ -133,6 +133,9 @@ def setup_logging(
     root_logger.setLevel(level)
 
     # 1. 控制台处理器 (使用彩色输出，如果可用)
+    # Ensure UTF-8 encoding for console output (critical in Docker / Windows containers)
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
     console_handler.setFormatter(formatter)

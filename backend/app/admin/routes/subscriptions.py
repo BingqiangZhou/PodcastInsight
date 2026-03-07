@@ -238,7 +238,7 @@ async def batch_delete_subscriptions(
             status_code=500,
             detail={
                 "message_en": "Failed to batch delete subscriptions",
-                "message_zh": "鎵归噺鍒犻櫎璁㈤槄澶辫触",
+                "message_zh": "批量删除订阅失败",
             },
         ) from exc
 

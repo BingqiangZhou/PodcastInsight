@@ -34,7 +34,7 @@ class SecretKeyManager:
         # Try to load existing key
         if self.secret_key_file.exists():
             try:
-                with open(self.secret_key_file) as f:
+                with open(self.secret_key_file, encoding="utf-8") as f:
                     self._secret_key = f.read().strip()
                 return self._secret_key
             except OSError:
@@ -49,7 +49,7 @@ class SecretKeyManager:
         """Save SECRET_KEY to file"""
         try:
             self.ensure_data_dir()
-            with open(self.secret_key_file, "w") as f:
+            with open(self.secret_key_file, "w", encoding="utf-8") as f:
                 f.write(secret_key)
         except (OSError, PermissionError):
             # Silently fail if we can't write to disk (e.g., in Docker with read-only volume)

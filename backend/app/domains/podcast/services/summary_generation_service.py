@@ -152,7 +152,7 @@ class SummaryModelManager:
         del episode_info
         max_prompt_length = 100000
         if len(prompt) > max_prompt_length:
-            prompt = prompt[:max_prompt_length] + "\n\n[鍐呭杩囬暱锛屽凡鎴柇]"
+            prompt = prompt[:max_prompt_length] + "\n\n[内容过长，已截断]"
 
         api_url = model_config.api_url
         if not api_url.endswith("/chat/completions"):
@@ -216,10 +216,10 @@ class SummaryModelManager:
     def _build_default_prompt(
         self, episode_info: dict[str, Any], transcript: str
     ) -> str:
-        title = episode_info.get("title", "鏈煡鏍囬")
+        title = episode_info.get("title", "Untitled Episode")
         description = strip_html_tags(episode_info.get("description", ""))
         return f"""# Role
-浣犳槸涓€浣嶈拷姹傛瀬鑷村畬鏁存€х殑璧勬繁鎾鍐呭鍒嗘瀽甯堛€備綘鐨勭洰鏍囨槸灏嗗啑闀跨殑闊抽杞綍鏂囨湰杞寲涓轰竴浠借灏姐€佺粨鏋勫寲涓?*鏋佹槗闃呰**鐨勬繁搴︾爺鎶ャ€?
+You are a senior podcast content analyst. Your task is to transform a long-form audio transcript into a detailed, well-structured, and easy-to-read research-style summary.
 # Input Data
 <podcast_info>
 Title: {title}

@@ -82,6 +82,7 @@ services:
       - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
       # Timezone for log timestamps / 日志时区
       - TZ=${TZ:-Asia/Shanghai}
+      - PYTHONUTF8=1
       - OBS_ALERT_API_P95_MS=${OBS_ALERT_API_P95_MS:-800}
       - OBS_ALERT_API_ERROR_RATE=${OBS_ALERT_API_ERROR_RATE:-0.05}
       - OBS_ALERT_DB_POOL_OCCUPANCY_RATIO=${OBS_ALERT_DB_POOL_OCCUPANCY_RATIO:-0.9}
@@ -140,6 +141,7 @@ services:
       - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
       # Timezone for log timestamps / 日志时区
       - TZ=${TZ:-Asia/Shanghai}
+      - PYTHONUTF8=1
     volumes:
       - backend_data:/app/data
       - ${TRANSCRIPTION_STORAGE_DIR:-./storage/podcasts}:/app/storage/podcasts
@@ -184,6 +186,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
       - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
       - TZ=${TZ:-Asia/Shanghai}
+      - PYTHONUTF8=1
     volumes:
       - backend_data:/app/data
       - ${TRANSCRIPTION_STORAGE_DIR:-./storage/podcasts}:/app/storage/podcasts
@@ -225,6 +228,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
       # Timezone for log timestamps / 日志时区
       - TZ=${TZ:-Asia/Shanghai}
+      - PYTHONUTF8=1
     volumes:
       - backend_data:/app/data
       - ${LOG_DIR:-./logs}:/app/logs

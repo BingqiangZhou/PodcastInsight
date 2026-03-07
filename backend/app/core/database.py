@@ -129,6 +129,9 @@ def create_isolated_session_factory(
     engine_kwargs = _build_engine_kwargs(database_url)
     engine_kwargs["poolclass"] = NullPool
     engine_kwargs["pool_pre_ping"] = False
+    # NullPool does not accept pool sizing arguments
+    for key in ("pool_size", "max_overflow", "pool_timeout", "pool_recycle"):
+        engine_kwargs.pop(key, None)
 
     connect_args = dict(engine_kwargs.get("connect_args") or {})
     if database_url.startswith("postgresql+asyncpg://"):
@@ -308,12 +311,20 @@ def get_db_pool_snapshot() -> dict[str, Any]:
     pool_size = _pool_metric(pool, "size")
     checked_out = _pool_metric(pool, "checkedout")
     overflow = _pool_metric(pool, "overflow")
-    capacity = max(pool_size + overflow, 1)
+    max_overflow_limit = _pool_metric(pool, "_max_overflow")
+
+    # SQLAlchemy can report negative overflow before the pool reaches steady size.
+    # Use configured overflow limit (if available) to avoid inflating occupancy.
+    if max_overflow_limit > 0:
+        capacity = max(pool_size + max_overflow_limit, 1)
+    else:
+        capacity = max(pool_size + max(overflow, 0), pool_size, 1)
 
     return {
         "pool_size": pool_size,
         "checked_out": checked_out,
         "overflow": overflow,
+        "max_overflow_limit": max_overflow_limit,
         "capacity": capacity,
         "occupancy_ratio": checked_out / capacity,
         "status": "configured",

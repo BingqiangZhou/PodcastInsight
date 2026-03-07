@@ -114,7 +114,7 @@ class AdminSettingsService:
                 SystemSettings(
                     key="audio.chunk_size_mb",
                     value={"value": chunk_size_mb, "min": 5, "max": 25},
-                    description="Audio chunk size in MB / 闊抽鍒囧潡澶у皬(MB)",
+                    description="Audio chunk size in MB / 音频切块大小(MB)",
                     category="audio",
                 )
             )
@@ -131,7 +131,7 @@ class AdminSettingsService:
                 SystemSettings(
                     key="audio.max_concurrent_threads",
                     value={"value": max_concurrent_threads, "min": 1, "max": 16},
-                    description="Maximum concurrent processing threads / 鏈€澶у苟鍙戝鐞嗙嚎绋嬫暟",
+                    description="Maximum concurrent processing threads / 最大并发处理线程数",
                     category="audio",
                 )
             )
