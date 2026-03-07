@@ -7,16 +7,14 @@ from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.redis import PodcastRedis
-from app.domains.podcast.models import (
-    PodcastEpisode,
-    TranscriptionStatus,
-    TranscriptionTask,
-)
+from app.domains.podcast.models import PodcastEpisode
 from app.domains.podcast.services.sync_service import PodcastSyncService
+from app.domains.podcast.services.transcription_dispatch_guard import (
+    TranscriptionDispatchGuard,
+)
 from app.domains.podcast.services.transcription_runtime_service import (
     PodcastTranscriptionRuntimeService,
 )
@@ -24,6 +22,12 @@ from app.domains.podcast.services.transcription_schedule_service import (
     PodcastTranscriptionScheduleService,
     batch_transcribe_subscription,
     get_episode_transcript,
+)
+from app.domains.podcast.services.transcription_state_coordinator import (
+    TranscriptionStateCoordinator,
+)
+from app.domains.podcast.services.transcription_status_projection import (
+    build_transcription_status_payload,
 )
 from app.domains.podcast.transcription_state import get_transcription_state_manager
 from app.domains.podcast.transcription_types import ScheduleFrequency
@@ -42,9 +46,15 @@ class TranscriptionWorkflowService:
         transcription_service_factory: Callable[
             [AsyncSession], PodcastTranscriptionRuntimeService
         ] = PodcastTranscriptionRuntimeService,
-        scheduler_factory: Callable[[AsyncSession], PodcastTranscriptionScheduleService] = PodcastTranscriptionScheduleService,
-        sync_service_factory: Callable[[AsyncSession, int], PodcastSyncService] = PodcastSyncService,
-        state_manager_factory: Callable[[], Awaitable[Any]] = get_transcription_state_manager,
+        scheduler_factory: Callable[
+            [AsyncSession], PodcastTranscriptionScheduleService
+        ] = PodcastTranscriptionScheduleService,
+        sync_service_factory: Callable[
+            [AsyncSession, int], PodcastSyncService
+        ] = PodcastSyncService,
+        state_manager_factory: Callable[
+            [], Awaitable[Any]
+        ] = get_transcription_state_manager,
         redis_factory: Callable[[], PodcastRedis] = PodcastRedis,
         claim_dispatched: Callable[[AsyncSession, int], Awaitable[bool]] | None = None,
         clear_dispatched: Callable[[int], Awaitable[None]] | None = None,
@@ -57,6 +67,15 @@ class TranscriptionWorkflowService:
         self.redis_factory = redis_factory
         self.claim_dispatched = claim_dispatched
         self.clear_dispatched = clear_dispatched
+        self.dispatch_guard = TranscriptionDispatchGuard(
+            db,
+            redis_factory=redis_factory,
+            claim_dispatched=claim_dispatched,
+            clear_dispatched=clear_dispatched,
+        )
+        self.state_coordinator = TranscriptionStateCoordinator(
+            state_manager_factory=state_manager_factory
+        )
 
     async def start_episode_transcription(
         self,
@@ -67,7 +86,6 @@ class TranscriptionWorkflowService:
         episode_lookup: Callable[[int], Awaitable[PodcastEpisode | None]],
     ) -> dict[str, Any]:
         """Start or reuse a transcription task and update redis state."""
-        state_manager = await self.state_manager_factory()
         episode = await episode_lookup(episode_id)
         if not episode:
             raise ValueError(f"Episode {episode_id} not found")
@@ -81,25 +99,7 @@ class TranscriptionWorkflowService:
         task = start_result["task"]
         action = start_result["action"]
 
-        await state_manager.set_episode_task(episode_id, task.id)
-        if action in {
-            "created",
-            "redispatched_pending",
-            "redispatched_failed_with_temp",
-        }:
-            await state_manager.set_task_progress(
-                task.id,
-                TranscriptionStatus.PENDING.value,
-                task.progress_percentage or 0,
-                "Transcription task queued",
-            )
-        elif action == "reused_in_progress":
-            await state_manager.set_task_progress(
-                task.id,
-                TranscriptionStatus.IN_PROGRESS.value,
-                task.progress_percentage or 0,
-                "Transcription task already in progress",
-            )
+        await self.state_coordinator.mark_start_result(episode_id, task, action)
 
         return {"task": task, "action": action, "episode": episode}
 
@@ -153,29 +153,13 @@ class TranscriptionWorkflowService:
         episode_lookup: Callable[[int], Awaitable[PodcastEpisode | None]],
     ) -> dict[str, Any]:
         """Delete transcription task and cleanup redis state."""
-        state_manager = await self.state_manager_factory()
         episode = await episode_lookup(episode_id)
         if not episode:
             raise ValueError(f"Episode {episode_id} not found")
 
         transcription_service = self.transcription_service_factory(self.db)
         task_id = await transcription_service.delete_episode_transcription(episode_id)
-        if task_id:
-            try:
-                await state_manager.clear_episode_task(episode_id)
-                await state_manager.release_task_lock(episode_id, task_id)
-                await state_manager.clear_task_progress(task_id)
-            except Exception as redis_error:
-                logger.warning("[DELETE] Failed to cleanup redis: %s", redis_error)
-        else:
-            try:
-                await state_manager.clear_episode_task(episode_id)
-                locked_task_id = await state_manager.is_episode_locked(episode_id)
-                if locked_task_id:
-                    await state_manager.release_task_lock(episode_id, locked_task_id)
-                    await state_manager.clear_task_progress(locked_task_id)
-            except Exception as redis_error:
-                logger.warning("[DELETE] Failed to cleanup stale locks: %s", redis_error)
+        await self.state_coordinator.cleanup_deleted_task(episode_id, task_id)
 
         return {"task_id": task_id, "episode": episode}
 
@@ -193,45 +177,14 @@ class TranscriptionWorkflowService:
 
         episode = await episode_lookup(task.episode_id)
         if not episode:
-            raise PermissionError("You don't have permission to access this transcription task")
+            raise PermissionError(
+                "You don't have permission to access this transcription task"
+            )
 
-        status_key = self._status_value(task.status)
-        status_messages = {
-            "pending": "Waiting to start",
-            "downloading": "Downloading audio file",
-            "converting": "Converting audio format",
-            "splitting": "Splitting audio into chunks",
-            "transcribing": "Transcribing audio",
-            "merging": "Merging transcription output",
-            "completed": "Transcription completed",
-            "failed": "Transcription failed",
-            "cancelled": "Transcription cancelled",
-        }
-
-        current_chunk = 0
-        total_chunks = 0
-        if task.chunk_info and "chunks" in task.chunk_info:
-            total_chunks = len(task.chunk_info["chunks"])
-            if status_key == "transcribing" and task.progress_percentage > 45:
-                current_chunk = int(((task.progress_percentage - 45) / 50) * total_chunks)
-
-        eta_seconds = None
-        if task.started_at and status_key not in {"completed", "failed", "cancelled"}:
-            elapsed = (datetime.now(timezone.utc) - task.started_at).total_seconds()
-            if task.progress_percentage > 0:
-                estimated_total = elapsed / (task.progress_percentage / 100)
-                eta_seconds = int(estimated_total - elapsed)
-
-        return {
-            "task_id": task.id,
-            "episode_id": task.episode_id,
-            "status": status_key,
-            "progress": task.progress_percentage,
-            "message": status_messages.get(status_key, "Unknown status"),
-            "current_chunk": current_chunk,
-            "total_chunks": total_chunks,
-            "eta_seconds": eta_seconds,
-        }
+        return build_transcription_status_payload(
+            task,
+            status_key=self._status_value(task.status),
+        )
 
     async def schedule_episode_transcription(
         self,
@@ -368,79 +321,14 @@ class TranscriptionWorkflowService:
         config_db_id: int | None,
     ) -> dict[str, Any]:
         """Worker-side transcription execution flow with redis lock/progress state."""
-        dispatch_claimed = await self._claim_dispatched(task_id)
-        if not dispatch_claimed:
-            return {
-                "status": "skipped",
-                "reason": "task_already_dispatched",
-                "task_id": task_id,
-            }
-
-        state_manager = await self.state_manager_factory()
-        stmt = select(TranscriptionTask).where(TranscriptionTask.id == task_id)
-        result = await self.db.execute(stmt)
-        task = result.scalar_one_or_none()
-        if task is None:
-            await self._clear_dispatched(task_id)
-            return {"status": "error", "reason": "task_not_found", "task_id": task_id}
-
-        episode_id = task.episode_id
-        lock_acquired = await state_manager.acquire_task_lock(
-            episode_id, task_id, expire_seconds=3600
+        return await self.state_coordinator.execute_task_with_state(
+            db=self.db,
+            task_id=task_id,
+            config_db_id=config_db_id,
+            transcription_service_factory=self.transcription_service_factory,
+            dispatch_guard=self.dispatch_guard,
+            status_value=self._status_value,
         )
-        if not lock_acquired:
-            locked_task_id = await state_manager.is_episode_locked(episode_id)
-            await self._clear_dispatched(task_id)
-            lock_owner = str(locked_task_id) if locked_task_id is not None else "unknown_owner"
-            raise RuntimeError(
-                f"Episode {episode_id} is locked by task {lock_owner}, retry later"
-            )
-
-        service = self.transcription_service_factory(self.db)
-        original_update = service._update_task_progress_with_session
-
-        async def redis_update_progress(
-            db_session, internal_task_id, status, progress, message, error_message=None
-        ):
-            await original_update(
-                db_session,
-                internal_task_id,
-                status,
-                progress,
-                message,
-                error_message,
-            )
-            await state_manager.set_task_progress(
-                internal_task_id,
-                self._status_value(status),
-                progress,
-                message,
-            )
-
-        service._update_task_progress_with_session = redis_update_progress
-
-        try:
-            await state_manager.set_task_progress(
-                task_id,
-                "pending",
-                0,
-                "Worker starting transcription process...",
-            )
-            await service.execute_transcription_task(task_id, self.db, config_db_id)
-            await state_manager.clear_task_state(task_id, episode_id)
-            return {
-                "status": "success",
-                "task_id": task_id,
-                "config_db_id": config_db_id,
-                "processed_at": datetime.now(timezone.utc).isoformat(),
-            }
-        except Exception as exc:
-            await state_manager.fail_task_state(task_id, episode_id, str(exc))
-            logger.exception("Transcription task failed for task_id=%s", task_id)
-            raise
-        finally:
-            await state_manager.release_task_lock(episode_id, task_id)
-            await self._clear_dispatched(task_id)
 
     async def trigger_episode_pipeline(
         self,
@@ -471,34 +359,6 @@ class TranscriptionWorkflowService:
             "transcription_task_id": transcription_task["task_id"],
             "processed_at": datetime.now(timezone.utc).isoformat(),
         }
-
-    async def _claim_dispatched(self, task_id: int) -> bool:
-        if self.claim_dispatched is not None:
-            return await self.claim_dispatched(self.db, task_id)
-        redis = self.redis_factory()
-        key = f"podcast:transcription:dispatched:{task_id}"
-        client = await redis._get_client()
-        result = await client.set(key, "1", nx=True, ex=7200)
-        if result is not None:
-            return True
-
-        status_stmt = select(TranscriptionTask.status).where(TranscriptionTask.id == task_id)
-        status_result = await self.db.execute(status_stmt)
-        task_status_value = self._status_value(status_result.scalar_one_or_none())
-        if task_status_value in {"completed", "failed", "cancelled"}:
-            return False
-        raise RuntimeError(
-            f"Task {task_id} dispatch key exists while task status={task_status_value}"
-        )
-
-    async def _clear_dispatched(self, task_id: int) -> None:
-        if self.clear_dispatched is not None:
-            await self.clear_dispatched(task_id)
-            return
-        redis = self.redis_factory()
-        key = f"podcast:transcription:dispatched:{task_id}"
-        client = await redis._get_client()
-        await client.delete(key)
 
     @staticmethod
     def _status_value(status: object) -> str:
