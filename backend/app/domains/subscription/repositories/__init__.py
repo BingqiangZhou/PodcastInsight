@@ -1,14 +1,5 @@
 """Subscription repository exports."""
 
-from .mutation import SubscriptionMutationRepository
-from .query import SubscriptionQueryRepository
-
-
-class SubscriptionRepository(
-    SubscriptionMutationRepository,
-    SubscriptionQueryRepository,
-):
-    """Compatibility facade composed from focused query and mutation repositories."""
-
+from .subscription_repository import SubscriptionRepository
 
 __all__ = ["SubscriptionRepository"]
