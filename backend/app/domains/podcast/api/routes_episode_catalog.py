@@ -5,6 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.core.config import settings
 from app.core.providers import get_podcast_episode_service
+from app.domains.podcast.api.response_assemblers import (
+    build_episode_detail_response,
+    build_episode_list_response,
+    build_feed_response,
+    build_playback_history_list_response,
+)
 from app.domains.podcast.api.episode_route_common import (
     decode_cursor,
     encode_keyset_cursor,
@@ -13,9 +19,7 @@ from app.domains.podcast.schemas import (
     PodcastEpisodeDetailResponse,
     PodcastEpisodeFilter,
     PodcastEpisodeListResponse,
-    PodcastEpisodeResponse,
     PodcastFeedResponse,
-    PodcastPlaybackHistoryItemResponse,
     PodcastPlaybackHistoryListResponse,
 )
 from app.domains.podcast.services.episode_service import PodcastEpisodeService
@@ -86,8 +90,8 @@ async def get_podcast_feed(
         next_page = page + 1 if has_more else None
         next_cursor = None
 
-    response_data = PodcastFeedResponse(
-        items=[PodcastEpisodeResponse(**ep) for ep in episodes],
+    response_data = build_feed_response(
+        episodes,
         has_more=has_more,
         next_page=next_page,
         next_cursor=next_cursor,
@@ -124,13 +128,11 @@ async def list_episodes(
         is_played=is_played,
     )
     episodes, total = await service.list_episodes(filters=filters, page=page, size=size)
-    pages = (total + size - 1) // size
-    return PodcastEpisodeListResponse(
-        episodes=[PodcastEpisodeResponse(**ep) for ep in episodes],
+    return build_episode_list_response(
+        episodes,
         total=total,
         page=page,
         size=size,
-        pages=pages,
         subscription_id=subscription_id or 0,
     )
 
@@ -173,12 +175,11 @@ async def list_playback_history(
         resolved_page = page
         next_cursor = None
 
-    response_data = PodcastEpisodeListResponse(
-        episodes=[PodcastEpisodeResponse(**ep) for ep in episodes],
+    response_data = build_episode_list_response(
+        episodes,
         total=total,
         page=resolved_page,
         size=size,
-        pages=(total + size - 1) // size,
         subscription_id=0,
         next_cursor=next_cursor,
     )
@@ -201,12 +202,11 @@ async def list_playback_history_lite(
     service: PodcastEpisodeService = Depends(get_podcast_episode_service),
 ):
     episodes, total = await service.list_playback_history_lite(page=page, size=size)
-    return PodcastPlaybackHistoryListResponse(
-        episodes=[PodcastPlaybackHistoryItemResponse(**ep) for ep in episodes],
+    return build_playback_history_list_response(
+        episodes,
         total=total,
         page=page,
         size=size,
-        pages=(total + size - 1) // size,
     )
 
 
@@ -226,7 +226,7 @@ async def get_episode(
 
     return build_etag_response(
         request=request,
-        content=PodcastEpisodeDetailResponse(**episode),
+        content=build_episode_detail_response(episode),
         max_age=1800,
         cache_control="private, max-age=1800",
     )

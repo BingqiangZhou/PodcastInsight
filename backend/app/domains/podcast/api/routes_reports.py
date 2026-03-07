@@ -5,6 +5,10 @@ from datetime import date
 from fastapi import APIRouter, Depends, Query
 
 from app.core.providers import get_daily_report_service
+from app.domains.podcast.api.response_assemblers import (
+    build_daily_report_dates_response,
+    build_daily_report_response,
+)
 from app.domains.podcast.schemas import (
     PodcastDailyReportDatesResponse,
     PodcastDailyReportResponse,
@@ -25,7 +29,7 @@ async def get_daily_report(
     service: DailyReportService = Depends(get_daily_report_service),
 ):
     payload = await service.get_daily_report(target_date=report_date)
-    return PodcastDailyReportResponse(**payload)
+    return build_daily_report_response(payload)
 
 
 @router.post(
@@ -45,7 +49,7 @@ async def generate_daily_report(
         target_date=report_date,
         rebuild=rebuild,
     )
-    return PodcastDailyReportResponse(**payload)
+    return build_daily_report_response(payload)
 
 
 @router.get(
@@ -59,4 +63,4 @@ async def list_daily_report_dates(
     service: DailyReportService = Depends(get_daily_report_service),
 ):
     payload = await service.list_report_dates(page=page, size=size)
-    return PodcastDailyReportDatesResponse(**payload)
+    return build_daily_report_dates_response(payload)

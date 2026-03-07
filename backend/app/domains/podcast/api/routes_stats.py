@@ -4,6 +4,10 @@ from fastapi import APIRouter, Depends, Request
 
 from app.core.etag import build_conditional_etag_response
 from app.core.providers import get_podcast_stats_service
+from app.domains.podcast.api.response_assemblers import (
+    build_podcast_profile_stats_response,
+    build_podcast_stats_response,
+)
 from app.domains.podcast.schemas import (
     PodcastProfileStatsResponse,
     PodcastStatsResponse,
@@ -25,7 +29,7 @@ async def get_podcast_stats(
 ):
     """获取用户的播客收听统计。"""
     stats = await service.get_user_stats()
-    response_data = PodcastStatsResponse(**stats)
+    response_data = build_podcast_stats_response(stats)
 
     return build_conditional_etag_response(
         request=request,
@@ -47,7 +51,7 @@ async def get_profile_stats(
 ):
     """Get lightweight profile statistics for profile cards."""
     stats = await service.get_profile_stats()
-    response_data = PodcastProfileStatsResponse(**stats)
+    response_data = build_podcast_profile_stats_response(stats)
 
     return build_conditional_etag_response(
         request=request,

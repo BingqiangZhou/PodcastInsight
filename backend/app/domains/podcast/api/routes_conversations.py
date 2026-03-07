@@ -10,6 +10,13 @@ from app.core.providers import (
     get_podcast_episode_service,
     get_token_user_id,
 )
+from app.domains.podcast.api.response_assemblers import (
+    build_conversation_clear_response,
+    build_conversation_history_response,
+    build_conversation_send_response,
+    build_conversation_session_list_response,
+    build_conversation_session_response,
+)
 from app.domains.podcast.conversation_service import ConversationService
 from app.domains.podcast.schemas import (
     ConversationSessionCreateRequest,
@@ -17,7 +24,6 @@ from app.domains.podcast.schemas import (
     ConversationSessionResponse,
     PodcastConversationClearResponse,
     PodcastConversationHistoryResponse,
-    PodcastConversationMessage,
     PodcastConversationSendRequest,
     PodcastConversationSendResponse,
 )
@@ -56,10 +62,7 @@ async def list_conversation_sessions(
             user_id=user_id,
         )
 
-        return ConversationSessionListResponse(
-            sessions=[ConversationSessionResponse(**s) for s in sessions],
-            total=len(sessions),
-        )
+        return build_conversation_session_list_response(sessions)
     except HTTPException:
         raise
     except Exception as exc:
@@ -98,7 +101,7 @@ async def create_conversation_session(
             title=request.title,
         )
 
-        return ConversationSessionResponse(**session)
+        return build_conversation_session_response(session)
     except HTTPException:
         raise
     except Exception as exc:
@@ -127,7 +130,7 @@ async def delete_conversation_session(
             user_id=user_id,
         )
 
-        return PodcastConversationClearResponse(
+        return build_conversation_clear_response(
             episode_id=episode_id,
             session_id=session_id,
             deleted_count=deleted_count,
@@ -174,12 +177,10 @@ async def get_conversation_history(
             limit=limit,
         )
 
-        message_responses = [PodcastConversationMessage(**msg) for msg in messages]
-        return PodcastConversationHistoryResponse(
+        return build_conversation_history_response(
             episode_id=episode_id,
             session_id=session_id,
-            messages=message_responses,
-            total=len(message_responses),
+            messages=messages,
         )
     except HTTPException:
         raise
@@ -225,7 +226,7 @@ async def send_conversation_message(
             session_id=request.session_id,
         )
 
-        return PodcastConversationSendResponse(**response)
+        return build_conversation_send_response(response)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except HTTPException:
@@ -265,7 +266,7 @@ async def clear_conversation_history(
             session_id=session_id,
         )
 
-        return PodcastConversationClearResponse(
+        return build_conversation_clear_response(
             episode_id=episode_id,
             session_id=session_id,
             deleted_count=deleted_count,

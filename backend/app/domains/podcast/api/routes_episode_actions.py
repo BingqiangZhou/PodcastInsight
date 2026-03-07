@@ -11,17 +11,24 @@ from app.core.providers import (
     get_summary_workflow_service,
     get_token_user_id,
 )
+from app.domains.podcast.api.response_assemblers import (
+    build_effective_playback_rate_response,
+    build_episode_list_response,
+    build_existing_playback_state_response,
+    build_pending_summaries_response,
+    build_playback_state_response,
+    build_summary_models_response,
+    build_summary_response,
+)
 from app.domains.podcast.schemas import (
     PlaybackRateApplyRequest,
     PlaybackRateEffectiveResponse,
     PodcastEpisodeListResponse,
-    PodcastEpisodeResponse,
     PodcastPlaybackStateResponse,
     PodcastPlaybackUpdate,
     PodcastSummaryPendingResponse,
     PodcastSummaryRequest,
     PodcastSummaryResponse,
-    SummaryModelInfo,
     SummaryModelsResponse,
 )
 from app.domains.podcast.services.episode_service import PodcastEpisodeService
@@ -59,16 +66,9 @@ async def generate_summary(
             summary_model=request.summary_model,
             custom_prompt=request.custom_prompt,
         )
-        return PodcastSummaryResponse(
+        return build_summary_response(
             episode_id=episode_id,
-            summary=summary_result["summary"],
-            version=summary_result["version"],
-            confidence_score=None,
-            transcript_used=True,
-            generated_at=summary_result["generated_at"],
-            word_count=len(summary_result["summary"].split()),
-            model_used=summary_result["model_name"],
-            processing_time=summary_result["processing_time"],
+            summary_result=summary_result,
         )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -94,15 +94,9 @@ async def update_playback_progress(
             playback_data.is_playing,
             playback_data.playback_rate,
         )
-        return PodcastPlaybackStateResponse(
+        return build_playback_state_response(
             episode_id=episode_id,
-            current_position=result["progress"],
-            is_playing=result["is_playing"],
-            playback_rate=result["playback_rate"],
-            play_count=result["play_count"],
-            last_updated_at=result["last_updated_at"],
-            progress_percentage=result["progress_percentage"],
-            remaining_time=result["remaining_time"],
+            payload=result,
         )
     except ValueError as exc:
         if str(exc) == "Episode not found":
@@ -137,7 +131,7 @@ async def get_playback_state(
         playback = await service.get_playback_state(episode_id)
         if not playback:
             raise HTTPException(status_code=404, detail="Playback record not found")
-        return PodcastPlaybackStateResponse(**playback)
+        return build_existing_playback_state_response(playback)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -156,7 +150,7 @@ async def get_effective_playback_rate(
     service: PodcastPlaybackService = Depends(get_podcast_playback_service),
 ):
     result = await service.get_effective_playback_rate(subscription_id=subscription_id)
-    return PlaybackRateEffectiveResponse(**result)
+    return build_effective_playback_rate_response(result)
 
 
 @router.put(
@@ -174,7 +168,7 @@ async def apply_playback_rate_preference(
             apply_to_subscription=request.apply_to_subscription,
             subscription_id=request.subscription_id,
         )
-        return PlaybackRateEffectiveResponse(**result)
+        return build_effective_playback_rate_response(result)
     except ValueError as exc:
         code = str(exc)
         if code == "SUBSCRIPTION_ID_REQUIRED":
@@ -219,7 +213,7 @@ async def get_pending_summaries(
     summary_workflow: SummaryWorkflowService = Depends(get_summary_workflow_service),
 ):
     pending = await summary_workflow.list_pending_summaries_for_user(user_id)
-    return PodcastSummaryPendingResponse(count=len(pending), episodes=pending)
+    return build_pending_summaries_response(pending)
 
 
 @router.get(
@@ -232,18 +226,7 @@ async def get_summary_models(
 ):
     try:
         models = await summary_workflow.get_summary_models()
-        model_infos = [
-            SummaryModelInfo(
-                id=model["id"],
-                name=model["name"],
-                display_name=model["display_name"],
-                provider=model["provider"],
-                model_id=model["model_id"],
-                is_default=model["is_default"],
-            )
-            for model in models
-        ]
-        return SummaryModelsResponse(models=model_infos, total=len(model_infos))
+        return build_summary_models_response(models)
     except Exception as exc:
         logger.error("Failed to get summary models: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
@@ -278,12 +261,11 @@ async def search_podcasts(
         page=page,
         size=size,
     )
-    return PodcastEpisodeListResponse(
-        episodes=[PodcastEpisodeResponse(**ep) for ep in episodes],
+    return build_episode_list_response(
+        episodes,
         total=total,
         page=page,
         size=size,
-        pages=(total + size - 1) // size,
         subscription_id=0,
     )
 
