@@ -116,7 +116,7 @@ class PodcastExpandedPlayerPanel extends StatelessWidget {
             borderRadius ??
             (fullScreen
                 ? BorderRadius.circular(24)
-                : const BorderRadius.vertical(top: Radius.circular(20))),
+                : BorderRadius.circular(20)),
       ),
       child: child,
     );
