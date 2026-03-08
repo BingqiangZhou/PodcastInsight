@@ -88,7 +88,7 @@ async def test_apikey(
     except Exception as exc:
         logger.error("API key test error: %s", exc)
         return json_payload(
-            {"success": False, "message": f"娴嬭瘯澶辫触: {exc}"},
+            {"success": False, "message": f"测试失败: {exc}"},
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 

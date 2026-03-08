@@ -35,7 +35,7 @@ def decode_cursor(cursor: str) -> dict[str, Any]:
     except (ValueError, binascii.Error) as exc:
         raise bilingual_http_exception(
             "Invalid cursor",
-            "娓告爣鍙傛暟鏃犳晥",
+            "游标参数无效",
             status.HTTP_400_BAD_REQUEST,
         ) from exc
 
@@ -66,6 +66,6 @@ def decode_cursor(cursor: str) -> dict[str, Any]:
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         raise bilingual_http_exception(
             "Invalid cursor",
-            "娓告爣鍙傛暟鏃犳晥",
+            "游标参数无效",
             status.HTTP_400_BAD_REQUEST,
         ) from exc

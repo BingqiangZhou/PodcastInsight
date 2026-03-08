@@ -175,7 +175,7 @@ class AdminApiKeysService:
             )
             return {
                 "success": True,
-                "message": "API瀵嗛挜娴嬭瘯鎴愬姛",
+                "message": "API密钥测试成功",
                 "test_result": validation_result.test_result,
                 "response_time_ms": validation_result.response_time_ms,
                 "used_stored_key": resolved_from_db,
@@ -189,7 +189,7 @@ class AdminApiKeysService:
         )
         return {
             "success": False,
-            "message": f"API瀵嗛挜娴嬭瘯澶辫触: {validation_result.error_message}",
+            "message": f"API密钥测试失败: {validation_result.error_message}",
             "error_message": validation_result.error_message,
         }, 400
 

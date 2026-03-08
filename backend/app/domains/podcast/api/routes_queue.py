@@ -41,18 +41,18 @@ async def add_queue_item(
         if str(exc) == "EPISODE_NOT_FOUND":
             raise bilingual_http_exception(
                 "Episode not found",
-                "\u672a\u627e\u5230\u8be5\u5355\u96c6",
+                "未找到该单集",
                 status.HTTP_404_NOT_FOUND,
             ) from exc
         if str(exc) == "QUEUE_LIMIT_EXCEEDED":
             raise bilingual_http_exception(
                 "Queue has reached its limit",
-                "\u64ad\u653e\u961f\u5217\u5df2\u8fbe\u5230\u4e0a\u9650",
+                "播放队列已达到上限",
                 status.HTTP_400_BAD_REQUEST,
             ) from exc
         raise bilingual_http_exception(
             "Failed to add episode",
-            "\u52a0\u5165\u961f\u5217\u5931\u8d25",
+            "加入队列失败",
             status.HTTP_400_BAD_REQUEST,
         ) from exc
 
@@ -84,12 +84,12 @@ async def reorder_queue_items(
         if str(exc) == "INVALID_REORDER_PAYLOAD":
             raise bilingual_http_exception(
                 "Invalid reorder payload",
-                "\u91cd\u6392\u53c2\u6570\u65e0\u6548",
+                "重排参数无效",
                 status.HTTP_400_BAD_REQUEST,
             ) from exc
         raise bilingual_http_exception(
             "Failed to reorder queue",
-            "\u91cd\u6392\u961f\u5217\u5931\u8d25",
+            "重排队列失败",
             status.HTTP_400_BAD_REQUEST,
         ) from exc
 
@@ -109,12 +109,12 @@ async def set_queue_current(
         if str(exc) == "EPISODE_NOT_IN_QUEUE":
             raise bilingual_http_exception(
                 "Episode not in queue",
-                "\u8be5\u5355\u96c6\u4e0d\u5728\u961f\u5217\u4e2d",
+                "该单集不在队列中",
                 status.HTTP_400_BAD_REQUEST,
             ) from exc
         raise bilingual_http_exception(
             "Failed to set current",
-            "\u8bbe\u7f6e\u5f53\u524d\u64ad\u653e\u5931\u8d25",
+            "设置当前播放失败",
             status.HTTP_400_BAD_REQUEST,
         ) from exc
 
@@ -134,18 +134,18 @@ async def activate_queue_episode(
         if str(exc) == "EPISODE_NOT_FOUND":
             raise bilingual_http_exception(
                 "Episode not found",
-                "\u672a\u627e\u5230\u8be5\u5355\u96c6",
+                "未找到该单集",
                 status.HTTP_404_NOT_FOUND,
             ) from exc
         if str(exc) == "QUEUE_LIMIT_EXCEEDED":
             raise bilingual_http_exception(
                 "Queue has reached its limit",
-                "\u64ad\u653e\u961f\u5217\u5df2\u8fbe\u5230\u4e0a\u9650",
+                "播放队列已达到上限",
                 status.HTTP_400_BAD_REQUEST,
             ) from exc
         raise bilingual_http_exception(
             "Failed to activate episode",
-            "\u6fc0\u6d3b\u64ad\u653e\u961f\u5217\u5931\u8d25",
+            "激活播放队列失败",
             status.HTTP_400_BAD_REQUEST,
         ) from exc
 

@@ -415,7 +415,7 @@ class TranscriptionStateManager:
 
         # Use throttle to reduce log frequency (log every 5% or every 5 seconds, whichever is longer)
         if _progress_throttle.should_log(task_id, status, progress):
-            logger.info(f"濡絽鍟幆?[PROGRESS] Task {task_id}: {progress:.1f}% - {message}")
+            logger.info(f"转录进度 [PROGRESS] Task {task_id}: {progress:.1f}% - {message}")
 
     async def get_task_progress(self, task_id: int) -> dict[str, Any] | None:
         """
