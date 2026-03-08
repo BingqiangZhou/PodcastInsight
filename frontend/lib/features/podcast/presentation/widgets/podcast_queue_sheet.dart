@@ -158,19 +158,22 @@ class _QueuePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _QueueHeader(
-          title: title,
-          itemCount: itemCount,
-          queueOperation: queueOperation,
-          queueSyncing: queueSyncing,
-          onRefresh: onRefresh,
-        ),
-        Expanded(
-          child: RefreshIndicator(onRefresh: onRefresh, child: body),
-        ),
-      ],
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        children: [
+          _QueueHeader(
+            title: title,
+            itemCount: itemCount,
+            queueOperation: queueOperation,
+            queueSyncing: queueSyncing,
+            onRefresh: onRefresh,
+          ),
+          Expanded(
+            child: RefreshIndicator(onRefresh: onRefresh, child: body),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -201,6 +204,7 @@ class _QueueHeader extends StatelessWidget {
     );
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -214,36 +218,18 @@ class _QueueHeader extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6.0),
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
           Row(
             children: [
-              if (itemCount != null)
-                _QueueInfoChip(
-                  icon: Icons.queue_music_rounded,
-                  label:
-                      '${itemCount ?? 0} ${l10n?.queue_in_queue ?? 'in queue'}',
-                ),
-              if (statusLabel != null) ...[
-                const SizedBox(width: 6),
-                Flexible(
-                  child: _QueueInfoChip(
-                    icon: Icons.sync_rounded,
-                    label: statusLabel,
-                    emphasized: true,
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-              ],
-              const Spacer(),
+              ),
               IconButton(
                 tooltip: l10n?.refresh ?? 'Refresh',
                 onPressed: onRefresh,
@@ -258,6 +244,30 @@ class _QueueHeader extends StatelessWidget {
               ),
             ],
           ),
+          if (itemCount != null || statusLabel != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
+              child: Row(
+                children: [
+                  if (itemCount != null)
+                    _QueueInfoChip(
+                      icon: Icons.queue_music_rounded,
+                      label:
+                          '${itemCount ?? 0} ${l10n?.queue_in_queue ?? 'in queue'}',
+                    ),
+                  if (itemCount != null && statusLabel != null)
+                    const SizedBox(width: 6),
+                  if (statusLabel != null)
+                    Flexible(
+                      child: _QueueInfoChip(
+                        icon: Icons.sync_rounded,
+                        label: statusLabel,
+                        emphasized: true,
+                      ),
+                    ),
+                ],
+              ),
+            ),
         ],
       ),
     );

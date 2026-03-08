@@ -407,7 +407,11 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
     final previousQueue = state.value;
     if (previousQueue != null) {
       final optimistic = _buildOptimisticRemovedQueue(previousQueue, episodeId);
-      await Future<void>.delayed(Duration.zero);
+      final completer = Completer<void>();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!completer.isCompleted) completer.complete();
+      });
+      await completer.future;
       _applyOptimisticQueue(optimistic);
     }
 
