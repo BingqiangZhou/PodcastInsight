@@ -24,22 +24,13 @@ echo "Domain: ${DOMAIN}"
 echo "SSL Certificate: ${SSL_CERT_PATH}"
 
 # 检查 SSL 证书是否存在 / Check if SSL certificate exists
+export DOMAIN
+export SSL_CERT_PATH
+export SSL_KEY_PATH
+VARS='${DOMAIN} ${SSL_CERT_PATH} ${SSL_KEY_PATH}'
+
 if [ -f "${SSL_CERT_PATH}" ] && [ -f "${SSL_KEY_PATH}" ]; then
     echo "✅ SSL certificates found - enabling HTTPS mode"
-
-    # 禁用 HTTP 模板 / Disable HTTP template
-    if [ -f "/etc/nginx/templates/default.conf.template" ]; then
-        mv "/etc/nginx/templates/default.conf.template" \
-           "/etc/nginx/templates/default.conf.template.disabled" 2>/dev/null || true
-        echo "  - Disabled HTTP template"
-    fi
-
-    # 启用 HTTPS 模板 / Enable HTTPS template
-    if [ -f "/etc/nginx/templates/default-ssl.conf.template.available" ]; then
-        mv "/etc/nginx/templates/default-ssl.conf.template.available" \
-           "/etc/nginx/templates/default-ssl.conf.template"
-        echo "  - Enabled HTTPS template (HTTP + HTTPS)"
-    fi
 
     # 检查证书有效性 / Verify certificate validity
     if openssl x509 -in "${SSL_CERT_PATH}" -noout -checkend 0 2>/dev/null; then
@@ -48,29 +39,31 @@ if [ -f "${SSL_CERT_PATH}" ] && [ -f "${SSL_KEY_PATH}" ]; then
         echo "  ⚠️  Warning: SSL certificate may be invalid or expired"
     fi
 
+    # 渲染 HTTPS 模板 / Render HTTPS template
+    if [ -f "/etc/nginx/templates/default-ssl.conf.template" ]; then
+        envsubst "$VARS" < "/etc/nginx/templates/default-ssl.conf.template" > "/etc/nginx/conf.d/default.conf"
+        echo "  - Rendered HTTPS template (HTTP + HTTPS)"
+    else
+        echo "  ❌ Error: default-ssl.conf.template not found!"
+        exit 1
+    fi
+
 else
     echo "ℹ️  No SSL certificates found - using HTTP only mode"
 
-    # 禁用 HTTPS 模板 / Disable HTTPS template
-    if [ -f "/etc/nginx/templates/default-ssl.conf.template" ]; then
-        mv "/etc/nginx/templates/default-ssl.conf.template" \
-           "/etc/nginx/templates/default-ssl.conf.template.available" 2>/dev/null || true
-        echo "  - Disabled HTTPS template"
-    fi
-
-    # 启用 HTTP 模板 / Enable HTTP template
-    if [ -f "/etc/nginx/templates/default.conf.template.disabled" ]; then
-        mv "/etc/nginx/templates/default.conf.template.disabled" \
-           "/etc/nginx/templates/default.conf.template"
-        echo "  - Enabled HTTP template"
-    fi
-
-    # 确保至少有一个模板可用 / Ensure at least one template is available
-    if [ ! -f "/etc/nginx/templates/default.conf.template" ]; then
-        echo "  ❌ Error: No HTTP template available!"
+    # 渲染 HTTP 模板 / Render HTTP template
+    if [ -f "/etc/nginx/templates/default.conf.template" ]; then
+        envsubst "$VARS" < "/etc/nginx/templates/default.conf.template" > "/etc/nginx/conf.d/default.conf"
+        echo "  - Rendered HTTP template"
+    else
+        echo "  ❌ Error: default.conf.template not found!"
         exit 1
     fi
 fi
+
+# 禁用官方预置的 envsubst 脚本，防止二次渲染导致冲突 / Disable official envsubst
+rm -f /docker-entrypoint.d/20-envsubst-on-templates.sh 2>/dev/null || true
+echo "  - Disabled official Nginx envsubst script"
 
 # 列出当前激活的模板 / List active templates
 echo ""
