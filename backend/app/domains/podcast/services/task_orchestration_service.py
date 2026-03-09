@@ -136,22 +136,27 @@ class PodcastTaskOrchestrationService:
                 )
                 new_episodes = len(new_episode_rows)
                 for saved_episode in new_episode_rows:
-                    # Ensure both datetimes are timezone-aware before comparison
                     last_fetched = subscription.last_fetched_at
-                    if last_fetched and last_fetched.tzinfo is None:
-                        from app.core.datetime_utils import (
-                            ensure_timezone_aware_fetch_time,
-                        )
 
+                    # Ensure both datetimes are timezone-aware before comparison
+                    from app.core.datetime_utils import ensure_timezone_aware_fetch_time
+
+                    # Normalize last_fetched to UTC if it exists
+                    if last_fetched:
                         last_fetched = ensure_timezone_aware_fetch_time(last_fetched)
 
-                    if last_fetched and saved_episode.published_at > last_fetched:
+                    # Normalize published_at to UTC (handle both naive and aware cases)
+                    published_at = saved_episode.published_at
+                    if published_at.tzinfo is None:
+                        published_at = ensure_timezone_aware_fetch_time(published_at)
+
+                    if last_fetched and published_at > last_fetched:
                         await sync_service.trigger_transcription(saved_episode.id)
                     else:
                         logger.info(
                             "Episode %s (published: %s) is old (last fetch: %s), skipping auto-processing",
                             saved_episode.id,
-                            saved_episode.published_at,
+                            published_at,
                             subscription.last_fetched_at,
                         )
 

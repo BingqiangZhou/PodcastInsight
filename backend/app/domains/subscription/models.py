@@ -235,7 +235,8 @@ class UserSubscription(Base):
             return True
 
         # Convert naive datetime to aware datetime (assume UTC)
-        last_fetched_aware = self.subscription.last_fetched_at.replace(tzinfo=timezone.utc)
+        from app.core.datetime_utils import ensure_timezone_aware_fetch_time
+        last_fetched_aware = ensure_timezone_aware_fetch_time(self.subscription.last_fetched_at)
 
         # Calculate the Earliest next scheduled time AFTER the last fetch
         next_possible = self._get_next_scheduled_time(last_fetched_aware)
