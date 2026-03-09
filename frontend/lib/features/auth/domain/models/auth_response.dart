@@ -16,11 +16,23 @@ class AuthResponse {
   @JsonKey(name: 'expires_in')
   final int expiresIn;
 
+  @JsonKey(name: 'expires_at')
+  final DateTime? expiresAt;
+
+  @JsonKey(name: 'server_time')
+  final DateTime? serverTime;
+
+  @JsonKey(name: 'session_id')
+  final String? sessionId;
+
   const AuthResponse({
     required this.accessToken,
     required this.refreshToken,
     required this.tokenType,
     required this.expiresIn,
+    this.expiresAt,
+    this.serverTime,
+    this.sessionId,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) => _$AuthResponseFromJson(json);
@@ -41,11 +53,19 @@ class RefreshTokenResponse {
   @JsonKey(name: 'expires_in')
   final int expiresIn;
 
+  @JsonKey(name: 'expires_at')
+  final DateTime? expiresAt;
+
+  @JsonKey(name: 'server_time')
+  final DateTime? serverTime;
+
   const RefreshTokenResponse({
     required this.accessToken,
     required this.refreshToken,
     required this.tokenType,
     required this.expiresIn,
+    this.expiresAt,
+    this.serverTime,
   });
 
   factory RefreshTokenResponse.fromJson(Map<String, dynamic> json) => _$RefreshTokenResponseFromJson(json);

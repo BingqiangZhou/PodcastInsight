@@ -615,12 +615,28 @@ class DioClient {
             );
           }
           if (expiresInSeconds != null && expiresInSeconds > 0) {
-            final expiryTime = DateTime.now().add(
+            // Use UTC time to avoid timezone issues
+            final expiryTime = DateTime.now().toUtc().add(
               Duration(seconds: expiresInSeconds),
             );
             await _secureStorage.write(
               key: config.AppConstants.tokenExpiryKey,
               value: expiryTime.toIso8601String(),
+            );
+            logger.AppLogger.debug(
+              '[AUTH] ✅ Saved UTC token expiry: $expiryTime',
+            );
+          }
+
+          // Check if server provided expires_at (UTC)
+          final expiresAt = responseData['expires_at'] as String?;
+          if (expiresAt != null && expiresAt.isNotEmpty) {
+            await _secureStorage.write(
+              key: config.AppConstants.tokenExpiryKey,
+              value: expiresAt,  // Server already provides ISO format with timezone
+            );
+            logger.AppLogger.debug(
+              '[AUTH] ✅ Saved server UTC token expiry: $expiresAt',
             );
           }
 

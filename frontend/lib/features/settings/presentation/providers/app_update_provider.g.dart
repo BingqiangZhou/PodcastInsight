@@ -44,7 +44,7 @@ final class AppUpdateProvider
   }
 }
 
-String _$appUpdateHash() => r'e08cd61fa40ecd99fbf14813e0d0ec6e07a23b4a';
+String _$appUpdateHash() => r'1f080bfc9556ea1feef134eb1dedbc6f459ac385';
 
 /// App Update Notifier / 应用更新通知器
 
@@ -242,7 +242,7 @@ final class ManualUpdateCheckProvider
   }
 }
 
-String _$manualUpdateCheckHash() => r'ab0cdeab72516d44b253a3ac51ad6f42406735ca';
+String _$manualUpdateCheckHash() => r'62481d13209e161896582c3e3527e902eb43d96c';
 
 /// Provider for manual update checking with loading state
 ///

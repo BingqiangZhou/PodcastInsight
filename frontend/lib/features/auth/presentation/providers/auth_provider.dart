@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -112,6 +112,7 @@ class AuthNotifier extends Notifier<AuthState> {
   late final SecureStorageService _secureStorage;
   Timer? _tokenRefreshTimer;
   StreamSubscription<AuthEvent>? _authEventSubscription;
+  AppLifecycleListener? _lifecycleListener;
 
   @override
   AuthState build() {
@@ -134,13 +135,41 @@ class AuthNotifier extends Notifier<AuthState> {
       }
     });
 
+    // Listen to app lifecycle state changes
+    _lifecycleListener = AppLifecycleListener(
+      onStateChange: _onAppLifecycleStateChanged,
+    );
+
     // Don't check auth status here to avoid circular dependency
     // Let the UI call checkAuthStatus when needed
     ref.onDispose(() {
+      _lifecycleListener?.dispose();
       _stopTokenRefreshTimer();
       _authEventSubscription?.cancel();
     });
     return const AuthState();
+  }
+
+  void _onAppLifecycleStateChanged(AppLifecycleState state) {
+    // Only handle lifecycle events if user is authenticated
+    if (!this.state.isAuthenticated) return;
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // App returned to foreground - check token immediately and restart timer
+        logger.AppLogger.debug('📱 [Auth] App resumed, checking token...');
+        _checkAndRefreshToken();
+        _startTokenRefreshTimer();
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        // App went to background - stop timer to save resources
+        logger.AppLogger.debug('📱 [Auth] App paused, stopping token refresh timer');
+        _stopTokenRefreshTimer();
+        break;
+    }
   }
 
   Future<void> _checkAuthStatus() async {
@@ -154,7 +183,8 @@ class AuthNotifier extends Notifier<AuthState> {
       if (token != null) {
         // Check if token is expired (if we have expiry info)
         final tokenExpiry = await _secureStorage.getTokenExpiry();
-        if (tokenExpiry != null && DateTime.now().isAfter(tokenExpiry)) {
+        // Use UTC time for comparison to avoid timezone issues
+        if (tokenExpiry != null && DateTime.now().toUtc().isAfter(tokenExpiry.toUtc())) {
           // Token expired, try refresh
           final refreshResult = await _attemptTokenRefresh();
           if (!refreshResult.success && refreshResult.isInvalidSessionFailure) {
@@ -248,12 +278,18 @@ class AuthNotifier extends Notifier<AuthState> {
         );
       },
       (authResponse) async {
-        // Save token expiry if available
-        if (authResponse.expiresIn > 0) {
-          final expiryTime = DateTime.now().add(
+        // Save token expiry - prioritize server's UTC expires_at, fall back to expiresIn
+        if (authResponse.expiresAt != null) {
+          // Use server's UTC expiration time
+          await _secureStorage.saveTokenExpiry(authResponse.expiresAt!);
+          logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: ${authResponse.expiresAt}');
+        } else if (authResponse.expiresIn > 0) {
+          // Fall back to relative expiresIn, convert to UTC
+          final expiryUtc = DateTime.now().toUtc().add(
             Duration(seconds: authResponse.expiresIn),
           );
-          _secureStorage.saveTokenExpiry(expiryTime);
+          await _secureStorage.saveTokenExpiry(expiryUtc);
+          logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
         }
 
         // Fetch user info after successful login
@@ -335,12 +371,18 @@ class AuthNotifier extends Notifier<AuthState> {
         );
       },
       (authResponse) async {
-        // Save token expiry if available
-        if (authResponse.expiresIn > 0) {
-          final expiryTime = DateTime.now().add(
+        // Save token expiry - prioritize server's UTC expires_at, fall back to expiresIn
+        if (authResponse.expiresAt != null) {
+          // Use server's UTC expiration time
+          await _secureStorage.saveTokenExpiry(authResponse.expiresAt!);
+          logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: ${authResponse.expiresAt}');
+        } else if (authResponse.expiresIn > 0) {
+          // Fall back to relative expiresIn, convert to UTC
+          final expiryUtc = DateTime.now().toUtc().add(
             Duration(seconds: authResponse.expiresIn),
           );
-          _secureStorage.saveTokenExpiry(expiryTime);
+          await _secureStorage.saveTokenExpiry(expiryUtc);
+          logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
         }
 
         // Fetch user info after successful registration
@@ -643,13 +685,18 @@ class AuthNotifier extends Notifier<AuthState> {
         return; // No expiry info, skip
       }
 
-      final now = DateTime.now();
-      final timeUntilExpiry = tokenExpiry.difference(now);
+      final now = DateTime.now().toUtc();
+      final tokenExpiryUtc = tokenExpiry.toUtc();
+      final timeUntilExpiry = tokenExpiryUtc.difference(now);
 
-      // Refresh if token expires in less than buffer time
-      if (timeUntilExpiry <= Duration(minutes: _tokenRefreshBufferMinutes)) {
+      // Add 2 minute safety margin to prevent clock skew issues
+      const safetyMargin = Duration(minutes: 2);
+      final effectiveBuffer = Duration(minutes: _tokenRefreshBufferMinutes) + safetyMargin;
+
+      // Refresh if token expires in less than buffer time + safety margin
+      if (timeUntilExpiry <= effectiveBuffer) {
         logger.AppLogger.debug(
-          '🔄 [Auth] Token expiring in ${timeUntilExpiry.inMinutes} minutes, auto-refreshing...',
+          '🔄 [Auth] Token expiring in ${timeUntilExpiry.inMinutes}m ${timeUntilExpiry.inSeconds}s, auto-refreshing...',
         );
         await refreshToken();
       }

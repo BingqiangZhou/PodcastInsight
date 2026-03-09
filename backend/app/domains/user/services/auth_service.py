@@ -222,11 +222,18 @@ class AuthenticationService:
             await self.db.rollback()
             raise BadRequestError("Failed to create user session") from err
 
+        # Calculate UTC expiration time for frontend
+        access_token_expires_at = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
             "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "expires_at": access_token_expires_at.isoformat(),
+            "server_time": datetime.now(timezone.utc).isoformat(),
             "session_id": session.id
         }
 
@@ -314,11 +321,18 @@ class AuthenticationService:
 
         await self.db.commit()
 
+        # Calculate UTC expiration time for frontend
+        access_token_expires_at = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+
         return {
             "access_token": new_access_token,
             "refresh_token": new_refresh_token,  # Return new refresh token
             "token_type": "bearer",
-            "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "expires_at": access_token_expires_at.isoformat(),
+            "server_time": datetime.now(timezone.utc).isoformat()
         }
 
     async def logout_user(self, refresh_token: str) -> bool:

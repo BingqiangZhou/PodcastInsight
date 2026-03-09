@@ -162,10 +162,10 @@ class _PersonalAIAssistantAppState
           .read(authProvider.notifier)
           .checkAuthStatus()
           .timeout(
-            const Duration(seconds: 5),
+            const Duration(seconds: 15),  // Extended from 5 to 15 seconds
             onTimeout: () {
               logger.AppLogger.debug(
-                '[AppInit] Auth check timed out after 5 seconds',
+                '[AppInit] Auth check timed out after 15 seconds',
               );
               // Mark as incomplete - the background task will complete eventually
               // but we won't wait for it
@@ -179,6 +179,15 @@ class _PersonalAIAssistantAppState
       // CRITICAL: Reset loading state to prevent infinite loading
       // The timeout happens externally, so auth provider's state doesn't get updated
       ref.read(authProvider.notifier).resetLoadingState();
+
+      // Retry auth check in background after 2 seconds
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          ref.read(authProvider.notifier).checkAuthStatus().catchError((e) {
+            logger.AppLogger.debug('[AppInit] Background auth retry failed: $e');
+          });
+        }
+      });
       // The router will redirect to login since isAuthenticated defaults to false
       // Background auth check may complete later but won't affect UI
     } catch (e) {
