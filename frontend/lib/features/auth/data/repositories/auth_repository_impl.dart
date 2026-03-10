@@ -83,6 +83,8 @@ class AuthRepositoryImpl implements AuthRepository {
         refreshToken: authResponse.refreshToken,
         tokenType: authResponse.tokenType,
         expiresIn: authResponse.expiresIn,
+        expiresAt: authResponse.expiresAt,
+        serverTime: authResponse.serverTime,
       );
 
       return Right(refreshResponse);
@@ -168,40 +170,6 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<AppException, void>> resetPassword(ResetPasswordRequest request) async {
     try {
       await _remoteDatasource.resetPassword(request);
-      return const Right(null);
-    } on DioException catch (e) {
-      if (e.error is AppException) {
-        return Left(e.error as AppException);
-      }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
-    } on AppException catch (e) {
-      return Left(e);
-    } catch (e) {
-      return Left(UnknownException(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<AppException, void>> verifyEmail(String token) async {
-    try {
-      await _remoteDatasource.verifyEmail(token);
-      return const Right(null);
-    } on DioException catch (e) {
-      if (e.error is AppException) {
-        return Left(e.error as AppException);
-      }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
-    } on AppException catch (e) {
-      return Left(e);
-    } catch (e) {
-      return Left(UnknownException(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<AppException, void>> resendVerificationEmail() async {
-    try {
-      await _remoteDatasource.resendVerificationEmail();
       return const Right(null);
     } on DioException catch (e) {
       if (e.error is AppException) {

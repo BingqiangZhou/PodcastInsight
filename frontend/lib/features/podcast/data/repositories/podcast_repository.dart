@@ -506,20 +506,6 @@ class PodcastRepository {
     }
   }
 
-  Future<PodcastTranscriptionResponse?> getTranscriptionStatus(
-    int episodeId,
-  ) async {
-    try {
-      return await _apiService.getTranscriptionStatus(episodeId);
-    } on DioException catch (e) {
-      // If transcription not found (404), return null instead of throwing
-      if (e.response?.statusCode == 404) {
-        return null;
-      }
-      throw NetworkException.fromDioError(e);
-    }
-  }
-
   // === Conversation Management ===
 
   Future<ConversationSessionListResponse> getConversationSessions({

@@ -200,11 +200,6 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
                         onPageChanged: (index) {
                           _updatePageState(() {
                             _selectedTabIndex = index;
-                            if (index == 2) {
-                              _startSummaryPolling();
-                            } else {
-                              _stopSummaryPolling();
-                            }
                             _updateHeaderStateForTab(index);
                           });
                         },

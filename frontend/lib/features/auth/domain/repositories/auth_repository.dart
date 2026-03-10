@@ -13,6 +13,4 @@ abstract class AuthRepository {
   Future<Either<AppException, User>> getCurrentUser();
   Future<Either<AppException, void>> forgotPassword(ForgotPasswordRequest request);
   Future<Either<AppException, void>> resetPassword(ResetPasswordRequest request);
-  Future<Either<AppException, void>> verifyEmail(String token);
-  Future<Either<AppException, void>> resendVerificationEmail();
 }

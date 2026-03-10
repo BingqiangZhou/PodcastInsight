@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/shared/models/github_release.dart';
 
 void main() {
-  GitHubRelease _buildReleaseWithAssets(List<GitHubAsset> assets) {
+  GitHubRelease buildReleaseWithAssets(List<GitHubAsset> assets) {
     return GitHubRelease(
       tagName: 'v1.0.0',
       name: 'Release v1.0.0',
@@ -17,7 +17,7 @@ void main() {
     );
   }
 
-  GitHubAsset _buildAsset(String name) {
+  GitHubAsset buildAsset(String name) {
     return GitHubAsset(
       name: name,
       downloadUrl: 'https://github.com/example/repo/releases/download/v1.0.0/$name',
@@ -29,9 +29,9 @@ void main() {
 
   group('GitHubRelease.getAssetForPlatform', () {
     test('Windows release with both Windows ZIP and Android APK returns only ZIP for windows', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
-        _buildAsset('personal-ai-assistant-windows-1.0.0.zip'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
+        buildAsset('personal-ai-assistant-windows-1.0.0.zip'),
       ]);
 
       final asset = release.getAssetForPlatform('windows');
@@ -41,9 +41,9 @@ void main() {
     });
 
     test('Android returns only APK', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
-        _buildAsset('personal-ai-assistant-windows-1.0.0.zip'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
+        buildAsset('personal-ai-assistant-windows-1.0.0.zip'),
       ]);
 
       final asset = release.getAssetForPlatform('android');
@@ -53,8 +53,8 @@ void main() {
     });
 
     test('returns null when no asset matches the platform', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
       ]);
 
       final asset = release.getAssetForPlatform('windows');
@@ -62,9 +62,9 @@ void main() {
     });
 
     test('never falls back to first asset on mismatch', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
-        _buildAsset('personal-ai-assistant-linux-1.0.0.tar.gz'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
+        buildAsset('personal-ai-assistant-linux-1.0.0.tar.gz'),
       ]);
 
       final asset = release.getAssetForPlatform('windows');
@@ -72,8 +72,8 @@ void main() {
     });
 
     test('matches Linux .tar.gz correctly', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-linux-1.0.0.tar.gz'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-linux-1.0.0.tar.gz'),
       ]);
 
       final asset = release.getAssetForPlatform('linux');
@@ -83,8 +83,8 @@ void main() {
     });
 
     test('matches macOS .dmg correctly', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-macos-1.0.0.dmg'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-macos-1.0.0.dmg'),
       ]);
 
       final asset = release.getAssetForPlatform('macos');
@@ -94,8 +94,8 @@ void main() {
     });
 
     test('matches iOS .ipa correctly', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-ios-1.0.0.ipa'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-ios-1.0.0.ipa'),
       ]);
 
       final asset = release.getAssetForPlatform('ios');
@@ -105,8 +105,8 @@ void main() {
     });
 
     test('returns null for unknown platform', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-windows-1.0.0.zip'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-windows-1.0.0.zip'),
       ]);
 
       final asset = release.getAssetForPlatform('web');
@@ -114,7 +114,7 @@ void main() {
     });
 
     test('returns null when assets list is empty', () {
-      final release = _buildReleaseWithAssets([]);
+      final release = buildReleaseWithAssets([]);
 
       final asset = release.getAssetForPlatform('windows');
       expect(asset, isNull);
@@ -122,8 +122,8 @@ void main() {
 
     test('requires BOTH platform keyword AND correct extension', () {
       // A .zip file that contains "android" in its name should NOT match android
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-android-debug.zip'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-android-debug.zip'),
       ]);
 
       final asset = release.getAssetForPlatform('android');
@@ -133,8 +133,8 @@ void main() {
 
   group('GitHubRelease.getDownloadUrlForPlatform', () {
     test('returns URL when platform matches', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-windows-1.0.0.zip'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-windows-1.0.0.zip'),
       ]);
 
       final url = release.getDownloadUrlForPlatform('windows');
@@ -143,8 +143,8 @@ void main() {
     });
 
     test('returns null when no match (no fallback)', () {
-      final release = _buildReleaseWithAssets([
-        _buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
+      final release = buildReleaseWithAssets([
+        buildAsset('personal-ai-assistant-android-arm64-1.0.0.apk'),
       ]);
 
       final url = release.getDownloadUrlForPlatform('windows');

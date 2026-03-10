@@ -59,7 +59,7 @@ class HealthCheckResult {
 class ServerHealthService {
   final Dio _dio;
   CancelToken? _cancelToken;
-  static const String _healthEndpoint = '/health'; // TODO: Configure if backend uses different path
+  static const String _healthEndpoint = '/api/v1/health';
 
   ServerHealthService(this._dio);
 

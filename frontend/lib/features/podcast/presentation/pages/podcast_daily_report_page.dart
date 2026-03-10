@@ -331,7 +331,8 @@ class _PodcastDailyReportPageState
                       key: const Key('daily_report_items_scroll'),
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
                       itemCount: currentReport.items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, separatorIndex) =>
+                          const SizedBox(height: 12),
                       itemBuilder: (itemContext, index) {
                         final item = currentReport.items[index];
                         return _buildReportItemCard(itemContext, item);

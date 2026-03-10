@@ -171,8 +171,7 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
         receiveTimeout: const Duration(seconds: 5),
       ));
 
-      // Test health endpoint (at root level, not /api/v1/health)
-      final response = await testDio.get('/health');
+      final response = await testDio.get('/api/v1/health');
 
       final success = response.statusCode == 200;
 

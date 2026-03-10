@@ -1,3 +1,5 @@
+// ignore_for_file: use_null_aware_elements
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -185,8 +187,8 @@ class PodcastNavigation {
       pathParameters: {'episodeId': episodeId.toString()},
       queryParameters: {
         'subscriptionId': subscriptionId.toString(),
-        if (episodeTitle != null) 'title': episodeTitle,
-        if (audioUrl != null) 'audioUrl': audioUrl,
+        if (episodeTitle case final title?) 'title': title,
+        if (audioUrl case final resolvedAudioUrl?) 'audioUrl': resolvedAudioUrl,
         if (startPosition != null) 'position': startPosition.toString(),
       },
     );

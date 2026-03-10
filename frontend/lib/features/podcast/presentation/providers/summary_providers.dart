@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/podcast_playback_model.dart';
@@ -79,12 +81,20 @@ class SummaryState {
 
 /// Notifier for managing summary state
 class SummaryNotifier extends Notifier<SummaryState> {
+  static const Duration _pollInterval = Duration(seconds: 5);
+  static const int _maxPollAttempts = 12;
+
   final int episodeId;
+  Timer? _pollTimer;
+  bool _isPolling = false;
+  bool _pollInFlight = false;
+  int _pollAttempts = 0;
 
   SummaryNotifier(this.episodeId);
 
   @override
   SummaryState build() {
+    ref.onDispose(_stopPolling);
     return const SummaryState();
   }
 
@@ -94,6 +104,7 @@ class SummaryNotifier extends Notifier<SummaryState> {
     String? customPrompt,
     bool forceRegenerate = true,
   }) async {
+    _stopPolling();
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
@@ -114,8 +125,10 @@ class SummaryNotifier extends Notifier<SummaryState> {
         generatedAt: response.generatedAt,
         isLoading: false,
       );
+      _pollEpisodeDetailUntilSummarySync();
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      _stopPolling();
     }
   }
 
@@ -130,6 +143,7 @@ class SummaryNotifier extends Notifier<SummaryState> {
 
   /// Update summary from existing data (used when loading episode detail)
   void updateSummary(String summary) {
+    _stopPolling();
     final cleanedSummary = SummarySanitizer.clean(summary);
     state = SummaryState(
       summary: cleanedSummary,
@@ -147,5 +161,47 @@ class SummaryNotifier extends Notifier<SummaryState> {
     if (state.hasError) {
       state = state.copyWith(errorMessage: null);
     }
+  }
+
+  void _pollEpisodeDetailUntilSummarySync() {
+    _stopPolling();
+    _isPolling = true;
+    _pollAttempts = 0;
+    _pollTimer = Timer.periodic(_pollInterval, (_) {
+      unawaited(_syncFromEpisodeDetail());
+    });
+    unawaited(_syncFromEpisodeDetail());
+  }
+
+  Future<void> _syncFromEpisodeDetail() async {
+    if (!_isPolling || _pollInFlight) {
+      return;
+    }
+
+    _pollInFlight = true;
+    try {
+      ref.invalidate(episodeDetailProvider(episodeId));
+      final episode = await ref.read(episodeDetailProvider(episodeId).future);
+      final summary = episode?.aiSummary;
+      if (summary != null && summary.isNotEmpty) {
+        updateSummary(summary);
+        return;
+      }
+
+      _pollAttempts += 1;
+      if (_pollAttempts >= _maxPollAttempts) {
+        _stopPolling();
+      }
+    } finally {
+      _pollInFlight = false;
+    }
+  }
+
+  void _stopPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+    _isPolling = false;
+    _pollInFlight = false;
+    _pollAttempts = 0;
   }
 }

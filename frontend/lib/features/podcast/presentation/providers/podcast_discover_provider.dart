@@ -356,11 +356,11 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
           topEpisodes: episodes,
           showsPagination: _paginationStateFor(
             requestedLimit: _kDiscoverInitialFetchLimit,
-            loadedCount: shows?.length ?? 0,
+            loadedCount: shows.length,
           ),
           episodesPagination: _paginationStateFor(
             requestedLimit: _kDiscoverInitialFetchLimit,
-            loadedCount: episodes?.length ?? 0,
+            loadedCount: episodes.length,
           ),
           selectedCategory: PodcastDiscoverState.allCategoryValue,
           clearError: true,

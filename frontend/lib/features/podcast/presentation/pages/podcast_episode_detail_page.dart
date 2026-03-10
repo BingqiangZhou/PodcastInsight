@@ -13,6 +13,7 @@ import '../providers/transcription_providers.dart';
 import '../providers/summary_providers.dart';
 import '../../data/models/podcast_episode_model.dart';
 import '../../data/models/audio_player_state_model.dart';
+import '../../data/models/podcast_transcription_model.dart';
 import '../widgets/transcript_display_widget.dart';
 import '../widgets/shownotes_display_widget.dart';
 import '../widgets/transcription_status_widget.dart';
@@ -43,8 +44,8 @@ class _PodcastEpisodeDetailPageState
     extends ConsumerState<PodcastEpisodeDetailPage> {
   int _selectedTabIndex =
       0; // 0 = Shownotes, 1 = Transcript, 2 = AI Summary, 3 = Conversation
-  Timer? _summaryPollingTimer;
-  bool _isPolling = false; // Guard flag to prevent multiple polls
+  ProviderSubscription<AsyncValue<PodcastTranscriptionResponse?>>?
+  _transcriptionNoticeSubscription;
   bool _hasTrackedEpisodeView = false;
   bool _isAddingToQueue = false;
   String _selectedSummaryText = '';
@@ -91,14 +92,15 @@ class _PodcastEpisodeDetailPageState
     super.initState();
     // Don't auto-play episode when page loads - user must click play button
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bindTranscriptionNoticeListener();
       _loadTranscriptionStatus();
     });
   }
 
   @override
   void dispose() {
+    _transcriptionNoticeSubscription?.close();
     _pageController.dispose();
-    _summaryPollingTimer?.cancel();
     _scrollOffset.dispose();
     _showScrollToTopButton.dispose();
     // Clean up tab scroll controllers
@@ -106,6 +108,45 @@ class _PodcastEpisodeDetailPageState
       controller.dispose();
     }
     super.dispose();
+  }
+
+  void _bindTranscriptionNoticeListener() {
+    _transcriptionNoticeSubscription?.close();
+    _transcriptionNoticeSubscription = ref.listenManual<
+        AsyncValue<PodcastTranscriptionResponse?>>(
+      getTranscriptionProvider(widget.episodeId),
+      (previous, next) {
+        if (!mounted) {
+          return;
+        }
+
+        final prevData = previous?.value;
+        final nextData = next.value;
+        if (nextData == null) {
+          return;
+        }
+
+        final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
+        if (prevData == null && nextData.isProcessing) {
+          showTopFloatingNotice(
+            context,
+            message: l10n.podcast_transcription_auto_starting,
+            extraTopOffset: 72,
+          );
+          return;
+        }
+
+        if (prevData != null &&
+            nextData.isProcessing &&
+            !prevData.isProcessing) {
+          showTopFloatingNotice(
+            context,
+            message: l10n.podcast_transcription_processing,
+            extraTopOffset: 72,
+          );
+        }
+      },
+    );
   }
 
   void _updatePageState(VoidCallback updater) {
@@ -310,34 +351,6 @@ class _PodcastEpisodeDetailPageState
     final hideBottomPlayer = isChatTab || shouldHideOnTranscriptOrSummary;
     final isMobileLayout = MediaQuery.of(context).size.width < 600;
 
-    // Listen to transcription status changes to provide user feedback
-    ref.listen(getTranscriptionProvider(widget.episodeId), (previous, next) {
-      final prevData = previous?.value;
-      final nextData = next.value;
-
-      if (nextData != null && prevData != null) {
-        // Only notify if status changed from something else to processing or if we just started
-        if (nextData.isProcessing && !prevData.isProcessing) {
-          showTopFloatingNotice(
-            context,
-            message: (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                .podcast_transcription_processing,
-            extraTopOffset: 72,
-          );
-        }
-      } else if (nextData != null &&
-          prevData == null &&
-          nextData.isProcessing) {
-        // Auto-start case
-        showTopFloatingNotice(
-          context,
-          message: (AppLocalizations.of(context) ?? AppLocalizationsEn())
-              .podcast_transcription_auto_starting,
-          extraTopOffset: 72,
-        );
-      }
-    });
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWideLayout = constraints.maxWidth > 800;
@@ -415,9 +428,7 @@ class _PodcastEpisodeDetailPageState
       // Reset tab selection
       _selectedTabIndex = 0;
 
-      // Stop any ongoing polling
-      _summaryPollingTimer?.cancel();
-      _isPolling = false;
+      _bindTranscriptionNoticeListener();
 
       // Reload data for the new episode
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -429,69 +440,6 @@ class _PodcastEpisodeDetailPageState
       });
       logger.AppLogger.debug('[Playback] ===== didUpdateWidget complete =====');
     }
-  }
-
-  void _startSummaryPolling() async {
-    _summaryPollingTimer?.cancel();
-    _isPolling = false;
-
-    try {
-      final episodeDetailAsync = await ref.read(
-        episodeDetailProvider(widget.episodeId).future,
-      );
-      if (episodeDetailAsync != null &&
-          episodeDetailAsync.aiSummary != null &&
-          episodeDetailAsync.aiSummary!.isNotEmpty) {
-        logger.AppLogger.debug(
-          '[AI Summary] Summary already exists, skipping polling',
-        );
-        return;
-      }
-    } catch (e) {
-      logger.AppLogger.debug(
-        '[AI Summary] Failed to check initial summary state: $e',
-      );
-    }
-
-    _isPolling = true;
-    logger.AppLogger.debug('[AI Summary] Starting polling...');
-
-    _summaryPollingTimer = Timer.periodic(const Duration(seconds: 5), (
-      timer,
-    ) async {
-      if (!mounted || !_isPolling) {
-        timer.cancel();
-        return;
-      }
-
-      try {
-        final episodeDetailAsync = await ref.read(
-          episodeDetailProvider(widget.episodeId).future,
-        );
-
-        if (episodeDetailAsync != null) {
-          if (episodeDetailAsync.aiSummary != null &&
-              episodeDetailAsync.aiSummary!.isNotEmpty) {
-            logger.AppLogger.debug(
-              '[AI Summary] Summary generated, stopping polling',
-            );
-            _stopSummaryPolling();
-            return;
-          }
-        }
-
-        ref.invalidate(episodeDetailProvider(widget.episodeId));
-      } catch (e) {
-        logger.AppLogger.debug('[AI Summary] Error during polling: $e');
-      }
-    });
-  }
-
-  void _stopSummaryPolling() {
-    _summaryPollingTimer?.cancel();
-    _summaryPollingTimer = null;
-    _isPolling = false;
-    logger.AppLogger.debug('[AI Summary] Stopped polling');
   }
 
   // Use actual platform type instead of width breakpoints.

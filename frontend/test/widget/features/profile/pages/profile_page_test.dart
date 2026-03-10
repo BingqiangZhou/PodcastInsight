@@ -479,7 +479,7 @@ void main() {
         notificationsSwitch.inactiveTrackColor,
         equals(scheme.onSurfaceVariant.withValues(alpha: 0.30)),
       );
-      expect(notificationsSwitch.activeColor, equals(scheme.surface));
+      expect(notificationsSwitch.activeThumbColor, equals(scheme.surface));
       expect(notificationsSwitch.inactiveThumbColor, equals(scheme.surface));
     },
   );
@@ -543,7 +543,7 @@ void main() {
         notificationsSwitch.inactiveTrackColor,
         equals(scheme.onSurfaceVariant.withValues(alpha: 0.30)),
       );
-      expect(notificationsSwitch.activeColor, equals(scheme.surface));
+      expect(notificationsSwitch.activeThumbColor, equals(scheme.surface));
       expect(notificationsSwitch.inactiveThumbColor, equals(scheme.surface));
     },
   );

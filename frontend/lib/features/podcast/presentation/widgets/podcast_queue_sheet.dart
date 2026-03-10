@@ -352,14 +352,12 @@ class _QueueStateList extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.action,
-    this.showSpinner = false,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final Widget? action;
-  final bool showSpinner;
 
   @override
   Widget build(BuildContext context) {
@@ -389,20 +387,11 @@ class _QueueStateList extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: showSpinner
-                    ? SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: theme.colorScheme.primary,
-                        ),
-                      )
-                    : Icon(
-                        icon,
-                        size: 28,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                child: Icon(
+                  icon,
+                  size: 28,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 16),
               Text(

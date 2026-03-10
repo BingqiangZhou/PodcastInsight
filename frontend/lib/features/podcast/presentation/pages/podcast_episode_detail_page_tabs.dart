@@ -125,7 +125,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
               if (_selectedTabIndex != 0) {
                 _updatePageState(() {
                   _selectedTabIndex = 0;
-                  _stopSummaryPolling();
                   _updateHeaderStateForTab(0);
                 });
               }
@@ -141,7 +140,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
               if (_selectedTabIndex != 1) {
                 _updatePageState(() {
                   _selectedTabIndex = 1;
-                  _stopSummaryPolling();
                   _updateHeaderStateForTab(1);
                 });
               }
@@ -157,7 +155,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
               if (_selectedTabIndex != 2) {
                 _updatePageState(() {
                   _selectedTabIndex = 2;
-                  _startSummaryPolling();
                   _updateHeaderStateForTab(2);
                 });
               }
@@ -173,7 +170,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
               if (_selectedTabIndex != 3) {
                 _updatePageState(() {
                   _selectedTabIndex = 3;
-                  _stopSummaryPolling();
                   _updateHeaderStateForTab(3);
                 });
               }

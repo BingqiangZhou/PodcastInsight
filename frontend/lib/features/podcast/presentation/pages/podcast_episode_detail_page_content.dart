@@ -167,7 +167,9 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
         !summaryState.hasSummary &&
         !summaryState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        summaryNotifier.updateSummary(episode.aiSummary!);
+        if (mounted) {
+          summaryNotifier.updateSummary(episode.aiSummary!);
+        }
       });
     }
 

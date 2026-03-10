@@ -1162,35 +1162,6 @@ class _PodcastApiService implements PodcastApiService {
   }
 
   @override
-  Future<PodcastTranscriptionResponse> getTranscriptionStatus(
-    int episodeId,
-  ) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<PodcastTranscriptionResponse>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/podcasts/episodes/${episodeId}/transcription/status',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late PodcastTranscriptionResponse _value;
-    try {
-      _value = PodcastTranscriptionResponse.fromJson(_result.data!);
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options, response: _result);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
   Future<ConversationSessionListResponse> getConversationSessions(
     int episodeId,
   ) async {

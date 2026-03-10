@@ -12,8 +12,6 @@ abstract class AuthRemoteDatasource {
   Future<User> getCurrentUser();
   Future<void> forgotPassword(ForgotPasswordRequest request);
   Future<void> resetPassword(ResetPasswordRequest request);
-  Future<void> verifyEmail(String token);
-  Future<void> resendVerificationEmail();
 }
 
 class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
@@ -106,18 +104,5 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       '/auth/reset-password',
       data: request.toJson(),
     );
-  }
-
-  @override
-  Future<void> verifyEmail(String token) async {
-    await _apiClient.post(
-      '/auth/verify-email',
-      data: {'token': token},
-    );
-  }
-
-  @override
-  Future<void> resendVerificationEmail() async {
-    await _apiClient.post('/auth/resend-verification');
   }
 }

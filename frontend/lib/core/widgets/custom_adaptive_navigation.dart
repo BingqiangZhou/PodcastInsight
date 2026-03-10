@@ -536,12 +536,6 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     );
   }
 
-  MindriverThemeExtension _tokens(BuildContext context) {
-    return Theme.of(context).extension<MindriverThemeExtension>() ??
-        (Theme.of(context).brightness == Brightness.dark
-            ? MindriverThemeExtension.dark
-            : MindriverThemeExtension.light);
-  }
 }
 
 class ResponsiveContainer extends StatelessWidget {

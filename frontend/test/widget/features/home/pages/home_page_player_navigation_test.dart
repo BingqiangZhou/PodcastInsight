@@ -373,14 +373,14 @@ void main() {
               (stack) => stack.children.any(
                 (child) =>
                     child is Positioned &&
-                    child.child?.key ==
+                    child.child.key ==
                         const Key('custom_adaptive_navigation_bottom_backdrop'),
               ),
             );
         expect(
           mobileStack.children.first,
           isA<Positioned>().having(
-            (positioned) => positioned.child?.key,
+            (positioned) => positioned.child.key,
             'child key',
             const Key('custom_adaptive_navigation_bottom_backdrop'),
           ),

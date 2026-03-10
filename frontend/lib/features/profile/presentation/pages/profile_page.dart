@@ -11,7 +11,6 @@ import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/widgets/update_dialog.dart';
 
-import '../../../../core/widgets/custom_adaptive_navigation.dart';
 import '../widgets/profile_activity_cards.dart';
 import '../../../../shared/widgets/server_config_dialog.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -244,7 +243,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         trailing: Switch(
           key: const Key('profile_notifications_switch'),
           value: _notificationsEnabled,
-          activeColor: theme.colorScheme.surface,
+          activeThumbColor: theme.colorScheme.surface,
           inactiveThumbColor: theme.colorScheme.surface,
           activeTrackColor: theme.colorScheme.onSurfaceVariant,
           inactiveTrackColor: theme.colorScheme.onSurfaceVariant.withValues(

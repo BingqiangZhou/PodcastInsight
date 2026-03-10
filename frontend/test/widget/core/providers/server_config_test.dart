@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
@@ -189,6 +192,38 @@ void main() {
       }
 
       container.dispose();
+    });
+
+    test('should test connection against /api/v1/health', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() async {
+        await server.close(force: true);
+      });
+
+      late String requestPath;
+      unawaited(() async {
+        final request = await server.first;
+        requestPath = request.uri.path;
+        request.response
+          ..statusCode = HttpStatus.ok
+          ..write('{"status":"healthy"}');
+        await request.response.close();
+      }());
+
+      final container = ProviderContainer(
+        overrides: [
+          localStorageServiceProvider.overrideWithValue(mockStorage),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(serverConfigProvider.notifier);
+      final success = await notifier.testConnection(
+        'http://127.0.0.1:${server.port}',
+      );
+
+      expect(success, isTrue);
+      expect(requestPath, '/api/v1/health');
     });
 
     test('should clear error when clearError is called', () {

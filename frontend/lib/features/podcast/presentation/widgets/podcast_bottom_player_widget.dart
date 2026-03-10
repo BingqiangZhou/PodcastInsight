@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/app_localizations.dart';
 import '../../data/models/podcast_episode_model.dart';
+import '../../data/models/podcast_queue_model.dart';
 import '../constants/playback_speed_options.dart';
 import '../constants/podcast_ui_constants.dart';
 import '../navigation/podcast_navigation.dart';
@@ -700,7 +701,7 @@ class _SleepTimerButton extends ConsumerWidget {
       onPressed: onPressed,
       icon: Transform(
         alignment: Alignment.center,
-        transform: Matrix4.identity()..scale(-1.0, 1.0, 1.0),
+        transform: Matrix4.diagonal3Values(-1.0, 1.0, 1.0),
         child: Icon(
           isActive ? Icons.bedtime_rounded : Icons.bedtime_outlined,
           color: isActive
@@ -986,6 +987,7 @@ Future<void> _showQueueSheet(BuildContext context, WidgetRef ref) async {
     unawaited(
       queueController.loadQueue(forceRefresh: false).catchError((_) {
         // Let the sheet render its own error state if the initial fetch fails.
+        return PodcastQueueModel.empty();
       }),
     );
   }

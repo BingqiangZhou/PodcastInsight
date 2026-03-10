@@ -233,11 +233,6 @@ abstract class PodcastApiService {
   @DELETE('/podcasts/episodes/{episodeId}/transcription')
   Future<void> deleteTranscription(@Path('episodeId') int episodeId);
 
-  @GET('/podcasts/episodes/{episodeId}/transcription/status')
-  Future<PodcastTranscriptionResponse> getTranscriptionStatus(
-    @Path('episodeId') int episodeId,
-  );
-
   // === Conversation Management ===
 
   @GET('/podcasts/episodes/{episodeId}/conversation-sessions')

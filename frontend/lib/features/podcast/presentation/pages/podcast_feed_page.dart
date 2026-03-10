@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/app_shells.dart';
-import '../../../../core/widgets/custom_adaptive_navigation.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../core/utils/episode_description_helper.dart';
 import '../../data/models/podcast_episode_model.dart';

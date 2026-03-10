@@ -20,16 +20,6 @@ class ProfileActivityCards extends ConsumerWidget {
     return EdgeInsets.zero;
   }
 
-  ShapeBorder? _cardShape(BuildContext context) {
-    if (!_isMobile(context)) {
-      return null;
-    }
-    return RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-      side: BorderSide.none,
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
