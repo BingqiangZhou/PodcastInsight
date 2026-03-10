@@ -42,6 +42,7 @@ from app.domains.podcast.services.transcription_workflow_service import (
 )
 from app.domains.podcast.transcription_types import ScheduleFrequency
 
+
 router = APIRouter(prefix="")
 logger = logging.getLogger(__name__)
 

@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.domains.user import models as _user_models  # noqa: F401
 from app.domains.subscription.services import SubscriptionService
+from app.domains.user import models as _user_models  # noqa: F401
 
 
 @pytest.mark.asyncio
@@ -12,7 +12,7 @@ async def test_subscription_service_get_subscription():
     expected = object()
     service.repo.get_subscription_by_id = AsyncMock(return_value=expected)
 
-    result = await service.get_subscription(5)
+    await service.get_subscription(5)
 
     # get_subscription also does a count query; just verify it called the repo
     service.repo.get_subscription_by_id.assert_awaited_once_with(11, 5)

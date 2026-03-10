@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -53,14 +53,14 @@ def _build_feed(*, published_at: datetime) -> SimpleNamespace:
         link="https://example.com/feed",
         total_episodes=1,
         platform="generic",
-        last_fetched=datetime.now(timezone.utc),
+        last_fetched=datetime.now(UTC),
         episodes=[episode],
     )
 
 
 @pytest.mark.asyncio
 async def test_refresh_all_podcast_feeds_closes_parser_after_success() -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     subscription = SimpleNamespace(
         id=1,
         title="Feed",
@@ -109,7 +109,7 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_exception() -> None
         id=1,
         title="Feed",
         source_url="https://example.com/feed.xml",
-        last_fetched_at=datetime.now(timezone.utc),
+        last_fetched_at=datetime.now(UTC),
     )
     user_subscription = SimpleNamespace(
         subscription_id=1,
@@ -177,14 +177,13 @@ async def test_process_opml_subscription_episodes_closes_parser_on_exception() -
     ), patch(
         "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
         return_value=parser,
-    ):
-        with pytest.raises(RuntimeError, match="parse boom"):
-            await PodcastTaskOrchestrationService(
-                session=AsyncMock()
-            ).process_opml_subscription_episodes(
-                subscription_id=1,
-                user_id=1,
-                source_url="https://example.com/feed.xml",
-            )
+    ), pytest.raises(RuntimeError, match="parse boom"):
+        await PodcastTaskOrchestrationService(
+            session=AsyncMock()
+        ).process_opml_subscription_episodes(
+            subscription_id=1,
+            user_id=1,
+            source_url="https://example.com/feed.xml",
+        )
 
     parser.close.assert_awaited_once()

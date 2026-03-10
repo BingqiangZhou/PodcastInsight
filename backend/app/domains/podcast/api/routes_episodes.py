@@ -50,6 +50,7 @@ from app.domains.podcast.services.summary_workflow_service import SummaryWorkflo
 from app.http.errors import bilingual_http_exception
 from app.http.responses import build_etag_response
 
+
 router = APIRouter(prefix="")
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@
 Unit tests for Podcast specialized services
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -191,7 +191,7 @@ class TestPodcastEpisodeService:
         self, service, mock_repo, monkeypatch
     ):
         monkeypatch.setattr(settings, "PODCAST_FEED_LIGHTWEIGHT_ENABLED", True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         mock_repo.get_feed_lightweight_page_paginated.return_value = (
             [
                 _build_lightweight_feed_row(
@@ -221,7 +221,7 @@ class TestPodcastEpisodeService:
         self, service, mock_repo, monkeypatch
     ):
         monkeypatch.setattr(settings, "PODCAST_FEED_LIGHTWEIGHT_ENABLED", True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         raw_description = "   Fallback   text \n with   extra   spaces   "
         mock_repo.get_feed_lightweight_cursor_paginated.return_value = (
             [
@@ -253,7 +253,7 @@ class TestPodcastEpisodeService:
         self, service, mock_repo, monkeypatch
     ):
         monkeypatch.setattr(settings, "PODCAST_FEED_LIGHTWEIGHT_ENABLED", False)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         episode = _build_mock_episode(
             description="Original fallback description",
             ai_summary=(
@@ -276,7 +276,7 @@ class TestPodcastEpisodeService:
 
     @pytest.mark.asyncio
     async def test_list_episodes_keeps_original_description(self, service, mock_repo):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         episode = _build_mock_episode(
             description="Original episode description",
             ai_summary=(
@@ -355,7 +355,7 @@ class TestPodcastPlaybackService:
             is_playing=True,
             playback_rate=1.25,
             play_count=3,
-            last_updated_at=datetime.now(timezone.utc),
+            last_updated_at=datetime.now(UTC),
         )
         mock_repo.get_episode_by_id.return_value = episode
         mock_repo.update_playback_progress.return_value = playback
@@ -390,7 +390,7 @@ class TestPodcastQueueService:
 
     @pytest.mark.asyncio
     async def test_get_queue_returns_projection(self, service, mock_repo):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         subscription = Mock(
             title="Podcast", config={"image_url": "https://example.com/sub.jpg"}
         )

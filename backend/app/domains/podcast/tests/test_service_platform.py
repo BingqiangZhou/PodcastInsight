@@ -2,7 +2,7 @@
 Integration tests for podcast subscription service platform support
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -173,7 +173,7 @@ class TestPodcastSubscriptionPlatform:
         mock_subscription.id = 1
         mock_subscription.title = "Test Podcast"
         mock_subscription.config = {"platform": PodcastPlatform.XIMALAYA}
-        mock_subscription.created_at = datetime.now(timezone.utc)
+        mock_subscription.created_at = datetime.now(UTC)
         mock_subscription.status = "active"
         mock_subscription.description = "desc"
         mock_subscription.source_url = "https://example.com/feed.xml"
@@ -181,7 +181,7 @@ class TestPodcastSubscriptionPlatform:
         mock_subscription.error_message = None
         mock_subscription.fetch_interval = 3600
         mock_subscription.image_url = "https://example.com/image.jpg"
-        mock_subscription.updated_at = datetime.now(timezone.utc)
+        mock_subscription.updated_at = datetime.now(UTC)
 
         mock_repo.get_user_subscriptions_paginated.return_value = (
             [mock_subscription],
@@ -214,7 +214,7 @@ class TestPodcastSubscriptionPlatform:
         mock_repo.get_subscription_by_id.return_value = mock_subscription
 
         mock_feed = self.create_mock_feed(PodcastPlatform.XIMALAYA)
-        mock_feed.last_fetched = datetime.now(timezone.utc)
+        mock_feed.last_fetched = datetime.now(UTC)
         mock_parser.fetch_and_parse_feed.return_value = (True, mock_feed, None)
 
         mock_repo.create_or_update_episodes_batch.return_value = ([], [])
@@ -240,7 +240,7 @@ class TestPodcastSubscriptionPlatform:
         mock_repo.get_subscription_by_id.return_value = mock_subscription
 
         mock_feed = self.create_mock_feed(PodcastPlatform.XIMALAYA)
-        mock_feed.last_fetched = datetime.now(timezone.utc)
+        mock_feed.last_fetched = datetime.now(UTC)
         mock_parser.fetch_and_parse_feed.return_value = (True, mock_feed, None)
         mock_repo.create_or_update_episodes_batch.return_value = ([], [])
 

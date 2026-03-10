@@ -3,7 +3,7 @@
 import base64
 import binascii
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import status
@@ -15,7 +15,7 @@ def encode_keyset_cursor(cursor_type: str, timestamp: datetime, episode_id: int)
     """Encode stable keyset cursor payload."""
     normalized = timestamp
     if normalized.tzinfo is not None:
-        normalized = normalized.astimezone(timezone.utc).replace(tzinfo=None)
+        normalized = normalized.astimezone(UTC).replace(tzinfo=None)
 
     payload = {
         "v": 2,
@@ -56,7 +56,7 @@ def decode_cursor(cursor: str) -> dict[str, Any]:
 
         timestamp = datetime.fromisoformat(timestamp_raw)
         if timestamp.tzinfo is not None:
-            timestamp = timestamp.astimezone(timezone.utc).replace(tzinfo=None)
+            timestamp = timestamp.astimezone(UTC).replace(tzinfo=None)
 
         return {
             "type": cursor_type,

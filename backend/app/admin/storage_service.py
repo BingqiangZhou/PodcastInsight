@@ -8,7 +8,7 @@ Provides storage information query and cache file cleanup functionality
 import logging
 import os
 import shutil
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -136,14 +136,14 @@ class StorageCleanupService:
                 "total_size": storage_size,
                 "total_size_human": self._format_bytes(storage_size),
                 "path": storage_path,
-                "last_updated": datetime.now(timezone.utc).isoformat()
+                "last_updated": datetime.now(UTC).isoformat()
             },
             "temp": {
                 "file_count": temp_count,
                 "total_size": temp_size,
                 "total_size_human": self._format_bytes(temp_size),
                 "path": temp_path,
-                "last_updated": datetime.now(timezone.utc).isoformat()
+                "last_updated": datetime.now(UTC).isoformat()
             },
             "disk": disk_info
         }
@@ -211,7 +211,7 @@ class StorageCleanupService:
                     "enabled": enabled,
                     "last_cleanup": setting.value.get("last_cleanup") if setting.value else None
                 }
-                setting.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+                setting.updated_at = datetime.now(UTC).replace(tzinfo=None)
             else:
                 # 创建新配置
                 setting = SystemSettings(
@@ -255,7 +255,7 @@ class StorageCleanupService:
         """
         deleted_count = 0
         freed_space = 0
-        cutoff_time = datetime.now(timezone.utc) - timedelta(days=keep_days)
+        cutoff_time = datetime.now(UTC) - timedelta(days=keep_days)
 
         logger.info(f"🧹 开始清理目录: {directory_path} (保留 {keep_days} 天)")
 
@@ -269,7 +269,7 @@ class StorageCleanupService:
                         # 获取文件修改时间
                         file_mtime = datetime.fromtimestamp(
                             os.path.getmtime(file_path),
-                            tz=timezone.utc
+                            tz=UTC
                         )
 
                         # 如果文件早于截止时间，删除它
@@ -372,11 +372,11 @@ class StorageCleanupService:
             result = await self.db.execute(stmt)
             setting = result.scalar_one_or_none()
 
-            current_time = datetime.now(timezone.utc).isoformat()
+            current_time = datetime.now(UTC).isoformat()
 
             if setting:
                 setting.value["last_cleanup"] = current_time
-                setting.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+                setting.updated_at = datetime.now(UTC).replace(tzinfo=None)
             else:
                 # 创建配置记录
                 setting = SystemSettings(

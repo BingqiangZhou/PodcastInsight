@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 
 from app.domains.ai.api.response_mapper import (
@@ -36,9 +36,9 @@ def _make_model(**overrides):
         "success_count": 6,
         "error_count": 2,
         "total_tokens_used": 1024,
-        "created_at": datetime(2026, 3, 1, tzinfo=timezone.utc),
-        "updated_at": datetime(2026, 3, 2, tzinfo=timezone.utc),
-        "last_used_at": datetime(2026, 3, 3, tzinfo=timezone.utc),
+        "created_at": datetime(2026, 3, 1, tzinfo=UTC),
+        "updated_at": datetime(2026, 3, 2, tzinfo=UTC),
+        "last_used_at": datetime(2026, 3, 3, tzinfo=UTC),
     }
     payload.update(overrides)
     return SimpleNamespace(**payload)

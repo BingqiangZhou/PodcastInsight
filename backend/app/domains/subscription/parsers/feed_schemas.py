@@ -4,13 +4,13 @@ RSS/Atom feed 解析的数据模型定义。
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-class ParseErrorCode(str, Enum):
+class ParseErrorCode(StrEnum):
     """Parse error codes / 解析错误代码"""
     NETWORK_ERROR = "network_error"
     PARSE_ERROR = "parse_error"

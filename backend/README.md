@@ -96,5 +96,5 @@ backend/
 |- scripts/
 |- tests/
 |- pyproject.toml
-`- requirements.txt
+`- uv.lock
 ```

@@ -1,7 +1,7 @@
 """Subscription domain models."""
 
-import enum
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 
 from sqlalchemy import (
     JSON,
@@ -21,7 +21,7 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
-class SubscriptionType(str, enum.Enum):
+class SubscriptionType(StrEnum):
     """Subscription source types."""
     RSS = "rss"
     API = "api"
@@ -30,7 +30,7 @@ class SubscriptionType(str, enum.Enum):
     WEBSITE = "website"
 
 
-class SubscriptionStatus(str, enum.Enum):
+class SubscriptionStatus(StrEnum):
     """Subscription status."""
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -38,7 +38,7 @@ class SubscriptionStatus(str, enum.Enum):
     PENDING = "pending"
 
 
-class UpdateFrequency(str, enum.Enum):
+class UpdateFrequency(StrEnum):
     """Update frequency for scheduled RSS feed refresh."""
     HOURLY = "HOURLY"
     DAILY = "DAILY"
@@ -71,8 +71,8 @@ class Subscription(Base):
     error_message = Column(Text, nullable=True)
     fetch_interval = Column(Integer, default=3600)
 
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     user_subscriptions = relationship("UserSubscription", back_populates="subscription", cascade="all, delete-orphan")
     items = relationship("SubscriptionItem", back_populates="subscription", cascade="all, delete-orphan")
@@ -129,8 +129,8 @@ class UserSubscription(Base):
         comment="Subscription-level playback speed preference",
     )
 
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     user = relationship("User", back_populates="user_subscriptions")
     subscription = relationship("Subscription", back_populates="user_subscriptions")
@@ -181,7 +181,7 @@ class UserSubscription(Base):
         if frequency == UpdateFrequency.HOURLY.value:
             # Next top of the hour in local time, then convert to UTC
             next_local = (base_local + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-            return next_local.astimezone(timezone.utc)
+            return next_local.astimezone(UTC)
 
         elif frequency == UpdateFrequency.DAILY.value:
             # Get local hour/minute from stored time
@@ -195,7 +195,7 @@ class UserSubscription(Base):
                 scheduled_local += timedelta(days=1)
 
             # Convert back to UTC
-            return scheduled_local.astimezone(timezone.utc)
+            return scheduled_local.astimezone(UTC)
 
         elif frequency == UpdateFrequency.WEEKLY.value:
             # Get local hour/minute from stored time
@@ -214,7 +214,7 @@ class UserSubscription(Base):
 
             # Add the days and convert to UTC
             scheduled_local += timedelta(days=days_ahead)
-            return scheduled_local.astimezone(timezone.utc)
+            return scheduled_local.astimezone(UTC)
 
         return base_time + timedelta(hours=1) # Fallback
 
@@ -224,7 +224,7 @@ class UserSubscription(Base):
         Calculate next update time based on frequency and user settings.
         Aligns to the next scheduled interval based on CURRENT time.
         """
-        return self._get_next_scheduled_time(datetime.now(timezone.utc))
+        return self._get_next_scheduled_time(datetime.now(UTC))
 
     def should_update_now(self) -> bool:
         """
@@ -242,7 +242,7 @@ class UserSubscription(Base):
         next_possible = self._get_next_scheduled_time(last_fetched_aware)
 
         # If the scheduled time has arrived or passed, we should update
-        return datetime.now(timezone.utc) >= next_possible
+        return datetime.now(UTC) >= next_possible
 
 
 class SubscriptionItem(Base):
@@ -264,8 +264,8 @@ class SubscriptionItem(Base):
     published_at = Column(DateTime(timezone=True), nullable=True)
     read_at = Column(DateTime(timezone=True), nullable=True)
     bookmarked = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     subscription = relationship("Subscription", back_populates="items")
 
@@ -291,8 +291,8 @@ class SubscriptionCategory(Base):
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
     color = Column(String(7), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     user = relationship("User", back_populates="subscription_categories")
     subscriptions = relationship(
@@ -313,4 +313,4 @@ class SubscriptionCategoryMapping(Base):
 
     subscription_id = Column(Integer, ForeignKey("subscriptions.id"), primary_key=True)
     category_id = Column(Integer, ForeignKey("subscription_categories.id"), primary_key=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))

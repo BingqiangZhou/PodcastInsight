@@ -1,9 +1,9 @@
 """Shared transcription enums and lightweight contracts."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class ScheduleFrequency(str, Enum):
+class ScheduleFrequency(StrEnum):
     """Task scheduling frequency."""
 
     HOURLY = "hourly"

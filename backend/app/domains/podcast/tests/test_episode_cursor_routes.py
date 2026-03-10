@@ -1,5 +1,5 @@
 import base64
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 from fastapi.testclient import TestClient
@@ -57,7 +57,7 @@ def test_feed_accepts_size_alias(monkeypatch):
     app.dependency_overrides[get_podcast_episode_service] = lambda: service
     client = TestClient(app)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     service.list_feed_by_page.return_value = ([_sample_episode(now)], 25)
 
     response = client.get("/api/v1/podcasts/episodes/feed?page=2&size=11")
@@ -75,7 +75,7 @@ def test_feed_first_page_prefers_keyset_path(monkeypatch):
     app.dependency_overrides[get_podcast_episode_service] = lambda: service
     client = TestClient(app)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     service.list_feed_by_cursor.return_value = (
         [_sample_episode(now)],
         25,
@@ -100,7 +100,7 @@ def test_feed_keyset_cursor_path():
     app.dependency_overrides[get_podcast_episode_service] = lambda: service
     client = TestClient(app)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     service.list_feed_by_cursor.return_value = (
         [_sample_episode(now)],
         100,
@@ -127,7 +127,7 @@ def test_history_keyset_cursor_path():
     app.dependency_overrides[get_podcast_episode_service] = lambda: service
     client = TestClient(app)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     service.list_playback_history_by_cursor.return_value = (
         [_sample_episode(now)],
         20,

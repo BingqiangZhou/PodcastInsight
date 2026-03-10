@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -43,7 +43,7 @@ def test_get_daily_report_not_available(client: TestClient, mock_service: AsyncM
 
 
 def test_get_daily_report_by_date_success(client: TestClient, mock_service: AsyncMock):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.get_daily_report.return_value = {
         "available": True,
         "report_date": date(2026, 2, 20),
@@ -81,7 +81,7 @@ def test_get_daily_report_by_date_success(client: TestClient, mock_service: Asyn
 def test_generate_daily_report_without_date(
     client: TestClient, mock_service: AsyncMock
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.generate_daily_report.return_value = {
         "available": True,
         "report_date": date(2026, 2, 20),
@@ -120,7 +120,7 @@ def test_generate_daily_report_by_date_success(
     client: TestClient,
     mock_service: AsyncMock,
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.generate_daily_report.return_value = {
         "available": True,
         "report_date": date(2026, 2, 20),
@@ -159,7 +159,7 @@ def test_generate_daily_report_with_rebuild_flag(
     client: TestClient,
     mock_service: AsyncMock,
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.generate_daily_report.return_value = {
         "available": True,
         "report_date": date(2026, 2, 20),
@@ -199,7 +199,7 @@ def test_list_daily_report_dates_with_pagination(
     client: TestClient,
     mock_service: AsyncMock,
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.list_report_dates.return_value = {
         "dates": [
             {

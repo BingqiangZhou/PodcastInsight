@@ -1,6 +1,6 @@
 """Celery tasks for recommendation generation."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.core.celery_app import celery_app
 from app.domains.podcast.tasks.handlers_recommendation import (
@@ -11,7 +11,7 @@ from app.domains.podcast.tasks.runtime import log_task_run, run_async, worker_se
 
 @celery_app.task
 def generate_podcast_recommendations():
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.recommendation.generate_podcast_recommendations"
     queue_name = "ai_generation"
     try:
@@ -21,7 +21,7 @@ def generate_podcast_recommendations():
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
         )
         return result
     except Exception as exc:
@@ -30,7 +30,7 @@ def generate_podcast_recommendations():
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
         )
         raise

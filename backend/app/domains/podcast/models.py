@@ -4,8 +4,8 @@
 基于现有subscription实体进行扩展，新增播客特定字段
 """
 
-import enum
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from sqlalchemy import (
     JSON,
@@ -88,12 +88,12 @@ class PodcastEpisode(Base):
         "metadata", JSON, nullable=True, default={}
     )  # Renamed to avoid SQLAlchemy reserved attribute
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at = Column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     # Relationships
@@ -137,17 +137,17 @@ class PodcastDailyReport(Base):
     timezone = Column(String(64), nullable=False, default="Asia/Shanghai")
     schedule_time_local = Column(String(5), nullable=False, default="03:30")
     generated_at = Column(
-        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )
     total_items = Column(Integer, nullable=False, default=0)
     created_at = Column(
-        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )
     updated_at = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     items = relationship(
@@ -189,7 +189,7 @@ class PodcastDailyReportItem(Base):
     episode_created_at = Column(DateTime(timezone=True), nullable=False)
     episode_published_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(
-        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )
 
     report = relationship("PodcastDailyReport", back_populates="items")
@@ -226,8 +226,8 @@ class PodcastPlaybackState(Base):
     playback_rate = Column(Float, default=1.0, nullable=False)  # 播放速度
     last_updated_at = Column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     # 统计
@@ -265,8 +265,8 @@ class PodcastQueue(Base):
     revision = Column(Integer, default=0, nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     items = relationship(
@@ -299,12 +299,12 @@ class PodcastQueueItem(Base):
     )
     position = Column(Integer, nullable=False)
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at = Column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     queue = relationship("PodcastQueue", back_populates="items")
@@ -323,7 +323,7 @@ class PodcastQueueItem(Base):
 
 
 # 转录任务状态枚举（简化版）
-class TranscriptionStatus(str, enum.Enum):
+class TranscriptionStatus(StrEnum):
     """转录任务状态枚举（简化版）"""
 
     PENDING = "pending"  # 等待开始
@@ -334,7 +334,7 @@ class TranscriptionStatus(str, enum.Enum):
 
 
 # 转录任务步骤枚举
-class TranscriptionStep(str, enum.Enum):
+class TranscriptionStep(StrEnum):
     """转录任务执行步骤枚举"""
 
     NOT_STARTED = "not_started"  # 未开始
@@ -435,14 +435,14 @@ class TranscriptionTask(Base):
 
     # 时间戳 (使用 timezone-aware datetime)
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     started_at = Column(DateTime(timezone=True))  # 任务开始时间
     completed_at = Column(DateTime(timezone=True))  # 任务完成时间
     updated_at = Column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     # Relationships
@@ -495,12 +495,12 @@ class ConversationSession(Base):
     title = Column(String(255), default="默认对话")
 
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at = Column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     # Relationships
@@ -556,7 +556,7 @@ class PodcastConversation(Base):
 
     # 时间戳
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
+        DateTime(timezone=True), default=lambda: datetime.now(UTC), index=True
     )
 
     # Relationships

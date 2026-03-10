@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import HTTPException
@@ -329,7 +329,7 @@ class AdminSubscriptionsCommandService:
                     "success": False,
                     "error": error_msg,
                 }
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return {
                     "id": subscription.id,
                     "title": subscription.title,
@@ -463,7 +463,7 @@ class AdminSubscriptionsCommandService:
         if not subscription:
             return None
 
-        subscription.last_fetched_at = datetime.now(timezone.utc)
+        subscription.last_fetched_at = datetime.now(UTC)
         await self.db.commit()
         await self.db.refresh(subscription)
         await log_admin_action(
@@ -486,7 +486,7 @@ class AdminSubscriptionsCommandService:
         )
         subscriptions = result.scalars().all()
         for subscription in subscriptions:
-            subscription.last_fetched_at = datetime.now(timezone.utc)
+            subscription.last_fetched_at = datetime.now(UTC)
 
         await self.db.commit()
         await log_admin_action(

@@ -5,7 +5,7 @@
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from json import JSONEncoder
 from typing import Any
 
@@ -43,7 +43,7 @@ class CustomJSONEncoder(JSONEncoder):
             # 如果 datetime 是 naive（没有时区信息），假设它是 UTC
             if obj.tzinfo is None:
                 # 添加 UTC 时区信息
-                obj = obj.replace(tzinfo=timezone.utc)
+                obj = obj.replace(tzinfo=UTC)
             # 序列化为 ISO 格式（会包含时区信息，如 +00:00）
             return obj.isoformat()
 
@@ -63,7 +63,7 @@ def datetime_to_iso_format(dt: datetime) -> str:
     """
     if dt.tzinfo is None:
         # 如果没有时区信息，假设是 UTC
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     return dt.isoformat()
 
 

@@ -6,46 +6,46 @@ authors = [
     { name = "Your Name", email = "your.email@example.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.104.1",
-    "uvicorn[standard]>=0.24.0",
-    "gunicorn>=23.0.0",
-    "sqlalchemy>=2.0.23",
-    "asyncpg>=0.29.0",
-    "alembic>=1.12.1",
-    "redis>=5.0.1",
-    "python-jose[cryptography]>=3.3.0",
+    "fastapi>=0.135.1",
+    "starlette>=0.52.1",
+    "uvicorn[standard]>=0.41.0",
+    "gunicorn>=25.1.0",
+    "sqlalchemy>=2.0.48",
+    "asyncpg>=0.31.0",
+    "alembic>=1.18.4",
+    "redis>=7.3.0",
+    "python-jose[cryptography]>=3.5.0",
     "passlib[bcrypt]>=1.7.4",
-    "python-multipart>=0.0.6",
-    "celery>=5.3.4",
-    "pydantic>=2.5.0",
-    "pydantic-settings>=2.1.0",
-    "httpx>=0.25.2,<0.28",
-    "aiohttp>=3.9.1",
-    "feedparser>=6.0.10",
-    "python-dotenv>=1.0.0",
+    "python-multipart>=0.0.22",
+    "celery>=5.6.2",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.13.1",
+    "httpx>=0.28.1",
+    "aiohttp>=3.13.3",
+    "feedparser>=6.0.12",
+    "python-dotenv>=1.2.2",
     # Security & Privacy
     "defusedxml>=0.7.1",
-    "email-validator>=2.1.0",
-    "beautifulsoup4>=4.12.2",
+    "email-validator>=2.3.0",
+    "beautifulsoup4>=4.14.3",
     "aiofiles>=25.1.0",
     "ffmpeg-python>=0.2.0",
-    "openai>=2.0.0",
-    "jinja2>=3.1.2",
-    "itsdangerous>=2.1.2",
-    "psutil>=5.9.0",
+    "openai>=2.26.0",
+    "jinja2>=3.1.6",
+    "itsdangerous>=2.2.0",
+    "psutil>=7.2.2",
     "pyotp>=2.9.0",
-    "qrcode[pil]>=7.4.2",
+    "qrcode[pil]>=8.2",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.2",
-    "pytest-asyncio>=1.2.0",
-    "locust>=2.37.14",
-    "ruff>=0.8.0",
-    "mypy>=1.7.1",
+    "pytest-asyncio>=1.3.0",
+    "locust>=2.43.3",
+    "ruff>=0.15.5",
     "aiosqlite>=0.22.1",
 ]
 
@@ -62,7 +62,7 @@ packages = ["app"]
 [tool.ruff]
 # Ruff configuration - replaces black, isort, and flake8
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 
 # Enable auto-fixing for safe rules
 fix = true
@@ -114,7 +114,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [mypy]
-python_version = "3.10"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

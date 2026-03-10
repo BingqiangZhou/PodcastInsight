@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -398,7 +398,7 @@ class AdminApiKeysService:
         export_data = {
             "version": "2.0",
             "export_mode": mode,
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": datetime.now(UTC).isoformat(),
             "exported_by": user.username,
             "total_count": len(apikeys),
             "apikeys": [],
@@ -459,7 +459,7 @@ class AdminApiKeysService:
         )
 
         mode_suffix = "_PLAINTEXT" if mode == "plaintext" else ""
-        filename = f"apikeys_export{mode_suffix}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+        filename = f"apikeys_export{mode_suffix}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
         return (
             json.dumps(export_data, indent=2, ensure_ascii=False),
             filename,

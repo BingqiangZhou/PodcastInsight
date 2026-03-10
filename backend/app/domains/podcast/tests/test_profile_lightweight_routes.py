@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -50,7 +50,7 @@ def test_get_profile_stats_returns_lightweight_fields(
 def test_get_history_lite_page_size_boundaries(
     client: TestClient, mock_service: AsyncMock, size: int
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.list_playback_history_lite.return_value = (
         [
             {
@@ -82,7 +82,7 @@ def test_get_history_lite_page_size_boundaries(
 def test_get_history_lite_excludes_heavy_fields(
     client: TestClient, mock_service: AsyncMock
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.list_playback_history_lite.return_value = (
         [
             {

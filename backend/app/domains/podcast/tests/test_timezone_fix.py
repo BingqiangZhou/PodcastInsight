@@ -4,7 +4,7 @@ This test module verifies the fix for the timezone comparison error
 that occurred during podcast subscription synchronization.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -33,12 +33,12 @@ async def test_update_subscription_fetch_time_preserves_timezone():
     db_session.execute = AsyncMock(return_value=execute_result)
     repo = PodcastSubscriptionRepository(db_session)
 
-    fetch_time = datetime.now(timezone.utc)
+    fetch_time = datetime.now(UTC)
     await repo.update_subscription_fetch_time(subscription.id, fetch_time)
 
     assert subscription.last_fetched_at is not None
     assert subscription.last_fetched_at.tzinfo is not None
-    assert subscription.last_fetched_at.tzinfo == timezone.utc
+    assert subscription.last_fetched_at.tzinfo == UTC
     db_session.commit.assert_awaited_once()
 
 
@@ -49,7 +49,7 @@ async def test_episode_published_at_comparison_with_subscription():
         source_url="https://example.com/feed.xml",
         source_type="podcast-rss",
         title="Test Podcast",
-        last_fetched_at=datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc),
+        last_fetched_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
     )
 
     episode = PodcastEpisode(
@@ -57,7 +57,7 @@ async def test_episode_published_at_comparison_with_subscription():
         title="Test Episode",
         audio_url="https://example.com/episode.mp3",
         item_link="https://example.com/episode",
-        published_at=datetime(2024, 1, 2, 12, 0, tzinfo=timezone.utc),
+        published_at=datetime(2024, 1, 2, 12, 0, tzinfo=UTC),
     )
 
     # This should NOT raise TypeError
@@ -72,18 +72,18 @@ async def test_ensure_timezone_aware_fetch_time_with_naive_datetime():
 
     assert aware_time is not None
     assert aware_time.tzinfo is not None
-    assert aware_time.tzinfo == timezone.utc
+    assert aware_time.tzinfo == UTC
 
 
 @pytest.mark.asyncio
 async def test_ensure_timezone_aware_fetch_time_with_aware_datetime():
     """Test that ensure_timezone_aware_fetch_time preserves aware datetimes."""
-    aware_time = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+    aware_time = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
     result = ensure_timezone_aware_fetch_time(aware_time)
 
     assert result is not None
     assert result.tzinfo is not None
-    assert result.tzinfo == timezone.utc
+    assert result.tzinfo == UTC
 
 
 @pytest.mark.asyncio
@@ -106,7 +106,7 @@ async def test_ensure_timezone_aware_fetch_time_converts_non_utc_to_utc():
 
     assert result is not None
     assert result.tzinfo is not None
-    assert result.tzinfo == timezone.utc
+    assert result.tzinfo == UTC
     # Eastern time is UTC-5 (or -4 during DST), so 12:00 EST becomes ~17:00 UTC
     assert result.hour >= 16  # Account for UTC offset
 
@@ -118,7 +118,7 @@ async def test_subscription_comparison_scenario_with_new_episodes():
         source_url="https://example.com/feed.xml",
         source_type="podcast-rss",
         title="Test Podcast",
-        last_fetched_at=datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc),
+        last_fetched_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
     )
 
     # Create episodes after the last fetch time
@@ -127,7 +127,7 @@ async def test_subscription_comparison_scenario_with_new_episodes():
         title="New Episode",
         audio_url="https://example.com/new.mp3",
         item_link="https://example.com/new",
-        published_at=datetime(2024, 1, 2, 12, 0, tzinfo=timezone.utc),
+        published_at=datetime(2024, 1, 2, 12, 0, tzinfo=UTC),
     )
 
     # Create an episode before the last fetch time
@@ -136,7 +136,7 @@ async def test_subscription_comparison_scenario_with_new_episodes():
         title="Old Episode",
         audio_url="https://example.com/old.mp3",
         item_link="https://example.com/old",
-        published_at=datetime(2023, 12, 31, 12, 0, tzinfo=timezone.utc),
+        published_at=datetime(2023, 12, 31, 12, 0, tzinfo=UTC),
     )
 
     # New episode should be after last fetch

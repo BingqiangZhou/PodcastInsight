@@ -1,7 +1,7 @@
 """Playback and queue repository mixins."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from time import perf_counter
 from typing import Any
 
@@ -184,7 +184,7 @@ class PodcastPlaybackQueueRepositoryMixin:
             if not was_playing and is_playing:
                 state.play_count += 1
             state.is_playing = is_playing
-            state.last_updated_at = datetime.now(timezone.utc)
+            state.last_updated_at = datetime.now(UTC)
         else:
             state = PodcastPlaybackState(
                 user_id=user_id,
@@ -193,7 +193,7 @@ class PodcastPlaybackQueueRepositoryMixin:
                 is_playing=is_playing,
                 playback_rate=playback_rate,
                 play_count=1 if is_playing else 0,
-                last_updated_at=datetime.now(timezone.utc),
+                last_updated_at=datetime.now(UTC),
             )
             self.db.add(state)
 
@@ -270,7 +270,7 @@ class PodcastPlaybackQueueRepositoryMixin:
     @staticmethod
     def _touch_queue(queue: PodcastQueue) -> None:
         queue.revision = (queue.revision or 0) + 1
-        queue.updated_at = datetime.now(timezone.utc)
+        queue.updated_at = datetime.now(UTC)
 
     @staticmethod
     def _resolve_next_episode_id_after_removal(

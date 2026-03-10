@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -149,7 +149,7 @@ class TranscriptionStateCoordinator:
                 "status": "success",
                 "task_id": task_id,
                 "config_db_id": config_db_id,
-                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "processed_at": datetime.now(UTC).isoformat(),
             }
         except Exception as exc:
             await state_manager.fail_task_state(task_id, episode_id, str(exc))

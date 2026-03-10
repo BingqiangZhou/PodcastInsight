@@ -2,7 +2,7 @@
 
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import and_, or_, select
@@ -131,7 +131,7 @@ class AuthenticationService:
             return None
 
         # Update last login
-        user.last_login_at = datetime.now(timezone.utc)
+        user.last_login_at = datetime.now(UTC)
         await self.db.commit()
 
         return user
@@ -170,7 +170,7 @@ class AuthenticationService:
                 and_(
                     UserSession.user_id == user.id,
                     UserSession.is_active,
-                    UserSession.expires_at > datetime.now(timezone.utc)
+                    UserSession.expires_at > datetime.now(UTC)
                 )
             ).order_by(UserSession.created_at)
         )
@@ -197,7 +197,7 @@ class AuthenticationService:
         )
 
         # Calculate expiry times
-        refresh_expires_at = datetime.now(timezone.utc) + timedelta(
+        refresh_expires_at = datetime.now(UTC) + timedelta(
             days=refresh_expiry_days
         )
 
@@ -210,7 +210,7 @@ class AuthenticationService:
             ip_address=ip_address,
             user_agent=user_agent,
             expires_at=refresh_expires_at,  # Fix: session expires at same time as refresh token (7 days)
-            last_activity_at=datetime.now(timezone.utc),
+            last_activity_at=datetime.now(UTC),
             is_active=True
         )
 
@@ -223,7 +223,7 @@ class AuthenticationService:
             raise BadRequestError("Failed to create user session") from err
 
         # Calculate UTC expiration time for frontend
-        access_token_expires_at = datetime.now(timezone.utc) + timedelta(
+        access_token_expires_at = datetime.now(UTC) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
@@ -233,7 +233,7 @@ class AuthenticationService:
             "token_type": "bearer",
             "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             "expires_at": access_token_expires_at.isoformat(),
-            "server_time": datetime.now(timezone.utc).isoformat(),
+            "server_time": datetime.now(UTC).isoformat(),
             "session_id": session.id
         }
 
@@ -276,7 +276,7 @@ class AuthenticationService:
         # Security: Rate limit token refresh (prevent abuse)
         # Allow max 10 refreshes per minute per session
         min_refresh_interval_seconds = 6  # ~10 refreshes per minute
-        time_since_last_activity = (datetime.now(timezone.utc) - session.last_activity_at).total_seconds()
+        time_since_last_activity = (datetime.now(UTC) - session.last_activity_at).total_seconds()
         if time_since_last_activity < min_refresh_interval_seconds:
             logger.warning(f"⚠️ Rate limit: User {user_id} refreshing too frequently (interval: {time_since_last_activity}s)")
             # Still allow refresh, but log suspicious activity
@@ -294,7 +294,7 @@ class AuthenticationService:
         # Determine refresh expiry days based on current session
         # If session has > 7 days remaining, it was created with remember_me=True (30 days)
         # Otherwise, use default 7 days
-        days_until_expiry = (session.expires_at - datetime.now(timezone.utc)).days
+        days_until_expiry = (session.expires_at - datetime.now(UTC)).days
         if days_until_expiry > settings.REFRESH_TOKEN_EXPIRE_DAYS:
             # Session was created with remember_me=True (30 days)
             refresh_expiry_days = 30
@@ -309,20 +309,20 @@ class AuthenticationService:
         )
 
         # Calculate new expiration times
-        refresh_expires_at = datetime.now(timezone.utc) + timedelta(
+        refresh_expires_at = datetime.now(UTC) + timedelta(
             days=refresh_expiry_days
         )
 
         # Update session with sliding expiration
         session.session_token = new_access_token
         session.refresh_token = new_refresh_token
-        session.last_activity_at = datetime.now(timezone.utc)
+        session.last_activity_at = datetime.now(UTC)
         session.expires_at = refresh_expires_at  # Fix: session should expire with refresh token, not access token
 
         await self.db.commit()
 
         # Calculate UTC expiration time for frontend
-        access_token_expires_at = datetime.now(timezone.utc) + timedelta(
+        access_token_expires_at = datetime.now(UTC) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
@@ -332,7 +332,7 @@ class AuthenticationService:
             "token_type": "bearer",
             "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             "expires_at": access_token_expires_at.isoformat(),
-            "server_time": datetime.now(timezone.utc).isoformat()
+            "server_time": datetime.now(UTC).isoformat()
         }
 
     async def logout_user(self, refresh_token: str) -> bool:
@@ -354,7 +354,7 @@ class AuthenticationService:
 
         # Mark session as inactive
         session.is_active = False
-        session.last_activity_at = datetime.now(timezone.utc)
+        session.last_activity_at = datetime.now(UTC)
         await self.db.commit()
 
         return True
@@ -381,7 +381,7 @@ class AuthenticationService:
 
         for session in sessions:
             session.is_active = False
-            session.last_activity_at = datetime.now(timezone.utc)
+            session.last_activity_at = datetime.now(UTC)
 
         await self.db.commit()
         return True
@@ -396,9 +396,9 @@ class AuthenticationService:
         result = await self.db.execute(
             select(UserSession).where(
                 or_(
-                    UserSession.expires_at < datetime.now(timezone.utc),
+                    UserSession.expires_at < datetime.now(UTC),
                     and_(
-                        UserSession.last_activity_at < datetime.now(timezone.utc) - timedelta(days=30),
+                        UserSession.last_activity_at < datetime.now(UTC) - timedelta(days=30),
                         not UserSession.is_active
                     )
                 )
@@ -441,7 +441,7 @@ class AuthenticationService:
 
         # Generate secure token
         reset_token = str(uuid.uuid4())
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)  # Token expires in 1 hour
+        expires_at = datetime.now(UTC) + timedelta(hours=1)  # Token expires in 1 hour
 
         # Create password reset record
         password_reset = PasswordReset(
@@ -505,11 +505,11 @@ class AuthenticationService:
 
         # Update user password
         user.hashed_password = get_password_hash(new_password)
-        user.updated_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(UTC)
 
         # Mark token as used
         password_reset.is_used = True
-        password_reset.updated_at = datetime.now(timezone.utc)
+        password_reset.updated_at = datetime.now(UTC)
 
         # Invalidate all user sessions (force re-login)
         await self.logout_all_sessions(user.id)
@@ -534,7 +534,7 @@ class AuthenticationService:
                 and_(
                     PasswordReset.email == email,
                     not PasswordReset.is_used,
-                    PasswordReset.expires_at > datetime.now(timezone.utc)
+                    PasswordReset.expires_at > datetime.now(UTC)
                 )
             )
         )
@@ -542,7 +542,7 @@ class AuthenticationService:
 
         for token in tokens:
             token.is_used = True
-            token.updated_at = datetime.now(timezone.utc)
+            token.updated_at = datetime.now(UTC)
 
         await self.db.commit()
 
@@ -553,7 +553,7 @@ class AuthenticationService:
                 and_(
                     PasswordReset.token == token,
                     not PasswordReset.is_used,
-                    PasswordReset.expires_at > datetime.now(timezone.utc)
+                    PasswordReset.expires_at > datetime.now(UTC)
                 )
             )
         )
@@ -603,7 +603,7 @@ class AuthenticationService:
                 and_(
                     UserSession.refresh_token == refresh_token,
                     UserSession.is_active,
-                    UserSession.expires_at > datetime.now(timezone.utc)
+                    UserSession.expires_at > datetime.now(UTC)
                 )
             )
         )

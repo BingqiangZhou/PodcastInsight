@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -64,7 +64,7 @@ class SummaryWorkflowService:
             "version": final_version or "1.0",
             "model_used": summary_result["model_name"],
             "processing_time": summary_result["processing_time"],
-            "generated_at": datetime.now(timezone.utc),
+            "generated_at": datetime.now(UTC),
         }
 
     async def list_pending_summaries_for_user(
@@ -113,7 +113,7 @@ class SummaryWorkflowService:
                 "status": "success",
                 "processed": 0,
                 "failed": 0,
-                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "processed_at": datetime.now(UTC).isoformat(),
             }
 
         candidate_episode_ids = [episode.id for episode in episodes_with_transcript]
@@ -167,7 +167,7 @@ class SummaryWorkflowService:
             "status": "success",
             "processed": processed_count,
             "failed": failed_count,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
 
     @staticmethod

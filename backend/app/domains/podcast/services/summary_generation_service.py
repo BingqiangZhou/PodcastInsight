@@ -5,7 +5,7 @@ Database-backed AI summary generation services.
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import aiohttp
@@ -433,7 +433,7 @@ class PodcastSummaryGenerationService:
                     ai_summary=summary_content,
                     summary_version="1.0",
                     status="summarized",
-                    updated_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
                 )
             )
             await self.db.execute(stmt)
@@ -449,7 +449,7 @@ class PodcastSummaryGenerationService:
                     summary_word_count=word_count,
                     summary_processing_time=processing_time,
                     summary_error_message=None,
-                    updated_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
                 )
             )
             await self.db.execute(stmt)

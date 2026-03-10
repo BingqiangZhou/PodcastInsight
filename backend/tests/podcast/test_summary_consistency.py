@@ -1,6 +1,6 @@
 """Summary consistency and sanitization tests."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -36,7 +36,7 @@ def _make_episode(*, ai_summary: str) -> SimpleNamespace:
             "categories": ["Tech"],
         },
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return SimpleNamespace(
         id=1,
         subscription_id=11,
@@ -74,7 +74,7 @@ async def test_generate_summary_response_uses_persisted_episode_summary() -> Non
     summary_workflow.generate_episode_summary.return_value = {
         "summary": "final summary from db",
         "version": "1.0",
-        "generated_at": datetime.now(timezone.utc),
+        "generated_at": datetime.now(UTC),
         "model_name": "test-model",
         "processing_time": 1.23,
     }

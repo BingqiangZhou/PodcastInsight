@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -25,7 +25,7 @@ def mock_service():
 def test_get_queue_returns_assembled_response(
     client: TestClient, mock_service: AsyncMock
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.get_queue.return_value = PodcastQueueProjection.model_validate(
         {
             "current_episode_id": 9,

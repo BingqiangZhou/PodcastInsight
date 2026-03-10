@@ -1,7 +1,7 @@
 """User domain models."""
 
-import enum
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from sqlalchemy import (
     JSON,
@@ -20,7 +20,7 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
-class UserStatus(str, enum.Enum):
+class UserStatus(StrEnum):
     """User status."""
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -51,8 +51,8 @@ class User(Base):
     totp_secret = Column(String(32), nullable=True)  # Base32 encoded secret for TOTP
     is_2fa_enabled = Column(Boolean, default=False)
 
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     # Relationships
     user_subscriptions = relationship("UserSubscription", back_populates="user", cascade="all, delete-orphan")
@@ -88,9 +88,9 @@ class UserSession(Base):
     ip_address = Column(String(45), nullable=True)  # IPv6 compatible
     user_agent = Column(Text, nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=False)
-    last_activity_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    last_activity_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     # Indexes
     __table_args__ = (
@@ -109,8 +109,8 @@ class PasswordReset(Base):
     token = Column(String(255), unique=True, index=True, nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     is_used = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     # Indexes
     __table_args__ = (

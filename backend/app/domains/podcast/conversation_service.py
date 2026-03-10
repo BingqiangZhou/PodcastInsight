@@ -5,7 +5,7 @@
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import and_, func, select
@@ -255,7 +255,7 @@ class ConversationService:
             role="user",
             content=user_message,
             conversation_turn=current_turn,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(UTC)
         )
         self.db.add(user_conv)
         await self.db.flush()  # 获取ID
@@ -278,7 +278,7 @@ class ConversationService:
             parent_message_id=user_conv.id,
             conversation_turn=current_turn + 1,
             processing_time=processing_time,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(UTC)
         )
         self.db.add(assistant_conv)
 

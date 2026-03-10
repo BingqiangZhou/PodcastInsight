@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -44,7 +44,7 @@ def _feed_item(now: datetime, description: str) -> dict:
 
 @pytest.mark.asyncio
 async def test_list_feed_by_cursor_lightweight_normalizes_payload(monkeypatch):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     long_description = f"  line1  \n\n line2\t{('x' * 400)}  "
 
     service = PodcastEpisodeService(db=AsyncMock(), user_id=42)
@@ -77,7 +77,7 @@ async def test_list_feed_by_cursor_lightweight_normalizes_payload(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_list_feed_by_page_uses_lightweight_repo(monkeypatch):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     service = PodcastEpisodeService(db=AsyncMock(), user_id=7)
     service.repo = AsyncMock()
     service.repo.get_feed_lightweight_page_paginated.return_value = (

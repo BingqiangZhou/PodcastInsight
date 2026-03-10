@@ -5,7 +5,7 @@ Podcast Subscription Service - Manages podcast subscriptions.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -430,7 +430,7 @@ class PodcastSubscriptionService:
         if not success:
             raise ValueError(f"Refresh failed: {error}")
 
-        refreshed_at = datetime.now(timezone.utc).isoformat()
+        refreshed_at = datetime.now(UTC).isoformat()
         episodes_payload = [
             self._build_episode_payload(
                 episode=episode,
@@ -525,7 +525,7 @@ class PodcastSubscriptionService:
                 ep.item_link for ep in existing_episodes if ep.item_link
             }
 
-        reparsed_at = datetime.now(timezone.utc).isoformat()
+        reparsed_at = datetime.now(UTC).isoformat()
         episodes_to_process = [
             episode
             for episode in feed.episodes

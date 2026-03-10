@@ -1,9 +1,8 @@
 """Typed internal projections for podcast episode-oriented service outputs."""
 
-from __future__ import annotations
-
+from collections.abc import Mapping
 from datetime import datetime
-from typing import Any, Mapping
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 

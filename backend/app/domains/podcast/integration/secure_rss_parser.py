@@ -9,7 +9,7 @@ and follows the architecture defined in security.py.
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import aiohttp
 from defusedxml.ElementTree import fromstring
@@ -189,7 +189,7 @@ class SecureRSSParser:
                 episodes.append(episode)
 
         # Use latest episode's published time as last_fetched, fallback to current time
-        last_fetched = episodes[0].published_at if episodes else datetime.now(timezone.utc)
+        last_fetched = episodes[0].published_at if episodes else datetime.now(UTC)
 
         return PodcastFeed(
             title=title,
@@ -409,13 +409,13 @@ class SecureRSSParser:
     def _parse_date(self, date_str: str | None) -> datetime:
         """Parse various date formats"""
         if not date_str:
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
         try:
             # Handle RFC 2822 format (common in RSS)
             from email.utils import parsedate_to_datetime
             return parsedate_to_datetime(date_str)
         except (ValueError, TypeError, OSError):
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
 
     def _parse_duration(self, duration_text: str | None) -> int | None:
         """Parse duration text to seconds"""

@@ -1,6 +1,6 @@
 """Fast tests for podcast repository query optimizations."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -100,7 +100,7 @@ async def test_feed_cursor_paginated_reuses_feed_total_cache_path():
     episodes, total, has_more, next_cursor = await repo.get_feed_cursor_paginated(
         user_id=1,
         size=20,
-        cursor_published_at=datetime.now(timezone.utc),
+        cursor_published_at=datetime.now(UTC),
         cursor_episode_id=999,
     )
 
@@ -117,7 +117,7 @@ async def test_playback_history_cursor_paginated_uses_window_total():
     db = AsyncMock()
     redis = AsyncMock()
     episode = MagicMock()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     db.execute.return_value = _RowsResult([(episode, now, 4)])
 
     repo = PodcastEpisodeRepository(db=db, redis=redis)

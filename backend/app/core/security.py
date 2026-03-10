@@ -12,7 +12,7 @@ Security utilities for authentication and authorization.
 
 import secrets
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -213,7 +213,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def generate_password_reset_token(email: str) -> str:
     """Generate password reset token."""
     delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires = now + delta
     exp = expires.timestamp()
     encoded_jwt = jwt.encode(

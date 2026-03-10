@@ -3,9 +3,9 @@ from unittest.mock import ANY, AsyncMock, Mock
 
 import pytest
 
+from app.admin.routes.users_audit import reset_user_password, toggle_user
 from app.admin.services import users_audit_service as users_audit_service_module
 from app.admin.services.users_audit_service import AdminUsersAuditService
-from app.admin.routes.users_audit import reset_user_password, toggle_user
 from app.domains.user.models import UserStatus
 
 

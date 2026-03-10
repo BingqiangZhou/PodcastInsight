@@ -1,6 +1,6 @@
 """Subscription and episode content repository mixin."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import and_, desc, func, select
@@ -74,7 +74,7 @@ class PodcastContentRepositoryMixin:
 
             subscription.title = custom_name or title
             subscription.description = description
-            subscription.updated_at = datetime.now(timezone.utc)
+            subscription.updated_at = datetime.now(UTC)
             if metadata:
                 if "image_url" in metadata:
                     subscription.image_url = metadata.get("image_url")
@@ -193,7 +193,7 @@ class PodcastContentRepositoryMixin:
             episode.published_at = sanitize_published_date(published_at)
             episode.audio_duration = audio_duration
             episode.transcript_url = transcript_url
-            episode.updated_at = datetime.now(timezone.utc)
+            episode.updated_at = datetime.now(UTC)
             if episode.subscription_id != subscription_id:
                 episode.subscription_id = subscription_id
             if metadata:
@@ -249,7 +249,7 @@ class PodcastContentRepositoryMixin:
 
         processed_episodes: list[PodcastEpisode] = []
         new_episodes: list[PodcastEpisode] = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for data in episodes_data:
             title = data.get("title") or "Untitled"
@@ -430,7 +430,7 @@ class PodcastContentRepositoryMixin:
 
         metadata = episode.metadata_json or {}
         metadata["transcript_used"] = transcript_used
-        metadata["summarized_at"] = datetime.now(timezone.utc).isoformat()
+        metadata["summarized_at"] = datetime.now(UTC).isoformat()
         metadata.pop("summary_error", None)
         metadata.pop("summary_failed_at", None)
         episode.metadata_json = metadata
@@ -446,6 +446,6 @@ class PodcastContentRepositoryMixin:
             episode.status = "summary_failed"
             metadata = episode.metadata_json or {}
             metadata["summary_error"] = error
-            metadata["failed_at"] = datetime.now(timezone.utc).isoformat()
+            metadata["failed_at"] = datetime.now(UTC).isoformat()
             episode.metadata_json = metadata
             await self.db.commit()

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -152,7 +152,7 @@ def test_apply_playback_rate_validation_rejects_out_of_range(
 def test_update_playback_progress_response_contains_rate_and_last_updated_at(
     client: TestClient, mock_service: AsyncMock
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.update_playback_progress.return_value = {
         "episode_id": 99,
         "progress": 321,

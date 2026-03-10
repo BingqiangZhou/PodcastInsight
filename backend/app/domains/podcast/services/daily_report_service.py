@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
@@ -21,10 +21,9 @@ from app.domains.podcast.services.daily_report_summary_extractor import (
 )
 from app.domains.subscription.models import Subscription, UserSubscription
 
+
 if TYPE_CHECKING:
-    from app.domains.podcast.services.task_orchestration_service import (
-        PodcastTaskOrchestrationService,
-    )
+    pass
 
 
 logger = logging.getLogger(__name__)
@@ -65,7 +64,7 @@ class DailyReportService:
         """Generate (or update) report snapshot for a report date."""
         report_date = self._resolve_report_date(target_date)
         window_start_utc, window_end_utc = self._compute_window_utc(report_date)
-        now_utc = datetime.now(timezone.utc)
+        now_utc = datetime.now(UTC)
 
         report = await self._get_or_create_report(report_date, now_utc)
         if rebuild:
@@ -185,7 +184,7 @@ class DailyReportService:
         tz = ZoneInfo(self.REPORT_TIMEZONE)
         start_local = datetime.combine(report_date, time.min, tzinfo=tz)
         end_local = start_local + timedelta(days=1)
-        return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
+        return start_local.astimezone(UTC), end_local.astimezone(UTC)
 
     async def _get_or_create_report(
         self,

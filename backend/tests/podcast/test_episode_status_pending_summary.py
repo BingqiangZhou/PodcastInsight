@@ -1,6 +1,6 @@
 """Episode status safety tests for OPML/background parsing flows."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -38,7 +38,7 @@ async def test_new_episode_defaults_to_pending_summary() -> None:
                 "title": "Episode 1",
                 "description": "desc",
                 "audio_url": "https://example.com/ep1.mp3",
-                "published_at": datetime.now(timezone.utc),
+                "published_at": datetime.now(UTC),
                 "audio_duration": 60,
                 "transcript_url": None,
                 "item_link": "https://example.com/episodes/1",
@@ -58,7 +58,7 @@ async def test_opml_background_reparse_does_not_override_summarized_status() -> 
         title="Existing",
         description="existing",
         audio_url="https://example.com/existing.mp3",
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
         item_link="https://example.com/episodes/existing",
         status="summarized",
         metadata_json={},
@@ -79,7 +79,7 @@ async def test_opml_background_reparse_does_not_override_summarized_status() -> 
             "title": "Updated title",
             "description": "updated",
             "audio_url": "https://example.com/existing.mp3",
-            "published_at": datetime.now(timezone.utc),
+            "published_at": datetime.now(UTC),
             "audio_duration": 120,
             "transcript_url": None,
             "item_link": "https://example.com/episodes/existing",
@@ -100,7 +100,7 @@ async def test_pending_summary_stays_pending_summary_after_multiple_reparse() ->
         title="Existing pending",
         description="pending",
         audio_url="https://example.com/pending.mp3",
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
         item_link="https://example.com/episodes/pending",
         status="pending_summary",
         metadata_json={},
@@ -121,7 +121,7 @@ async def test_pending_summary_stays_pending_summary_after_multiple_reparse() ->
             "title": "Pending title",
             "description": "pending desc",
             "audio_url": "https://example.com/pending.mp3",
-            "published_at": datetime.now(timezone.utc),
+            "published_at": datetime.now(UTC),
             "audio_duration": 180,
             "transcript_url": None,
             "item_link": "https://example.com/episodes/pending",

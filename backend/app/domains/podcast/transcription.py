@@ -10,7 +10,7 @@ import os
 import re
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import aiofiles
@@ -194,7 +194,7 @@ class AudioDownloader:
                 )
                 return destination, downloaded
 
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise HTTPException(
                 status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Download timeout"
             ) from err
@@ -885,7 +885,7 @@ class PodcastTranscriptionService:
         update_data = {
             "status": status,
             "progress_percentage": progress,
-            "updated_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(UTC),
         }
 
         if error_message:
@@ -895,7 +895,7 @@ class PodcastTranscriptionService:
         if status == TranscriptionStatus.IN_PROGRESS and not await self._get_task_field(
             task_id, "started_at"
         ):
-            update_data["started_at"] = datetime.now(timezone.utc)
+            update_data["started_at"] = datetime.now(UTC)
 
         # 
         if status in [
@@ -903,7 +903,7 @@ class PodcastTranscriptionService:
             TranscriptionStatus.FAILED,
             TranscriptionStatus.CANCELLED,
         ]:
-            update_data["completed_at"] = datetime.now(timezone.utc)
+            update_data["completed_at"] = datetime.now(UTC)
 
         stmt = (
             update(TranscriptionTask)
@@ -964,7 +964,7 @@ class PodcastTranscriptionService:
         update_data = {
             "current_step": step,
             "progress_percentage": progress,
-            "updated_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(UTC),
         }
 
         if error_message:
@@ -991,7 +991,7 @@ class PodcastTranscriptionService:
             self._task_progress_context_cache[task_id] = context
 
         if not context["started"]:
-            update_data["started_at"] = datetime.now(timezone.utc)
+            update_data["started_at"] = datetime.now(UTC)
             update_data["status"] = TranscriptionStatus.IN_PROGRESS
             context["started"] = True
 
@@ -1030,14 +1030,14 @@ class PodcastTranscriptionService:
         error_message: str | None = None,
     ):
         """???????????????COMPLETED ??FAILED??"""
-        update_data = {"status": status, "updated_at": datetime.now(timezone.utc)}
+        update_data = {"status": status, "updated_at": datetime.now(UTC)}
 
         if status in [
             TranscriptionStatus.COMPLETED,
             TranscriptionStatus.FAILED,
             TranscriptionStatus.CANCELLED,
         ]:
-            update_data["completed_at"] = datetime.now(timezone.utc)
+            update_data["completed_at"] = datetime.now(UTC)
 
         if error_message:
             update_data["error_message"] = error_message
@@ -1942,7 +1942,7 @@ class PodcastTranscriptionService:
                         for chunk in sorted_chunks
                     ],
                 },
-                "completed_at": datetime.now(timezone.utc),
+                "completed_at": datetime.now(UTC),
             }
 
             stmt = (
@@ -2165,7 +2165,7 @@ class PodcastTranscriptionService:
             episode_meta_result = await session.execute(episode_meta_stmt)
             metadata_json = episode_meta_result.scalar_one_or_none() or {}
             metadata_json["summary_error"] = error_msg
-            metadata_json["summary_failed_at"] = datetime.now(timezone.utc).isoformat()
+            metadata_json["summary_failed_at"] = datetime.now(UTC).isoformat()
 
             await session.execute(
                 update(PodcastEpisode)
@@ -2173,7 +2173,7 @@ class PodcastTranscriptionService:
                 .values(
                     status="summary_failed",
                     metadata_json=metadata_json,
-                    updated_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
                 )
             )
             await session.execute(
@@ -2181,7 +2181,7 @@ class PodcastTranscriptionService:
                 .where(TranscriptionTask.id == task_id)
                 .values(
                     summary_error_message=error_msg,
-                    updated_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
                 )
             )
             await session.commit()

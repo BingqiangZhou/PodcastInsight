@@ -9,7 +9,7 @@ from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import Base, register_orm_models
@@ -45,7 +45,9 @@ async def async_client(performance_base_url: str) -> AsyncClient:
         from app.main import app
 
         async with AsyncClient(
-            app=app, base_url="http://test", trust_env=False
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+            trust_env=False,
         ) as client:
             yield client
         return

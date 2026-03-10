@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlparse
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -114,7 +114,7 @@ class SubscriptionService:
             existing.description = sub_data.description
             existing.status = SubscriptionStatus.ACTIVE
             existing.error_message = None
-            existing.updated_at = datetime.now(timezone.utc)
+            existing.updated_at = datetime.now(UTC)
             await self.db.commit()
             await self.db.refresh(existing)
             return "updated", existing, f"Updated existing subscription: {existing.title}"
@@ -142,7 +142,7 @@ class SubscriptionService:
             existing.description = sub_data.description
             existing.status = SubscriptionStatus.ACTIVE
             existing.error_message = None
-            existing.updated_at = datetime.now(timezone.utc)
+            existing.updated_at = datetime.now(UTC)
             status = "updated"
             message = f"Updated and subscribed to existing source: {existing.title}"
 
@@ -367,7 +367,7 @@ class SubscriptionService:
 
             sub.status = status
             sub.error_message = error_msg
-            sub.last_fetched_at = datetime.now(timezone.utc)
+            sub.last_fetched_at = datetime.now(UTC)
             if latest_published_at:
                 sub.latest_item_published_at = latest_published_at
             await self.db.commit()
@@ -453,7 +453,7 @@ class SubscriptionService:
         opml = Element("opml", version="2.0")
         head = SubElement(opml, "head")
         SubElement(head, "title").text = "Stella RSS Subscriptions"
-        SubElement(head, "dateCreated").text = datetime.now(timezone.utc).strftime(
+        SubElement(head, "dateCreated").text = datetime.now(UTC).strftime(
             "%a, %d %b %Y %H:%M:%S GMT"
         )
         SubElement(head, "ownerName").text = "Stella Admin"

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.domains.podcast.api.response_assemblers import (
     build_conversation_clear_response,
@@ -10,16 +10,16 @@ from app.domains.podcast.api.response_assemblers import (
     build_effective_playback_rate_response,
     build_episode_detail_response,
     build_episode_list_response,
-    build_feed_response,
-    build_queue_response,
-    build_schedule_config_list_response,
-    build_schedule_config_response,
     build_existing_playback_state_response,
+    build_feed_response,
     build_pending_summaries_response,
     build_playback_history_list_response,
     build_playback_state_response,
     build_podcast_profile_stats_response,
     build_podcast_stats_response,
+    build_queue_response,
+    build_schedule_config_list_response,
+    build_schedule_config_response,
     build_summary_models_response,
     build_summary_response,
 )
@@ -62,7 +62,7 @@ def _episode_payload(now: datetime) -> dict:
 
 
 def test_build_feed_response_wraps_episode_items():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     response = build_feed_response(
         [_episode_payload(now)],
@@ -79,7 +79,7 @@ def test_build_feed_response_wraps_episode_items():
 
 
 def test_build_episode_list_response_sets_pagination():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     response = build_episode_list_response(
         [_episode_payload(now)],
@@ -98,7 +98,7 @@ def test_build_episode_list_response_sets_pagination():
 
 
 def test_build_playback_history_list_response_uses_lightweight_items():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     response = build_playback_history_list_response(
         [
@@ -126,7 +126,7 @@ def test_build_playback_history_list_response_uses_lightweight_items():
 
 
 def test_build_episode_detail_response_preserves_detail_fields():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = _episode_payload(now)
     payload["subscription"] = {"id": 2, "title": "Podcast"}
     payload["related_episodes"] = [{"id": 9}]
@@ -138,7 +138,7 @@ def test_build_episode_detail_response_preserves_detail_fields():
 
 
 def test_build_conversation_responses_wrap_payloads():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     session_list = build_conversation_session_list_response(
         [
@@ -190,7 +190,7 @@ def test_build_conversation_responses_wrap_payloads():
 
 
 def test_build_stats_and_report_responses():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     stats = build_podcast_stats_response(
         {
@@ -259,7 +259,7 @@ def test_build_stats_and_report_responses():
 
 
 def test_build_summary_and_playback_responses():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     summary = build_summary_response(
         episode_id=9,
@@ -311,7 +311,7 @@ def test_build_summary_and_playback_responses():
 
 
 def test_build_playback_and_queue_responses_from_projections():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     playback = build_playback_state_response(
         payload=PodcastPlaybackStateProjection(
@@ -379,7 +379,7 @@ def test_build_pending_and_model_responses():
 
 
 def test_build_schedule_config_responses_from_projections():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     projection = ScheduleConfigProjection(
         id=5,
         title="Podcast 5",

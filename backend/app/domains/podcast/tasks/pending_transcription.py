@@ -1,6 +1,6 @@
 """Celery tasks for periodic transcription backlog dispatch."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.core.celery_app import celery_app
 from app.domains.podcast.tasks.handlers_pending_transcription import (
@@ -11,7 +11,7 @@ from app.domains.podcast.tasks.runtime import log_task_run, run_async, worker_se
 
 @celery_app.task(bind=True, max_retries=3)
 def process_pending_transcriptions(self):
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.pending_transcription.process_pending_transcriptions"
     queue_name = "transcription"
     metadata = None
@@ -24,7 +24,7 @@ def process_pending_transcriptions(self):
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             metadata=metadata,
         )
         return result
@@ -34,7 +34,7 @@ def process_pending_transcriptions(self):
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
             metadata=metadata,
         )

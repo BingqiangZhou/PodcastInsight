@@ -3,9 +3,12 @@
 import asyncio
 import os
 import sys
+import types
 from datetime import timedelta
+from functools import lru_cache
 from logging.config import fileConfig
 
+from pydantic_settings import BaseSettings
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -16,10 +19,6 @@ from alembic import context
 # Add the app directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-# === STEP 1: Mock modules to prevent circular imports ===
-import types
-
-
 # Mock Header class for security functions
 class Header:
     def __init__(self, default=None, **kwargs):
@@ -27,12 +26,6 @@ class Header:
 
     def __call__(self, *args, **kwargs):
         return self.default
-
-
-# Minimal settings for database URL
-from functools import lru_cache
-
-from pydantic_settings import BaseSettings
 
 
 class MinimalSettings(BaseSettings):
@@ -201,12 +194,13 @@ mock_security_module.verify_password_reset_token = (
 mock_security_module.generate_api_key = MockSecurity.generate_api_key
 mock_security_module.generate_random_string = MockSecurity.generate_random_string
 mock_security_module.enable_ec256_optimized = MockSecurity.enable_ec256_optimized
-mock_security_module.OAuth2PasswordBearer = lambda tokenUrl: None
+mock_security_module.OAuth2PasswordBearer = lambda token_url: None
 sys.modules["app.core.security"] = mock_security_module
 
 # === STEP 2: Import database module to get Base ===
 # Import after mocking config and security to avoid circular imports
-from app.core.database import Base, register_orm_models
+from app.core.database import Base, register_orm_models  # noqa: E402
+
 
 # === STEP 3: Register all models ===
 register_orm_models()

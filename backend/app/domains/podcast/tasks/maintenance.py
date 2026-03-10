@@ -1,6 +1,6 @@
 """Celery tasks for maintenance and housekeeping."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.core.celery_app import celery_app
 from app.domains.podcast.tasks.handlers_maintenance import (
@@ -14,7 +14,7 @@ from app.domains.podcast.tasks.runtime import log_task_run, run_async, worker_se
 
 @celery_app.task
 def cleanup_old_playback_states():
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.maintenance.cleanup_old_playback_states"
     queue_name = "maintenance"
     try:
@@ -24,7 +24,7 @@ def cleanup_old_playback_states():
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
         )
         return result
     except Exception as exc:
@@ -33,7 +33,7 @@ def cleanup_old_playback_states():
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
         )
         raise
@@ -46,7 +46,7 @@ async def _cleanup_old_playback_states():
 
 @celery_app.task
 def cleanup_old_transcription_temp_files(days: int = 7):
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.maintenance.cleanup_old_transcription_temp_files"
     queue_name = "maintenance"
     try:
@@ -56,7 +56,7 @@ def cleanup_old_transcription_temp_files(days: int = 7):
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             metadata={"days": days},
         )
         return result
@@ -66,7 +66,7 @@ def cleanup_old_transcription_temp_files(days: int = 7):
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
             metadata={"days": days},
         )
@@ -80,7 +80,7 @@ async def _cleanup_old_transcription_temp_files(days: int):
 
 @celery_app.task
 def log_periodic_task_statistics():
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.maintenance.log_periodic_task_statistics"
     queue_name = "maintenance"
     try:
@@ -90,7 +90,7 @@ def log_periodic_task_statistics():
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
         )
         return result
     except Exception as exc:
@@ -99,7 +99,7 @@ def log_periodic_task_statistics():
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
         )
         raise
@@ -112,7 +112,7 @@ async def _log_periodic_task_statistics():
 
 @celery_app.task
 def auto_cleanup_cache_files():
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.maintenance.auto_cleanup_cache_files"
     queue_name = "maintenance"
     try:
@@ -122,7 +122,7 @@ def auto_cleanup_cache_files():
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
         )
         return result
     except Exception as exc:
@@ -131,7 +131,7 @@ def auto_cleanup_cache_files():
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
         )
         raise

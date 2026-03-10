@@ -1,6 +1,6 @@
 """Admin domain models."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Column, DateTime, Index, Integer, String, Text
 
@@ -24,7 +24,7 @@ class AdminAuditLog(Base):
     user_agent = Column(Text, nullable=True)
     status = Column(String(20), nullable=False, default="success")  # success, failed
     error_message = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), index=True)
 
     # Indexes for efficient querying
     __table_args__ = (
@@ -44,8 +44,8 @@ class SystemSettings(Base):
     description = Column(String(500), nullable=True, comment="Setting description")
     category = Column(String(50), nullable=False, default="general", comment="Setting category: general, audio, ai, etc.")
 
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), comment="Created at")
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), comment="Updated at")
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), comment="Created at")
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC), comment="Updated at")
 
     def __repr__(self):
         return f"<SystemSettings(id={self.id}, key={self.key})>"
@@ -60,7 +60,7 @@ class BackgroundTaskRun(Base):
     task_name = Column(String(255), nullable=False, index=True)
     queue_name = Column(String(64), nullable=False, index=True)
     status = Column(String(20), nullable=False, index=True)  # started, success, failed
-    started_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    started_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC), index=True)
     finished_at = Column(DateTime(timezone=True), nullable=True)
     duration_ms = Column(Integer, nullable=True)
     error_message = Column(Text, nullable=True)

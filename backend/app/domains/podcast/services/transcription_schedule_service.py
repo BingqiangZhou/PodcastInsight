@@ -1,7 +1,7 @@
 """Podcast transcription scheduling helpers."""
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import and_, or_, select
@@ -13,6 +13,9 @@ from app.domains.podcast.models import (
     TranscriptionStatus,
     TranscriptionTask,
 )
+from app.domains.podcast.services.transcription_runtime_service import (
+    PodcastTranscriptionRuntimeService,
+)
 from app.domains.podcast.transcription_schedule_projections import (
     BatchTranscriptionDetailProjection,
     BatchTranscriptionProjection,
@@ -21,9 +24,6 @@ from app.domains.podcast.transcription_schedule_projections import (
     EpisodeTranscriptionScheduleProjection,
     PendingTranscriptionTaskProjection,
     TranscriptionScheduleStatusProjection,
-)
-from app.domains.podcast.services.transcription_runtime_service import (
-    PodcastTranscriptionRuntimeService,
 )
 from app.domains.podcast.transcription_types import ScheduleFrequency
 
@@ -87,7 +87,7 @@ class PodcastTranscriptionScheduleService:
             message="Transcription task started",
             task_id=task.id,
             episode_id=episode_id,
-            scheduled_at=datetime.now(timezone.utc),
+            scheduled_at=datetime.now(UTC),
             action=action,
         )
 
@@ -151,7 +151,7 @@ class PodcastTranscriptionScheduleService:
         subscription_id: int,
         hours_since_published: int = 24,
     ) -> CheckNewEpisodesProjection:
-        cutoff_time = datetime.now(timezone.utc) - timedelta(
+        cutoff_time = datetime.now(UTC) - timedelta(
             hours=hours_since_published
         )
 

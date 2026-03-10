@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import and_, delete, func, or_, select
@@ -81,7 +81,7 @@ class PodcastTaskOrchestrationService:
                 "status": "success",
                 "refreshed_subscriptions": 0,
                 "new_episodes": 0,
-                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "processed_at": datetime.now(UTC).isoformat(),
             }
 
         subscriptions_by_id = {sub.id: sub for sub in all_subscriptions}
@@ -115,7 +115,7 @@ class PodcastTaskOrchestrationService:
                     continue
 
                 sync_service = PodcastSyncService(self.session, user_id)
-                refreshed_at = datetime.now(timezone.utc).isoformat()
+                refreshed_at = datetime.now(UTC).isoformat()
                 episodes_payload = [
                     {
                         "title": episode.title,
@@ -188,7 +188,7 @@ class PodcastTaskOrchestrationService:
             "status": "success",
             "refreshed_subscriptions": refreshed_count,
             "new_episodes": new_episodes_count,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
 
     async def process_opml_subscription_episodes(
@@ -230,7 +230,7 @@ class PodcastTaskOrchestrationService:
                         "feed_title": feed.title,
                         "imported_via_opml": True,
                         "opml_background_parsed_at": datetime.now(
-                            timezone.utc
+                            UTC
                         ).isoformat(),
                     },
                 }
@@ -368,7 +368,7 @@ class PodcastTaskOrchestrationService:
             "successful_users": success_count,
             "failed_users": failed_count,
             "report_date": target_date.isoformat() if target_date else None,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
 
     # ── Maintenance ────────────────────────────────────────────────────────
@@ -412,11 +412,11 @@ class PodcastTaskOrchestrationService:
         return {
             "status": "success",
             "stats": stats,
-            "logged_at": datetime.now(timezone.utc).isoformat(),
+            "logged_at": datetime.now(UTC).isoformat(),
         }
 
     async def cleanup_old_playback_states(self) -> dict:
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=90)
+        cutoff_date = datetime.now(UTC) - timedelta(days=90)
         stmt = delete(PodcastPlaybackState).where(
             PodcastPlaybackState.last_updated_at < cutoff_date
         )
@@ -425,7 +425,7 @@ class PodcastTaskOrchestrationService:
         return {
             "status": "success",
             "deleted_count": result.rowcount or 0,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
 
     async def cleanup_old_transcription_temp_files(self, *, days: int = 7) -> dict:
@@ -434,7 +434,7 @@ class PodcastTaskOrchestrationService:
         return {
             "status": "success",
             **result,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
 
     async def auto_cleanup_cache_files(self) -> dict:
@@ -444,13 +444,13 @@ class PodcastTaskOrchestrationService:
             return {
                 "status": "skipped",
                 "reason": "Auto cleanup is disabled",
-                "checked_at": datetime.now(timezone.utc).isoformat(),
+                "checked_at": datetime.now(UTC).isoformat(),
             }
         result = await service.execute_cleanup(keep_days=1)
         return {
             "status": "success",
             **result,
-            "executed_at": datetime.now(timezone.utc).isoformat(),
+            "executed_at": datetime.now(UTC).isoformat(),
         }
 
     async def process_pending_transcriptions(self) -> dict:
@@ -458,7 +458,7 @@ class PodcastTaskOrchestrationService:
             return {
                 "status": "skipped",
                 "reason": "backlog_transcription_disabled",
-                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "processed_at": datetime.now(UTC).isoformat(),
             }
 
         filters = [
@@ -498,7 +498,7 @@ class PodcastTaskOrchestrationService:
                 "skipped": 0,
                 "failed": 0,
                 "skipped_reasons": {},
-                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "processed_at": datetime.now(UTC).isoformat(),
             }
 
         id_stmt = (
@@ -524,7 +524,7 @@ class PodcastTaskOrchestrationService:
                 "skipped": 0,
                 "failed": 0,
                 "skipped_reasons": {},
-                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "processed_at": datetime.now(UTC).isoformat(),
             }
 
         workflow = TranscriptionWorkflowService(self.session)
@@ -542,7 +542,7 @@ class PodcastTaskOrchestrationService:
             "status": "success",
             "total_candidates": total_candidates,
             **dispatch_result,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
 
     async def generate_podcast_recommendations(self) -> dict:
@@ -559,7 +559,7 @@ class PodcastTaskOrchestrationService:
         return {
             "status": "success",
             "recommendations_generated": recommendations_generated,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
 
     # ── Celery task enqueue helpers ────────────────────────────────────────

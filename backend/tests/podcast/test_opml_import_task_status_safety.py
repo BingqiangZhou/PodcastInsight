@@ -1,6 +1,6 @@
 """Status-safety tests for OPML background episode parsing handler."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -21,7 +21,7 @@ async def test_opml_background_handler_does_not_mutate_existing_episode_status()
         title="Existing",
         description="existing",
         audio_url="https://example.com/existing.mp3",
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
         item_link="https://example.com/episodes/existing",
         status="summarized",
         metadata_json={},
@@ -31,7 +31,7 @@ async def test_opml_background_handler_does_not_mutate_existing_episode_status()
     mock_feed_episode.title = "Existing"
     mock_feed_episode.description = "existing"
     mock_feed_episode.audio_url = "https://example.com/existing.mp3"
-    mock_feed_episode.published_at = datetime.now(timezone.utc)
+    mock_feed_episode.published_at = datetime.now(UTC)
     mock_feed_episode.duration = 123
     mock_feed_episode.transcript_url = None
     mock_feed_episode.link = "https://example.com/episodes/existing"
@@ -46,7 +46,7 @@ async def test_opml_background_handler_does_not_mutate_existing_episode_status()
     mock_feed.podcast_type = None
     mock_feed.link = "https://example.com/feed"
     mock_feed.platform = "generic"
-    mock_feed.last_fetched = datetime.now(timezone.utc)
+    mock_feed.last_fetched = datetime.now(UTC)
     mock_feed.episodes = [mock_feed_episode]
 
     mock_repo = AsyncMock()

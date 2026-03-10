@@ -16,42 +16,29 @@ def sanitize_html(text: str, allow_tags: set | None = None) -> str:
     Sanitize HTML content to prevent XSS attacks.
 
     This function escapes HTML tags and attributes, making the content safe
-    to display in web browsers. Optionally allows specific safe tags.
+    to display in web browsers.
 
     Args:
         text: Raw text that may contain HTML content
-        allow_tags: Set of HTML tags to allow (e.g., {'b', 'i', 'p'})
+        allow_tags: Deprecated compatibility parameter. Tags are always escaped.
 
     Returns:
-        Sanitized text with HTML escaped (except allowed tags)
+        Sanitized text with HTML escaped
 
     Examples:
         >>> sanitize_html("<script>alert('xss')</script>Hello")
         '&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;Hello'
 
         >>> sanitize_html("<b>Bold</b> text", allow_tags={'b'})
-        '<b>Bold</b> text'
+        '&lt;b&gt;Bold&lt;/b&gt; text'
     """
     if not text:
         return text
 
-    # If no allowed tags, escape all HTML
-    if allow_tags is None:
-        return html.escape(text)
+    if allow_tags is not None:
+        logger.debug("sanitize_html ignores allow_tags and escapes all HTML")
 
-    # For partial tag allowance, use bleach if available, otherwise escape all
-    try:
-        import bleach
-        return bleach.clean(
-            text,
-            tags=list(allow_tags),
-            attributes={},
-            strip=True
-        )
-    except ImportError:
-        # Fall back to escaping all HTML if bleach is not available
-        logger.warning("bleach library not available, escaping all HTML")
-        return html.escape(text)
+    return html.escape(text)
 
 
 def filter_thinking_content(text: str) -> str:

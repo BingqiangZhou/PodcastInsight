@@ -12,7 +12,7 @@ import logging
 import logging.handlers
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 
@@ -36,7 +36,7 @@ class TimezoneFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):  # noqa: N802
         """格式化时间为指定时区"""
         # 获取 UTC 时间
-        ct = datetime.fromtimestamp(record.created, tz=timezone.utc)
+        ct = datetime.fromtimestamp(record.created, tz=UTC)
 
         # 应用时区偏移
         if self.timezone_str:

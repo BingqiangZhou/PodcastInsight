@@ -1,7 +1,7 @@
 """Analytics and search repository mixin."""
 
 import logging
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from inspect import isawaitable
 from typing import Any
 
@@ -191,7 +191,7 @@ class PodcastAnalyticsRepositoryMixin:
 
         if subscription:
             time_to_set = ensure_timezone_aware_fetch_time(
-                fetch_time or datetime.now(timezone.utc)
+                fetch_time or datetime.now(UTC)
             )
             subscription.last_fetched_at = time_to_set
             await self.db.commit()
@@ -208,7 +208,7 @@ class PodcastAnalyticsRepositoryMixin:
             from sqlalchemy.orm import attributes
 
             attributes.flag_modified(subscription, "config")
-            subscription.updated_at = datetime.now(timezone.utc)
+            subscription.updated_at = datetime.now(UTC)
             await self.db.commit()
 
     async def get_recently_played(
@@ -228,7 +228,7 @@ class PodcastAnalyticsRepositoryMixin:
                 and_(
                     *self._active_user_subscription_filters(user_id),
                     PodcastPlaybackState.last_updated_at
-                    >= datetime.now(timezone.utc) - timedelta(days=7),
+                    >= datetime.now(UTC) - timedelta(days=7),
                 )
             )
             .order_by(PodcastPlaybackState.last_updated_at.desc())
@@ -282,7 +282,7 @@ class PodcastAnalyticsRepositoryMixin:
                 and_(
                     PodcastPlaybackState.user_id == user_id,
                     PodcastPlaybackState.last_updated_at
-                    >= datetime.now(timezone.utc) - timedelta(days=days),
+                    >= datetime.now(UTC) - timedelta(days=days),
                 )
             )
             .distinct()

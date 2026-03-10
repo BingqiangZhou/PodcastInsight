@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -25,7 +25,7 @@ def mock_service():
 def test_get_subscription_schedule_returns_assembled_response(
     client: TestClient, mock_service: AsyncMock
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.get_subscription_schedule.return_value = ScheduleConfigProjection(
         id=8,
         title="Podcast 8",
@@ -49,7 +49,7 @@ def test_get_subscription_schedule_returns_assembled_response(
 def test_get_all_subscription_schedules_returns_projection_list(
     client: TestClient, mock_service: AsyncMock
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_service.get_all_subscription_schedules.return_value = [
         ScheduleConfigProjection(
             id=1,

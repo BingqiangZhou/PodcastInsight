@@ -4,7 +4,7 @@ AI模型配置数据模型
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -14,7 +14,7 @@ from sqlalchemy.sql import func
 from app.core.database import Base
 
 
-class ModelType(str, Enum):
+class ModelType(StrEnum):
     """模型类型枚举"""
     TRANSCRIPTION = "transcription"  # 转录模型
     TEXT_GENERATION = "text_generation"  # 文本生成模型（AI摘要等）

@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
@@ -45,8 +45,8 @@ async def test_compute_window_utc_for_shanghai_day():
     service = DailyReportService(db=AsyncMock(), user_id=1)
     window_start, window_end = service._compute_window_utc(date(2026, 2, 20))
 
-    assert window_start == datetime(2026, 2, 19, 16, 0, tzinfo=timezone.utc)
-    assert window_end == datetime(2026, 2, 20, 16, 0, tzinfo=timezone.utc)
+    assert window_start == datetime(2026, 2, 19, 16, 0, tzinfo=UTC)
+    assert window_end == datetime(2026, 2, 20, 16, 0, tzinfo=UTC)
 
 
 def test_published_window_boundary_is_start_inclusive_end_exclusive():
@@ -203,8 +203,8 @@ async def test_list_window_summarized_uses_published_at_filter():
     db = AsyncMock()
     db.execute = AsyncMock(return_value=_ScalarsAllResult([]))
     service = DailyReportService(db=db, user_id=1)
-    start = datetime(2026, 2, 19, 16, 0, tzinfo=timezone.utc)
-    end = datetime(2026, 2, 20, 16, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 2, 19, 16, 0, tzinfo=UTC)
+    end = datetime(2026, 2, 20, 16, 0, tzinfo=UTC)
 
     await service._list_window_summarized_episodes(start, end)
 
@@ -219,8 +219,8 @@ async def test_list_window_unsummarized_uses_published_at_filter():
     db = AsyncMock()
     db.execute = AsyncMock(return_value=_ScalarsAllResult([]))
     service = DailyReportService(db=db, user_id=1)
-    start = datetime(2026, 2, 19, 16, 0, tzinfo=timezone.utc)
-    end = datetime(2026, 2, 20, 16, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 2, 19, 16, 0, tzinfo=UTC)
+    end = datetime(2026, 2, 20, 16, 0, tzinfo=UTC)
 
     await service._list_window_unsummarized_episodes(start, end)
 
@@ -242,7 +242,7 @@ async def test_append_item_if_needed_does_not_duplicate_episode():
         ]
     )
     service = DailyReportService(db=db, user_id=1)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     report = SimpleNamespace(id=7)
     episode = SimpleNamespace(

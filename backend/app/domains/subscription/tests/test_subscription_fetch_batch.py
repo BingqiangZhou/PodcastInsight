@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -41,14 +41,14 @@ async def test_fetch_subscription_uses_batch_upsert_and_single_commit():
             title="Post 1",
             content="one",
             link="https://example.com/post-1",
-            published_at=datetime.now(timezone.utc),
+            published_at=datetime.now(UTC),
         ),
         FeedEntry(
             id="post-2",
             title="Post 2",
             content="two",
             link="https://example.com/post-2",
-            published_at=datetime.now(timezone.utc),
+            published_at=datetime.now(UTC),
         ),
     ]
 
@@ -112,7 +112,7 @@ async def test_fetch_subscription_skips_invalid_entries_and_keeps_batch_commit()
                 title="Good",
                 content="ok",
                 link="https://example.com/good",
-                published_at=datetime.now(timezone.utc),
+                published_at=datetime.now(UTC),
             )
         ]
     )

@@ -3,7 +3,7 @@ Database-backed transcription runtime services.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
@@ -19,10 +19,9 @@ from app.domains.podcast.transcription import (
 )
 from app.domains.podcast.transcription_state import get_transcription_state_manager
 
+
 if TYPE_CHECKING:
-    from app.domains.podcast.services.task_orchestration_service import (
-        PodcastTaskOrchestrationService,
-    )
+    pass
 
 
 logger = logging.getLogger(__name__)
@@ -266,7 +265,7 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
 
         from app.domains.podcast.models import TranscriptionTask
 
-        stale_threshold = datetime.now(timezone.utc) - timedelta(minutes=5)
+        stale_threshold = datetime.now(UTC) - timedelta(minutes=5)
         in_progress_statuses = ["in_progress"]
 
         try:
@@ -282,8 +281,8 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
                 .values(
                     status="failed",
                     error_message="Task interrupted by server restart",
-                    updated_at=datetime.now(timezone.utc),
-                    completed_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
+                    completed_at=datetime.now(UTC),
                 )
             )
 
@@ -292,7 +291,7 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
             if result.rowcount > 0:
                 logger.warning("Reset %s stale transcription tasks to FAILED", result.rowcount)
 
-            pending_stale_threshold = datetime.now(timezone.utc) - timedelta(hours=1)
+            pending_stale_threshold = datetime.now(UTC) - timedelta(hours=1)
             stmt2 = (
                 update(TranscriptionTask)
                 .where(
@@ -305,8 +304,8 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
                 .values(
                     status="failed",
                     error_message="Task was never scheduled for execution",
-                    updated_at=datetime.now(timezone.utc),
-                    completed_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
+                    completed_at=datetime.now(UTC),
                 )
             )
 
@@ -332,7 +331,7 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
         if not os.path.exists(temp_dir_abs):
             return {"cleaned": 0, "freed_bytes": 0}
 
-        stale_threshold = datetime.now(timezone.utc) - timedelta(days=days)
+        stale_threshold = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(TranscriptionTask.episode_id)
             .where(

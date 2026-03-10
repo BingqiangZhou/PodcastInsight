@@ -1,6 +1,6 @@
 """Celery tasks for OPML import background episode parsing."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.core.celery_app import celery_app
 from app.domains.podcast.tasks.handlers_opml_import import (
@@ -16,7 +16,7 @@ def process_opml_subscription_episodes(
     user_id: int,
     source_url: str,
 ):
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = (
         "app.domains.podcast.tasks.opml_import.process_opml_subscription_episodes"
     )
@@ -34,7 +34,7 @@ def process_opml_subscription_episodes(
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             metadata={
                 "subscription_id": subscription_id,
                 "user_id": user_id,
@@ -48,7 +48,7 @@ def process_opml_subscription_episodes(
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
             metadata={
                 "subscription_id": subscription_id,

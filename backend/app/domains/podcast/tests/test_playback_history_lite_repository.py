@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -18,7 +18,7 @@ def _build_history_row(
     subscription_image_url: str | None,
     subscription_config: dict | None,
 ) -> dict:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return {
         "id": 101,
         "subscription_id": 9,

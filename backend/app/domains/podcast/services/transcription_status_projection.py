@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -30,7 +30,7 @@ def build_transcription_status_payload(task, *, status_key: str) -> dict[str, An
 
     eta_seconds = None
     if task.started_at and status_key not in {"completed", "failed", "cancelled"}:
-        elapsed = (datetime.now(timezone.utc) - task.started_at).total_seconds()
+        elapsed = (datetime.now(UTC) - task.started_at).total_seconds()
         if task.progress_percentage > 0:
             estimated_total = elapsed / (task.progress_percentage / 100)
             eta_seconds = int(estimated_total - elapsed)

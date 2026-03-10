@@ -1,6 +1,6 @@
 """Celery tasks for podcast daily report generation."""
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from app.core.celery_app import celery_app
 from app.domains.podcast.tasks.handlers_daily_report import (
@@ -11,7 +11,7 @@ from app.domains.podcast.tasks.runtime import log_task_run, run_async, worker_se
 
 @celery_app.task(bind=True, max_retries=3)
 def generate_daily_podcast_reports(self, report_date: str | None = None):
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.daily_report.generate_daily_podcast_reports"
     queue_name = "ai_generation"
     try:
@@ -22,7 +22,7 @@ def generate_daily_podcast_reports(self, report_date: str | None = None):
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             metadata={"report_date": report_date},
         )
         return result
@@ -32,7 +32,7 @@ def generate_daily_podcast_reports(self, report_date: str | None = None):
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
             metadata={"report_date": report_date},
         )

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -368,7 +368,7 @@ class TranscriptionWorkflowService:
             "status": "queued",
             "episode_id": episode_id,
             "transcription_task_id": transcription_task["task_id"],
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
 
     @staticmethod

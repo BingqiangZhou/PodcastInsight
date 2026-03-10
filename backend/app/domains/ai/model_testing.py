@@ -5,7 +5,6 @@ Provides functions for testing AI model configurations and validating API keys.
 Extracted from services.py for better separation of concerns.
 """
 
-import asyncio
 import logging
 import os
 import re
@@ -300,7 +299,7 @@ async def validate_api_key(
                     logger.error(
                         f"ClientPayloadError to {target_url}: {str(e)}", exc_info=True
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # Timeout errors
                     error_message = f"Timeout error: Request to {target_url} timed out after 600 seconds"
                     logger.error(

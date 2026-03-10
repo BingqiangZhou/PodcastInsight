@@ -7,7 +7,7 @@ including timezone management, formatting, and conversions.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ def remove_timezone(dt: datetime | None) -> datetime | None:
 
 
 def ensure_timezone_aware(
-    dt: datetime | None, tz: timezone = timezone.utc
+    dt: datetime | None, tz: timezone = UTC
 ) -> datetime | None:
     """
     Ensure a datetime object is timezone-aware.
@@ -127,7 +127,7 @@ def get_current_timestamp() -> datetime:
     Returns:
         Current datetime in UTC
     """
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def calculate_age(dt: datetime) -> float | None:
@@ -249,7 +249,7 @@ def ensure_timezone_aware_fetch_time(fetch_time: datetime | None) -> datetime | 
 
     # If already timezone-aware, convert to UTC
     if fetch_time.tzinfo is not None:
-        return fetch_time.astimezone(timezone.utc)
+        return fetch_time.astimezone(UTC)
 
     # If naive, assume it's UTC and add timezone
-    return fetch_time.replace(tzinfo=timezone.utc)
+    return fetch_time.replace(tzinfo=UTC)

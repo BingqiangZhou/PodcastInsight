@@ -1,6 +1,6 @@
 """Celery tasks for transcription flows."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.core.celery_app import celery_app
 from app.domains.podcast.tasks.handlers_transcription import (
@@ -12,7 +12,7 @@ from app.domains.podcast.tasks.runtime import log_task_run, run_async, worker_se
 
 @celery_app.task(bind=True, max_retries=3)
 def process_audio_transcription(self, task_id: int, config_db_id: int | None = None):
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.transcription.process_audio_transcription"
     queue_name = "transcription"
     try:
@@ -24,7 +24,7 @@ def process_audio_transcription(self, task_id: int, config_db_id: int | None = N
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             metadata={"task_id": task_id, "config_db_id": config_db_id},
         )
         return result
@@ -34,7 +34,7 @@ def process_audio_transcription(self, task_id: int, config_db_id: int | None = N
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
             metadata={"task_id": task_id, "config_db_id": config_db_id},
         )
@@ -54,7 +54,7 @@ async def _process_audio_transcription(task_id: int, config_db_id: int | None):
 
 @celery_app.task(bind=True, max_retries=3)
 def process_podcast_episode_with_transcription(self, episode_id: int, user_id: int):
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     task_name = (
         "app.domains.podcast.tasks.transcription.process_podcast_episode_with_transcription"
     )
@@ -68,7 +68,7 @@ def process_podcast_episode_with_transcription(self, episode_id: int, user_id: i
             queue_name=queue_name,
             status="success",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             metadata={"episode_id": episode_id, "user_id": user_id},
         )
         return result
@@ -78,7 +78,7 @@ def process_podcast_episode_with_transcription(self, episode_id: int, user_id: i
             queue_name=queue_name,
             status="failed",
             started_at=started_at,
-            finished_at=datetime.now(timezone.utc),
+            finished_at=datetime.now(UTC),
             error_message=str(exc),
             metadata={"episode_id": episode_id, "user_id": user_id},
         )

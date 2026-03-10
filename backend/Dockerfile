@@ -6,7 +6,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PYTHONUTF8=1 \
-    LANG=C.UTF-8
+    LANG=C.UTF-8 \
+    PATH="/app/.venv/bin:${PATH}" \
+    UV_LINK_MODE=copy \
+    UV_PYTHON=/usr/local/bin/python3.11 \
+    UV_PYTHON_DOWNLOADS=never
 
 # 配置国内 Debian 镜像源（清华大学）
 RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/debian.sources \
@@ -44,8 +48,8 @@ RUN apt-get update \
 # Set work directory
 WORKDIR /app
 
-# Copy pyproject.toml first
-COPY pyproject.toml ./
+# Copy dependency metadata first
+COPY pyproject.toml uv.lock ./
 
 # Configure pip to use Chinese mirrors for faster downloads
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
@@ -54,13 +58,14 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
 # Install uv first (faster than regular pip for Python package management)
 RUN pip install --no-cache-dir uv
 
+# Pre-install locked third-party dependencies for better layer reuse
+RUN uv sync --frozen --no-dev --no-install-project
+
 # Copy application code
 COPY . .
 
-# Install dependencies using uv with optimized settings
-RUN uv pip install --system -e . \
-    --index-url https://pypi.tuna.tsinghua.edu.cn/simple \
-    --trusted-host pypi.tuna.tsinghua.edu.cn
+# Install the project itself from the locked uv environment
+RUN uv sync --frozen --no-dev --no-editable
 
 # Create directories with proper permissions
 RUN mkdir -p uploads logs data storage/podcasts temp/transcription

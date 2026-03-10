@@ -5,17 +5,17 @@ from __future__ import annotations
 import html
 import re
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from urllib.parse import urlparse
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.audit import log_admin_action
+from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )
-from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
 from app.domains.subscription.models import Subscription
 from app.domains.subscription.services import SubscriptionService
 from app.shared.schemas import SubscriptionCreate
@@ -66,7 +66,7 @@ class AdminSubscriptionsOpmlService:
             }, 400
 
         podcast_service = PodcastSubscriptionService(self.db, user_id=user.id)
-        import_started_at = datetime.now(timezone.utc).isoformat()
+        import_started_at = datetime.now(UTC).isoformat()
 
         results = []
         success_count = 0

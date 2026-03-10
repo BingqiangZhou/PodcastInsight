@@ -10,7 +10,7 @@ Provides fast state management for podcast transcription tasks:
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from app.core.redis import get_shared_redis
@@ -401,7 +401,7 @@ class TranscriptionStateManager:
             "message": message,
             "current_chunk": current_chunk,
             "total_chunks": total_chunks,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(UTC).isoformat()
         }
 
         await self.redis.cache_set(key, json.dumps(progress_data), ttl=ttl_seconds)
@@ -473,7 +473,7 @@ class TranscriptionStateManager:
         status_data = {
             "status": status,
             "progress": progress,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(UTC).isoformat()
         }
 
         await self.redis.cache_set(key, json.dumps(status_data), ttl=ttl_seconds)

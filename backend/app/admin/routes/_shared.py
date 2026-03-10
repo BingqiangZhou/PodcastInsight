@@ -1,6 +1,6 @@
 """Shared utilities for admin routes."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse, Response
@@ -81,7 +81,7 @@ def to_local_timezone(dt: datetime, format_str: str = '%Y-%m-%d %H:%M:%S') -> st
         return '-'
     # Ensure dt is timezone-aware (assume UTC if naive)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     # Convert to Asia/Shanghai timezone (UTC+8)
     from zoneinfo import ZoneInfo
     shanghai_tz = ZoneInfo('Asia/Shanghai')
