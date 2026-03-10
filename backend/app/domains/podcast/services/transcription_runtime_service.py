@@ -2,7 +2,9 @@
 Database-backed transcription runtime services.
 """
 
+import asyncio
 import logging
+import os
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -25,6 +27,19 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+def _directory_has_files(path: str) -> bool:
+    return any(files for _, _, files in os.walk(path))
+
+
+def _directory_size_bytes(path: str) -> int:
+    return sum(
+        os.path.getsize(os.path.join(dirpath, filename))
+        for dirpath, _, filenames in os.walk(path)
+        for filename in filenames
+        if os.path.isfile(os.path.join(dirpath, filename))
+    )
 
 
 class TranscriptionModelManager:
@@ -190,15 +205,11 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
                 return {"task": existing_task, "action": "redispatched_pending"}
 
             if status_value in {"failed", "cancelled"}:
-                import os
-
                 temp_episode_dir = os.path.join(self.temp_dir, f"episode_{episode_id}")
-                has_temp_files = False
-                if os.path.exists(temp_episode_dir):
-                    for _, _, files in os.walk(temp_episode_dir):
-                        if files:
-                            has_temp_files = True
-                            break
+                has_temp_files = os.path.exists(temp_episode_dir) and await asyncio.to_thread(
+                    _directory_has_files,
+                    temp_episode_dir,
+                )
 
                 if has_temp_files:
                     locked_task_id = await state_manager.is_episode_locked(episode_id)
@@ -353,12 +364,7 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
             if not os.path.exists(temp_episode_dir):
                 continue
 
-            dir_size = sum(
-                os.path.getsize(os.path.join(dirpath, filename))
-                for dirpath, _, filenames in os.walk(temp_episode_dir)
-                for filename in filenames
-                if os.path.isfile(os.path.join(dirpath, filename))
-            )
+            dir_size = await asyncio.to_thread(_directory_size_bytes, temp_episode_dir)
             shutil.rmtree(temp_episode_dir)
             cleaned_count += 1
             freed_bytes += dir_size

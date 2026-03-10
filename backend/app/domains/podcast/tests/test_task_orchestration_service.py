@@ -1,4 +1,3 @@
-from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
@@ -25,14 +24,6 @@ async def test_refresh_all_podcast_feeds_skips_when_no_subscription_is_due(
     monkeypatch,
 ):
     session = AsyncMock()
-    session.execute = AsyncMock(
-        side_effect=[
-            _ScalarResult([SimpleNamespace(id=8)]),
-            _ScalarResult(
-                [SimpleNamespace(subscription_id=8, should_update_now=lambda: False)]
-            ),
-        ]
-    )
 
     parser_created = False
 
@@ -42,6 +33,11 @@ async def test_refresh_all_podcast_feeds_skips_when_no_subscription_is_due(
         raise AssertionError("parser should not be instantiated when nothing is due")
 
     monkeypatch.setattr(service_module, "SecureRSSParser", _fail_parser)
+    monkeypatch.setattr(
+        PodcastTaskOrchestrationService,
+        "_load_due_refresh_candidates",
+        AsyncMock(side_effect=[([], 100), ([], None)]),
+    )
 
     service = PodcastTaskOrchestrationService(session)
     result = await service.refresh_all_podcast_feeds()

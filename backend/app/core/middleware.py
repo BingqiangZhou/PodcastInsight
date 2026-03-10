@@ -1,20 +1,27 @@
-"""
-Performance monitoring middleware.
-"""
+"""Request observability middleware and runtime metrics store."""
 
 import logging
 import time
 from collections import deque
-from collections.abc import Callable
 
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 logger = logging.getLogger(__name__)
 
 SLOW_API_THRESHOLD_MS = 500
+SKIP_OBSERVABILITY_PATHS = {
+    "/health",
+    "/api/v1/health",
+    "/api/v1/health/ready",
+    "/metrics",
+    "/metrics/summary",
+    "/docs",
+    "/redoc",
+    "/openapi.json",
+    "/api/v1/openapi.json",
+}
 
 
 class PerformanceMetricsStore:
@@ -138,39 +145,145 @@ def _get_store_from_app(app: ASGIApp | None) -> PerformanceMetricsStore:
     return _performance_metrics_store
 
 
-class PerformanceMonitoringMiddleware(BaseHTTPMiddleware):
-    """Track API response times and request counts."""
+class RequestObservabilityMiddleware:
+    """Combined request metrics, request logging, and slow-request detection."""
 
-    def __init__(self, app: ASGIApp):
-        super().__init__(app)
+    def __init__(
+        self,
+        app: ASGIApp,
+        *,
+        slow_threshold: float = 5.0,
+    ):
+        self.app = app
+        self.slow_threshold_ms = slow_threshold * 1000
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        if request.url.path in {"/health", "/metrics", "/api/v1/health"}:
-            return await call_next(request)
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        start_time = time.time()
-        key = f"{request.method} {request.url.path}"
-        store = _get_store_from_app(request.app)
+        path = scope.get("path", "")
+        if path in SKIP_OBSERVABILITY_PATHS:
+            await self.app(scope, receive, send)
+            return
+
+        method = scope.get("method", "GET")
+        client = scope.get("client")
+        client_host = client[0] if client else "unknown"
+        headers = {
+            key.decode("latin-1"): value.decode("latin-1")
+            for key, value in scope.get("headers", [])
+        }
+        cookies = headers.get("cookie", "")
+        user_label = "anonymous"
+        if headers.get("authorization", "").startswith("Bearer "):
+            user_label = "authenticated"
+        elif "admin_session=" in cookies:
+            user_label = "admin_session"
+
+        key = f"{method} {path}"
+        start_time = time.perf_counter()
+        store = _get_store_from_app(scope.get("app"))
+        response_started = False
+        status_code: int | None = None
+
+        async def send_wrapper(message: Message) -> None:
+            nonlocal response_started, status_code
+            if message["type"] == "http.response.start":
+                response_started = True
+                status_code = int(message["status"])
+                elapsed_ms = (time.perf_counter() - start_time) * 1000
+                headers_obj = MutableHeaders(scope=message)
+                headers_obj["X-Process-Time"] = f"{elapsed_ms / 1000:.3f}"
+                headers_obj["X-Response-Time"] = f"{elapsed_ms:.2f}ms"
+            await send(message)
 
         try:
-            response = await call_next(request)
-            duration_ms = (time.time() - start_time) * 1000
-
-            store.track_request(key, duration_ms, response.status_code)
-            if duration_ms > SLOW_API_THRESHOLD_MS:
-                logger.warning(
-                    "Slow API: %s took %.2fms",
-                    key,
-                    duration_ms,
-                )
-
-            response.headers["X-Response-Time"] = f"{duration_ms:.2f}ms"
-            return response
-
+            await self.app(scope, receive, send_wrapper)
         except Exception as exc:
+            duration_ms = (time.perf_counter() - start_time) * 1000
             store.track_error(key)
-            logger.error("API error on %s: %s", key, exc)
+            logger.error(
+                "API request failed: %s %s | error=%s | elapsed=%.3fs | client=%s",
+                method,
+                path,
+                str(exc),
+                duration_ms / 1000,
+                client_host,
+                exc_info=True,
+            )
             raise
+
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        if status_code is None and response_started:
+            status_code = 200
+        elif status_code is None:
+            status_code = 500
+
+        store.track_request(key, duration_ms, status_code)
+        self._log_request(
+            method=method,
+            path=path,
+            client_host=client_host,
+            user_label=user_label,
+            status_code=status_code,
+            duration_ms=duration_ms,
+        )
+
+    def _log_request(
+        self,
+        *,
+        method: str,
+        path: str,
+        client_host: str,
+        user_label: str,
+        status_code: int,
+        duration_ms: float,
+    ) -> None:
+        if duration_ms > self.slow_threshold_ms:
+            logger.warning(
+                "Slow request: %s %s | status=%s | elapsed=%.3fs | client=%s | user=%s",
+                method,
+                path,
+                status_code,
+                duration_ms / 1000,
+                client_host,
+                user_label,
+            )
+
+        if status_code >= 500:
+            logger.error(
+                "API request completed: %s %s | status=%s | elapsed=%.3fs | client=%s | user=%s",
+                method,
+                path,
+                status_code,
+                duration_ms / 1000,
+                client_host,
+                user_label,
+            )
+            return
+
+        if status_code >= 400:
+            logger.warning(
+                "API request completed: %s %s | status=%s | elapsed=%.3fs | client=%s | user=%s",
+                method,
+                path,
+                status_code,
+                duration_ms / 1000,
+                client_host,
+                user_label,
+            )
+            return
+
+        logger.debug(
+            "API request completed: %s %s | status=%s | elapsed=%.3fs | client=%s | user=%s",
+            method,
+            path,
+            status_code,
+            duration_ms / 1000,
+            client_host,
+            user_label,
+        )
 
 
 def get_performance_middleware(app: ASGIApp | None = None) -> PerformanceMetricsStore:

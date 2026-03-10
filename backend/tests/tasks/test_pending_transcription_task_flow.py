@@ -1,5 +1,6 @@
 """Pending-transcription backlog task flow tests."""
 
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock
 
 import pytest
@@ -12,6 +13,16 @@ from app.domains.podcast.tasks import pending_transcription
 from app.domains.podcast.tasks.handlers_pending_transcription import (
     process_pending_transcriptions_handler,
 )
+
+
+@asynccontextmanager
+async def _acquired_lock(*args, **kwargs):
+    yield True
+
+
+@asynccontextmanager
+async def _skipped_lock(*args, **kwargs):
+    yield False
 
 
 @pytest.mark.asyncio
@@ -29,6 +40,10 @@ async def test_backlog_handler_dispatches_candidates(monkeypatch):
         PodcastTaskOrchestrationService,
         "process_pending_transcriptions",
         AsyncMock(return_value=expected),
+    )
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        _acquired_lock,
     )
 
     result = await process_pending_transcriptions_handler(session=object())
@@ -60,6 +75,10 @@ async def test_backlog_handler_skips_reused_actions(monkeypatch):
             }
         ),
     )
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        _acquired_lock,
+    )
 
     result = await process_pending_transcriptions_handler(session=object())
     assert result["status"] == "success"
@@ -89,6 +108,10 @@ async def test_backlog_handler_counts_failures(monkeypatch):
             }
         ),
     )
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        _acquired_lock,
+    )
 
     result = await process_pending_transcriptions_handler(session=object())
     assert result["status"] == "success"
@@ -98,10 +121,29 @@ async def test_backlog_handler_counts_failures(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_backlog_handler_respects_feature_toggle(monkeypatch):
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        _acquired_lock,
+    )
     monkeypatch.setattr(settings, "TRANSCRIPTION_BACKLOG_ENABLED", False)
     result = await process_pending_transcriptions_handler(session=object())
     assert result["status"] == "skipped"
     assert result["reason"] == "backlog_transcription_disabled"
+
+
+@pytest.mark.asyncio
+async def test_backlog_handler_skips_when_task_lock_is_held(monkeypatch):
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        _skipped_lock,
+    )
+
+    result = await process_pending_transcriptions_handler(session=object())
+
+    assert result == {
+        "status": "skipped_locked",
+        "reason": "pending_transcription_task_already_running",
+    }
 
 
 def test_process_pending_transcriptions_retries_on_failure(monkeypatch):

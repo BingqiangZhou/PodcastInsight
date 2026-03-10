@@ -4,17 +4,17 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
-from app.core.database import get_db_pool_snapshot
+from app.core.database import check_db_readiness, get_db_pool_snapshot
 from app.core.exceptions import setup_exception_handlers
-from app.core.logging_middleware import setup_logging_middleware
 from app.core.middleware import (
-    PerformanceMonitoringMiddleware,
+    RequestObservabilityMiddleware,
     get_performance_middleware,
 )
 from app.core.observability import ObservabilityThresholds, build_observability_snapshot
-from app.core.redis import get_redis_runtime_metrics
+from app.core.redis import get_redis_runtime_metrics, get_shared_redis
 from app.http.errors import register_admin_http_exception_handler
 
 
@@ -26,8 +26,8 @@ def configure_middlewares(app: FastAPI) -> None:
     settings = get_settings()
 
     app.state.performance_metrics_store = get_performance_middleware(app)
-    app.add_middleware(PerformanceMonitoringMiddleware)
-    logger.debug("Performance monitoring middleware enabled")
+    app.add_middleware(RequestObservabilityMiddleware, slow_threshold=5.0)
+    logger.debug("Request observability middleware enabled")
 
     app.add_middleware(
         CORSMiddleware,
@@ -36,8 +36,6 @@ def configure_middlewares(app: FastAPI) -> None:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    setup_logging_middleware(app, slow_threshold=5.0)
-
     from app.admin.first_run import first_run_middleware
 
     app.middleware("http")(first_run_middleware)
@@ -102,6 +100,23 @@ def register_internal_routes(app: FastAPI) -> None:
     @app.get(f"{settings.API_V1_STR}/health")
     async def health_check_v1():
         return {"status": "healthy"}
+
+    @app.get(f"{settings.API_V1_STR}/health/ready")
+    async def readiness_check():
+        redis_status = await get_shared_redis().check_health()
+        db_status = await check_db_readiness()
+        overall_status = (
+            "healthy"
+            if db_status["status"] == "healthy" and redis_status["status"] == "healthy"
+            else "unhealthy"
+        )
+        payload = {
+            "status": overall_status,
+            "db": db_status,
+            "redis": redis_status,
+        }
+        status_code = 200 if overall_status == "healthy" else 503
+        return JSONResponse(status_code=status_code, content=payload)
 
     @app.get("/metrics", include_in_schema=False)
     async def get_metrics():

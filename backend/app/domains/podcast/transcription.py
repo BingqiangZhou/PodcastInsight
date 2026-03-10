@@ -64,6 +64,14 @@ def log_with_timestamp(level: str, message: str, task_id: int = None):
         logger.info(formatted_message)
 
 
+async def _ffmpeg_probe_async(input_path: str) -> dict[str, Any]:
+    return await asyncio.to_thread(ffmpeg.probe, input_path)
+
+
+async def _run_ffmpeg_sync(command_builder) -> None:
+    await asyncio.to_thread(command_builder)
+
+
 @dataclass
 class AudioChunk:
     """Metadata for one audio chunk."""
@@ -402,7 +410,7 @@ class AudioSplitter:
             os.makedirs(output_dir, exist_ok=True)
 
             # FFmpeg
-            probe = ffmpeg.probe(input_path)
+            probe = await _ffmpeg_probe_async(input_path)
             duration = float(probe["streams"][0]["duration"])
 
             # 
@@ -427,18 +435,20 @@ class AudioSplitter:
                 )
 
                 # FFmpeg - 
-                (
-                    ffmpeg.input(input_path, ss=start_time, t=segment_duration)
-                    .output(
-                        output_path,
-                        acodec="mp3",
-                        ac=1,  # ?
-                        ar="16000",  # 16kHz?
-                        ab="64k",  # 64kbps?
+                await _run_ffmpeg_sync(
+                    lambda start_time=start_time, segment_duration=segment_duration, output_path=output_path: (
+                        ffmpeg.input(input_path, ss=start_time, t=segment_duration)
+                        .output(
+                            output_path,
+                            acodec="mp3",
+                            ac=1,  # ?
+                            ar="16000",  # 16kHz?
+                            ab="64k",  # 64kbps?
+                        )
+                        .overwrite_output()
+                        .global_args("-loglevel", "quiet")
+                        .run()
                     )
-                    .overwrite_output()
-                    .global_args("-loglevel", "quiet")
-                    .run()
                 )
 
                 # 
@@ -513,7 +523,7 @@ class AudioSplitter:
 
             # FFmpeg
             try:
-                probe = ffmpeg.probe(input_path)
+                probe = await _ffmpeg_probe_async(input_path)
                 duration = float(probe["streams"][0]["duration"])
                 logger.info(f"[SPLIT] Input duration: {duration:.2f}s")
             except Exception as e:
@@ -692,7 +702,7 @@ class SiliconFlowTranscriber:
                     with open(chunk.file_path, "rb") as file_obj:
                         data.add_field(
                             "file",
-                            file_obj.read(),
+                            file_obj,
                             filename=os.path.basename(chunk.file_path),
                             content_type="audio/mpeg",
                         )
@@ -1461,9 +1471,7 @@ class PodcastTranscriptionService:
                 if converted_size > 10240:  # 10KB
                     # fmpegMP3
                     try:
-                        import ffmpeg
-
-                        probe = ffmpeg.probe(converted_file)
+                        probe = await _ffmpeg_probe_async(converted_file)
                         log_with_timestamp(
                             "INFO",
                             f"[STEP 2/6 CONVERT] FFmpeg probe result: {probe}",

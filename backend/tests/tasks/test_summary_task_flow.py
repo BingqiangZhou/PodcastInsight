@@ -1,6 +1,7 @@
 """Summary task flow tests."""
 
-from types import SimpleNamespace
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -12,248 +13,153 @@ from app.domains.podcast.tasks.handlers_summary import (
 )
 
 
-class _ScalarResult:
-    def __init__(self, value):
-        self._value = value
-
-    def scalar_one_or_none(self):
-        return self._value
-
-    def scalars(self):
-        class _Scalars:
-            def __init__(self, value):
-                self._value = value
-
-            def all(self):
-                if self._value is None:
-                    return []
-                if isinstance(self._value, list):
-                    return self._value
-                return [self._value]
-
-        return _Scalars(self._value)
+@asynccontextmanager
+async def _worker_session_factory(session_obj):
+    yield session_obj
 
 
-class _FakeSession:
-    def __init__(self, values):
-        self._values = iter(values)
-        self.execute_count = 0
-
-    async def execute(self, _stmt):
-        self.execute_count += 1
-        return _ScalarResult(next(self._values))
+@asynccontextmanager
+async def _acquired_lock(*args, **kwargs):
+    yield True
 
 
-async def _run_workflow(session, repo_factory, summary_factory):
+@asynccontextmanager
+async def _skipped_lock(*args, **kwargs):
+    yield False
+
+
+@pytest.mark.asyncio
+async def test_generate_pending_summaries_success(monkeypatch):
+    generated = []
+
+    class _FakeRepo:
+        def __init__(self, _session):
+            self.session = _session
+
+        async def mark_summary_failed(self, episode_id, error):
+            raise AssertionError(f"unexpected failure mark for {episode_id}: {error}")
+
+    class _FakeSummaryService:
+        def __init__(self, _session):
+            self.session = _session
+
+        async def generate_summary(self, episode_id):
+            generated.append((self.session, episode_id))
+            return {"summary_content": "ok"}
+
     workflow = SummaryWorkflowService(
-        session,
-        repo_factory=repo_factory,
-        summary_service_factory=summary_factory,
+        db=AsyncMock(),
+        repo_factory=_FakeRepo,
+        summary_service_factory=_FakeSummaryService,
     )
-    return await workflow.generate_pending_summaries_run()
+    monkeypatch.setattr(workflow, "_reset_stale_summary_claims", AsyncMock())
+    monkeypatch.setattr(
+        workflow,
+        "_claim_pending_summary_episode_ids",
+        AsyncMock(return_value=[11, 12]),
+    )
+    monkeypatch.setattr(
+        "app.domains.podcast.services.summary_workflow_service.worker_db_session",
+        lambda *_args, **_kwargs: _worker_session_factory(object()),
+    )
 
+    result = await workflow.generate_pending_summaries_run()
 
-@pytest.mark.asyncio
-async def test_generate_pending_summaries_success():
-    fake_episode = SimpleNamespace(id=11, subscription_id=22, transcript_content="hello")
-    marked = []
-    generated = []
-
-    class _FakeRepo:
-        def __init__(self, _session):
-            pass
-
-        async def get_unsummarized_episodes(self, *args, **kwargs):
-            return [fake_episode]
-
-        async def mark_summary_failed(self, episode_id, error):
-            marked.append((episode_id, error))
-
-    class _FakeSummaryService:
-        def __init__(self, _session):
-            pass
-
-        async def generate_summary(self, episode_id):
-            generated.append(episode_id)
-            return {"summary_content": "ok"}
-
-    session = _FakeSession([[]])
-    result = await _run_workflow(session, _FakeRepo, _FakeSummaryService)
     assert result["status"] == "success"
-    assert result["processed"] == 1
+    assert result["processed"] == 2
     assert result["failed"] == 0
-    assert marked == []
-    assert generated == [11]
+    assert [episode_id for _, episode_id in generated] == [11, 12]
 
 
 @pytest.mark.asyncio
-async def test_generate_pending_summaries_skips_missing_transcript_without_failure():
-    fake_episode = SimpleNamespace(id=11, subscription_id=22, transcript_content="   ")
-    marked = []
-    generated = []
+async def test_generate_pending_summaries_marks_failed_episode(monkeypatch):
+    failed_marks = []
 
     class _FakeRepo:
         def __init__(self, _session):
-            pass
-
-        async def get_unsummarized_episodes(self, *args, **kwargs):
-            return [fake_episode]
+            self.session = _session
 
         async def mark_summary_failed(self, episode_id, error):
-            marked.append((episode_id, error))
+            failed_marks.append((episode_id, error))
 
-    class _FakeSummaryService:
+    class _FailingSummaryService:
         def __init__(self, _session):
-            pass
-
-        async def generate_summary(self, episode_id):
-            generated.append(episode_id)
-            return {"summary_content": "ok"}
-
-    session = _FakeSession([])
-    result = await _run_workflow(session, _FakeRepo, _FakeSummaryService)
-    assert result["status"] == "success"
-    assert result["processed"] == 0
-    assert result["failed"] == 0
-    assert marked == []
-    assert generated == []
-    assert session.execute_count == 0
-
-
-@pytest.mark.asyncio
-async def test_generate_pending_summaries_filters_before_limit():
-    episodes = []
-    for episode_id in range(1, 15):
-        transcript = None if episode_id <= 3 else f"transcript-{episode_id}"
-        episodes.append(
-            SimpleNamespace(
-                id=episode_id,
-                subscription_id=22,
-                transcript_content=transcript,
-            )
-        )
-
-    marked = []
-    generated = []
-
-    class _FakeRepo:
-        def __init__(self, _session):
-            pass
-
-        async def get_unsummarized_episodes(self, *args, **kwargs):
-            return episodes
-
-        async def mark_summary_failed(self, episode_id, error):
-            marked.append((episode_id, error))
-
-    class _FakeSummaryService:
-        def __init__(self, _session):
-            pass
-
-        async def generate_summary(self, episode_id):
-            generated.append(episode_id)
-            return {"summary_content": "ok"}
-
-    session = _FakeSession([[]])
-    result = await _run_workflow(session, _FakeRepo, _FakeSummaryService)
-    assert result["status"] == "success"
-    assert result["processed"] == 10
-    assert result["failed"] == 0
-    assert generated == list(range(4, 14))
-    assert marked == []
-    assert session.execute_count == 1
-
-
-@pytest.mark.asyncio
-async def test_generate_pending_summaries_no_transcript_validation_does_not_mark_failed():
-    fake_episode = SimpleNamespace(id=11, subscription_id=22, transcript_content="ready")
-    marked = []
-
-    class _FakeRepo:
-        def __init__(self, _session):
-            pass
-
-        async def get_unsummarized_episodes(self, *args, **kwargs):
-            return [fake_episode]
-
-        async def mark_summary_failed(self, episode_id, error):
-            marked.append((episode_id, error))
-
-    class _FakeSummaryService:
-        def __init__(self, _session):
-            pass
-
-        async def generate_summary(self, _episode_id):
-            raise ValidationError("No transcript content available for episode 11")
-
-    session = _FakeSession([[]])
-    result = await _run_workflow(session, _FakeRepo, _FakeSummaryService)
-    assert result["status"] == "success"
-    assert result["processed"] == 0
-    assert result["failed"] == 0
-    assert marked == []
-
-
-@pytest.mark.asyncio
-async def test_generate_pending_summaries_non_validation_error_marks_failed():
-    fake_episode = SimpleNamespace(id=11, subscription_id=22, transcript_content="ready")
-    marked = []
-
-    class _FakeRepo:
-        def __init__(self, _session):
-            pass
-
-        async def get_unsummarized_episodes(self, *args, **kwargs):
-            return [fake_episode]
-
-        async def mark_summary_failed(self, episode_id, error):
-            marked.append((episode_id, error))
-
-    class _FakeSummaryService:
-        def __init__(self, _session):
-            pass
+            self.session = _session
 
         async def generate_summary(self, _episode_id):
             raise RuntimeError("boom")
 
-    session = _FakeSession([[]])
-    result = await _run_workflow(session, _FakeRepo, _FakeSummaryService)
+    workflow = SummaryWorkflowService(
+        db=AsyncMock(),
+        repo_factory=_FakeRepo,
+        summary_service_factory=_FailingSummaryService,
+    )
+    monkeypatch.setattr(workflow, "_reset_stale_summary_claims", AsyncMock())
+    monkeypatch.setattr(
+        workflow,
+        "_claim_pending_summary_episode_ids",
+        AsyncMock(return_value=[11]),
+    )
+    monkeypatch.setattr(
+        "app.domains.podcast.services.summary_workflow_service.worker_db_session",
+        lambda *_args, **_kwargs: _worker_session_factory(object()),
+    )
+
+    result = await workflow.generate_pending_summaries_run()
+
     assert result["status"] == "success"
     assert result["processed"] == 0
     assert result["failed"] == 1
-    assert len(marked) == 1
-    assert marked[0][0] == 11
-    assert "boom" in marked[0][1]
+    assert failed_marks == [(11, "boom")]
 
 
 @pytest.mark.asyncio
-async def test_generate_pending_summaries_in_progress_validation_does_not_mark_failed():
-    fake_episode = SimpleNamespace(id=11, subscription_id=22, transcript_content="ready")
-    marked = []
+async def test_generate_pending_summaries_resets_claim_for_skippable_validation_error(
+    monkeypatch,
+):
+    resets = []
 
     class _FakeRepo:
         def __init__(self, _session):
-            pass
-
-        async def get_unsummarized_episodes(self, *args, **kwargs):
-            return [fake_episode]
+            self.session = _session
 
         async def mark_summary_failed(self, episode_id, error):
-            marked.append((episode_id, error))
+            raise AssertionError(f"unexpected failure mark for {episode_id}: {error}")
 
-    class _FakeSummaryService:
+    class _ValidationSummaryService:
         def __init__(self, _session):
-            pass
+            self.session = _session
 
         async def generate_summary(self, _episode_id):
             raise ValidationError("Summary generation already in progress for episode 11")
 
-    session = _FakeSession([[]])
-    result = await _run_workflow(session, _FakeRepo, _FakeSummaryService)
+    workflow = SummaryWorkflowService(
+        db=AsyncMock(),
+        repo_factory=_FakeRepo,
+        summary_service_factory=_ValidationSummaryService,
+    )
+    monkeypatch.setattr(workflow, "_reset_stale_summary_claims", AsyncMock())
+    monkeypatch.setattr(
+        workflow,
+        "_claim_pending_summary_episode_ids",
+        AsyncMock(return_value=[11]),
+    )
+    monkeypatch.setattr(
+        workflow,
+        "_reset_claimed_summary_status",
+        AsyncMock(side_effect=lambda episode_id: resets.append(episode_id)),
+    )
+    monkeypatch.setattr(
+        "app.domains.podcast.services.summary_workflow_service.worker_db_session",
+        lambda *_args, **_kwargs: _worker_session_factory(object()),
+    )
+
+    result = await workflow.generate_pending_summaries_run()
+
     assert result["status"] == "success"
     assert result["processed"] == 0
     assert result["failed"] == 0
-    assert marked == []
+    assert resets == [11]
 
 
 @pytest.mark.asyncio
@@ -269,9 +175,25 @@ async def test_handler_delegates_to_summary_workflow(monkeypatch):
         "app.domains.podcast.tasks.handlers_summary.SummaryWorkflowService",
         _FakeWorkflow,
     )
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_summary.single_instance_task_lock",
+        _acquired_lock,
+    )
 
     result = await generate_pending_summaries_handler(object())
     assert result == {"status": "success", "processed": 1, "failed": 0}
+
+
+@pytest.mark.asyncio
+async def test_handler_skips_when_summary_lock_is_held(monkeypatch):
+    monkeypatch.setattr(
+        "app.domains.podcast.tasks.handlers_summary.single_instance_task_lock",
+        _skipped_lock,
+    )
+
+    result = await generate_pending_summaries_handler(object())
+
+    assert result == {"status": "skipped_locked", "reason": "summary_task_already_running"}
 
 
 def test_generate_pending_summaries_retries_on_failure(monkeypatch):

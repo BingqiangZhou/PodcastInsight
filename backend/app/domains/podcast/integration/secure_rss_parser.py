@@ -15,6 +15,7 @@ import aiohttp
 from defusedxml.ElementTree import fromstring
 
 from app.core.config import settings
+from app.core.datetime_utils import ensure_timezone_aware_fetch_time
 from app.domains.ai.llm_privacy import ContentSanitizer
 from app.domains.podcast.integration.platform_detector import PlatformDetector
 from app.domains.podcast.integration.security import (
@@ -62,12 +63,24 @@ class SecureRSSParser:
     Secure parser with complete validation pipeline
     """
 
-    def __init__(self, user_id: int):
+    def __init__(
+        self,
+        user_id: int,
+        *,
+        shared_session: aiohttp.ClientSession | None = None,
+    ):
         self.user_id = user_id
         self.security = PodcastSecurityValidator()
         self.privacy = ContentSanitizer(mode=settings.LLM_CONTENT_SANITIZE_MODE)
+        self._shared_session = shared_session
 
-    async def fetch_and_parse_feed(self, feed_url: str) -> tuple[bool, PodcastFeed | None, str | None]:
+    async def fetch_and_parse_feed(
+        self,
+        feed_url: str,
+        *,
+        max_episodes: int | None = None,
+        newer_than: datetime | None = None,
+    ) -> tuple[bool, PodcastFeed | None, str | None]:
         """
         Complete pipeline: fetch → validate → parse
 
@@ -98,7 +111,13 @@ class SecureRSSParser:
 
         # Step 4: Parse safely
         try:
-            feed = await self._parse_feed_securely(feed_url, xml_content, platform)
+            feed = await self._parse_feed_securely(
+                feed_url,
+                xml_content,
+                platform,
+                max_episodes=max_episodes,
+                newer_than=newer_than,
+            )
             logger.debug(f"Successfully parsed feed: {feed.title} with {len(feed.episodes)} episodes from {platform}")
             return True, feed, None
         except Exception as e:
@@ -109,40 +128,56 @@ class SecureRSSParser:
         """Fetch with size and timeout limits"""
         try:
             timeout = aiohttp.ClientTimeout(total=60, connect=10)
-            async with aiohttp.ClientSession(timeout=timeout) as session, session.get(
-                url, headers={
-                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'
-                }
-            ) as resp:
-                    if resp.status != 200:
-                        return None, f"HTTP {resp.status}"
-
-                    # Check size before reading
-                    size = int(resp.headers.get('Content-Length', 0))
-                    if size > self.security.MAX_RSS_SIZE:
-                        return None, f"Feed too large: {size} bytes"
-
-                    content = await resp.read()
-                    if len(content) > self.security.MAX_RSS_SIZE:
-                        return None, "Content exceeds size limit"
-
-                    # Decode content as text
-                    try:
-                        text_content = content.decode('utf-8')
-                    except UnicodeDecodeError:
-                        # Try other common encodings
-                        try:
-                            text_content = content.decode('latin-1')
-                        except UnicodeDecodeError:
-                            text_content = content.decode('utf-8', errors='ignore')
-
-                    return text_content, None
+            if self._shared_session is None:
+                async with aiohttp.ClientSession(timeout=timeout) as session:
+                    return await self._fetch_with_session(session, url)
+            return await self._fetch_with_session(self._shared_session, url)
 
         except aiohttp.ClientError as e:
             logger.error(f"Fetch error: {e}")
             return None, f"Could not fetch feed: {e}"
 
-    async def _parse_feed_securely(self, feed_url: str, xml_content: str, platform: str) -> PodcastFeed:
+    async def _fetch_with_session(
+        self,
+        session: aiohttp.ClientSession,
+        url: str,
+    ) -> tuple[str | None, str | None]:
+        async with session.get(
+            url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'
+            },
+        ) as resp:
+            if resp.status != 200:
+                return None, f"HTTP {resp.status}"
+
+            size = int(resp.headers.get('Content-Length', 0))
+            if size > self.security.MAX_RSS_SIZE:
+                return None, f"Feed too large: {size} bytes"
+
+            content = await resp.read()
+            if len(content) > self.security.MAX_RSS_SIZE:
+                return None, "Content exceeds size limit"
+
+            try:
+                text_content = content.decode('utf-8')
+            except UnicodeDecodeError:
+                try:
+                    text_content = content.decode('latin-1')
+                except UnicodeDecodeError:
+                    text_content = content.decode('utf-8', errors='ignore')
+
+            return text_content, None
+
+    async def _parse_feed_securely(
+        self,
+        feed_url: str,
+        xml_content: str,
+        platform: str,
+        *,
+        max_episodes: int | None = None,
+        newer_than: datetime | None = None,
+    ) -> PodcastFeed:
         """Parse RSS with defusedxml"""
         root = fromstring(xml_content)
 
@@ -180,13 +215,18 @@ class SecureRSSParser:
         # Podcast type
         podcast_type = self._safe_text(channel.findtext('itunes:type', '', namespaces=itunes_ns))
 
-        # Parse episodes - parse all available episodes
+        cutoff_time = ensure_timezone_aware_fetch_time(newer_than)
         episodes = []
 
         for item in channel.findall('item'):
             episode = self._parse_episode(item)
             if episode:
+                published_at = ensure_timezone_aware_fetch_time(episode.published_at)
+                if cutoff_time and published_at and published_at <= cutoff_time:
+                    break
                 episodes.append(episode)
+                if max_episodes is not None and len(episodes) >= max_episodes:
+                    break
 
         # Use latest episode's published time as last_fetched, fallback to current time
         last_fetched = episodes[0].published_at if episodes else datetime.now(UTC)
@@ -205,6 +245,10 @@ class SecureRSSParser:
             podcast_type=podcast_type or None,
             platform=platform
         )
+
+    async def close(self) -> None:
+        """Allow callers to use a unified parser cleanup path."""
+        return None
 
     def _extract_channel_image_url(self, channel, itunes_ns: dict) -> str | None:
         """
@@ -489,4 +533,3 @@ class SecureRSSParser:
         has_image_keywords = any(keyword in url_lower for keyword in ['image', 'img', 'photo', 'pic', 'cover'])
 
         return has_extension or has_image_keywords
-

@@ -88,10 +88,8 @@ class Settings(BaseSettings):
     # Database - Pool sizing adjusted for podcast-heavy workloads
     # Base calculation: 5 domains × 6 concurrent/domain × 2 buffer = 60 connections
     DATABASE_URL: str | None = None
-    DATABASE_POOL_SIZE: int = 20  # Increased from 10 - critical for RSS polling
-    DATABASE_MAX_OVERFLOW: int = (
-        40  # Increased from 20 - total 60 connections available
-    )
+    DATABASE_POOL_SIZE: int = 5
+    DATABASE_MAX_OVERFLOW: int = 5
 
     # Database timeout settings
     DATABASE_POOL_TIMEOUT: int = 30  # Max wait for connection (seconds)
@@ -179,6 +177,7 @@ class Settings(BaseSettings):
     PODCAST_FEED_LIGHTWEIGHT_ENABLED: bool = (
         True  # Enable lightweight feed payload/query path
     )
+    RSS_REFRESH_CONCURRENCY: int = 5
 
     # ETag Configuration
     ETAG_ENABLED: bool = True  # Enable ETag caching for GET endpoints

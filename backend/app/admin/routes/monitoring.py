@@ -9,10 +9,10 @@ from app.admin.auth import admin_required
 from app.admin.monitoring import SystemMonitorService
 from app.admin.routes._shared import get_templates
 from app.core.config import settings
-from app.core.database import get_db_pool_snapshot
+from app.core.database import check_db_readiness, get_db_pool_snapshot
 from app.core.middleware import get_performance_middleware
 from app.core.observability import ObservabilityThresholds, build_observability_snapshot
-from app.core.redis import get_redis_runtime_metrics
+from app.core.redis import get_redis_runtime_metrics, get_shared_redis
 from app.domains.user.models import User
 
 
@@ -31,11 +31,15 @@ _thresholds = ObservabilityThresholds(
 )
 
 
-def _runtime_observability_payload(request: Request) -> dict:
+async def _runtime_observability_payload(request: Request) -> dict:
     perf_store = get_performance_middleware(request.app)
     performance_metrics = perf_store.get_metrics() if perf_store else {"summary": {}}
     db_pool = get_db_pool_snapshot()
     redis_runtime = get_redis_runtime_metrics()
+    readiness = {
+        "db": await check_db_readiness(),
+        "redis": await get_shared_redis().check_health(),
+    }
     observability = build_observability_snapshot(
         performance_metrics=performance_metrics,
         db_pool=db_pool,
@@ -46,6 +50,7 @@ def _runtime_observability_payload(request: Request) -> dict:
         "performance_metrics": performance_metrics,
         "db_pool": db_pool,
         "redis_runtime": redis_runtime,
+        "readiness": readiness,
         "observability": observability,
     }
 
@@ -73,7 +78,7 @@ async def get_all_metrics(
 ):
     """Return system + runtime observability metrics."""
     payload = monitor_service.get_all_metrics()
-    payload["runtime"] = _runtime_observability_payload(request)
+    payload["runtime"] = await _runtime_observability_payload(request)
     return payload
 
 

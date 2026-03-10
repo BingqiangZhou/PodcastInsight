@@ -15,6 +15,7 @@ from app.core.database import (
     register_orm_models,
     worker_db_session,
 )
+from app.core.redis import get_shared_redis
 from app.domains.podcast.tasks._runlog import _insert_run_async
 
 
@@ -63,3 +64,19 @@ def log_task_run(
             metadata=metadata,
         )
     )
+
+
+@asynccontextmanager
+async def single_instance_task_lock(
+    lock_name: str,
+    *,
+    ttl_seconds: int,
+) -> AsyncIterator[bool]:
+    """Guard a periodic task so only one worker instance runs it at a time."""
+    redis = get_shared_redis()
+    token = await redis.acquire_owned_lock(lock_name, expire=ttl_seconds)
+    try:
+        yield token is not None
+    finally:
+        if token is not None:
+            await redis.release_owned_lock(lock_name, token)

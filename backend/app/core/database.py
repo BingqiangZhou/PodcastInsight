@@ -294,6 +294,24 @@ async def check_db_health() -> dict[str, Any]:
     return health_info
 
 
+async def check_db_readiness(timeout_seconds: float = 1.5) -> dict[str, Any]:
+    """Return a compact DB readiness payload suitable for readiness probes."""
+    if not is_database_configured():
+        return {"status": "not_configured"}
+
+    engine = get_engine()
+    try:
+        async with asyncio.timeout(timeout_seconds):
+            async with engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+        return {"status": "healthy"}
+    except TimeoutError:
+        return {"status": "unhealthy", "error": "timeout"}
+    except Exception as exc:
+        logger.error("Database readiness check failed: %s", exc)
+        return {"status": "unhealthy", "error": str(exc)}
+
+
 def get_db_pool_snapshot() -> dict[str, Any]:
     """Return lightweight DB pool metrics without forcing startup failure."""
     if not is_database_configured():

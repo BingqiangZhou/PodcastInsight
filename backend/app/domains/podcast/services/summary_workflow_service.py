@@ -4,14 +4,15 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import worker_db_session
 from app.core.exceptions import ValidationError
-from app.domains.podcast.models import TranscriptionTask
+from app.domains.podcast.models import PodcastEpisode, TranscriptionTask
 from app.domains.podcast.repositories import PodcastSummaryRepository
 from app.domains.podcast.services.summary_generation_service import (
     PodcastSummaryGenerationService,
@@ -36,6 +37,8 @@ class SummaryWorkflowService:
         ] = PodcastSummaryGenerationService,
     ):
         self.db = db
+        self.repo_factory = repo_factory
+        self.summary_service_factory = summary_service_factory
         self.repo = repo_factory(db)
         self.summary_service = summary_service_factory(db)
 
@@ -84,31 +87,15 @@ class SummaryWorkflowService:
         max_episodes_per_run: int = 10,
     ) -> dict[str, Any]:
         """Run the pending-summary batch flow shared by Celery handlers."""
-        pending_fetch_window = max_episodes_per_run * 5
-        pending_episodes = await self.repo.get_unsummarized_episodes(
-            limit=pending_fetch_window
+        await self._reset_stale_summary_claims()
+        claimed_episode_ids = await self._claim_pending_summary_episode_ids(
+            limit=max_episodes_per_run
         )
-        if len(pending_episodes) > max_episodes_per_run:
-            logger.info(
-                "Found %s pending summaries, attempting up to %s eligible episodes this run",
-                len(pending_episodes),
-                max_episodes_per_run,
-            )
-
         processed_count = 0
         failed_count = 0
-        skipped_running_count = 0
-        skipped_no_transcript_count = 0
-        eligible_attempt_count = 0
+        skipped_count = 0
 
-        episodes_with_transcript = [
-            episode
-            for episode in pending_episodes
-            if (episode.transcript_content or "").strip()
-        ]
-        skipped_no_transcript_count = len(pending_episodes) - len(episodes_with_transcript)
-
-        if not episodes_with_transcript:
+        if not claimed_episode_ids:
             return {
                 "status": "success",
                 "processed": 0,
@@ -116,51 +103,41 @@ class SummaryWorkflowService:
                 "processed_at": datetime.now(UTC).isoformat(),
             }
 
-        candidate_episode_ids = [episode.id for episode in episodes_with_transcript]
-        running_stmt = select(TranscriptionTask.episode_id).where(
-            TranscriptionTask.episode_id.in_(candidate_episode_ids),
-            TranscriptionTask.status.in_(["pending", "in_progress"]),
-        )
-        running_result = await self.db.execute(running_stmt)
-        running_episode_ids = set(running_result.scalars().all())
-
-        for episode in episodes_with_transcript:
-            if eligible_attempt_count >= max_episodes_per_run:
-                break
+        for episode_id in claimed_episode_ids:
             try:
-                if episode.id in running_episode_ids:
-                    skipped_running_count += 1
-                    continue
-
-                eligible_attempt_count += 1
-                await self.summary_service.generate_summary(episode.id)
+                async with worker_db_session("celery-summary-episode") as episode_session:
+                    summary_service = self.summary_service_factory(episode_session)
+                    await summary_service.generate_summary(episode_id)
                 processed_count += 1
             except ValidationError as exc:
                 if self._is_skippable_validation_error(exc):
-                    skipped_no_transcript_count += 1
+                    skipped_count += 1
                     logger.warning(
                         "Skipping summary for episode %s due to unmet generation precondition: %s",
-                        episode.id,
+                        episode_id,
                         exc,
                     )
+                    await self._reset_claimed_summary_status(episode_id)
                     continue
 
                 failed_count += 1
-                logger.exception("Failed to generate summary for episode %s", episode.id)
-                await self.repo.mark_summary_failed(episode.id, str(exc))
+                logger.exception("Failed to generate summary for episode %s", episode_id)
+                async with worker_db_session("celery-summary-episode") as episode_session:
+                    repo = self.repo_factory(episode_session)
+                    await repo.mark_summary_failed(episode_id, str(exc))
             except Exception as exc:
                 failed_count += 1
-                logger.exception("Failed to generate summary for episode %s", episode.id)
-                await self.repo.mark_summary_failed(episode.id, str(exc))
+                logger.exception("Failed to generate summary for episode %s", episode_id)
+                async with worker_db_session("celery-summary-episode") as episode_session:
+                    repo = self.repo_factory(episode_session)
+                    await repo.mark_summary_failed(episode_id, str(exc))
 
         logger.info(
-            "Pending summary run completed: processed=%s failed=%s skipped_no_transcript=%s skipped_running=%s attempted=%s total_pending=%s",
+            "Pending summary run completed: processed=%s failed=%s skipped=%s claimed=%s",
             processed_count,
             failed_count,
-            skipped_no_transcript_count,
-            skipped_running_count,
-            eligible_attempt_count,
-            len(pending_episodes),
+            skipped_count,
+            len(claimed_episode_ids),
         )
 
         return {
@@ -177,3 +154,69 @@ class SummaryWorkflowService:
             "No transcript content available for episode" in message
             or "Summary generation already in progress for episode" in message
         )
+
+    async def _reset_stale_summary_claims(self) -> None:
+        stale_before = datetime.now(UTC) - timedelta(hours=1)
+        stmt = (
+            update(PodcastEpisode)
+            .where(
+                and_(
+                    PodcastEpisode.status == "summary_generating",
+                    PodcastEpisode.ai_summary.is_(None),
+                    PodcastEpisode.updated_at < stale_before,
+                )
+            )
+            .values(
+                status="summary_failed",
+                updated_at=datetime.now(UTC),
+            )
+        )
+        await self.db.execute(stmt)
+        await self.db.commit()
+
+    async def _claim_pending_summary_episode_ids(self, *, limit: int) -> list[int]:
+        claim_stmt = (
+            select(PodcastEpisode.id)
+            .outerjoin(TranscriptionTask, TranscriptionTask.episode_id == PodcastEpisode.id)
+            .where(
+                and_(
+                    PodcastEpisode.ai_summary.is_(None),
+                    PodcastEpisode.status.in_(["pending_summary", "summary_failed"]),
+                    PodcastEpisode.transcript_content.is_not(None),
+                    PodcastEpisode.transcript_content != "",
+                    or_(
+                        TranscriptionTask.id.is_(None),
+                        ~TranscriptionTask.status.in_(["pending", "in_progress"]),
+                    ),
+                )
+            )
+            .order_by(PodcastEpisode.published_at.desc(), PodcastEpisode.id.desc())
+            .limit(limit)
+            .with_for_update(skip_locked=True, of=PodcastEpisode)
+        )
+        result = await self.db.execute(claim_stmt)
+        episode_ids = list(result.scalars().all())
+        if not episode_ids:
+            return []
+
+        await self.db.execute(
+            update(PodcastEpisode)
+            .where(PodcastEpisode.id.in_(episode_ids))
+            .values(
+                status="summary_generating",
+                updated_at=datetime.now(UTC),
+            )
+        )
+        await self.db.commit()
+        return episode_ids
+
+    async def _reset_claimed_summary_status(self, episode_id: int) -> None:
+        await self.db.execute(
+            update(PodcastEpisode)
+            .where(PodcastEpisode.id == episode_id)
+            .values(
+                status="pending_summary",
+                updated_at=datetime.now(UTC),
+            )
+        )
+        await self.db.commit()

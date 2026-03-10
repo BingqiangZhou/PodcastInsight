@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import and_, delete, func, or_, select
+import aiohttp
+from sqlalchemy import and_, delete, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.admin.storage_service import StorageCleanupService
 from app.core.config import settings
+from app.core.database import worker_db_session
+from app.core.datetime_utils import ensure_timezone_aware_fetch_time
 from app.core.redis import get_shared_redis
 from app.domains.podcast.integration.secure_rss_parser import SecureRSSParser
 from app.domains.podcast.models import (
@@ -40,6 +45,8 @@ logger = logging.getLogger(__name__)
 class PodcastTaskOrchestrationService:
     """Orchestrate all background (Celery) task workflows."""
 
+    _refresh_batch_size = 100
+
     def __init__(self, session: AsyncSession):
         self.session = session
         self.redis = get_shared_redis()
@@ -47,74 +54,202 @@ class PodcastTaskOrchestrationService:
     # ── Feed sync ──────────────────────────────────────────────────────────
 
     async def refresh_all_podcast_feeds(self) -> dict:
-        repo = PodcastSubscriptionRepository(self.session)
-        sub_stmt = select(Subscription).where(
-            and_(
-                Subscription.source_type == "podcast-rss",
-                Subscription.status == SubscriptionStatus.ACTIVE.value,
-            )
-        )
-        sub_rows = await self.session.execute(sub_stmt)
-        all_subscriptions = list(sub_rows.scalars().all())
+        refreshed_count = 0
+        new_episodes_count = 0
+        pending_transcription_episode_ids: list[int] = []
+        next_subscription_id = 0
+        concurrency = max(1, settings.RSS_REFRESH_CONCURRENCY)
 
-        user_sub_stmt = (
-            select(UserSubscription)
-            .join(Subscription, UserSubscription.subscription_id == Subscription.id)
+        while True:
+            candidates, next_subscription_id = await self._load_due_refresh_candidates(
+                after_subscription_id=next_subscription_id,
+                limit=self._refresh_batch_size,
+            )
+            if next_subscription_id is None:
+                break
+            if not candidates:
+                continue
+
+            batch_result = await self._refresh_due_subscription_batch(
+                candidates,
+                concurrency=concurrency,
+            )
+            refreshed_count += batch_result["refreshed_subscriptions"]
+            new_episodes_count += batch_result["new_episodes"]
+            pending_transcription_episode_ids.extend(
+                batch_result["transcription_episode_ids"]
+            )
+
+        if pending_transcription_episode_ids:
+            workflow = self._build_transcription_workflow()
+            dispatch_result = await workflow.dispatch_pending_transcriptions(
+                pending_transcription_episode_ids
+            )
+            logger.info(
+                "Feed refresh transcription dispatch completed: checked=%s dispatched=%s skipped=%s failed=%s",
+                dispatch_result["checked"],
+                dispatch_result["dispatched"],
+                dispatch_result["skipped"],
+                dispatch_result["failed"],
+            )
+
+        return {
+            "status": "success",
+            "refreshed_subscriptions": refreshed_count,
+            "new_episodes": new_episodes_count,
+            "processed_at": datetime.now(UTC).isoformat(),
+        }
+
+    async def _load_due_refresh_candidates(
+        self,
+        *,
+        after_subscription_id: int,
+        limit: int,
+    ) -> tuple[list[dict[str, Any]], int | None]:
+        sub_stmt = (
+            select(Subscription)
             .where(
                 and_(
                     Subscription.source_type == "podcast-rss",
                     Subscription.status == SubscriptionStatus.ACTIVE.value,
-                    UserSubscription.is_archived == False,  # noqa: E712
+                    Subscription.id > after_subscription_id,
                 )
             )
+            .order_by(Subscription.id.asc())
+            .limit(limit)
+        )
+        sub_rows = await self.session.execute(sub_stmt)
+        subscriptions = list(sub_rows.scalars().all())
+        if not subscriptions:
+            return [], None
+
+        subscription_ids = [subscription.id for subscription in subscriptions]
+        user_sub_stmt = (
+            select(UserSubscription)
+            .options(joinedload(UserSubscription.subscription))
+            .where(
+                and_(
+                    UserSubscription.subscription_id.in_(subscription_ids),
+                    UserSubscription.is_archived.is_(False),
+                )
+            )
+            .order_by(UserSubscription.subscription_id.asc(), UserSubscription.id.asc())
         )
         user_sub_rows = await self.session.execute(user_sub_stmt)
-        user_subscriptions = list(user_sub_rows.scalars().all())
+        user_subscriptions = list(user_sub_rows.unique().scalars().all())
 
-        subscriptions_to_update: set[int] = {
-            item.subscription_id
-            for item in user_subscriptions
-            if item.should_update_now()
-        }
-        if not subscriptions_to_update:
-            return {
-                "status": "success",
-                "refreshed_subscriptions": 0,
-                "new_episodes": 0,
-                "processed_at": datetime.now(UTC).isoformat(),
-            }
-
-        subscriptions_by_id = {sub.id: sub for sub in all_subscriptions}
-        user_subscriptions_by_id = {
-            user_sub.subscription_id: user_sub for user_sub in user_subscriptions
-        }
-
-        refreshed_count = 0
-        new_episodes_count = 0
-
-        for subscription_id in subscriptions_to_update:
-            subscription = subscriptions_by_id.get(subscription_id)
-            if subscription is None:
+        due_candidates: list[dict[str, Any]] = []
+        seen_subscription_ids: set[int] = set()
+        for user_subscription in user_subscriptions:
+            if user_subscription.subscription_id in seen_subscription_ids:
+                continue
+            if not user_subscription.should_update_now():
                 continue
 
-            user_sub = user_subscriptions_by_id.get(subscription_id)
-            user_id = user_sub.user_id if user_sub else 1
-            parser = SecureRSSParser(user_id)
+            seen_subscription_ids.add(user_subscription.subscription_id)
+            due_candidates.append(
+                {
+                    "subscription_id": user_subscription.subscription_id,
+                    "user_id": user_subscription.user_id,
+                }
+            )
 
+        return due_candidates, subscriptions[-1].id
+
+    async def _refresh_due_subscription_batch(
+        self,
+        candidates: list[dict[str, Any]],
+        *,
+        concurrency: int,
+    ) -> dict[str, Any]:
+        semaphore = asyncio.Semaphore(concurrency)
+        timeout = aiohttp.ClientTimeout(total=60, connect=10)
+        connector = aiohttp.TCPConnector(limit=concurrency, limit_per_host=concurrency)
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+            )
+        }
+
+        async with aiohttp.ClientSession(
+            timeout=timeout,
+            connector=connector,
+            headers=headers,
+        ) as http_session:
+            async def _run_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
+                async with semaphore:
+                    return await self._refresh_single_subscription(
+                        candidate,
+                        http_session=http_session,
+                    )
+
+            results = await asyncio.gather(
+                *[_run_candidate(candidate) for candidate in candidates],
+                return_exceptions=True,
+            )
+
+        refreshed_subscriptions = 0
+        new_episodes = 0
+        transcription_episode_ids: list[int] = []
+        for candidate, result in zip(candidates, results, strict=False):
+            if isinstance(result, Exception):
+                logger.exception(
+                    "Unexpected failure during refresh for subscription %s",
+                    candidate["subscription_id"],
+                    exc_info=result,
+                )
+                continue
+
+            refreshed_subscriptions += result["refreshed"]
+            new_episodes += result["new_episodes"]
+            transcription_episode_ids.extend(result["transcription_episode_ids"])
+
+        return {
+            "refreshed_subscriptions": refreshed_subscriptions,
+            "new_episodes": new_episodes,
+            "transcription_episode_ids": transcription_episode_ids,
+        }
+
+    async def _refresh_single_subscription(
+        self,
+        candidate: dict[str, Any],
+        *,
+        http_session: aiohttp.ClientSession,
+    ) -> dict[str, Any]:
+        subscription_id = int(candidate["subscription_id"])
+        user_id = int(candidate["user_id"])
+
+        async with worker_db_session("celery-feed-refresh-subscription") as session:
+            repo = PodcastSubscriptionRepository(session)
+            subscription = await repo.get_subscription_by_id_direct(subscription_id)
+            if subscription is None:
+                return {
+                    "refreshed": 0,
+                    "new_episodes": 0,
+                    "transcription_episode_ids": [],
+                }
+
+            parser = SecureRSSParser(user_id=user_id, shared_session=http_session)
             try:
                 success, feed, error = await parser.fetch_and_parse_feed(
-                    subscription.source_url
+                    subscription.source_url,
+                    max_episodes=settings.PODCAST_EPISODE_BATCH_SIZE,
+                    newer_than=subscription.last_fetched_at,
                 )
-                if not success:
+                if not success or feed is None:
                     logger.error(
                         "Failed refreshing subscription %s (%s): %s",
                         subscription.id,
                         subscription.title,
                         error,
                     )
-                    continue
+                    return {
+                        "refreshed": 0,
+                        "new_episodes": 0,
+                        "transcription_episode_ids": [],
+                    }
 
-                sync_service = PodcastSyncService(self.session, user_id)
                 refreshed_at = datetime.now(UTC).isoformat()
                 episodes_payload = [
                     {
@@ -136,60 +271,38 @@ class PodcastTaskOrchestrationService:
                     subscription_id=subscription.id,
                     episodes_data=episodes_payload,
                 )
-                new_episodes = len(new_episode_rows)
+
+                last_fetched = ensure_timezone_aware_fetch_time(
+                    subscription.last_fetched_at
+                )
+                transcription_episode_ids: list[int] = []
                 for saved_episode in new_episode_rows:
-                    last_fetched = subscription.last_fetched_at
-
-                    # Ensure both datetimes are timezone-aware before comparison
-                    from app.core.datetime_utils import ensure_timezone_aware_fetch_time
-
-                    # Normalize last_fetched to UTC if it exists
-                    if last_fetched:
-                        last_fetched = ensure_timezone_aware_fetch_time(last_fetched)
-
-                    # Normalize published_at to UTC (handle both naive and aware cases)
-                    published_at = saved_episode.published_at
-                    if published_at.tzinfo is None:
-                        published_at = ensure_timezone_aware_fetch_time(published_at)
-
-                    if last_fetched and published_at > last_fetched:
-                        await sync_service.trigger_transcription(saved_episode.id)
-                    else:
-                        logger.info(
-                            "Episode %s (published: %s) is old (last fetch: %s), skipping auto-processing",
-                            saved_episode.id,
-                            published_at,
-                            subscription.last_fetched_at,
-                        )
+                    published_at = ensure_timezone_aware_fetch_time(
+                        saved_episode.published_at
+                    )
+                    if last_fetched and published_at and published_at > last_fetched:
+                        transcription_episode_ids.append(saved_episode.id)
 
                 await repo.update_subscription_fetch_time(
                     subscription.id,
                     feed.last_fetched,
                 )
 
-                refreshed_count += 1
-                new_episodes_count += new_episodes
-                if new_episodes:
+                if new_episode_rows:
                     logger.info(
                         "Refreshed subscription %s (%s), %s new episodes",
                         subscription.id,
                         subscription.title,
-                        new_episodes,
+                        len(new_episode_rows),
                     )
-            except Exception:
-                logger.exception(
-                    "Unexpected failure during refresh for subscription %s",
-                    subscription_id,
-                )
+
+                return {
+                    "refreshed": 1,
+                    "new_episodes": len(new_episode_rows),
+                    "transcription_episode_ids": transcription_episode_ids,
+                }
             finally:
                 await parser.close()
-
-        return {
-            "status": "success",
-            "refreshed_subscriptions": refreshed_count,
-            "new_episodes": new_episodes_count,
-            "processed_at": datetime.now(UTC).isoformat(),
-        }
 
     async def process_opml_subscription_episodes(
         self,
@@ -461,10 +574,18 @@ class PodcastTaskOrchestrationService:
                 "processed_at": datetime.now(UTC).isoformat(),
             }
 
+        active_user_subscription_exists = exists(
+            select(1).where(
+                and_(
+                    UserSubscription.subscription_id == Subscription.id,
+                    UserSubscription.is_archived.is_(False),
+                )
+            )
+        )
         filters = [
             Subscription.source_type == "podcast-rss",
             Subscription.status == SubscriptionStatus.ACTIVE.value,
-            UserSubscription.is_archived.is_(False),
+            active_user_subscription_exists,
             PodcastEpisode.audio_url.is_not(None),
             PodcastEpisode.audio_url != "",
             or_(
@@ -478,10 +599,9 @@ class PodcastTaskOrchestrationService:
         ]
 
         count_stmt = (
-            select(func.count(func.distinct(PodcastEpisode.id)))
+            select(func.count(PodcastEpisode.id))
             .select_from(PodcastEpisode)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
-            .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
             .outerjoin(
                 TranscriptionTask, TranscriptionTask.episode_id == PodcastEpisode.id
             )
@@ -504,14 +624,13 @@ class PodcastTaskOrchestrationService:
         id_stmt = (
             select(PodcastEpisode.id, PodcastEpisode.published_at)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
-            .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
             .outerjoin(
                 TranscriptionTask, TranscriptionTask.episode_id == PodcastEpisode.id
             )
             .where(and_(*filters))
-            .distinct()
             .order_by(PodcastEpisode.published_at.desc(), PodcastEpisode.id.desc())
             .limit(batch_size)
+            .with_for_update(skip_locked=True, of=PodcastEpisode)
         )
         rows = await self.session.execute(id_stmt)
         episode_ids = [row[0] for row in rows.all()]

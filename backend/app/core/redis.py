@@ -23,6 +23,7 @@ Recommended naming conventions:
 import asyncio
 import hashlib
 import json
+import secrets
 from contextlib import suppress
 from datetime import datetime
 from time import perf_counter
@@ -583,6 +584,35 @@ class PodcastRedis:
         await client.delete(f"podcast:lock:{lock_name}")
         self._record_command_timing("DEL", (perf_counter() - started) * 1000)
 
+    async def acquire_owned_lock(
+        self,
+        lock_name: str,
+        *,
+        expire: int = 300,
+    ) -> str | None:
+        """Acquire a lock and return its owner token when successful."""
+        token = secrets.token_urlsafe(16)
+        acquired = await self.acquire_lock(lock_name, expire=expire, value=token)
+        return token if acquired else None
+
+    async def release_owned_lock(self, lock_name: str, token: str) -> bool:
+        """Release a lock only when the stored token matches the caller token."""
+        client = await self._get_client()
+        started = perf_counter()
+        result = await client.eval(
+            """
+            if redis.call("get", KEYS[1]) == ARGV[1] then
+                return redis.call("del", KEYS[1])
+            end
+            return 0
+            """,
+            1,
+            f"podcast:lock:{lock_name}",
+            token,
+        )
+        self._record_command_timing("EVAL", (perf_counter() - started) * 1000)
+        return bool(result)
+
     async def set_if_not_exists(
         self,
         key: str,
@@ -648,6 +678,20 @@ class PodcastRedis:
                 self._client = None
                 self._client_loop_token = None
                 self._last_health_check_at = 0.0
+
+    async def check_health(self, timeout_seconds: float = 1.5) -> dict[str, Any]:
+        """Return a compact Redis readiness payload suitable for readiness probes."""
+        try:
+            async with asyncio.timeout(timeout_seconds):
+                client = await self._get_client()
+                started = perf_counter()
+                await client.ping()
+                self._record_command_timing("PING", (perf_counter() - started) * 1000)
+            return {"status": "healthy"}
+        except TimeoutError:
+            return {"status": "unhealthy", "error": "timeout"}
+        except Exception as exc:
+            return {"status": "unhealthy", "error": str(exc)}
 
 
 async def get_redis() -> PodcastRedis:
