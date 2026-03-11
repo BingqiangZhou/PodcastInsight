@@ -207,6 +207,7 @@ class _MiniDockBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final queueSheetOpen = ref.watch(podcastPlayerQueueSheetOpenProvider);
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
       child: Row(
@@ -283,7 +284,9 @@ class _MiniDockBody extends ConsumerWidget {
                 ? const Key('podcast_bottom_player_mini_playlist')
                 : const ValueKey('podcast_bottom_player_mini_playlist_overlay'),
             tooltip: listTooltip,
-            onPressed: () => _showQueueSheet(context, ref),
+            onPressed: queueSheetOpen
+                ? null
+                : () => _showQueueSheet(context, ref),
             icon: const Icon(Icons.playlist_play_rounded),
           ),
         ],
@@ -455,6 +458,7 @@ class _ExpandedHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final playbackRate = ref.watch(audioPlaybackRateProvider);
+    final queueSheetOpen = ref.watch(podcastPlayerQueueSheetOpenProvider);
     return Row(
       children: [
         Expanded(
@@ -469,7 +473,9 @@ class _ExpandedHeader extends ConsumerWidget {
         IconButton(
           key: const Key('podcast_bottom_player_playlist'),
           tooltip: l10n?.podcast_player_list ?? 'List',
-          onPressed: () => _showQueueSheet(context, ref),
+          onPressed: queueSheetOpen
+              ? null
+              : () => _showQueueSheet(context, ref),
           icon: const Icon(Icons.playlist_play_rounded),
         ),
         IconButton(
@@ -1045,14 +1051,25 @@ Future<void> _showQueueSheet(BuildContext context, WidgetRef ref) async {
     return;
   }
 
+  final uiNotifier = ref.read(podcastPlayerUiProvider.notifier);
+  final uiState = ref.read(podcastPlayerUiProvider);
+  if (uiState.queueSheetOpen) {
+    return;
+  }
+
   final queueController = ref.read(podcastQueueControllerProvider.notifier);
   final queueState = ref.read(podcastQueueControllerProvider);
 
-  final showFuture = PodcastQueueSheet.show(modalContext);
-  unawaited(
-    queueController
-        .loadQueue(forceRefresh: queueState.hasValue)
-        .catchError((_) => null),
-  );
-  await showFuture;
+  uiNotifier.openQueueSheet();
+  try {
+    final showFuture = PodcastQueueSheet.show(modalContext);
+    unawaited(
+      queueController
+          .loadQueue(forceRefresh: queueState.hasValue)
+          .catchError((_) => null),
+    );
+    await showFuture;
+  } finally {
+    uiNotifier.closeQueueSheet();
+  }
 }

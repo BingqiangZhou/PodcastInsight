@@ -79,6 +79,43 @@ void main() {
     });
 
     testWidgets(
+      'dock playlist button ignores repeated taps while sheet is open',
+      (tester) async {
+        _setMobileViewport(tester);
+        final audioNotifier = TestAudioPlayerNotifier(
+          AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+        );
+        final queueController = TestPodcastQueueController();
+        final uiNotifier = TestPodcastPlayerUiNotifier();
+
+        await tester.pumpWidget(
+          _createWidget(
+            audioNotifier: audioNotifier,
+            queueController: queueController,
+            uiNotifier: uiNotifier,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final playlistButton = find.byKey(
+          const Key('podcast_bottom_player_mini_playlist'),
+        );
+        await tester.tap(playlistButton);
+        await tester.tap(playlistButton, warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PodcastQueueSheet), findsOneWidget);
+        expect(queueController.loadQueueCalls, 1);
+        expect(uiNotifier.state.queueSheetOpen, isTrue);
+
+        Navigator.of(tester.element(find.byType(PodcastQueueSheet))).pop();
+        await tester.pumpAndSettle();
+
+        expect(uiNotifier.state.queueSheetOpen, isFalse);
+      },
+    );
+
+    testWidgets(
       'dock playlist button opens queue sheet before refresh finishes',
       (tester) async {
         _setMobileViewport(tester);
@@ -108,6 +145,47 @@ void main() {
         queueController.completeLoad();
         Navigator.of(tester.element(find.byType(PodcastQueueSheet))).pop();
         await tester.pumpAndSettle();
+      },
+    );
+
+    testWidgets(
+      'expanded playlist button ignores repeated taps while sheet is open',
+      (tester) async {
+        _setMobileViewport(tester);
+        final audioNotifier = TestAudioPlayerNotifier(
+          AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+        );
+        final queueController = TestPodcastQueueController();
+        final uiNotifier = TestPodcastPlayerUiNotifier(
+          const PodcastPlayerUiState(
+            presentation: PodcastPlayerPresentation.expanded,
+          ),
+        );
+
+        await tester.pumpWidget(
+          _createWidget(
+            audioNotifier: audioNotifier,
+            queueController: queueController,
+            uiNotifier: uiNotifier,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final playlistButton = find.byKey(
+          const Key('podcast_bottom_player_playlist'),
+        );
+        await tester.tap(playlistButton);
+        await tester.tap(playlistButton, warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PodcastQueueSheet), findsOneWidget);
+        expect(queueController.loadQueueCalls, 1);
+        expect(uiNotifier.state.queueSheetOpen, isTrue);
+
+        Navigator.of(tester.element(find.byType(PodcastQueueSheet))).pop();
+        await tester.pumpAndSettle();
+
+        expect(uiNotifier.state.queueSheetOpen, isFalse);
       },
     );
 

@@ -30,25 +30,25 @@ class PodcastQueueSheet extends ConsumerWidget {
       return existing;
     }
 
-    final showFuture = Future.sync(() async {
-      if (beforeShow != null) {
-        await beforeShow();
-        if (!context.mounted) {
-          return;
-        }
-      }
-      await showAdaptiveSheet<void>(
-        context: context,
-        builder: (context) => const PodcastQueueSheet(),
-      );
-    });
-
+    // Keep queue sheet opening idempotent even if multiple entry points race.
     late final Future<void> trackedFuture;
-    trackedFuture = showFuture.whenComplete(() {
-      if (identical(_activeShowFuture, trackedFuture)) {
-        _activeShowFuture = null;
-      }
-    });
+    trackedFuture =
+        Future.sync(() async {
+          if (beforeShow != null) {
+            await beforeShow();
+            if (!context.mounted) {
+              return;
+            }
+          }
+          await showAdaptiveSheet<void>(
+            context: context,
+            builder: (context) => const PodcastQueueSheet(),
+          );
+        }).whenComplete(() {
+          if (identical(_activeShowFuture, trackedFuture)) {
+            _activeShowFuture = null;
+          }
+        });
 
     _activeShowFuture = trackedFuture;
     return trackedFuture;

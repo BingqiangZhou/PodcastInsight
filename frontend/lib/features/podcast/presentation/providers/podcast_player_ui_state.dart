@@ -6,20 +6,24 @@ class PodcastPlayerUiState {
   const PodcastPlayerUiState({
     this.presentation = PodcastPlayerPresentation.collapsed,
     this.utilityMenuOpen = false,
+    this.queueSheetOpen = false,
   });
 
   final PodcastPlayerPresentation presentation;
   final bool utilityMenuOpen;
+  final bool queueSheetOpen;
 
   bool get isExpanded => presentation == PodcastPlayerPresentation.expanded;
 
   PodcastPlayerUiState copyWith({
     PodcastPlayerPresentation? presentation,
     bool? utilityMenuOpen,
+    bool? queueSheetOpen,
   }) {
     return PodcastPlayerUiState(
       presentation: presentation ?? this.presentation,
       utilityMenuOpen: utilityMenuOpen ?? this.utilityMenuOpen,
+      queueSheetOpen: queueSheetOpen ?? this.queueSheetOpen,
     );
   }
 }
@@ -73,6 +77,20 @@ class PodcastPlayerUiNotifier extends Notifier<PodcastPlayerUiState> {
   void toggleUtilityMenu() {
     state = state.copyWith(utilityMenuOpen: !state.utilityMenuOpen);
   }
+
+  void openQueueSheet() {
+    if (state.queueSheetOpen) {
+      return;
+    }
+    state = state.copyWith(queueSheetOpen: true);
+  }
+
+  void closeQueueSheet() {
+    if (!state.queueSheetOpen) {
+      return;
+    }
+    state = state.copyWith(queueSheetOpen: false);
+  }
 }
 
 final podcastPlayerUiProvider =
@@ -87,5 +105,11 @@ final podcastPlayerExpandedProvider = Provider<bool>((ref) {
 final podcastPlayerUtilityMenuOpenProvider = Provider<bool>((ref) {
   return ref.watch(
     podcastPlayerUiProvider.select((state) => state.utilityMenuOpen),
+  );
+});
+
+final podcastPlayerQueueSheetOpenProvider = Provider<bool>((ref) {
+  return ref.watch(
+    podcastPlayerUiProvider.select((state) => state.queueSheetOpen),
   );
 });
