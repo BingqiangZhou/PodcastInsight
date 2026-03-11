@@ -5,7 +5,9 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
     return LayoutBuilder(
       builder: (context, layoutConstraints) {
         // Use split-pane layout on desktop/tablet widths.
-        final isWideScreen = layoutConstraints.maxWidth > 800;
+        final isWideScreen =
+            layoutConstraints.maxWidth >
+            _PodcastEpisodeDetailPageState._wideLayoutBreakpoint;
 
         if (isWideScreen) {
           return Stack(
@@ -14,7 +16,7 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                    width: 200,
+                    width: _PodcastEpisodeDetailPageState._wideSidebarWidth,
                     child: Column(
                       children: [
                         AnimatedContainer(
@@ -50,7 +52,8 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
                             child: Container(
                               padding: EdgeInsets.only(
                                 top: _isHeaderExpanded ? 90 : 16,
-                                right: 16,
+                                right: _PodcastEpisodeDetailPageState
+                                    ._wideContentRightInset,
                                 bottom: 16,
                               ),
                               child: _buildTabContent(episode),
@@ -81,7 +84,9 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
                 top: 0,
                 left: 0,
                 right: _isHeaderExpanded ? 0 : null,
-                width: _isHeaderExpanded ? null : 200,
+                width: _isHeaderExpanded
+                    ? null
+                    : _PodcastEpisodeDetailPageState._wideSidebarWidth,
                 child: _buildAnimatedHeader(episode),
               ),
               if (!_isHeaderExpanded)

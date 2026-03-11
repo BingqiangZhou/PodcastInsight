@@ -420,8 +420,40 @@ void main() {
       expect(miniPlayerRect.left, greaterThanOrEqualTo(sidebarRect.right));
     });
 
+    testWidgets('tablet mini player stays inside the tablet content pane', (
+      tester,
+    ) async {
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _testEpisode(), isExpanded: false),
+      );
+
+      await _pumpHomePage(
+        tester,
+        audioNotifier: audioNotifier,
+        initialTab: 2,
+        size: const Size(700, 900),
+      );
+
+      final hostFinder = find.byKey(const Key('global_podcast_player'));
+      final miniRect = tester.getRect(
+        find.byKey(const Key('podcast_bottom_player_mini_wrapper')),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(hostFinder),
+        listen: false,
+      );
+      final expectedSpec = resolvePodcastPlayerViewportSpec(
+        tester.element(hostFinder),
+        container.read(podcastPlayerHostLayoutProvider),
+        route: '/profile',
+      );
+
+      expect(miniRect.left, closeTo(expectedSpec.leftInset, 0.5));
+      expect(miniRect.right, closeTo(700 - expectedSpec.rightInset, 0.5));
+    });
+
     testWidgets(
-      'desktop title navigation to detail and back keeps player out of the sidebar',
+      'desktop detail pop to home collapses player and keeps it out of the sidebar',
       (tester) async {
         final audioNotifier = TestAudioPlayerNotifier(
           AudioPlayerState(
@@ -444,8 +476,14 @@ void main() {
 
         expect(find.text('Episode Detail Route'), findsOneWidget);
 
-        router.go('/home');
+        router.pop();
         await tester.pumpAndSettle();
+
+        expect(audioNotifier.state.isExpanded, isFalse);
+        expect(
+          find.byKey(const Key('podcast_bottom_player_mini')),
+          findsOneWidget,
+        );
 
         final sidebarRect = tester.getRect(
           find.byKey(const ValueKey('desktop_navigation_sidebar')),
@@ -457,6 +495,41 @@ void main() {
         expect(playerRect.left, greaterThanOrEqualTo(sidebarRect.right));
       },
     );
+
+    testWidgets('detail navigation to a non-home route keeps player expanded', (
+      tester,
+    ) async {
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(
+          currentEpisode: _testEpisode(),
+          isExpanded: true,
+          duration: 180000,
+        ),
+      );
+
+      final router = await _pumpHomePageRouterFlow(
+        tester,
+        audioNotifier: audioNotifier,
+        size: const Size(1200, 900),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('podcast_bottom_player_expanded_title')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Episode Detail Route'), findsOneWidget);
+
+      router.go('/podcast');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Podcast Route'), findsOneWidget);
+      expect(audioNotifier.state.isExpanded, isTrue);
+      expect(
+        find.byKey(const Key('podcast_bottom_player_expanded')),
+        findsOneWidget,
+      );
+    });
   });
 }
 
@@ -504,6 +577,7 @@ Future<void> _pumpHomePage(
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        navigatorObservers: [appRouteObserver],
         builder: (context, child) => Overlay(
           initialEntries: [
             OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
@@ -532,6 +606,7 @@ Future<GoRouter> _pumpHomePageRouterFlow(
   final router = GoRouter(
     navigatorKey: appNavigatorKey,
     initialLocation: '/home',
+    observers: [appRouteObserver],
     routes: [
       GoRoute(
         path: '/home',
@@ -542,6 +617,11 @@ Future<GoRouter> _pumpHomePageRouterFlow(
         path: '/podcast/episodes/:subscriptionId/:episodeId',
         name: 'episodeDetail',
         builder: (context, state) => const _HomeRouteEpisodeDetailPage(),
+      ),
+      GoRoute(
+        path: '/podcast',
+        name: 'podcast',
+        builder: (context, state) => const _HomeRoutePodcastPage(),
       ),
     ],
   );
@@ -666,14 +746,23 @@ class _HomeRouteEpisodeDetailPage extends StatelessWidget {
             const Text('Episode Detail Route'),
             const SizedBox(height: 12),
             FilledButton(
-              key: const Key('back_to_home'),
-              onPressed: () => context.go('/home'),
-              child: const Text('Back Home'),
+              key: const Key('back_to_previous'),
+              onPressed: () => context.pop(),
+              child: const Text('Back'),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _HomeRoutePodcastPage extends StatelessWidget {
+  const _HomeRoutePodcastPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: Text('Podcast Route')));
   }
 }
 

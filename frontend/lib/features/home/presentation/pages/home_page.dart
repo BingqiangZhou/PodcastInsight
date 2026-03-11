@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/providers/route_provider.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/custom_adaptive_navigation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../podcast/presentation/pages/podcast_feed_page.dart';
@@ -23,11 +24,8 @@ class HomePage extends ConsumerStatefulWidget {
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> with RouteAware {
   static const int _tabCount = 3;
-  static const double _tabletSidebarWidth = 86;
-  static const double _tabletContentGap = 12;
-  static const double _desktopContentRightInset = 12;
 
   late int _currentIndex;
   bool _hasAttemptedPlaybackRestore = false;
@@ -36,6 +34,48 @@ class _HomePageState extends ConsumerState<HomePage> {
   final Set<int> _visitedTabs = <int>{};
   PodcastPlayerHostPageOverride? _lastPlayerHostOverride;
   late final PodcastPlayerHostPageOverrideNotifier _playerHostOverrideNotifier;
+  ModalRoute<dynamic>? _subscribedRoute;
+  bool _returningFromCoveredRoute = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (_subscribedRoute == route) {
+      return;
+    }
+
+    appRouteObserver.unsubscribe(this);
+    _subscribedRoute = route;
+    if (route != null) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    appRouteObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPushNext() {
+    _returningFromCoveredRoute = true;
+    _lastPlayerHostOverride = null;
+  }
+
+  @override
+  void didPopNext() {
+    if (!_returningFromCoveredRoute) {
+      return;
+    }
+
+    _returningFromCoveredRoute = false;
+    final playerState = ref.read(audioPlayerProvider);
+    if (playerState.isExpanded) {
+      ref.read(audioPlayerProvider.notifier).setExpanded(false);
+    }
+  }
 
   @override
   void initState() {
@@ -86,7 +126,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _syncPlayerHostOverride(PodcastPlayerHostPageOverride override) {
-    if (_lastPlayerHostOverride == override) {
+    final currentOverride = ref.read(podcastPlayerHostPageOverrideProvider);
+    if (_lastPlayerHostOverride == override && currentOverride == override) {
       return;
     }
     _lastPlayerHostOverride = override;
@@ -99,25 +140,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
-  PodcastPlayerHostPageOverride _buildPlayerHostOverride(double width) {
-    if (width < 600) {
-      return const PodcastPlayerHostPageOverride(
-        routeOwner: PodcastPlayerHostRouteOwner.homeShell,
-      );
-    }
-
-    if (width < 840) {
-      return const PodcastPlayerHostPageOverride(
-        routeOwner: PodcastPlayerHostRouteOwner.homeShell,
-        overlayLeftInset: _tabletSidebarWidth + _tabletContentGap,
-        overlayRightInset: _desktopContentRightInset,
-      );
-    }
-
+  PodcastPlayerHostPageOverride _buildPlayerHostOverride() {
     return PodcastPlayerHostPageOverride(
       routeOwner: PodcastPlayerHostRouteOwner.homeShell,
-      overlayLeftInset: _desktopNavExpanded ? 280 : 80,
-      overlayRightInset: _desktopContentRightInset,
+      surfaceContext: PodcastPlayerSurfaceContext.homeShell,
+      homeShellDesktopNavExpanded: _desktopNavExpanded,
     );
   }
 
@@ -152,16 +179,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     final hasCurrentEpisode = ref.watch(
       audioCurrentEpisodeIdProvider.select((episodeId) => episodeId != null),
     );
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final isHomeShellRoute =
-        currentRoute == '/' ||
-        currentRoute == '/home' ||
-        currentRoute.startsWith('/home?') ||
-        currentRoute == '/profile' ||
-        currentRoute.startsWith('/profile?');
+    final isHomeShellPlayerRoute =
+        currentRoute.isNotEmpty && isHomeShellRoute(currentRoute);
 
-    if (isHomeShellRoute) {
-      _syncPlayerHostOverride(_buildPlayerHostOverride(screenWidth));
+    if (isHomeShellPlayerRoute) {
+      _syncPlayerHostOverride(_buildPlayerHostOverride());
     }
 
     return CustomAdaptiveNavigation(

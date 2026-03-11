@@ -624,6 +624,38 @@ void main() {
       expect(find.text('1.5x'), findsOneWidget);
       expect(find.text('00:45'), findsOneWidget);
     });
+
+    testWidgets('full-screen route is no longer capped to the old 720 width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final notifier = TestAudioPlayerNotifier(
+        AudioPlayerState(
+          currentEpisode: _testEpisode(),
+          position: 45000,
+          duration: 180000,
+        ),
+      );
+      final queueController = TestPodcastQueueController();
+
+      await tester.pumpWidget(
+        _createPlayerRouteWidget(
+          notifier: notifier,
+          queueController: queueController,
+          initialLocation: '/podcast/player/1?subscriptionId=1',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final panelRect = tester.getRect(
+        find.byKey(const Key('podcast_fullscreen_player_panel')),
+      );
+      expect(panelRect.width, greaterThan(1000));
+    });
   });
 }
 

@@ -124,13 +124,52 @@ void main() {
 
       expect(find.text('Playback Speed'), findsOneWidget);
     });
+    testWidgets(
+      'wide direct detail route uses detail pane insets on first frame',
+      (tester) async {
+        tester.view.physicalSize = const Size(1200, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          _createRouterHarness(
+            audioNotifier: _TestAudioPlayerNotifier(
+              AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+            ),
+            initialLocation: '/podcast/episode/detail/1',
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final miniFinder = find.byKey(const Key('podcast_bottom_player_mini'));
+        expect(miniFinder, findsOneWidget);
+
+        final hostFinder = find.byKey(const Key('global_podcast_player'));
+        final container = ProviderScope.containerOf(
+          tester.element(hostFinder),
+          listen: false,
+        );
+        final expectedSpec = resolvePodcastPlayerViewportSpec(
+          tester.element(hostFinder),
+          container.read(podcastPlayerHostLayoutProvider),
+          route: '/podcast/episode/detail/1',
+        );
+        final miniRect = tester.getRect(miniFinder);
+        expect(miniRect.left, closeTo(expectedSpec.leftInset, 0.5));
+        expect(miniRect.right, closeTo(1200 - expectedSpec.rightInset, 0.5));
+      },
+    );
   });
 }
 
-Widget _createRouterHarness({required _TestAudioPlayerNotifier audioNotifier}) {
+Widget _createRouterHarness({
+  required _TestAudioPlayerNotifier audioNotifier,
+  String initialLocation = '/',
+}) {
   final router = GoRouter(
     navigatorKey: appNavigatorKey,
-    initialLocation: '/',
+    initialLocation: initialLocation,
     routes: [
       GoRoute(
         path: '/',
@@ -143,6 +182,11 @@ Widget _createRouterHarness({required _TestAudioPlayerNotifier audioNotifier}) {
       GoRoute(
         path: '/detail',
         builder: (context, state) => const _RoutePage(title: 'Detail'),
+      ),
+      GoRoute(
+        path: '/podcast/episode/detail/:episodeId',
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: Text('Direct Detail'))),
       ),
       GoRoute(
         path: '/podcast/player/:episodeId',

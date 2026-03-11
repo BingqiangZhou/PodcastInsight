@@ -107,27 +107,35 @@ class PodcastExpandedPlayerPanel extends StatelessWidget {
       );
     }
 
-    return Material(
-      key: key,
-      color: Theme.of(context).colorScheme.surface,
-      elevation: elevation,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius:
-            borderRadius ??
-            (fullScreen
-                ? BorderRadius.circular(24)
-                : BorderRadius.circular(20)),
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        key: key,
+        color: Theme.of(context).colorScheme.surface,
+        elevation: elevation,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius:
+              borderRadius ??
+              (fullScreen
+                  ? BorderRadius.circular(24)
+                  : BorderRadius.circular(20)),
+        ),
+        child: child,
       ),
-      child: child,
     );
   }
 }
 
 class PodcastBottomPlayerWidget extends ConsumerWidget {
-  const PodcastBottomPlayerWidget({super.key, this.applySafeArea = true});
+  const PodcastBottomPlayerWidget({
+    super.key,
+    this.applySafeArea = true,
+    this.viewportSpec,
+  });
 
   final bool applySafeArea;
+  final PodcastPlayerViewportSpec? viewportSpec;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -138,6 +146,12 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
     final isExpanded = ref.watch(
       audioPlayerProvider.select((state) => state.isExpanded),
     );
+    final resolvedViewportSpec =
+        viewportSpec ??
+        resolvePodcastPlayerViewportSpec(
+          context,
+          ref.watch(podcastPlayerHostLayoutProvider),
+        );
 
     Widget content = AnimatedSwitcher(
       duration: _kMiniPlayerTransition,
@@ -152,7 +166,11 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
               onCollapse: () =>
                   ref.read(audioPlayerProvider.notifier).setExpanded(false),
             )
-          : _MiniBottomPlayer(key: const ValueKey('mini'), episode: episode),
+          : _MiniBottomPlayer(
+              key: const ValueKey('mini'),
+              episode: episode,
+              viewportSpec: resolvedViewportSpec,
+            ),
     );
 
     if (applySafeArea) {
@@ -169,20 +187,20 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
 }
 
 class _MiniBottomPlayer extends ConsumerWidget {
-  const _MiniBottomPlayer({super.key, required this.episode});
+  const _MiniBottomPlayer({
+    super.key,
+    required this.episode,
+    required this.viewportSpec,
+  });
 
   final PodcastEpisodeModel episode;
+  final PodcastPlayerViewportSpec viewportSpec;
   static const double _miniHeight = kPodcastMiniPlayerHeight;
-  static const double _mobileHorizontalInset = 20;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWideLayout = screenWidth >= 600;
-    final isMobileLayout = !isWideLayout;
-    final horizontalInset = isMobileLayout ? _mobileHorizontalInset : 0.0;
     final progressColor = theme.colorScheme.onSurfaceVariant;
     final progressTrackColor = theme.colorScheme.onSurfaceVariant.withValues(
       alpha: 0.25,
@@ -191,9 +209,9 @@ class _MiniBottomPlayer extends ConsumerWidget {
     return Padding(
       key: const Key('podcast_bottom_player_mini_wrapper'),
       padding: EdgeInsets.fromLTRB(
-        horizontalInset,
-        isWideLayout ? 4 : 0,
-        horizontalInset,
+        viewportSpec.miniHorizontalPadding,
+        viewportSpec.miniTopPadding,
+        viewportSpec.miniHorizontalPadding,
         0,
       ),
       child: SizedBox(

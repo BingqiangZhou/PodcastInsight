@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/app_localizations_en.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 
 import '../providers/podcast_providers.dart';
@@ -40,7 +41,12 @@ class PodcastEpisodeDetailPage extends ConsumerStatefulWidget {
 }
 
 class _PodcastEpisodeDetailPageState
-    extends ConsumerState<PodcastEpisodeDetailPage> {
+    extends ConsumerState<PodcastEpisodeDetailPage>
+    with RouteAware {
+  static const double _wideLayoutBreakpoint = 840.0;
+  static const double _wideSidebarWidth = 200.0;
+  static const double _wideContentHorizontalInset = 16.0;
+  static const double _wideContentRightInset = 16.0;
   int _selectedTabIndex =
       0; // 0 = Shownotes, 1 = Transcript, 2 = AI Summary, 3 = Conversation
   ProviderSubscription<AsyncValue<PodcastTranscriptionResponse?>>?
@@ -57,6 +63,7 @@ class _PodcastEpisodeDetailPageState
   final ValueNotifier<bool> _showScrollToTopButton = ValueNotifier(false);
   bool _isHeaderExpandedState = true;
   bool _deferReadablePlayerHideUntilNextScroll = false;
+  ModalRoute<dynamic>? _subscribedRoute;
   static const double _headerScrollThreshold =
       50.0; // Header starts fading after 50px scroll
   static const double _autoCollapseScrollDeltaThreshold = 6.0;
@@ -86,12 +93,42 @@ class _PodcastEpisodeDetailPageState
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (_subscribedRoute == route) {
+      return;
+    }
+
+    appRouteObserver.unsubscribe(this);
+    _subscribedRoute = route;
+    if (route != null) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
+    _playerHostOverrideNotifier.clearOverrideIfMatches(_lastPlayerHostOverride);
     _transcriptionNoticeSubscription?.close();
     _pageController.dispose();
     _scrollOffset.dispose();
     _showScrollToTopButton.dispose();
     super.dispose();
+  }
+
+  @override
+  void didPushNext() {
+    _playerHostOverrideNotifier.clearOverrideIfMatches(_lastPlayerHostOverride);
+  }
+
+  @override
+  void didPopNext() {
+    _lastPlayerHostOverride = null;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _bindTranscriptionNoticeListener() {
@@ -401,6 +438,7 @@ class _PodcastEpisodeDetailPageState
     _syncPlayerHostOverride(
       PodcastPlayerHostPageOverride(
         routeOwner: PodcastPlayerHostRouteOwner.episodeDetail,
+        surfaceContext: PodcastPlayerSurfaceContext.episodeDetail,
         hiddenByPage: hideBottomPlayer,
       ),
     );

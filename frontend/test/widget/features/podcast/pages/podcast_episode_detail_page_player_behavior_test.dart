@@ -779,13 +779,13 @@ void main() {
       expect(find.byType(PodcastBottomPlayerWidget), findsNothing);
     });
 
-    testWidgets('desktop player stays globally anchored near viewport bottom', (
+    testWidgets('desktop player aligns with the detail content pane', (
       tester,
     ) async {
-      addTearDown(() async {
-        await tester.binding.setSurfaceSize(null);
-      });
-      await tester.binding.setSurfaceSize(const Size(1200, 900));
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       final notifier = TestAudioPlayerNotifier(
         AudioPlayerState(
@@ -800,12 +800,25 @@ void main() {
       await tester.pumpAndSettle();
 
       final hostFinder = find.byKey(const Key('global_podcast_player'));
+      final expandedFinder = find.byKey(
+        const Key('podcast_bottom_player_expanded'),
+      );
       expect(hostFinder, findsOneWidget);
+      expect(expandedFinder, findsOneWidget);
+
+      final container = ProviderScope.containerOf(
+        tester.element(hostFinder),
+        listen: false,
+      );
+      expect(container.read(currentRouteProvider), '/podcast/episodes/1/1');
 
       final playerRect = tester.getRect(hostFinder);
-      expect(playerRect.left, closeTo(0, 0.5));
-      expect(playerRect.right, closeTo(1200, 0.5));
-      expect(playerRect.bottom, closeTo(888, 0.5));
+      final paneRect = tester.getRect(
+        find.byKey(const Key('podcast_episode_detail_wide_right_pane')),
+      );
+      expect(playerRect.left, closeTo(paneRect.left + 16, 0.5));
+      expect(playerRect.right, closeTo(paneRect.right - 32, 0.5));
+      expect(tester.getRect(hostFinder).bottom, closeTo(888, 0.5));
     });
 
     testWidgets(

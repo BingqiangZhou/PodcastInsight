@@ -15,16 +15,30 @@ class PodcastPlayerPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final currentEpisode = ref.watch(audioCurrentEpisodeProvider);
+    final viewportSpec = resolvePodcastPlayerViewportSpec(
+      context,
+      const PodcastPlayerHostLayout(
+        visible: true,
+        surfaceContext: PodcastPlayerSurfaceContext.standard,
+        homeShellDesktopNavExpanded: true,
+        contentBottomInset: 0,
+        overlayBottomOffset: 0,
+        applySafeArea: false,
+        hiddenByPage: false,
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.podcast_player_now_playing)),
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
-            key: const Key('podcast_fullscreen_player_panel'),
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+          child: Padding(
+            padding: EdgeInsets.all(viewportSpec.fullScreenHorizontalPadding),
+            child: ConstrainedBox(
+              key: const Key('podcast_fullscreen_player_panel'),
+              constraints: BoxConstraints(
+                maxWidth: viewportSpec.maxPlayerWidth,
+              ),
               child: currentEpisode == null
                   ? _EmptyPlayerState(args: args)
                   : PodcastExpandedPlayerPanel(

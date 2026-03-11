@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/providers/route_provider.dart';
 import '../providers/podcast_providers.dart';
 import 'podcast_bottom_player_widget.dart';
 
@@ -15,12 +17,22 @@ class GlobalPodcastPlayerHost extends ConsumerWidget {
     }
 
     final layout = ref.watch(podcastPlayerHostLayoutProvider);
+    final trackedRoute = ref.watch(currentRouteProvider);
     final isExpanded = ref.watch(
       audioPlayerProvider.select((state) => state.isExpanded),
     );
-    final bottomOffset = resolvePodcastPlayerOverlayBottomOffset(
+    String resolvedRoute = trackedRoute;
+    try {
+      resolvedRoute = GoRouter.of(
+        context,
+      ).routerDelegate.currentConfiguration.uri.toString();
+    } catch (_) {
+      // Fall back to the globally tracked route outside router subtree updates.
+    }
+    final viewportSpec = resolvePodcastPlayerViewportSpec(
       context,
-      override: layout.overlayBottomOffset,
+      layout,
+      route: resolvedRoute,
     );
 
     return Stack(
@@ -38,15 +50,16 @@ class GlobalPodcastPlayerHost extends ConsumerWidget {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOutCubic,
-            left: layout.overlayLeftInset ?? 0,
-            right: layout.overlayRightInset ?? 0,
-            bottom: bottomOffset,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: RepaintBoundary(
+            left: viewportSpec.leftInset,
+            right: viewportSpec.rightInset,
+            bottom: viewportSpec.bottomOffset,
+            child: RepaintBoundary(
+              child: SizedBox(
+                width: double.infinity,
                 child: PodcastBottomPlayerWidget(
                   key: const Key('global_podcast_player'),
                   applySafeArea: layout.applySafeArea,
+                  viewportSpec: viewportSpec,
                 ),
               ),
             ),
