@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.19.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.19.0...v0.19.1) - 2026-03-11 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.19.1))
+
+### 🎨 Styling
+
+- *(podcast)* Centralize navigation dock spacing constants and adjust mini player gap ([c700ece](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c700eced1945cd576a4e876e07bdff6715f9cd03))
+
+### 🐛 Bug Fixes
+
+- *(podcast)* Remove queue sheet opening delay and add timeout handling ([55b2ab6](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/55b2ab6671b979e8e6aff04a4681b83d8c540551))
+
+### 🚜 Refactor
+
+- *(podcast)* Simplify episode detail header and remove hero/compact toggle ([bb592eb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bb592eb5be656afa6cffb44f382a81b20c434b58))
+- *(podcast)* Sync playback rate with server and improve testability ([1dcc609](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1dcc609a6404a6f5215149845223cc5bde08e67b))
+- *(podcast)* Prevent duplicate queue sheet opens and disable playlist button while open ([b511bd8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b511bd8a71b4f908febed31c1ce639fd65c5219f))
+
+
+
 ## [0.19.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.18.0...v0.19.0) - 2026-03-11 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.19.0))
 
 ### 🎨 Styling
