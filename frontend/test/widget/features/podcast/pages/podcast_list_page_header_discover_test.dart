@@ -64,7 +64,6 @@ void main() {
         find.byKey(const Key('podcast_discover_country_button')),
         findsOneWidget,
       );
-      expect(find.byType(HeaderCapsuleActionButton), findsOneWidget);
       expect(
         find.descendant(
           of: find.byKey(const Key('podcast_discover_country_button')),
@@ -83,6 +82,7 @@ void main() {
         find.byKey(const Key('podcast_discover_search_bar')),
         findsOneWidget,
       );
+      expect(find.byType(HeroHeader), findsOneWidget);
       expect(
         find.byKey(const Key('podcast_discover_search_input')),
         findsOneWidget,

@@ -19,15 +19,65 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _emailSent = false;
+  ProviderSubscription<AuthState>? _authSubscription;
+
+  static const String _fallbackResetPasswordTitle = 'Reset Password';
+  static const String _fallbackForgotPasswordTitle = 'Forgot Password';
+  static const String _fallbackResetPasswordSubtitle =
+      'Enter your email to receive a password reset link.';
+  static const String _fallbackEmailLabel = 'Email';
+  static const String _fallbackEnterEmail = 'Please enter your email';
+  static const String _fallbackEnterValidEmail =
+      'Please enter a valid email address';
+  static const String _fallbackSendResetLink = 'Send Reset Link';
+  static const String _fallbackResetEmailSent = 'Reset email sent';
+  static const String _fallbackCheckEmailMessage =
+      'Please check your email and click the link to reset your password';
+  static const String _fallbackBackToLogin = 'Back to Login';
+  static const String _fallbackResendEmail = 'Didn\'t receive the email? Resend';
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = ref.listenManual<AuthState>(authProvider, (
+      previous,
+      next,
+    ) {
+      if (!mounted) {
+        return;
+      }
+
+      final previousLoading = previous?.isLoading ?? false;
+      final completedForgotPassword =
+          previousLoading &&
+          !next.isLoading &&
+          next.error == null &&
+          (previous?.currentOperation == AuthOperation.forgotPassword ||
+              next.currentOperation == AuthOperation.forgotPassword);
+
+      if (completedForgotPassword && !_emailSent) {
+        setState(() {
+          _emailSent = true;
+        });
+        return;
+      }
+
+      if (next.error != null && next.error!.isNotEmpty) {
+        showTopFloatingNotice(context, message: next.error!, isError: true);
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _authSubscription?.close();
     _emailController.dispose();
     super.dispose();
   }
 
   void _submitForgotPassword() {
-    if (_formKey.currentState!.validate()) {
+    final formState = _formKey.currentState;
+    if (formState != null && formState.validate()) {
       ref
           .read(authProvider.notifier)
           .forgotPassword(_emailController.text.trim());
@@ -36,27 +86,15 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
 
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      if (!isLoading &&
-          !next.isLoading &&
-          next.error == null &&
-          next.currentOperation == AuthOperation.forgotPassword) {
-        // Success - email sent
-        setState(() {
-          _emailSent = true;
-        });
-      } else if (next.error != null) {
-        showTopFloatingNotice(context, message: next.error!, isError: true);
-      }
-    });
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.auth_reset_password),
+        title: Text(
+          l10n?.auth_reset_password ?? _fallbackResetPasswordTitle,
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -98,7 +136,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            l10n.auth_forgot_password,
+                            l10n?.auth_forgot_password ??
+                                _fallbackForgotPasswordTitle,
                             style: Theme.of(context).textTheme.headlineLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -107,7 +146,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            l10n.auth_reset_password_subtitle,
+                            l10n?.auth_reset_password_subtitle ??
+                                _fallbackResetPasswordSubtitle,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurface
@@ -124,15 +164,17 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     // Email field
                     CustomTextField(
                       controller: _emailController,
-                      label: l10n.auth_email,
+                      label: l10n?.auth_email ?? _fallbackEmailLabel,
                       keyboardType: TextInputType.emailAddress,
                       prefixIcon: const Icon(Icons.email_outlined),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return l10n.auth_enter_email;
+                          return l10n?.auth_enter_email ??
+                              _fallbackEnterEmail;
                         }
                         if (!value.contains('@')) {
-                          return l10n.auth_enter_valid_email;
+                          return l10n?.auth_enter_valid_email ??
+                              _fallbackEnterValidEmail;
                         }
                         return null;
                       },
@@ -158,7 +200,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                                   ).colorScheme.onSurfaceVariant,
                                 ),
                               )
-                            : Text(l10n.auth_send_reset_link),
+                            : Text(
+                                l10n?.auth_send_reset_link ??
+                                    _fallbackSendResetLink,
+                              ),
                       ),
                     ),
                   ] else ...[
@@ -181,7 +226,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            l10n.auth_reset_email_sent,
+                            l10n?.auth_reset_email_sent ??
+                                _fallbackResetEmailSent,
                             style: Theme.of(context).textTheme.headlineLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -200,7 +246,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Please check your email and click the link to reset your password',
+                            _fallbackCheckEmailMessage,
+                            key: const Key('forgot_password_success_message'),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurface
@@ -221,7 +268,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       child: OutlinedButton(
                         key: const Key('back_to_login_button'),
                         onPressed: () => context.go('/login'),
-                        child: Text(l10n.auth_back_to_login),
+                        child: Text(
+                          l10n?.auth_back_to_login ?? _fallbackBackToLogin,
+                        ),
                       ),
                     ),
 
@@ -237,7 +286,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                         ref.read(authProvider.notifier).clearError();
                       },
                       child: Text(
-                        'Didn\'t receive the email? Resend',
+                        _fallbackResendEmail,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),

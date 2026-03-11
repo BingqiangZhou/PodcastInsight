@@ -77,11 +77,11 @@ void main() {
         final playButtonRect = tester.getRect(playButtonFinder);
 
         expect(addButtonRect.center.dx, greaterThan(metadataRect.center.dx));
-        expect(playButtonRect.center.dx, greaterThan(addButtonRect.center.dx));
         expect(
-          (playButtonRect.center.dy - addButtonRect.center.dy).abs(),
-          lessThan(1),
+          playButtonRect.center.dx,
+          greaterThanOrEqualTo(metadataRect.center.dx - 1),
         );
+        expect(playButtonRect.center.dy, lessThan(addButtonRect.center.dy));
       },
     );
 
@@ -147,7 +147,11 @@ void main() {
         final playButtonRect = tester.getRect(playButtonFinder);
 
         expect(addButtonRect.center.dx, greaterThan(metadataRect.center.dx));
-        expect(playButtonRect.center.dx, greaterThan(addButtonRect.center.dx));
+        expect(
+          playButtonRect.center.dx,
+          greaterThanOrEqualTo(metadataRect.center.dx - 1),
+        );
+        expect(playButtonRect.center.dy, lessThan(addButtonRect.center.dy));
       },
     );
 

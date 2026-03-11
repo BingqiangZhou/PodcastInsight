@@ -11,7 +11,10 @@ part 'podcast_search_provider.g.dart';
 
 enum PodcastSearchMode { podcasts, episodes }
 
-/// 播客搜索状态
+final podcastSearchDebounceDurationProvider = Provider<Duration>((ref) {
+  return const Duration(milliseconds: 400);
+});
+
 class PodcastSearchState {
   final List<PodcastSearchResult> podcastResults;
   final List<ITunesPodcastEpisodeResult> episodeResults;
@@ -56,18 +59,19 @@ class PodcastSearchState {
   }
 }
 
-/// iTunes Search Service Provider (manual provider)
 final iTunesSearchServiceProvider = Provider<ITunesSearchService>((ref) {
   return ITunesSearchService();
 });
 
-/// 播客搜索 Notifier
 @riverpod
 class PodcastSearchNotifier extends _$PodcastSearchNotifier {
   utils.DebounceTimer? _debounce;
+  late final Duration _debounceDuration;
+  int _activeSearchRequestId = 0;
 
   @override
   PodcastSearchState build() {
+    _debounceDuration = ref.read(podcastSearchDebounceDurationProvider);
     ref.onDispose(() {
       _debounce?.cancel();
     });
@@ -75,12 +79,10 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
     return const PodcastSearchState();
   }
 
-  /// 搜索播客（带防抖）
   void searchPodcasts(String query) {
     _scheduleSearch(query, PodcastSearchMode.podcasts);
   }
 
-  /// 搜索分集（带防抖）
   void searchEpisodes(String query) {
     _scheduleSearch(query, PodcastSearchMode.episodes);
   }
@@ -89,15 +91,22 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
     if (state.searchMode == mode) {
       return;
     }
+
+    final hasQuery = state.currentQuery.trim().isNotEmpty;
     state = state.copyWith(
       searchMode: mode,
       error: null,
-      isLoading: state.currentQuery.trim().isNotEmpty,
-      hasSearched: state.currentQuery.trim().isNotEmpty,
-      podcastResults: mode == PodcastSearchMode.podcasts ? state.podcastResults : const [],
-      episodeResults: mode == PodcastSearchMode.episodes ? state.episodeResults : const [],
+      isLoading: hasQuery,
+      hasSearched: hasQuery,
+      podcastResults: mode == PodcastSearchMode.podcasts
+          ? state.podcastResults
+          : const [],
+      episodeResults: mode == PodcastSearchMode.episodes
+          ? state.episodeResults
+          : const [],
     );
-    if (state.currentQuery.trim().isNotEmpty) {
+
+    if (hasQuery) {
       _scheduleSearch(state.currentQuery, mode, bypassDebounce: true);
     }
   }
@@ -108,8 +117,10 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
     bool bypassDebounce = false,
   }) {
     _debounce?.cancel();
+    final normalizedQuery = query.trim();
 
-    if (query.trim().isEmpty) {
+    if (normalizedQuery.isEmpty) {
+      _activeSearchRequestId += 1;
       state = PodcastSearchState(searchMode: mode);
       return;
     }
@@ -118,18 +129,22 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
       isLoading: true,
       hasSearched: true,
       error: null,
-      currentQuery: query,
+      currentQuery: normalizedQuery,
       searchMode: mode,
     );
 
-    final delay = bypassDebounce ? Duration.zero : const Duration(milliseconds: 500);
+    final requestId = ++_activeSearchRequestId;
+    final delay = bypassDebounce ? Duration.zero : _debounceDuration;
     _debounce = utils.DebounceTimer(delay, () async {
-      await _performSearch(query, mode);
+      await _performSearch(normalizedQuery, mode, requestId: requestId);
     });
   }
 
-  /// 执行搜索
-  Future<void> _performSearch(String query, PodcastSearchMode mode) async {
+  Future<void> _performSearch(
+    String query,
+    PodcastSearchMode mode, {
+    required int requestId,
+  }) async {
     final country = ref.read(countrySelectorProvider).selectedCountry;
     final searchService = ref.read(iTunesSearchServiceProvider);
 
@@ -140,6 +155,9 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
           country: country,
           limit: 25,
         );
+        if (!_isRequestActive(requestId, query, mode)) {
+          return;
+        }
         state = state.copyWith(
           podcastResults: response.results,
           episodeResults: const [],
@@ -156,6 +174,9 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
         country: country,
         limit: 25,
       );
+      if (!_isRequestActive(requestId, query, mode)) {
+        return;
+      }
       state = state.copyWith(
         podcastResults: const [],
         episodeResults: episodes,
@@ -165,6 +186,9 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
         searchMode: mode,
       );
     } catch (error) {
+      if (!_isRequestActive(requestId, query, mode)) {
+        return;
+      }
       state = state.copyWith(
         podcastResults: const [],
         episodeResults: const [],
@@ -176,17 +200,33 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
     }
   }
 
-  /// 清除搜索结果
+  bool _isRequestActive(
+    int requestId,
+    String query,
+    PodcastSearchMode mode,
+  ) {
+    return requestId == _activeSearchRequestId &&
+        state.currentQuery == query &&
+        state.searchMode == mode;
+  }
+
   void clearSearch() {
     _debounce?.cancel();
+    _activeSearchRequestId += 1;
     state = PodcastSearchState(searchMode: state.searchMode);
   }
 
-  /// 重新搜索（使用当前查询）
   Future<void> retrySearch() async {
-    if (state.currentQuery.isNotEmpty) {
-      state = state.copyWith(isLoading: true, error: null);
-      await _performSearch(state.currentQuery, state.searchMode);
+    if (state.currentQuery.isEmpty) {
+      return;
     }
+
+    state = state.copyWith(isLoading: true, error: null);
+    final requestId = ++_activeSearchRequestId;
+    await _performSearch(
+      state.currentQuery,
+      state.searchMode,
+      requestId: requestId,
+    );
   }
 }

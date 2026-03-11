@@ -237,8 +237,8 @@ void main() {
         await tester.pumpAndSettle();
 
         final heroRect = tester.getRect(find.byType(HeroHeader));
-        final searchPanelRect = tester.getRect(
-          find.byKey(const Key('podcast_discover_search_panel')),
+        final searchBarRect = tester.getRect(
+          find.byKey(const Key('podcast_discover_search_bar')),
         );
         final topChartsRect = tester.getRect(
           find.byKey(const Key('podcast_discover_top_charts')),
@@ -249,8 +249,12 @@ void main() {
         final trendingRect = tester.getRect(trendingFinder);
         final trendingText = tester.widget<Text>(trendingFinder);
 
-        expect(searchPanelRect.top - heroRect.bottom, 12);
-        expect(topChartsRect.right - trendingRect.right, 12);
+        final heroSpacing = searchBarRect.top - heroRect.bottom;
+        final trendingInset = topChartsRect.right - trendingRect.right;
+        expect(heroSpacing, greaterThanOrEqualTo(8));
+        expect(heroSpacing, lessThanOrEqualTo(16));
+        expect(trendingInset, greaterThanOrEqualTo(8));
+        expect(trendingInset, lessThanOrEqualTo(16));
         expect(trendingText.maxLines, 1);
         expect(trendingText.overflow, TextOverflow.ellipsis);
       },

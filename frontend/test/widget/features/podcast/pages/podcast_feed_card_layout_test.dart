@@ -99,11 +99,17 @@ void main() {
 
         expect(metadataRect.top, greaterThanOrEqualTo(descriptionRect.bottom));
         expect(addButtonRect.center.dx, greaterThan(metadataRect.center.dx));
-        expect(playButtonRect.center.dx, greaterThan(addButtonRect.center.dx));
-        expect((playButtonRect.center.dy - addButtonRect.center.dy).abs(), 0.0);
+        expect(
+          playButtonRect.center.dx,
+          greaterThanOrEqualTo(metadataRect.center.dx - 1),
+        );
+        expect(
+          playButtonRect.center.dy,
+          lessThan(addButtonRect.center.dy),
+        );
         expect(
           (playButtonRect.center.dy - metadataRect.center.dy).abs(),
-          lessThan(6),
+          greaterThan(24),
         );
         expect(addButtonRect.height, lessThanOrEqualTo(32));
         expect(playButtonRect.height, lessThanOrEqualTo(32));
@@ -193,7 +199,11 @@ void main() {
 
         expect(metadataRect.top, greaterThanOrEqualTo(descriptionRect.bottom));
         expect(addButtonRect.center.dx, greaterThan(metadataRect.center.dx));
-        expect(playButtonRect.center.dx, greaterThan(addButtonRect.center.dx));
+        expect(
+          playButtonRect.center.dx,
+          greaterThanOrEqualTo(metadataRect.center.dx - 1),
+        );
+        expect(playButtonRect.center.dy, lessThan(addButtonRect.center.dy));
         expect(addButtonRect.height, lessThanOrEqualTo(32));
         expect(playButtonRect.height, lessThanOrEqualTo(32));
         expect(playButtonColor, equals(scheme.onSurfaceVariant));

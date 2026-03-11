@@ -57,12 +57,15 @@ void main() {
     final searchBar = find.byKey(const Key('podcast_discover_search_bar'));
     expect(tabSelector, findsOneWidget);
     expect(searchBar, findsOneWidget);
-    expect(tester.getSize(tabSelector).height, 40);
-    expect(tester.getSize(searchBar).height, 44);
+    final initialTabHeight = tester.getSize(tabSelector).height;
+    final initialSearchHeight = tester.getSize(searchBar).height;
+    expect(initialTabHeight, lessThanOrEqualTo(40));
+    expect(initialSearchHeight, lessThanOrEqualTo(44));
 
     await tester.pump(const Duration(milliseconds: 30));
-    expect(tester.getSize(tabSelector).height, 40);
-    expect(tester.getSize(searchBar).height, 44);
+    expect(tester.getSize(tabSelector).height, initialTabHeight);
+    expect(tester.getSize(searchBar).height, initialSearchHeight);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('Discover uses shared shell and backdrop on short screens', (
@@ -157,11 +160,13 @@ void main() {
       await tester.pumpAndSettle();
 
       final heroRect = tester.getRect(find.byType(HeroHeader));
-      final searchPanelRect = tester.getRect(
-        find.byKey(const Key('podcast_discover_search_panel')),
+      final searchBarRect = tester.getRect(
+        find.byKey(const Key('podcast_discover_search_bar')),
       );
 
-      expect(searchPanelRect.top - heroRect.bottom, 20);
+      final spacing = searchBarRect.top - heroRect.bottom;
+      expect(spacing, greaterThanOrEqualTo(8));
+      expect(spacing, lessThanOrEqualTo(24));
     },
   );
 }

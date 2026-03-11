@@ -55,11 +55,14 @@ void main() {
       final accessoryRect = tester.getRect(
         find.byKey(const Key('test_bottom_accessory')),
       );
-      final navRect = tester.getRect(find.byType(NavigationBar));
+      final dockRect = tester.getRect(
+        find.byKey(const Key('custom_adaptive_navigation_mobile_dock')),
+      );
 
       expect(accessoryRect.width, closeTo(390, 2));
-      expect(accessoryRect.top, lessThan(navRect.top));
-      expect(accessoryRect.bottom, lessThanOrEqualTo(navRect.top + 1));
+      expect(accessoryRect.top, lessThan(dockRect.top));
+      expect(accessoryRect.bottom, lessThanOrEqualTo(dockRect.top + 1));
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('mobile: bottom backdrop sits beneath accessory and dock', (
@@ -80,11 +83,14 @@ void main() {
       final accessoryRect = tester.getRect(
         find.byKey(const Key('test_bottom_accessory')),
       );
-      final navRect = tester.getRect(find.byType(NavigationBar));
+      final dockRect = tester.getRect(
+        find.byKey(const Key('custom_adaptive_navigation_mobile_dock')),
+      );
 
       expect(backdropRect.bottom, closeTo(844, 0.1));
       expect(backdropRect.top, lessThan(accessoryRect.top));
-      expect(backdropRect.top, lessThan(navRect.top));
+      expect(backdropRect.top, lessThan(dockRect.top));
+      expect(accessoryRect.bottom, lessThanOrEqualTo(dockRect.top + 1));
 
       final mobileStack = tester
           .widgetList<Stack>(find.byType(Stack))
@@ -122,10 +128,13 @@ void main() {
       expect(find.byKey(const Key('test_bottom_accessory')), findsNothing);
 
       final backdropRect = tester.getRect(backdropFinder);
-      final navRect = tester.getRect(find.byType(NavigationBar));
+      final dockRect = tester.getRect(
+        find.byKey(const Key('custom_adaptive_navigation_mobile_dock')),
+      );
 
       expect(backdropRect.bottom, closeTo(844, 0.1));
-      expect(backdropRect.top, lessThan(navRect.top));
+      expect(backdropRect.top, lessThan(dockRect.top));
+      expect(tester.takeException(), isNull);
     });
   });
 

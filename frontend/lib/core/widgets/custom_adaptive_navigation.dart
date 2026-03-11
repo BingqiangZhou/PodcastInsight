@@ -51,7 +51,9 @@ class CustomAdaptiveNavigation extends StatelessWidget {
 
   Widget _buildMobileLayout(BuildContext context, double width) {
     final safeAreaBottom = MediaQuery.viewPaddingOf(context).bottom;
-    final double dockBottomPadding = safeAreaBottom > 0.0 ? safeAreaBottom : 12.0;
+    final double dockBottomPadding = safeAreaBottom > 0.0
+        ? safeAreaBottom
+        : 12.0;
     // NavigationBar custom height is 60. We add an extra 4 pixels gap between the player and the navigation bar dock.
     final double dockReserve = dockBottomPadding + 60.0 + 4.0;
     
@@ -118,6 +120,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
               minimum: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Align(
                 child: _GlassDock(
+                  key: const Key('custom_adaptive_navigation_mobile_dock'),
                   width: width < 420 ? width - 24 : 396,
                   child: _buildMobileNavBar(context),
                 ),
@@ -463,6 +466,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
 
   Widget _buildMobileNavBar(BuildContext context) {
     return SizedBox(
+      key: const Key('custom_adaptive_navigation_mobile_nav_bar'),
       height: 60,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -499,13 +503,13 @@ class CustomAdaptiveNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? scheme.primary.withValues(alpha: 0.14)
@@ -520,7 +524,8 @@ class CustomAdaptiveNavigation extends StatelessWidget {
               Text(
                 destination.label,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  fontSize: 11,
+                  fontSize: 10,
+                  height: 1,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: isSelected
                       ? scheme.onSurface
@@ -633,7 +638,7 @@ class _GlassSidebar extends StatelessWidget {
 }
 
 class _GlassDock extends StatelessWidget {
-  const _GlassDock({required this.child, required this.width});
+  const _GlassDock({super.key, required this.child, required this.width});
 
   final Widget child;
   final double width;

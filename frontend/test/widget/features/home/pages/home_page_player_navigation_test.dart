@@ -353,19 +353,21 @@ void main() {
         final miniPlayerFinder = find.byKey(
           const Key('podcast_bottom_player_mini_wrapper'),
         );
-        final navFinder = find.byType(NavigationBar);
+        final dockFinder = find.byKey(
+          const Key('custom_adaptive_navigation_mobile_dock'),
+        );
 
         expect(backdropFinder, findsOneWidget);
         expect(miniPlayerFinder, findsOneWidget);
-        expect(navFinder, findsOneWidget);
+        expect(dockFinder, findsOneWidget);
 
         final backdropRect = tester.getRect(backdropFinder);
         final miniPlayerRect = tester.getRect(miniPlayerFinder);
-        final navRect = tester.getRect(navFinder);
+        final dockRect = tester.getRect(dockFinder);
 
-        expect(miniPlayerRect.bottom, lessThanOrEqualTo(navRect.top + 1));
+        expect(miniPlayerRect.bottom, lessThanOrEqualTo(dockRect.top + 1));
         expect(backdropRect.top, lessThan(miniPlayerRect.top));
-        expect(backdropRect.bottom, greaterThanOrEqualTo(navRect.bottom));
+        expect(backdropRect.bottom, greaterThanOrEqualTo(dockRect.bottom));
 
         final mobileStack = tester
             .widgetList<Stack>(find.byType(Stack))
@@ -386,6 +388,7 @@ void main() {
           ),
         );
         expect(find.byType(CustomAdaptiveNavigation), findsOneWidget);
+        expect(tester.takeException(), isNull);
       },
     );
   });

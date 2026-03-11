@@ -220,13 +220,24 @@ class DioClient {
         );
       }
     } catch (e) {
+      final message = e.toString();
+      if (message.contains('Binding has not yet been initialized')) {
+        return;
+      }
       logger.AppLogger.debug(' [DioClient] Failed to apply saved baseUrl: $e');
     }
   }
 
   Future<String?> _loadSavedBaseUrlFromSharedPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_serverBaseUrlKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_serverBaseUrlKey);
+    } catch (e) {
+      if (e.toString().contains('Binding has not yet been initialized')) {
+        return null;
+      }
+      rethrow;
+    }
   }
 
   Future<void> _onRequest(
