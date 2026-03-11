@@ -19,6 +19,7 @@ import '../../features/podcast/presentation/navigation/podcast_navigation.dart';
 import '../../features/profile/presentation/pages/profile_history_page.dart';
 import '../../features/profile/presentation/pages/profile_cache_management_page.dart';
 import '../../features/profile/presentation/pages/profile_subscriptions_page.dart';
+import '../../features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/widgets/app_shells.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
@@ -93,9 +94,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final dateParam = state.uri.queryParameters['date'];
           final parsedDate = _parseDateOnlyQuery(dateParam);
-          return PodcastDailyReportPage(
-            initialDate: parsedDate,
-            source: state.uri.queryParameters['source'],
+          return _PlayerAwareRouteFrame(
+            child: PodcastDailyReportPage(
+              initialDate: parsedDate,
+              source: state.uri.queryParameters['source'],
+            ),
           );
         },
       ),
@@ -104,7 +107,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/podcast',
         name: 'podcast',
-        builder: (context, state) => const PodcastListPage(),
+        builder: (context, state) =>
+            const _PlayerAwareRouteFrame(child: PodcastListPage()),
         routes: [
           // 1. 订阅的单集列表: /podcast/episodes/1
           GoRoute(
@@ -118,10 +122,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   body: Center(child: Text(l10n.invalid_navigation_arguments)),
                 );
               }
-              return PodcastEpisodesPage(
-                subscriptionId: args.subscriptionId,
-                podcastTitle: args.podcastTitle,
-                subscription: args.subscription,
+              return _PlayerAwareRouteFrame(
+                child: PodcastEpisodesPage(
+                  subscriptionId: args.subscriptionId,
+                  podcastTitle: args.podcastTitle,
+                  subscription: args.subscription,
+                ),
               );
             },
           ),
@@ -169,17 +175,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'cache',
             name: 'profile-cache',
-            builder: (context, state) => const ProfileCacheManagementPage(),
+            builder: (context, state) => const _PlayerAwareRouteFrame(
+              child: ProfileCacheManagementPage(),
+            ),
           ),
           GoRoute(
             path: 'history',
             name: 'profile-history',
-            builder: (context, state) => const ProfileHistoryPage(),
+            builder: (context, state) =>
+                const _PlayerAwareRouteFrame(child: ProfileHistoryPage()),
           ),
           GoRoute(
             path: 'subscriptions',
             name: 'profile-subscriptions',
-            builder: (context, state) => const ProfileSubscriptionsPage(),
+            builder: (context, state) =>
+                const _PlayerAwareRouteFrame(child: ProfileSubscriptionsPage()),
           ),
         ],
       ),
@@ -283,4 +293,15 @@ DateTime? _parseDateOnlyQuery(String? value) {
   }
   final local = parsed.isUtc ? parsed.toLocal() : parsed;
   return DateTime(local.year, local.month, local.day);
+}
+
+class _PlayerAwareRouteFrame extends StatelessWidget {
+  const _PlayerAwareRouteFrame({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return PodcastPlayerLayoutFrame(child: child);
+  }
 }

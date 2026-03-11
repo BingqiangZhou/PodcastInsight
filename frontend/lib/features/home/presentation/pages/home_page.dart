@@ -12,6 +12,7 @@ import '../../../podcast/presentation/pages/podcast_feed_page.dart';
 import '../../../podcast/presentation/pages/podcast_list_page.dart';
 import '../../../podcast/presentation/constants/podcast_ui_constants.dart';
 import '../../../podcast/presentation/providers/podcast_providers.dart';
+import '../../../podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -193,16 +194,21 @@ class _HomePageState extends ConsumerState<HomePage> with RouteAware {
       onDestinationSelected: _handleNavigation,
       appBar: null,
       floatingActionButton: _buildFloatingActionButton(),
-      globalOverlayBodyPadding: hasCurrentEpisode
-          ? kPodcastMiniPlayerBodyReserve
-          : 0,
+      bottomAccessory: hasCurrentEpisode
+          ? const PodcastBottomPlayerWidget(applySafeArea: false)
+          : null,
+      bottomAccessoryBodyPadding: kPodcastMiniPlayerBodyReserve,
       desktopNavExpanded: _desktopNavExpanded,
       onDesktopNavToggle: () {
         setState(() {
           _desktopNavExpanded = !_desktopNavExpanded;
         });
       },
-      body: _buildTabContent(),
+      body: PodcastPlayerLayoutFrame(
+        includeMiniPlayer: false,
+        manageBottomPadding: false,
+        child: _buildTabContent(),
+      ),
     );
   }
 

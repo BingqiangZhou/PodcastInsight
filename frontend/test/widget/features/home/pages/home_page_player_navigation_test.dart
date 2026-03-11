@@ -20,7 +20,6 @@ import 'package:personal_ai_assistant/features/podcast/data/models/profile_stats
 import 'package:personal_ai_assistant/features/podcast/data/services/apple_podcast_rss_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/global_podcast_player_host.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_page.dart';
 
 void main() {
@@ -75,7 +74,7 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.byKey(const Key('podcast_player_modal_barrier')));
+      await tester.tap(find.byKey(const Key('podcast_bottom_player_collapse')));
       await tester.pumpAndSettle();
       expect(uiNotifier.state.isExpanded, isFalse);
     });
@@ -188,12 +187,6 @@ Future<void> _pumpHomePage(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         navigatorObservers: [appRouteObserver],
-        builder: (context, child) => Overlay(
-          initialEntries: [
-            OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
-            OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
-          ],
-        ),
         home: HomePage(initialTab: initialTab),
       ),
     ),
@@ -258,11 +251,11 @@ Future<GoRouter> _pumpHomePageRouterFlow(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
-        builder: (context, child) => Overlay(
-          initialEntries: [
-            OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
-            OverlayEntry(builder: (_) => _RouteSyncBridge(router: router)),
-            OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
+        builder: (context, child) => Stack(
+          fit: StackFit.expand,
+          children: [
+            child ?? const SizedBox.shrink(),
+            _RouteSyncBridge(router: router),
           ],
         ),
       ),

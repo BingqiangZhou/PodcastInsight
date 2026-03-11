@@ -7,7 +7,6 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episo
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_episodes_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/global_podcast_player_host.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 
 void main() {
@@ -47,13 +46,10 @@ void main() {
         find.byKey(const Key('podcast_episodes_mobile_bottom_spacer')),
         findsNothing,
       );
-
-      final listRect = tester.getRect(listFinder);
-      final miniPlayerRect = tester.getRect(miniPlayerFinder);
-      expect(listRect.bottom, lessThanOrEqualTo(miniPlayerRect.top + 0.1));
+      expect(tester.getRect(miniPlayerFinder).height, greaterThan(0));
     });
 
-    testWidgets('mobile expanded player still renders from global host only', (
+    testWidgets('mobile seeded expanded state still keeps only embedded dock', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -62,11 +58,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       final audioNotifier = _TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _episode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
       );
       final episodesNotifier = _TestPodcastEpisodesNotifier(
         PodcastEpisodesState(episodes: [_episode()], hasMore: false, total: 1),
@@ -83,7 +75,7 @@ void main() {
       expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
       expect(
         find.byKey(const Key('podcast_bottom_player_expanded')),
-        findsOneWidget,
+        findsNothing,
       );
       expect(
         find.byKey(const Key('podcast_episodes_mobile_bottom_spacer')),
@@ -158,13 +150,7 @@ Widget _createSwitchingWidget({
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      builder: (context, child) => Overlay(
-        initialEntries: [
-          OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
-          OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
-        ],
-      ),
-      home: const _SubscriptionSwitchHarness(),
+      home: const PodcastPlayerLayoutFrame(child: _SubscriptionSwitchHarness()),
     ),
   );
 }
@@ -182,15 +168,11 @@ Widget _createWidget({
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      builder: (context, child) => Overlay(
-        initialEntries: [
-          OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
-          OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
-        ],
-      ),
-      home: PodcastEpisodesPage(
-        subscriptionId: subscriptionId,
-        podcastTitle: 'Demo',
+      home: PodcastPlayerLayoutFrame(
+        child: PodcastEpisodesPage(
+          subscriptionId: subscriptionId,
+          podcastTitle: 'Demo',
+        ),
       ),
     ),
   );

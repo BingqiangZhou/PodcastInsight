@@ -13,47 +13,45 @@ enum PodcastPlayerLayoutMode { mobile, tablet, desktop }
 
 enum PodcastPlayerSurfaceContext { standard, homeShell, episodeDetail }
 
+enum PodcastPlayerPageMode { embedded, hidden, detailOwned }
+
 @immutable
 class PodcastPlayerViewportSpec {
   const PodcastPlayerViewportSpec({
     required this.layoutMode,
     required this.surfaceContext,
-    required this.dockLeftInset,
-    required this.dockRightInset,
-    required this.dockBottomOffset,
+    required this.pageMode,
+    required this.dockBottomSpacing,
     required this.contentBottomInset,
     required this.dockHorizontalPadding,
     required this.dockTopPadding,
     required this.dockMaxWidth,
     required this.desktopPanelWidth,
-    required this.desktopPanelRightInset,
-    required this.desktopPanelTopInset,
-    required this.desktopPanelBottomInset,
-    required this.mobileSheetMaxHeight,
-    required this.mobileSheetBorderRadius,
+    required this.desktopPanelGap,
+    required this.desktopPanelInnerPadding,
+    required this.mobileDrawerMaxHeight,
+    required this.mobileDrawerBorderRadius,
     required this.fullScreenHorizontalPadding,
   });
 
   final PodcastPlayerLayoutMode layoutMode;
   final PodcastPlayerSurfaceContext surfaceContext;
-  final double dockLeftInset;
-  final double dockRightInset;
-  final double dockBottomOffset;
+  final PodcastPlayerPageMode pageMode;
+  final double dockBottomSpacing;
   final double contentBottomInset;
   final double dockHorizontalPadding;
   final double dockTopPadding;
   final double dockMaxWidth;
   final double desktopPanelWidth;
-  final double desktopPanelRightInset;
-  final double desktopPanelTopInset;
-  final double desktopPanelBottomInset;
-  final double mobileSheetMaxHeight;
-  final double mobileSheetBorderRadius;
+  final double desktopPanelGap;
+  final double desktopPanelInnerPadding;
+  final double mobileDrawerMaxHeight;
+  final double mobileDrawerBorderRadius;
   final double fullScreenHorizontalPadding;
 
-  double get leftInset => dockLeftInset;
-  double get rightInset => dockRightInset;
-  double get bottomOffset => dockBottomOffset;
+  double get leftInset => 0;
+  double get rightInset => 0;
+  double get bottomOffset => dockBottomSpacing;
   double get miniHorizontalPadding => dockHorizontalPadding;
   double get miniTopPadding => dockTopPadding;
   double get maxPlayerWidth => dockMaxWidth;
@@ -63,21 +61,17 @@ class PodcastPlayerViewportSpec {
 class PodcastPlayerHostPageOverride {
   const PodcastPlayerHostPageOverride({
     this.routeOwner = PodcastPlayerHostRouteOwner.any,
+    this.pageMode = PodcastPlayerPageMode.embedded,
     this.surfaceContext,
     this.homeShellDesktopNavExpanded,
-    this.hiddenByPage = false,
     this.contentBottomInset,
-    this.overlayBottomOffset,
-    this.applySafeArea,
   });
 
   final PodcastPlayerHostRouteOwner routeOwner;
+  final PodcastPlayerPageMode pageMode;
   final PodcastPlayerSurfaceContext? surfaceContext;
   final bool? homeShellDesktopNavExpanded;
-  final bool hiddenByPage;
   final double? contentBottomInset;
-  final double? overlayBottomOffset;
-  final bool? applySafeArea;
 
   @override
   bool operator ==(Object other) {
@@ -86,45 +80,47 @@ class PodcastPlayerHostPageOverride {
     }
     return other is PodcastPlayerHostPageOverride &&
         other.routeOwner == routeOwner &&
+        other.pageMode == pageMode &&
         other.surfaceContext == surfaceContext &&
         other.homeShellDesktopNavExpanded == homeShellDesktopNavExpanded &&
-        other.hiddenByPage == hiddenByPage &&
-        other.contentBottomInset == contentBottomInset &&
-        other.overlayBottomOffset == overlayBottomOffset &&
-        other.applySafeArea == applySafeArea;
+        other.contentBottomInset == contentBottomInset;
   }
 
   @override
   int get hashCode => Object.hash(
     routeOwner,
+    pageMode,
     surfaceContext,
     homeShellDesktopNavExpanded,
-    hiddenByPage,
     contentBottomInset,
-    overlayBottomOffset,
-    applySafeArea,
   );
 }
 
 @immutable
 class PodcastPlayerHostLayout {
   const PodcastPlayerHostLayout({
-    required this.visible,
+    required this.hasActiveEpisode,
+    required this.pageMode,
     required this.surfaceContext,
     required this.homeShellDesktopNavExpanded,
     required this.contentBottomInset,
-    required this.overlayBottomOffset,
-    required this.applySafeArea,
-    required this.hiddenByPage,
   });
 
-  final bool visible;
+  final bool hasActiveEpisode;
+  final PodcastPlayerPageMode pageMode;
   final PodcastPlayerSurfaceContext surfaceContext;
   final bool homeShellDesktopNavExpanded;
   final double contentBottomInset;
-  final double? overlayBottomOffset;
-  final bool applySafeArea;
-  final bool hiddenByPage;
+
+  bool get miniPlayerVisible =>
+      hasActiveEpisode && pageMode == PodcastPlayerPageMode.embedded;
+
+  bool get detailOwned =>
+      hasActiveEpisode && pageMode == PodcastPlayerPageMode.detailOwned;
+
+  bool get hidden => pageMode == PodcastPlayerPageMode.hidden;
+
+  bool get visible => miniPlayerVisible;
 }
 
 class PodcastPlayerHostPageOverrideNotifier
@@ -163,18 +159,14 @@ final podcastPlayerHostLayoutProvider = Provider<PodcastPlayerHostLayout>((
   final rawPageOverride = ref.watch(podcastPlayerHostPageOverrideProvider);
   final pageOverride = _appliedOverrideForRoute(rawPageOverride, route);
 
-  final hiddenByPage = pageOverride?.hiddenByPage ?? false;
-
   return PodcastPlayerHostLayout(
-    visible: currentEpisodeId != null && !hiddenByPage,
+    hasActiveEpisode: currentEpisodeId != null,
+    pageMode: pageOverride?.pageMode ?? PodcastPlayerPageMode.embedded,
     surfaceContext: _resolveSurfaceContext(route, pageOverride),
     homeShellDesktopNavExpanded:
         pageOverride?.homeShellDesktopNavExpanded ?? true,
     contentBottomInset:
         pageOverride?.contentBottomInset ?? kPodcastMiniPlayerBodyReserve,
-    overlayBottomOffset: pageOverride?.overlayBottomOffset,
-    applySafeArea: pageOverride?.applySafeArea ?? false,
-    hiddenByPage: hiddenByPage,
   );
 });
 
@@ -252,92 +244,69 @@ PodcastPlayerViewportSpec resolvePodcastPlayerViewportSpec(
 }) {
   final width = MediaQuery.sizeOf(context).width;
   final layoutMode = resolvePodcastPlayerLayoutMode(width);
-  final dockBottomOffset = resolvePodcastPlayerOverlayBottomOffset(
-    context,
-    override: layout.overlayBottomOffset,
-  );
   final surfaceContext = route == null
       ? layout.surfaceContext
       : _resolveSurfaceContext(route, null);
 
-  double dockLeftInset = 0;
-  double dockRightInset = 0;
   double dockHorizontalPadding = 0;
-  double dockTopPadding = 4;
+  double dockTopPadding = 0;
+  double dockBottomSpacing = 12;
   double desktopPanelWidth = 0;
-  double desktopPanelRightInset = 0;
-  double desktopPanelTopInset = 24;
-  double desktopPanelBottomInset = 24;
+  double desktopPanelGap = 20;
+  double desktopPanelInnerPadding = 20;
   double fullScreenHorizontalPadding =
       layoutMode == PodcastPlayerLayoutMode.mobile ? 16 : 24;
-  double mobileSheetMaxHeight = MediaQuery.sizeOf(context).height * 0.78;
-  double mobileSheetBorderRadius = 28;
+  double mobileDrawerMaxHeight = MediaQuery.sizeOf(context).height * 0.88;
+  double mobileDrawerBorderRadius = 30;
 
   switch (layoutMode) {
     case PodcastPlayerLayoutMode.mobile:
-      dockHorizontalPadding = 20;
+      dockHorizontalPadding = 16;
       dockTopPadding = 0;
+      dockBottomSpacing = 12;
       break;
     case PodcastPlayerLayoutMode.tablet:
-      desktopPanelWidth = 360;
-      desktopPanelRightInset = 20;
-      desktopPanelTopInset = 24;
-      desktopPanelBottomInset =
-          dockBottomOffset + kPodcastMiniPlayerHeight + 20;
-      if (surfaceContext == PodcastPlayerSurfaceContext.homeShell) {
-        dockLeftInset = 98;
-        dockRightInset = 12;
-      }
+      dockHorizontalPadding = 16;
+      dockBottomSpacing = 16;
+      desktopPanelWidth = 356;
+      desktopPanelGap = 18;
+      desktopPanelInnerPadding = 18;
       break;
     case PodcastPlayerLayoutMode.desktop:
       desktopPanelWidth =
           surfaceContext == PodcastPlayerSurfaceContext.episodeDetail
           ? 380
           : 360;
-      desktopPanelRightInset =
-          surfaceContext == PodcastPlayerSurfaceContext.homeShell ? 16 : 24;
-      desktopPanelTopInset = 24;
-      desktopPanelBottomInset =
-          dockBottomOffset + kPodcastMiniPlayerHeight + 24;
-      switch (surfaceContext) {
-        case PodcastPlayerSurfaceContext.homeShell:
-          dockLeftInset = layout.homeShellDesktopNavExpanded ? 280 : 80;
-          dockRightInset = desktopPanelWidth + 28;
-          break;
-        case PodcastPlayerSurfaceContext.episodeDetail:
-          dockLeftInset = 20;
-          dockRightInset = desktopPanelWidth + 36;
-          break;
-        case PodcastPlayerSurfaceContext.standard:
-          dockRightInset = desktopPanelWidth + 24;
-          break;
-      }
+      dockHorizontalPadding = 16;
+      dockBottomSpacing = 16;
+      desktopPanelGap = surfaceContext == PodcastPlayerSurfaceContext.homeShell
+          ? 20
+          : 24;
+      desktopPanelInnerPadding = 20;
       break;
   }
 
   final dockMaxWidth = _resolvePlayerMaxWidth(
     context,
     layoutMode: layoutMode,
-    availableWidth: width - dockLeftInset - dockRightInset,
+    availableWidth: width,
     horizontalPadding: fullScreenHorizontalPadding,
   );
 
   return PodcastPlayerViewportSpec(
     layoutMode: layoutMode,
     surfaceContext: surfaceContext,
-    dockLeftInset: dockLeftInset,
-    dockRightInset: dockRightInset,
-    dockBottomOffset: dockBottomOffset,
+    pageMode: layout.pageMode,
+    dockBottomSpacing: dockBottomSpacing,
     contentBottomInset: layout.contentBottomInset,
     dockHorizontalPadding: dockHorizontalPadding,
     dockTopPadding: dockTopPadding,
     dockMaxWidth: dockMaxWidth,
     desktopPanelWidth: desktopPanelWidth,
-    desktopPanelRightInset: desktopPanelRightInset,
-    desktopPanelTopInset: desktopPanelTopInset,
-    desktopPanelBottomInset: desktopPanelBottomInset,
-    mobileSheetMaxHeight: mobileSheetMaxHeight,
-    mobileSheetBorderRadius: mobileSheetBorderRadius,
+    desktopPanelGap: desktopPanelGap,
+    desktopPanelInnerPadding: desktopPanelInnerPadding,
+    mobileDrawerMaxHeight: mobileDrawerMaxHeight,
+    mobileDrawerBorderRadius: mobileDrawerBorderRadius,
     fullScreenHorizontalPadding: fullScreenHorizontalPadding,
   );
 }
@@ -365,32 +334,13 @@ double _resolvePlayerMaxWidth(
   ].reduce((value, element) => value < element ? value : element);
 }
 
-double resolvePodcastPlayerOverlayBottomOffset(
-  BuildContext context, {
-  double? override,
-}) {
-  if (override != null) {
-    return override;
-  }
-
-  final screenWidth = MediaQuery.sizeOf(context).width;
-  if (screenWidth >= 600) {
-    return kPodcastGlobalPlayerDesktopBottomOffset;
-  }
-
-  final safeAreaBottom = MediaQuery.viewPaddingOf(context).bottom;
-  final dockBottomPadding = safeAreaBottom > 0.0
-      ? safeAreaBottom
-      : kPodcastGlobalPlayerMobileViewportPadding;
-  return dockBottomPadding +
-      kPodcastGlobalPlayerMobileDockHeight +
-      kPodcastGlobalPlayerMobileDockGap;
-}
-
 double resolvePodcastPlayerTotalReservedSpace(
   BuildContext context,
   PodcastPlayerHostLayout layout,
 ) {
   final spec = resolvePodcastPlayerViewportSpec(context, layout);
-  return spec.contentBottomInset + spec.dockBottomOffset;
+  if (!layout.miniPlayerVisible) {
+    return 0;
+  }
+  return spec.contentBottomInset;
 }

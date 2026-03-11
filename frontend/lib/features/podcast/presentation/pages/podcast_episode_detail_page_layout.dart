@@ -45,6 +45,10 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
         _buildAnimatedHeader(episode),
         const SizedBox(height: 12),
         _buildTopButtonBar(isWide: true),
+        if (_shouldShowDetailOwnedPlayer(episode)) ...[
+          const SizedBox(height: 12),
+          _buildDetailOwnedPlayerCard(episode),
+        ],
         const SizedBox(height: 12),
         Expanded(
           child: Stack(
@@ -91,6 +95,10 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
         _buildHeader(episode),
         const SizedBox(height: 12),
         _buildTopButtonBar(isWide: false),
+        if (_shouldShowDetailOwnedPlayer(episode)) ...[
+          const SizedBox(height: 12),
+          _buildDetailOwnedPlayerCard(episode),
+        ],
         const SizedBox(height: 12),
         Expanded(
           child: Stack(

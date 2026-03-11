@@ -16,7 +16,6 @@ import '../widgets/app_shells.dart';
 import '../utils/app_logger.dart' as logger;
 import '../../shared/widgets/loading_widget.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
-import '../../features/podcast/presentation/widgets/global_podcast_player_host.dart';
 import '../../features/settings/presentation/providers/app_update_provider.dart';
 import '../../features/settings/presentation/widgets/update_dialog.dart';
 
@@ -103,19 +102,6 @@ Widget _wrapAppChild(BuildContext context, Widget child) {
       child: child,
     ),
   );
-}
-
-class _RootPlayerOverlay extends StatelessWidget {
-  const _RootPlayerOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return Overlay(
-      initialEntries: [
-        OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
-      ],
-    );
-  }
 }
 
 class PersonalAIAssistantApp extends ConsumerStatefulWidget {
@@ -377,16 +363,8 @@ class _PersonalAIAssistantAppState
       ],
       supportedLocales: const [Locale('en'), Locale('zh')],
 
-      builder: (context, child) => _wrapAppChild(
-        context,
-        Stack(
-          fit: StackFit.expand,
-          children: [
-            child ?? const SizedBox.shrink(),
-            const _RootPlayerOverlay(),
-          ],
-        ),
-      ),
+      builder: (context, child) =>
+          _wrapAppChild(context, child ?? const SizedBox.shrink()),
     );
   }
 }

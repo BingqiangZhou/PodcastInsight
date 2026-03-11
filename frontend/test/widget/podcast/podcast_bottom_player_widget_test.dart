@@ -96,6 +96,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.tap(
+        find.byKey(const Key('podcast_bottom_player_mini_info')),
+      );
+      await tester.pumpAndSettle();
+
       await tester.tap(find.byKey(const Key('podcast_bottom_player_speed')));
       await tester.pumpAndSettle();
       expect(find.text('Playback Speed'), findsOneWidget);
@@ -131,6 +136,11 @@ void main() {
           queueController: queueController,
           uiNotifier: uiNotifier,
         ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const Key('podcast_bottom_player_mini_info')),
       );
       await tester.pumpAndSettle();
 
@@ -176,6 +186,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.tap(
+        find.byKey(const Key('podcast_bottom_player_mini_info')),
+      );
+      await tester.pumpAndSettle();
+
       await tester.drag(
         find.byKey(const Key('podcast_bottom_player_drag_handle')),
         const Offset(0, 80),
@@ -208,7 +223,7 @@ void main() {
       );
 
       await tester.pumpWidget(
-        _createWidget(
+        _createDesktopFrameWidget(
           audioNotifier: audioNotifier,
           queueController: queueController,
           uiNotifier: uiNotifier,
@@ -250,6 +265,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(
+        find.byKey(const Key('podcast_bottom_player_mini_info')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
         find.byKey(const Key('podcast_bottom_player_expanded_title')),
       );
       await tester.pumpAndSettle();
@@ -257,6 +277,25 @@ void main() {
       expect(find.text('Episode Detail Page'), findsOneWidget);
     });
   });
+}
+
+Widget _createDesktopFrameWidget({
+  required TestAudioPlayerNotifier audioNotifier,
+  required TestPodcastQueueController queueController,
+  required TestPodcastPlayerUiNotifier uiNotifier,
+}) {
+  return ProviderScope(
+    overrides: [
+      audioPlayerProvider.overrideWith(() => audioNotifier),
+      podcastQueueControllerProvider.overrideWith(() => queueController),
+      podcastPlayerUiProvider.overrideWith(() => uiNotifier),
+    ],
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const PodcastPlayerLayoutFrame(child: Scaffold(body: SizedBox())),
+    ),
+  );
 }
 
 void _setMobileViewport(WidgetTester tester) {

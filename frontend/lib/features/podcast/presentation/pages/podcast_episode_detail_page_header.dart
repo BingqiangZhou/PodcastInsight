@@ -599,6 +599,297 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     );
   }
 
+  bool _shouldShowDetailOwnedPlayer(PodcastEpisodeDetailResponse episode) {
+    final currentEpisodeId = ref.read(audioCurrentEpisodeIdProvider);
+    return currentEpisodeId == episode.id;
+  }
+
+  Widget _buildDetailOwnedPlayerCard(PodcastEpisodeDetailResponse episode) {
+    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final theme = Theme.of(context);
+
+    return Container(
+      key: const Key('podcast_episode_detail_owned_player'),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.podcast_player_now_playing,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Episode Controls',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildDetailPlaybackSpeedChip(),
+              const SizedBox(width: 8),
+              _buildDetailSleepButton(),
+              const SizedBox(width: 8),
+              _buildDetailQueueButton(),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeroArtwork(episode, isWide: false),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      episode.title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _resolvePodcastTitle(episode, l10n),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildDateChip(episode),
+                        if (episode.audioDuration != null)
+                          _buildDurationChip(episode),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildDetailProgressCard(),
+          const SizedBox(height: 16),
+          _buildDetailTransportRow(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailPlaybackSpeedChip() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final speed = ref.watch(audioPlaybackRateProvider);
+        return ActionChip(
+          label: Text(formatPlaybackSpeed(speed)),
+          avatar: const Icon(Icons.speed_rounded, size: 18),
+          onPressed: () {
+            unawaited(_showDetailSpeedSelector());
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailSleepButton() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final isActive = ref.watch(audioSleepTimerActiveProvider);
+        return IconButton.filledTonal(
+          tooltip: (AppLocalizations.of(context) ?? AppLocalizationsEn())
+              .podcast_player_sleep_mode,
+          onPressed: () {
+            unawaited(_showDetailSleepSelector());
+          },
+          icon: Icon(isActive ? Icons.bedtime_rounded : Icons.bedtime_outlined),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailQueueButton() {
+    return IconButton.filledTonal(
+      tooltip: (AppLocalizations.of(context) ?? AppLocalizationsEn())
+          .podcast_player_list,
+      onPressed: () {
+        PodcastQueueSheet.show(context);
+      },
+      icon: const Icon(Icons.playlist_play_rounded),
+    );
+  }
+
+  Widget _buildDetailProgressCard() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final theme = Theme.of(context);
+        final progress = ref.watch(audioMiniProgressProvider);
+        final safeDuration = progress.durationMs <= 0 ? 1 : progress.durationMs;
+
+        return Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.42),
+            ),
+          ),
+          child: Column(
+            children: [
+              Slider(
+                value: progress.positionMs.clamp(0, safeDuration).toDouble(),
+                max: safeDuration.toDouble(),
+                onChanged: (value) {
+                  ref.read(audioPlayerProvider.notifier).seekTo(value.round());
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(progress.formattedPosition),
+                  Text(progress.formattedDuration),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailTransportRow() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final transport = ref.watch(audioPlayPauseStateProvider);
+        final progress = ref.watch(audioMiniProgressProvider);
+        return Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  final next = (progress.positionMs - 10000).clamp(
+                    0,
+                    progress.durationMs,
+                  );
+                  ref.read(audioPlayerProvider.notifier).seekTo(next);
+                },
+                icon: const Icon(Icons.replay_10_rounded),
+                label: const Text('10s'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            FilledButton.tonalIcon(
+              onPressed: () async {
+                if (transport.isLoading) {
+                  return;
+                }
+                if (transport.isPlaying) {
+                  await ref.read(audioPlayerProvider.notifier).pause();
+                } else {
+                  await ref.read(audioPlayerProvider.notifier).resume();
+                }
+              },
+              icon: Icon(
+                transport.isPlaying ? Icons.pause_rounded : Icons.play_arrow,
+              ),
+              label: Text(
+                transport.isPlaying
+                    ? ((AppLocalizations.of(context) ?? AppLocalizationsEn())
+                          .podcast_player_pause)
+                    : ((AppLocalizations.of(context) ?? AppLocalizationsEn())
+                          .podcast_player_play),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  final next = (progress.positionMs + 30000).clamp(
+                    0,
+                    progress.durationMs,
+                  );
+                  ref.read(audioPlayerProvider.notifier).seekTo(next);
+                },
+                icon: const Icon(Icons.forward_30_rounded),
+                label: const Text('30s'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showDetailSpeedSelector() async {
+    final playbackRate = ref.read(audioPlaybackRateProvider);
+    final selection = await showPlaybackSpeedSelectorSheet(
+      context: context,
+      initialSpeed: playbackRate,
+    );
+    if (selection == null) {
+      return;
+    }
+    await ref
+        .read(audioPlayerProvider.notifier)
+        .setPlaybackRate(
+          selection.speed,
+          applyToSubscription: selection.applyToSubscription,
+        );
+  }
+
+  Future<void> _showDetailSleepSelector() async {
+    final selection = await showSleepTimerSelectorSheet(
+      context: context,
+      isTimerActive: ref.read(audioSleepTimerActiveProvider),
+    );
+    if (selection == null) {
+      return;
+    }
+
+    final notifier = ref.read(audioPlayerProvider.notifier);
+    if (selection.cancel) {
+      notifier.cancelSleepTimer();
+    } else if (selection.afterEpisode) {
+      notifier.setSleepTimerAfterEpisode();
+    } else if (selection.duration != null) {
+      notifier.setSleepTimer(selection.duration!);
+    }
+  }
+
   Widget _buildSourceLinkChip(
     PodcastEpisodeDetailResponse episode,
     AppLocalizations l10n, {

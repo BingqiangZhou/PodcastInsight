@@ -14,6 +14,7 @@ import '../../../../core/widgets/top_floating_notice.dart';
 import '../providers/podcast_providers.dart';
 import '../providers/transcription_providers.dart';
 import '../providers/summary_providers.dart';
+import '../constants/playback_speed_options.dart';
 import '../../data/models/podcast_episode_model.dart';
 import '../../data/models/audio_player_state_model.dart';
 import '../../data/models/podcast_transcription_model.dart';
@@ -23,7 +24,10 @@ import '../widgets/transcription_status_widget.dart';
 import '../widgets/ai_summary_control_widget.dart';
 import '../widgets/conversation_chat_widget.dart';
 import '../widgets/podcast_image_widget.dart';
+import '../widgets/podcast_queue_sheet.dart';
 import '../widgets/scrollable_content_wrapper.dart';
+import '../widgets/playback_speed_selector_sheet.dart';
+import '../widgets/sleep_timer_selector_sheet.dart';
 import '../services/content_image_share_service.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 
@@ -179,13 +183,6 @@ class _PodcastEpisodeDetailPageState
 
   bool get _isHeaderExpanded {
     return _scrollOffset.value < _headerScrollThreshold;
-  }
-
-  bool _shouldHideBottomPlayer({
-    required bool isPlayerExpanded,
-    required bool hasCurrentEpisode,
-  }) {
-    return false;
   }
 
   void _updateHeaderStateForTab(int tabIndex) {
@@ -366,28 +363,13 @@ class _PodcastEpisodeDetailPageState
     final episodeDetailAsync = ref.watch(
       episodeDetailProvider(widget.episodeId),
     );
-    final isExpanded = ref.watch(podcastPlayerExpandedProvider);
-    final hasCurrentEpisode = ref.watch(
-      audioCurrentEpisodeIdProvider.select((episodeId) => episodeId != null),
-    );
-    final hostLayout = ref.watch(podcastPlayerHostLayoutProvider);
-    final hideBottomPlayer = _shouldHideBottomPlayer(
-      isPlayerExpanded: isExpanded,
-      hasCurrentEpisode: hasCurrentEpisode,
-    );
-    final playerBottomInset = hasCurrentEpisode && !hideBottomPlayer
-        ? resolvePodcastPlayerTotalReservedSpace(context, hostLayout)
-        : 0.0;
 
     _syncPlayerHostOverride(
       PodcastPlayerHostPageOverride(
         routeOwner: PodcastPlayerHostRouteOwner.episodeDetail,
+        pageMode: PodcastPlayerPageMode.detailOwned,
         surfaceContext: PodcastPlayerSurfaceContext.episodeDetail,
-        hiddenByPage: hideBottomPlayer,
         contentBottomInset: 54,
-        overlayBottomOffset: MediaQuery.sizeOf(context).width >= 600
-            ? 10
-            : MediaQuery.viewPaddingOf(context).bottom + 8,
       ),
     );
 
@@ -400,26 +382,21 @@ class _PodcastEpisodeDetailPageState
           endDrawer: episodeDetailAsync.asData?.value == null
               ? null
               : _buildChatDrawer(episodeDetailAsync.asData!.value!),
-          body: AnimatedPadding(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            padding: EdgeInsets.only(bottom: playerBottomInset),
-            child: episodeDetailAsync.when(
-              data: (episodeDetail) {
-                if (episodeDetail == null) {
-                  final l10n =
-                      (AppLocalizations.of(context) ?? AppLocalizationsEn());
-                  return _buildErrorState(
-                    context,
-                    l10n.podcast_episode_not_found,
-                  );
-                }
-                _trackEpisodeViewOnce(episodeDetail);
-                return _buildNewLayout(context, episodeDetail);
-              },
-              loading: () => _buildPageLoadingState(context),
-              error: (error, stack) => _buildErrorState(context, error),
-            ),
+          body: episodeDetailAsync.when(
+            data: (episodeDetail) {
+              if (episodeDetail == null) {
+                final l10n =
+                    (AppLocalizations.of(context) ?? AppLocalizationsEn());
+                return _buildErrorState(
+                  context,
+                  l10n.podcast_episode_not_found,
+                );
+              }
+              _trackEpisodeViewOnce(episodeDetail);
+              return _buildNewLayout(context, episodeDetail);
+            },
+            loading: () => _buildPageLoadingState(context),
+            error: (error, stack) => _buildErrorState(context, error),
           ),
         );
       },
