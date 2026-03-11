@@ -95,14 +95,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
       decoration: TextDecoration.none,
       decorationColor: Colors.transparent,
     );
-    final textPainter = TextPainter(
-      text: TextSpan(text: text, style: textStyle),
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
-      locale: Localizations.maybeLocaleOf(context),
-      maxLines: 1,
-    )..layout(minWidth: 0, maxWidth: double.infinity);
-    final indicatorWidth = textPainter.width;
 
     return Material(
       key: Key('episode_detail_mobile_tab_$tabIndex'),
@@ -123,26 +115,11 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             isCompact ? 12 : 14,
-            isCompact ? 8 : 10,
+            isCompact ? 10 : 11,
             isCompact ? 12 : 14,
-            isCompact ? 8 : 10,
+            isCompact ? 10 : 11,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(text, style: textStyle),
-              const SizedBox(height: 6),
-              Container(
-                key: Key('episode_detail_mobile_tab_indicator_$tabIndex'),
-                width: indicatorWidth,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: isSelected ? colorScheme.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-            ],
-          ),
+          child: Text(text, style: textStyle),
         ),
       ),
     );

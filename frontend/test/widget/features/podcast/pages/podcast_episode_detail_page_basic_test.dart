@@ -62,6 +62,28 @@ void main() {
         find.byKey(const Key('podcast_episode_detail_chat_button')),
         findsOneWidget,
       );
+      expect(
+        find.byKey(const Key('podcast_episode_detail_mobile_hero_actions')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .getSize(
+              find.byKey(
+                const Key('podcast_episode_detail_mobile_hero_artwork'),
+              ),
+            )
+            .width,
+        lessThanOrEqualTo(56),
+      );
+      expect(
+        tester
+            .getSize(
+              find.byKey(const Key('podcast_episode_detail_mobile_hero_body')),
+            )
+            .height,
+        lessThanOrEqualTo(110),
+      );
     });
 
     testWidgets('switches between transcript and summary tabs', (tester) async {
@@ -87,40 +109,66 @@ void main() {
       await tester.tap(summaryTabFinder);
       await tester.pumpAndSettle();
 
+      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
+      final l10n = AppLocalizations.of(context)!;
+
       expect(
         find.byKey(const Key('podcast_episode_detail_summary_section')),
         findsOneWidget,
       );
       expect(find.text('Generated summary'), findsOneWidget);
+      expect(find.text(l10n.podcast_share_all_content), findsOneWidget);
     });
 
-    testWidgets('uses icon-only source and play actions on narrow mobile', (
-      tester,
-    ) async {
+    testWidgets('hides mobile header after scrolling content', (tester) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
       await tester.pumpWidget(_createWidget(episode: _episode()));
       await tester.pumpAndSettle();
 
-      final sourceButton = find.byKey(
-        const Key('podcast_episode_detail_source_button'),
+      await tester.drag(
+        find.byType(SingleChildScrollView).last,
+        const Offset(0, -420),
       );
-      final playButton = find.byKey(
-        const Key('podcast_episode_detail_play_button'),
-      );
-      final sourceWidget = tester.widget<HeaderCapsuleActionButton>(
-        sourceButton,
-      );
-      final playWidget = tester.widget<HeaderCapsuleActionButton>(playButton);
+      await tester.pumpAndSettle();
 
-      expect(sourceButton, findsOneWidget);
-      expect(sourceWidget.density, HeaderCapsuleActionButtonDensity.iconOnly);
-      expect(playWidget.density, HeaderCapsuleActionButtonDensity.iconOnly);
-      expect(tester.getSize(sourceButton).width, lessThanOrEqualTo(40));
-      expect(tester.getSize(sourceButton).height, lessThanOrEqualTo(40));
-      expect(tester.getSize(playButton).height, lessThanOrEqualTo(40));
+      expect(
+        find.byKey(const Key('podcast_episode_detail_mobile_hero_body')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('podcast_episode_detail_primary_tabs')),
+        findsOneWidget,
+      );
     });
+
+    testWidgets(
+      'uses icon-only source and play actions on narrow mobile',
+      (tester) async {
+        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+
+        await tester.pumpWidget(_createWidget(episode: _episode()));
+        await tester.pumpAndSettle();
+
+        final sourceButton = find.byKey(
+          const Key('podcast_episode_detail_source_button'),
+        );
+        final playButton = find.byKey(
+          const Key('podcast_episode_detail_play_button'),
+        );
+        final playWidget = tester.widget<HeaderCapsuleActionButton>(playButton);
+        final sourceWidget = tester.widget<Material>(sourceButton);
+
+        expect(sourceButton, findsOneWidget);
+        expect(sourceWidget.color, isNot(Colors.transparent));
+        expect(tester.getSize(sourceButton).width, lessThanOrEqualTo(30));
+        expect(tester.getSize(sourceButton).height, lessThanOrEqualTo(30));
+        expect(playWidget.density, HeaderCapsuleActionButtonDensity.iconOnly);
+        expect(tester.getSize(playButton).height, lessThanOrEqualTo(40));
+      },
+    );
 
     testWidgets('uses icon-only play action on ultra narrow mobile', (
       tester,
@@ -188,13 +236,15 @@ Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
 }
 
 PodcastEpisodeDetailResponse _episode() {
-  final now = DateTime.now();
+  final now = DateTime(2026, 3, 11, 9, 30);
   return PodcastEpisodeDetailResponse(
     id: 1,
     subscriptionId: 1,
     title: 'Test Episode',
-    description:
-        '<h2>Opening</h2><p>Description</p><h2>Deep Dive</h2><p>More content</p>',
+    description: List.filled(
+      24,
+      '<h2>Opening</h2><p>Description with enough body text to scroll the shownotes area.</p>',
+    ).join(),
     audioUrl: 'https://example.com/audio.mp3',
     itemLink: 'https://example.com/source',
     audioDuration: 180,
@@ -202,6 +252,7 @@ PodcastEpisodeDetailResponse _episode() {
     aiSummary: 'summary',
     transcriptContent: 'Transcript content',
     status: 'published',
+    metadata: const {'podcast_title': 'Test Podcast'},
     createdAt: now,
     updatedAt: now,
     relatedEpisodes: const [],

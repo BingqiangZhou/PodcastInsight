@@ -13,23 +13,14 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       duration: const Duration(milliseconds: 220),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
-      child: _isHeaderExpanded
-          ? _buildHeroHeaderCard(
-              episode,
-              isWide: false,
-              key: ValueKey(
-                'podcast_episode_detail_mobile_hero_'
-                '$_headerAnimationVersion',
-              ),
-            )
-          : _buildCompactHeaderCard(
-              episode,
-              isWide: false,
-              key: ValueKey(
-                'podcast_episode_detail_mobile_compact_'
-                '$_headerAnimationVersion',
-              ),
-            ),
+      child: _buildHeroHeaderCard(
+        episode,
+        isWide: false,
+        key: ValueKey(
+          'podcast_episode_detail_mobile_hero_'
+          '$_headerAnimationVersion',
+        ),
+      ),
     );
   }
 
@@ -38,23 +29,14 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       duration: const Duration(milliseconds: 220),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
-      child: _isHeaderExpanded
-          ? _buildHeroHeaderCard(
-              episode,
-              isWide: true,
-              key: ValueKey(
-                'podcast_episode_detail_wide_hero_'
-                '$_headerAnimationVersion',
-              ),
-            )
-          : _buildCompactHeaderCard(
-              episode,
-              isWide: true,
-              key: ValueKey(
-                'podcast_episode_detail_wide_compact_'
-                '$_headerAnimationVersion',
-              ),
-            ),
+      child: _buildHeroHeaderCard(
+        episode,
+        isWide: true,
+        key: ValueKey(
+          'podcast_episode_detail_wide_hero_'
+          '$_headerAnimationVersion',
+        ),
+      ),
     );
   }
 
@@ -68,19 +50,13 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     final title = episode.title.trim().isEmpty
         ? l10n.episode_unknown_title
         : episode.title;
-    final subtitle = _resolvePodcastTitle(episode, l10n);
     final metadata = <Widget>[
+      _buildPodcastTitleChip(episode, l10n),
       _buildDateChip(episode),
       if (episode.audioDuration != null) _buildDurationChip(episode),
       _buildPlaybackStateBadge(episode, l10n),
       if (episode.itemLink != null && episode.itemLink!.trim().isNotEmpty)
-        _buildSourceLinkChip(
-          episode,
-          l10n,
-          density: isWide
-              ? HeaderCapsuleActionButtonDensity.compact
-              : HeaderCapsuleActionButtonDensity.iconOnly,
-        ),
+        _buildSourceLinkChip(episode, l10n),
       if (episode.episodeNumber != null)
         StatusBadge(
           label: 'EP ${episode.episodeNumber}',
@@ -97,94 +73,104 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     if (isWide) {
       return GlassPanel(
         key: key,
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _buildHeroArtwork(episode, isWide: true),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
+                key: const Key('podcast_episode_detail_wide_hero_content'),
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
                   Text(
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w800,
+                      height: 1.08,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Wrap(spacing: 8, runSpacing: 8, children: metadata),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    key: const Key('podcast_episode_detail_hero_metadata_row'),
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: metadata.whereType<Widget>().toList(
+                      growable: false,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             _buildWideHeaderActionColumn(episode, l10n),
           ],
         ),
       );
     }
 
+    final mobileMetadata = _buildCompactHeaderMetadataText(
+      podcastTitle: _resolvePodcastTitle(episode, l10n),
+      publishedAt: episode.publishedAt,
+      durationMilliseconds: episode.audioDuration == null
+          ? null
+          : episode.audioDuration! * 1000,
+    );
+
     return GlassPanel(
       key: key,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeroArtwork(episode, isWide: false),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      child: SizedBox(
+        key: const Key('podcast_episode_detail_mobile_hero_body'),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeroArtwork(episode, isWide: false),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      height: 1.02,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      title,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    mobileMetadata,
+                    key: const Key(
+                      'podcast_episode_detail_mobile_hero_metadata',
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.1,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (episode.itemLink != null &&
+                      episode.itemLink!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    _buildSourceLinkChip(episode, l10n, iconOnly: true),
                   ],
-                ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(spacing: 8, runSpacing: 8, children: metadata),
-          const SizedBox(height: 14),
-          _buildHeaderActions(
-            episode,
-            l10n,
-            compact: false,
-            includeBack: false,
-          ),
-        ],
+            ),
+            const SizedBox(width: 8),
+            _buildMobileHeroActionColumn(episode, l10n),
+          ],
+        ),
       ),
     );
   }
@@ -198,50 +184,63 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     final title = episode.title.trim().isEmpty
         ? l10n.episode_unknown_title
         : episode.title;
+    final theme = Theme.of(context);
+    final artworkSize = isWide ? 34.0 : 30.0;
 
     return GlassPanel(
       key: key,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      child: Row(
-        children: [
-          PodcastImageWidget(
-            imageUrl: episode.imageUrl,
-            fallbackImageUrl: episode.subscriptionImageUrl,
-            width: isWide ? 38 : 34,
-            height: isWide ? 38 : 34,
-            iconSize: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+      padding: EdgeInsets.fromLTRB(
+        isWide ? 14 : 12,
+        isWide ? 10 : 8,
+        isWide ? 14 : 12,
+        isWide ? 10 : 8,
+      ),
+      child: SizedBox(
+        key: const Key('podcast_episode_detail_compact_header_body'),
+        child: Row(
+          children: [
+            SizedBox(
+              key: const Key('podcast_episode_detail_compact_artwork'),
+              width: artworkSize,
+              height: artworkSize,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: PodcastImageWidget(
+                  imageUrl: episode.imageUrl,
+                  fallbackImageUrl: episode.subscriptionImageUrl,
+                  width: artworkSize,
+                  height: artworkSize,
+                  iconSize: artworkSize * 0.56,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  _formatDate(episode.publishedAt),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          if (isWide) ...[
-            _buildCompactHeaderActionRow(episode, l10n, isWide: true),
-          ] else
-            _buildCompactHeaderActionRow(episode, l10n, isWide: false),
-        ],
+            SizedBox(width: isWide ? 10 : 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      height: 1.12,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  _buildCompactHeaderMetadata(episode, l10n),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (isWide) ...[
+              _buildCompactHeaderActionRow(episode, l10n, isWide: true),
+            ] else
+              _buildCompactHeaderActionRow(episode, l10n, isWide: false),
+          ],
+        ),
       ),
     );
   }
@@ -250,27 +249,32 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     PodcastEpisodeDetailResponse episode, {
     required bool isWide,
   }) {
-    final size = isWide ? 92.0 : 78.0;
+    final size = isWide ? 76.0 : 56.0;
 
     return Container(
+      key: Key(
+        isWide
+            ? 'podcast_episode_detail_wide_hero_artwork'
+            : 'podcast_episode_detail_mobile_hero_artwork',
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(isWide ? 18 : 16),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor.withValues(alpha: 0.14),
-            blurRadius: 24,
-            offset: const Offset(0, 16),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(isWide ? 18 : 16),
         child: PodcastImageWidget(
           imageUrl: episode.imageUrl,
           fallbackImageUrl: episode.subscriptionImageUrl,
           width: size,
           height: size,
-          iconSize: size * 0.34,
+          iconSize: size * 0.32,
         ),
       ),
     );
@@ -281,8 +285,9 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     AppLocalizations l10n,
   ) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 132, maxWidth: 176),
+      constraints: const BoxConstraints(minWidth: 124, maxWidth: 168),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Row(
@@ -293,12 +298,13 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
               _buildBackButton(),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _buildPlayButton(
             episode,
             l10n,
             compact: false,
-            density: HeaderCapsuleActionButtonDensity.regular,
+            density: HeaderCapsuleActionButtonDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
           ),
         ],
       ),
@@ -322,6 +328,26 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           compact: compact,
           density: _mobilePlayButtonDensity,
         ),
+        _buildQueueButton(),
+      ],
+    );
+  }
+
+  Widget _buildMobileHeroActionColumn(
+    PodcastEpisodeDetailResponse episode,
+    AppLocalizations l10n,
+  ) {
+    return Column(
+      key: const Key('podcast_episode_detail_mobile_hero_actions'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildPlayButton(
+          episode,
+          l10n,
+          compact: true,
+          density: HeaderCapsuleActionButtonDensity.iconOnly,
+        ),
+        const SizedBox(height: 8),
         _buildQueueButton(),
       ],
     );
@@ -370,6 +396,122 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     }
 
     return l10n.podcast_default_podcast;
+  }
+
+  Widget _buildPodcastTitleChip(
+    PodcastEpisodeDetailResponse episode,
+    AppLocalizations l10n,
+  ) {
+    return StatusBadge(
+      key: const Key('podcast_episode_detail_podcast_title_chip'),
+      label: _resolvePodcastTitle(episode, l10n),
+      color: Theme.of(context).colorScheme.primary,
+    );
+  }
+
+  Widget _buildMetadataActionBadge({
+    required Key key,
+    required String label,
+    required IconData icon,
+    Color? color,
+    bool iconOnly = false,
+    required VoidCallback onTap,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final resolvedColor = color ?? scheme.primary;
+
+    return Tooltip(
+      message: label,
+      child: Material(
+        key: key,
+        color: resolvedColor.withValues(alpha: 0.12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+          side: BorderSide(color: resolvedColor.withValues(alpha: 0.18)),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: onTap,
+          child: iconOnly
+              ? SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: Center(
+                    child: Icon(icon, size: 13, color: resolvedColor),
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 13, color: resolvedColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        label,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: resolvedColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactHeaderMetadata(
+    PodcastEpisodeDetailResponse episode,
+    AppLocalizations l10n,
+  ) {
+    final theme = Theme.of(context);
+
+    return Consumer(
+      builder: (context, ref, _) {
+        final activeDuration = ref.watch(
+          audioDurationForEpisodeProvider(episode.id),
+        );
+        final durationMilliseconds =
+            activeDuration ??
+            (episode.audioDuration == null
+                ? null
+                : episode.audioDuration! * 1000);
+        final metadataText = _buildCompactHeaderMetadataText(
+          podcastTitle: _resolvePodcastTitle(episode, l10n),
+          publishedAt: episode.publishedAt,
+          durationMilliseconds: durationMilliseconds,
+        );
+
+        return Text(
+          metadataText,
+          key: const Key('podcast_episode_detail_compact_metadata'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            height: 1.1,
+          ),
+        );
+      },
+    );
+  }
+
+  String _buildCompactHeaderMetadataText({
+    required String podcastTitle,
+    required DateTime publishedAt,
+    required int? durationMilliseconds,
+  }) {
+    final segments = <String>[podcastTitle, _formatDate(publishedAt)];
+    if (durationMilliseconds != null) {
+      segments.add(_formatDurationLabel(durationMilliseconds));
+    }
+    return segments.join(' / ');
   }
 
   Future<void> _launchEpisodeSource(
@@ -457,6 +599,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     AppLocalizations l10n, {
     required bool compact,
     HeaderCapsuleActionButtonDensity? density,
+    EdgeInsetsGeometry? padding,
   }) {
     return Consumer(
       builder: (context, ref, _) {
@@ -498,6 +641,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           tooltip: tooltip,
           icon: icon,
           density: effectiveDensity,
+          padding: padding,
           label: showLabel ? Text(buttonText) : null,
           onPressed: () {
             unawaited(_playOrResumeFromDetail(_episodeToModel(episode)));
@@ -662,17 +806,9 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
         );
         final displayDuration =
             activeDuration ?? ((episode.audioDuration ?? 0) * 1000);
-        final duration = Duration(milliseconds: displayDuration);
-        final hours = duration.inHours;
-        final minutes = duration.inMinutes.remainder(60);
-        final seconds = duration.inSeconds.remainder(60);
-
-        final formattedDuration = hours > 0
-            ? '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}'
-            : '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
         return StatusBadge(
-          label: formattedDuration,
+          label: _formatDurationLabel(displayDuration),
           icon: Icons.schedule_outlined,
           color: Theme.of(context).colorScheme.tertiary,
         );
@@ -683,39 +819,17 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   Widget _buildSourceLinkChip(
     PodcastEpisodeDetailResponse episode,
     AppLocalizations l10n, {
-    HeaderCapsuleActionButtonDensity? density,
+    bool iconOnly = false,
   }) {
-    final effectiveDensity =
-        density ??
-        (_isCompactPhoneLayout
-            ? HeaderCapsuleActionButtonDensity.iconOnly
-            : HeaderCapsuleActionButtonDensity.regular);
-    final button = HeaderCapsuleActionButton(
+    return _buildMetadataActionBadge(
       key: const Key('podcast_episode_detail_source_button'),
-      tooltip: l10n.podcast_source,
+      label: l10n.podcast_source,
       icon: Icons.link_rounded,
-      density: effectiveDensity,
-      label: Text(
-        l10n.podcast_source,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      onPressed: () {
+      color: Theme.of(context).colorScheme.secondary,
+      iconOnly: iconOnly,
+      onTap: () {
         unawaited(_launchEpisodeSource(episode));
       },
-    );
-
-    if (effectiveDensity == HeaderCapsuleActionButtonDensity.iconOnly) {
-      return button;
-    }
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: effectiveDensity == HeaderCapsuleActionButtonDensity.compact
-            ? 112
-            : 132,
-      ),
-      child: button,
     );
   }
 
@@ -727,7 +841,11 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   String _formatPlaybackProgress(int milliseconds) {
-    final duration = Duration(milliseconds: milliseconds.clamp(0, 1 << 31));
+    return _formatDurationLabel(milliseconds.clamp(0, 1 << 31));
+  }
+
+  String _formatDurationLabel(int milliseconds) {
+    final duration = Duration(milliseconds: milliseconds);
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);

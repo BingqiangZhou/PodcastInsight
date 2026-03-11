@@ -58,26 +58,54 @@ void main() {
       );
     });
 
-    testWidgets('wide header uses compact source chip in metadata row', (
-      tester,
-    ) async {
-      addTearDown(() async => tester.binding.setSurfaceSize(null));
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
+    testWidgets(
+      'wide header compresses artwork and keeps metadata chips inline',
+      (tester) async {
+        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        await tester.binding.setSurfaceSize(const Size(1280, 900));
 
-      await tester.pumpWidget(_createWidget(episode: _episode()));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(_createWidget(episode: _episode()));
+        await tester.pumpAndSettle();
 
-      final sourceButton = find.byKey(
-        const Key('podcast_episode_detail_source_button'),
-      );
-      final sourceWidget = tester.widget<HeaderCapsuleActionButton>(
-        sourceButton,
-      );
+        final sourceButton = find.byKey(
+          const Key('podcast_episode_detail_source_button'),
+        );
 
-      expect(sourceButton, findsOneWidget);
-      expect(sourceWidget.density, HeaderCapsuleActionButtonDensity.compact);
-      expect(tester.getSize(sourceButton).width, lessThanOrEqualTo(112));
-    });
+        expect(
+          find.byKey(const Key('podcast_episode_detail_podcast_title_chip')),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Test Podcast'), findsOneWidget);
+        expect(find.textContaining('2026-03-11'), findsOneWidget);
+        expect(find.textContaining('03:00'), findsOneWidget);
+        expect(sourceButton, findsOneWidget);
+        expect(
+          tester.widget<Material>(sourceButton).color,
+          isNot(Colors.transparent),
+        );
+        expect(tester.getSize(sourceButton).height, lessThanOrEqualTo(32));
+        expect(
+          tester
+              .getSize(
+                find.byKey(
+                  const Key('podcast_episode_detail_wide_hero_artwork'),
+                ),
+              )
+              .width,
+          lessThanOrEqualTo(76),
+        );
+        expect(
+          tester
+              .getSize(
+                find.byKey(
+                  const Key('podcast_episode_detail_wide_hero_content'),
+                ),
+              )
+              .height,
+          lessThanOrEqualTo(76),
+        );
+      },
+    );
   });
 }
 
@@ -109,7 +137,7 @@ Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
 }
 
 PodcastEpisodeDetailResponse _episode() {
-  final now = DateTime.now();
+  final now = DateTime(2026, 3, 11, 9, 30);
   return PodcastEpisodeDetailResponse(
     id: 1,
     subscriptionId: 1,
@@ -123,6 +151,7 @@ PodcastEpisodeDetailResponse _episode() {
     aiSummary: 'summary',
     transcriptContent: 'Transcript content',
     status: 'published',
+    metadata: const {'podcast_title': 'Test Podcast'},
     createdAt: now,
     updatedAt: now,
     relatedEpisodes: const [],

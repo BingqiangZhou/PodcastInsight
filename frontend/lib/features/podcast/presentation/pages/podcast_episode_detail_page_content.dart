@@ -266,50 +266,38 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
       });
     }
 
-    return Container(
+    return Column(
       key: const Key('podcast_episode_detail_summary_section'),
-      padding: EdgeInsets.all(compact ? 14 : 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.24),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: Theme.of(
-            context,
-          ).colorScheme.outlineVariant.withValues(alpha: 0.45),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AISummaryControlWidget(
+          episodeId: widget.episodeId,
+          hasTranscript: canManageSummary,
+          compact: compact,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AISummaryControlWidget(
-            episodeId: widget.episodeId,
-            hasTranscript: canManageSummary,
+        const SizedBox(height: 16),
+        if (summaryState.isLoading)
+          _buildCenteredLoadingState(
+            (AppLocalizations.of(context) ?? AppLocalizationsEn())
+                .podcast_generating_summary,
+          )
+        else if (summaryState.hasSummary)
+          _buildSummaryCard(
+            context,
+            episodeTitle: episode.title,
+            summary: summaryState.summary!,
             compact: compact,
-          ),
-          const SizedBox(height: 16),
-          if (summaryState.isLoading)
-            _buildCenteredLoadingState(
-              (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                  .podcast_generating_summary,
-            )
-          else if (summaryState.hasSummary)
-            _buildSummaryCard(
-              context,
-              episodeTitle: episode.title,
-              summary: summaryState.summary!,
-              compact: compact,
-            )
-          else if (episode.aiSummary != null && episode.aiSummary!.isNotEmpty)
-            _buildSummaryCard(
-              context,
-              episodeTitle: episode.title,
-              summary: episode.aiSummary!,
-              compact: compact,
-            )
-          else
-            _buildAiSummaryEmptyState(context),
-        ],
-      ),
+          )
+        else if (episode.aiSummary != null && episode.aiSummary!.isNotEmpty)
+          _buildSummaryCard(
+            context,
+            episodeTitle: episode.title,
+            summary: episode.aiSummary!,
+            compact: compact,
+          )
+        else
+          _buildAiSummaryEmptyState(context),
+      ],
     );
   }
 
@@ -322,81 +310,63 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
     final theme = Theme.of(context);
 
-    return Container(
-      padding: EdgeInsets.all(compact ? 14 : 18),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.26),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              StatusBadge(
-                label: l10n.podcast_filter_with_summary,
-                icon: Icons.auto_awesome,
-              ),
-              TextButton.icon(
-                onPressed: () =>
-                    unawaited(_shareAllSummaryAsImage(episodeTitle, summary)),
-                icon: const Icon(Icons.ios_share_outlined, size: 16),
-                label: Text(l10n.podcast_share_all_content),
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: () =>
+                unawaited(_shareAllSummaryAsImage(episodeTitle, summary)),
+            icon: const Icon(Icons.ios_share_outlined, size: 16),
+            label: Text(l10n.podcast_share_all_content),
           ),
-          const SizedBox(height: 14),
-          SelectionArea(
-            onSelectionChanged: (selectedContent) {
-              _selectedSummaryText = selectedContent?.plainText.trim() ?? '';
-            },
-            contextMenuBuilder: (context, selectableRegionState) {
-              return AdaptiveTextSelectionToolbar.buttonItems(
-                anchors: selectableRegionState.contextMenuAnchors,
-                buttonItems: [
-                  ...selectableRegionState.contextMenuButtonItems,
-                  ContextMenuButtonItem(
-                    label: l10n.podcast_share_as_image,
-                    onPressed: () {
-                      ContextMenuController.removeAny();
-                      unawaited(
-                        _shareSelectedSummaryAsImage(episodeTitle, summary),
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
-            child: MarkdownBody(
-              data: summary,
-              styleSheet: MarkdownStyleSheet(
-                p: theme.textTheme.bodyLarge?.copyWith(
-                  height: compact ? 1.55 : 1.65,
+        ),
+        const SizedBox(height: 10),
+        SelectionArea(
+          onSelectionChanged: (selectedContent) {
+            _selectedSummaryText = selectedContent?.plainText.trim() ?? '';
+          },
+          contextMenuBuilder: (context, selectableRegionState) {
+            return AdaptiveTextSelectionToolbar.buttonItems(
+              anchors: selectableRegionState.contextMenuAnchors,
+              buttonItems: [
+                ...selectableRegionState.contextMenuButtonItems,
+                ContextMenuButtonItem(
+                  label: l10n.podcast_share_as_image,
+                  onPressed: () {
+                    ContextMenuController.removeAny();
+                    unawaited(
+                      _shareSelectedSummaryAsImage(episodeTitle, summary),
+                    );
+                  },
                 ),
-                h1: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-                h2: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-                h3: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-                listBullet: theme.textTheme.bodyLarge,
-                strong: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+              ],
+            );
+          },
+          child: MarkdownBody(
+            data: summary,
+            styleSheet: MarkdownStyleSheet(
+              p: theme.textTheme.bodyLarge?.copyWith(
+                height: compact ? 1.55 : 1.65,
+              ),
+              h1: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+              h2: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+              h3: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+              listBullet: theme.textTheme.bodyLarge,
+              strong: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

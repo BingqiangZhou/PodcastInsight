@@ -15,20 +15,36 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/su
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
 
 void main() {
-  group('PodcastEpisodeDetailPage mobile tab indicator', () {
-    testWidgets('initial state shows only indicator_0', (tester) async {
+  group('PodcastEpisodeDetailPage mobile tab selection', () {
+    testWidgets('selected tab uses filled pill styling without underline', (
+      tester,
+    ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
       await tester.pumpWidget(_createWidget());
       await tester.pumpAndSettle();
 
-      expect(_indicatorColor(tester, 0), isNot(Colors.transparent));
-      expect(_indicatorColor(tester, 1), Colors.transparent);
-      expect(_indicatorColor(tester, 2), Colors.transparent);
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_0')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_1')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_2')),
+        findsNothing,
+      );
+      expect(_tabColor(tester, 0), isNot(Colors.transparent));
+      expect(_tabColor(tester, 1), Colors.transparent);
+      expect(_tabColor(tester, 2), Colors.transparent);
     });
 
-    testWidgets('tap transcript tab shows only indicator_1', (tester) async {
+    testWidgets('tap transcript tab updates selected pill styling', (
+      tester,
+    ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
@@ -42,12 +58,14 @@ void main() {
       await tester.tap(transcriptTabFinder);
       await tester.pumpAndSettle();
 
-      expect(_indicatorColor(tester, 0), Colors.transparent);
-      expect(_indicatorColor(tester, 1), isNot(Colors.transparent));
-      expect(_indicatorColor(tester, 2), Colors.transparent);
+      expect(_tabColor(tester, 0), Colors.transparent);
+      expect(_tabColor(tester, 1), isNot(Colors.transparent));
+      expect(_tabColor(tester, 2), Colors.transparent);
     });
 
-    testWidgets('tap summary tab shows only indicator_2', (tester) async {
+    testWidgets('tap summary tab updates selected pill styling', (
+      tester,
+    ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
@@ -61,9 +79,9 @@ void main() {
       await tester.tap(summaryTabFinder);
       await tester.pumpAndSettle();
 
-      expect(_indicatorColor(tester, 0), Colors.transparent);
-      expect(_indicatorColor(tester, 1), Colors.transparent);
-      expect(_indicatorColor(tester, 2), isNot(Colors.transparent));
+      expect(_tabColor(tester, 0), Colors.transparent);
+      expect(_tabColor(tester, 1), Colors.transparent);
+      expect(_tabColor(tester, 2), isNot(Colors.transparent));
     });
   });
 }
@@ -112,12 +130,11 @@ Widget _createWidget() {
   );
 }
 
-Color _indicatorColor(WidgetTester tester, int index) {
-  final indicator = tester.widget<Container>(
-    find.byKey(Key('episode_detail_mobile_tab_indicator_$index')),
+Color _tabColor(WidgetTester tester, int index) {
+  final material = tester.widget<Material>(
+    find.byKey(Key('episode_detail_mobile_tab_$index')),
   );
-  final decoration = indicator.decoration as BoxDecoration?;
-  return decoration?.color ?? Colors.transparent;
+  return material.color ?? Colors.transparent;
 }
 
 class _MockAudioPlayerNotifier extends AudioPlayerNotifier {

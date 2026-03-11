@@ -61,7 +61,7 @@ class _PodcastEpisodeDetailPageState
   static const double _headerScrollThreshold =
       50.0; // Header starts fading after 50px scroll
   static const double _autoCollapseScrollDeltaThreshold = 6.0;
-  static const double _scrollToTopFixedLift = 72.0;
+  static const double _scrollToTopFixedLift = 56.0;
   List<ShownotesAnchor> _shownotesAnchors = const <ShownotesAnchor>[];
 
   // GlobalKeys for accessing child widget states to call scrollToTop

@@ -48,8 +48,10 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildAnimatedHeader(episode),
-            const SizedBox(height: 12),
+            if (_isHeaderExpanded) ...[
+              _buildAnimatedHeader(episode),
+              const SizedBox(height: 12),
+            ],
             _buildTopButtonBar(isWide: true),
             const SizedBox(height: 12),
             Expanded(
@@ -96,8 +98,10 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(episode),
-        const SizedBox(height: 12),
+        if (_isHeaderExpanded) ...[
+          _buildHeader(episode),
+          const SizedBox(height: 12),
+        ],
         _buildTopButtonBar(isWide: false),
         const SizedBox(height: 12),
         Expanded(
