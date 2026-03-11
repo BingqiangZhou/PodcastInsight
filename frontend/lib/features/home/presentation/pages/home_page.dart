@@ -71,9 +71,9 @@ class _HomePageState extends ConsumerState<HomePage> with RouteAware {
     }
 
     _returningFromCoveredRoute = false;
-    final playerState = ref.read(audioPlayerProvider);
-    if (playerState.isExpanded) {
-      ref.read(audioPlayerProvider.notifier).setExpanded(false);
+    final playerUi = ref.read(podcastPlayerUiProvider);
+    if (playerUi.isExpanded) {
+      ref.read(podcastPlayerUiProvider.notifier).collapse();
     }
   }
 

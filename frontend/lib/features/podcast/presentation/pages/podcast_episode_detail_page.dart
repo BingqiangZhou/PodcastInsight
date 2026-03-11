@@ -177,27 +177,8 @@ class _PodcastEpisodeDetailPageState
     setState(updater);
   }
 
-  // Calculate header opacity based on scroll offset
-  double get _headerOpacity {
-    if (_scrollOffset.value <= 0) return 1.0;
-    if (_scrollOffset.value >= _headerScrollThreshold) return 0.0;
-    return 1.0 - (_scrollOffset.value / _headerScrollThreshold);
-  }
-
-  // Calculate header clipping height based on scroll offset
-  double get _headerClipHeight {
-    const maxHeaderHeight = 220.0;
-    if (_scrollOffset.value <= 0) return maxHeaderHeight;
-    if (_scrollOffset.value >= _headerScrollThreshold) return 0.0;
-    return maxHeaderHeight * (1 - _scrollOffset.value / _headerScrollThreshold);
-  }
-
   bool get _isHeaderExpanded {
     return _scrollOffset.value < _headerScrollThreshold;
-  }
-
-  bool get _isReadableContentTab {
-    return _selectedTabIndex >= 0 && _selectedTabIndex <= 2;
   }
 
   bool _shouldHideBottomPlayer({
@@ -346,12 +327,16 @@ class _PodcastEpisodeDetailPageState
       return;
     }
 
-    final playerState = ref.read(audioPlayerProvider);
-    if (!playerState.isExpanded) {
+    if (MediaQuery.sizeOf(context).width >= 600) {
       return;
     }
 
-    ref.read(audioPlayerProvider.notifier).setExpanded(false);
+    final playerUi = ref.read(podcastPlayerUiProvider);
+    if (!playerUi.isExpanded) {
+      return;
+    }
+
+    ref.read(podcastPlayerUiProvider.notifier).collapse();
   }
 
   void _recordScrollMetrics(ScrollMetrics metrics) {
@@ -381,9 +366,7 @@ class _PodcastEpisodeDetailPageState
     final episodeDetailAsync = ref.watch(
       episodeDetailProvider(widget.episodeId),
     );
-    final isExpanded = ref.watch(
-      audioPlayerProvider.select((state) => state.isExpanded),
-    );
+    final isExpanded = ref.watch(podcastPlayerExpandedProvider);
     final hasCurrentEpisode = ref.watch(
       audioCurrentEpisodeIdProvider.select((episodeId) => episodeId != null),
     );
@@ -481,21 +464,6 @@ class _PodcastEpisodeDetailPageState
         _loadTranscriptionStatus();
       });
       logger.AppLogger.debug('[Playback] ===== didUpdateWidget complete =====');
-    }
-  }
-
-  // Use actual platform type instead of width breakpoints.
-  // Mobile platforms return true, desktop/web-like targets return false.
-  bool _isMobilePlatform() {
-    switch (Theme.of(context).platform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.android:
-        return true;
-      case TargetPlatform.windows:
-      case TargetPlatform.macOS:
-      case TargetPlatform.linux:
-      case TargetPlatform.fuchsia:
-        return false;
     }
   }
 

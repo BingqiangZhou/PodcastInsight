@@ -79,49 +79,6 @@ class PodcastEpisodeDetailPageArgs {
   }
 }
 
-/// Navigation arguments for podcast player page
-class PodcastPlayerPageArgs {
-  final int episodeId;
-  final int subscriptionId;
-  final String? episodeTitle;
-  final String? audioUrl;
-  final int? startPosition;
-
-  const PodcastPlayerPageArgs({
-    required this.episodeId,
-    required this.subscriptionId,
-    this.episodeTitle,
-    this.audioUrl,
-    this.startPosition,
-  });
-
-  /// Extracts args from GoRouter state
-  static PodcastPlayerPageArgs? extractFromState(GoRouterState state) {
-    final episodeIdStr = state.pathParameters['episodeId'];
-    final subscriptionIdStr = state.uri.queryParameters['subscriptionId'];
-
-    if (episodeIdStr == null || subscriptionIdStr == null) return null;
-
-    final episodeId = int.tryParse(episodeIdStr);
-    final subscriptionId = int.tryParse(subscriptionIdStr);
-
-    if (episodeId == null || subscriptionId == null) return null;
-
-    final startPositionStr = state.uri.queryParameters['position'];
-    final startPosition = startPositionStr != null
-        ? int.tryParse(startPositionStr)
-        : null;
-
-    return PodcastPlayerPageArgs(
-      episodeId: episodeId,
-      subscriptionId: subscriptionId,
-      episodeTitle: state.uri.queryParameters['title'],
-      audioUrl: state.uri.queryParameters['audioUrl'],
-      startPosition: startPosition,
-    );
-  }
-}
-
 /// Helper class for podcast navigation
 class PodcastNavigation {
   const PodcastNavigation._();
@@ -188,31 +145,6 @@ class PodcastNavigation {
         'episodeId': episodeId.toString(),
       },
       queryParameters: query,
-    );
-  }
-
-  /// Navigate to player page
-  static void goToPlayer(
-    BuildContext context, {
-    required int episodeId,
-    required int subscriptionId,
-    String? episodeTitle,
-    String? audioUrl,
-    int? startPosition,
-  }) {
-    final routingContext = _resolveRoutingContext(context);
-    if (routingContext == null) {
-      return;
-    }
-    GoRouter.of(routingContext).pushNamed(
-      'episodePlayer',
-      pathParameters: {'episodeId': episodeId.toString()},
-      queryParameters: {
-        'subscriptionId': subscriptionId.toString(),
-        if (episodeTitle case final title?) 'title': title,
-        if (audioUrl case final resolvedAudioUrl?) 'audioUrl': resolvedAudioUrl,
-        if (startPosition != null) 'position': startPosition.toString(),
-      },
     );
   }
 

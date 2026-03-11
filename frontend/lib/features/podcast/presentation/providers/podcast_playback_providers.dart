@@ -269,7 +269,6 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       ),
       isPlaying: false,
       isLoading: false,
-      isExpanded: false,
       position: snapshot.positionMs,
       duration: snapshot.durationMs,
       playbackRate: snapshot.playbackRate,
@@ -616,7 +615,6 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         ),
         isPlaying: false,
         isLoading: false,
-        isExpanded: false,
         position: resumePositionMs,
         duration: durationMs,
         playbackRate: resolvedPlaybackRate,
@@ -683,7 +681,6 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         ),
         isPlaying: false,
         isLoading: false,
-        isExpanded: false,
         position: resumePositionMs,
         duration: durationMs,
         playbackRate: resolvedPlaybackRate,
@@ -1182,15 +1179,6 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       if (ref.mounted && !_isDisposed) {
         state = state.copyWith(error: error.toString());
       }
-    }
-  }
-
-  void setExpanded(bool expanded) {
-    if (ref.mounted && !_isDisposed) {
-      if (state.isExpanded == expanded) {
-        return;
-      }
-      state = state.copyWith(isExpanded: expanded);
     }
   }
 

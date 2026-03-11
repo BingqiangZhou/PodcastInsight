@@ -7,163 +7,36 @@ import 'package:personal_ai_assistant/core/providers/route_provider.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/global_podcast_player_host.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 
 void main() {
-  group('GlobalPodcastPlayerHost route transitions', () {
-    testWidgets('collapsed player keeps the same anchor across routes', (
-      tester,
-    ) async {
+  group('GlobalPodcastPlayerHost', () {
+    testWidgets('collapsed dock stays anchored across routes', (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        _createRouterHarness(
-          audioNotifier: _TestAudioPlayerNotifier(
-            AudioPlayerState(currentEpisode: _episode(), duration: 180000),
-          ),
-        ),
-      );
+      await tester.pumpWidget(_createRouterHarness());
       await tester.pumpAndSettle();
 
-      final miniFinder = find.byKey(const Key('podcast_bottom_player_mini'));
-      expect(miniFinder, findsOneWidget);
-      final homeRect = tester.getRect(miniFinder);
+      final dockFinder = find.byKey(const Key('podcast_bottom_player_mini'));
+      expect(dockFinder, findsOneWidget);
+      final homeTop = tester.getRect(dockFinder).top;
 
       await tester.tap(find.byKey(const Key('route_to_episodes')));
       await tester.pumpAndSettle();
-      expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
-      expect(tester.getRect(miniFinder).top, closeTo(homeRect.top, 0.1));
+      expect(tester.getRect(dockFinder).top, closeTo(homeTop, 0.1));
 
       await tester.tap(find.byKey(const Key('route_to_detail')));
       await tester.pumpAndSettle();
-      expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
-      expect(tester.getRect(miniFinder).top, closeTo(homeRect.top, 0.1));
+      expect(tester.getRect(dockFinder).top, closeTo(homeTop, 0.1));
     });
 
-    testWidgets('global host hides on the full-screen player route', (
+    testWidgets('expanded desktop mode renders side panel and scrim', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(
-        _createRouterHarness(
-          audioNotifier: _TestAudioPlayerNotifier(
-            AudioPlayerState(currentEpisode: _episode(), duration: 180000),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('route_to_player')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Player Route'), findsOneWidget);
-      expect(find.byType(PodcastBottomPlayerWidget), findsNothing);
-    });
-
-    testWidgets('sleep timer sheet opens from the global host overlay', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(
-        _createRouterHarness(
-          audioNotifier: _TestAudioPlayerNotifier(
-            AudioPlayerState(
-              currentEpisode: _episode(),
-              duration: 180000,
-              isExpanded: true,
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('podcast_bottom_player_sleep')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Sleep Timer'), findsOneWidget);
-    });
-
-    testWidgets('playback speed sheet opens from the global host overlay', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(
-        _createRouterHarness(
-          audioNotifier: _TestAudioPlayerNotifier(
-            AudioPlayerState(
-              currentEpisode: _episode(),
-              duration: 180000,
-              isExpanded: true,
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('podcast_bottom_player_speed')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Playback Speed'), findsOneWidget);
-    });
-    testWidgets(
-      'wide direct detail route uses detail pane insets on first frame',
-      (tester) async {
-        tester.view.physicalSize = const Size(1200, 900);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-
-        await tester.pumpWidget(
-          _createRouterHarness(
-            audioNotifier: _TestAudioPlayerNotifier(
-              AudioPlayerState(currentEpisode: _episode(), duration: 180000),
-            ),
-            initialLocation: '/podcast/episode/detail/1',
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        final miniFinder = find.byKey(const Key('podcast_bottom_player_mini'));
-        expect(miniFinder, findsOneWidget);
-
-        final hostFinder = find.byKey(const Key('global_podcast_player'));
-        final container = ProviderScope.containerOf(
-          tester.element(hostFinder),
-          listen: false,
-        );
-        final expectedSpec = resolvePodcastPlayerViewportSpec(
-          tester.element(hostFinder),
-          container.read(podcastPlayerHostLayoutProvider),
-          route: '/podcast/episode/detail/1',
-        );
-        final miniRect = tester.getRect(miniFinder);
-        expect(expectedSpec.leftInset, kPodcastEpisodeDetailDesktopRailWidth);
-        expect(miniRect.left, closeTo(expectedSpec.leftInset, 0.5));
-        expect(miniRect.right, closeTo(1200 - expectedSpec.rightInset, 0.5));
-      },
-    );
-
-    testWidgets('wide home route keeps the home shell inset', (tester) async {
       tester.view.physicalSize = const Size(1200, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -171,47 +44,58 @@ void main() {
 
       await tester.pumpWidget(
         _createRouterHarness(
-          audioNotifier: _TestAudioPlayerNotifier(
-            AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+          uiNotifier: TestPodcastPlayerUiNotifier(
+            const PodcastPlayerUiState(
+              presentation: PodcastPlayerPresentation.expanded,
+            ),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      final hostFinder = find.byKey(const Key('global_podcast_player'));
-      final miniFinder = find.byKey(const Key('podcast_bottom_player_mini'));
-      final container = ProviderScope.containerOf(
-        tester.element(hostFinder),
-        listen: false,
+      expect(
+        find.byKey(const Key('podcast_player_desktop_panel')),
+        findsOneWidget,
       );
-      final spec = resolvePodcastPlayerViewportSpec(
-        tester.element(hostFinder),
-        container.read(podcastPlayerHostLayoutProvider),
-        route: '/',
+      expect(
+        find.byKey(const Key('podcast_player_modal_barrier')),
+        findsOneWidget,
       );
-
-      expect(spec.leftInset, 280);
-      expect(tester.getRect(miniFinder).left, closeTo(spec.leftInset, 0.5));
     });
 
-    testWidgets('wide standard route keeps the standard inset', (tester) async {
+    testWidgets('barrier tap collapses expanded player', (tester) async {
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
+
+      await tester.pumpWidget(_createRouterHarness(uiNotifier: uiNotifier));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('podcast_player_modal_barrier')));
+      await tester.pumpAndSettle();
+
+      expect(uiNotifier.state.isExpanded, isFalse);
+      expect(
+        find.byKey(const Key('podcast_bottom_player_expanded')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('detail route uses detail surface insets', (tester) async {
       tester.view.physicalSize = const Size(1200, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
-        _createRouterHarness(
-          audioNotifier: _TestAudioPlayerNotifier(
-            AudioPlayerState(currentEpisode: _episode(), duration: 180000),
-          ),
-          initialLocation: '/episodes',
-        ),
+        _createRouterHarness(initialLocation: '/podcast/episode/detail/1'),
       );
       await tester.pumpAndSettle();
 
       final hostFinder = find.byKey(const Key('global_podcast_player'));
-      final miniFinder = find.byKey(const Key('podcast_bottom_player_mini'));
+      final dockFinder = find.byKey(const Key('podcast_bottom_player_mini'));
       final container = ProviderScope.containerOf(
         tester.element(hostFinder),
         listen: false,
@@ -219,17 +103,21 @@ void main() {
       final spec = resolvePodcastPlayerViewportSpec(
         tester.element(hostFinder),
         container.read(podcastPlayerHostLayoutProvider),
-        route: '/episodes',
+        route: '/podcast/episode/detail/1',
       );
+      final dockRect = tester.getRect(dockFinder);
 
-      expect(spec.leftInset, 0);
-      expect(tester.getRect(miniFinder).left, closeTo(spec.leftInset, 0.5));
+      expect(spec.dockLeftInset, 20);
+      expect(
+        dockRect.left,
+        closeTo(spec.dockLeftInset + spec.dockHorizontalPadding, 0.5),
+      );
     });
   });
 }
 
 Widget _createRouterHarness({
-  required _TestAudioPlayerNotifier audioNotifier,
+  TestPodcastPlayerUiNotifier? uiNotifier,
   String initialLocation = '/',
 }) {
   final router = GoRouter(
@@ -253,16 +141,20 @@ Widget _createRouterHarness({
         builder: (context, state) =>
             const Scaffold(body: Center(child: Text('Direct Detail'))),
       ),
-      GoRoute(
-        path: '/podcast/player/:episodeId',
-        builder: (context, state) =>
-            const Scaffold(body: Center(child: Text('Player Route'))),
-      ),
     ],
   );
 
   return ProviderScope(
-    overrides: [audioPlayerProvider.overrideWith(() => audioNotifier)],
+    overrides: [
+      audioPlayerProvider.overrideWith(
+        () => _TestAudioPlayerNotifier(
+          AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+        ),
+      ),
+      podcastPlayerUiProvider.overrideWith(
+        () => uiNotifier ?? TestPodcastPlayerUiNotifier(),
+      ),
+    ],
     child: MaterialApp.router(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -294,9 +186,7 @@ class _RouteSyncBridgeState extends ConsumerState<_RouteSyncBridge> {
   void initState() {
     super.initState();
     widget.router.routerDelegate.addListener(_listener);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _syncRoute();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncRoute());
   }
 
   @override
@@ -309,15 +199,15 @@ class _RouteSyncBridgeState extends ConsumerState<_RouteSyncBridge> {
     if (!mounted) {
       return;
     }
-    final route = widget.router.routerDelegate.currentConfiguration.uri
-        .toString();
-    ref.read(currentRouteProvider.notifier).setRoute(route);
+    ref
+        .read(currentRouteProvider.notifier)
+        .setRoute(
+          widget.router.routerDelegate.currentConfiguration.uri.toString(),
+        );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return const SizedBox.shrink();
-  }
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _RoutePage extends StatelessWidget {
@@ -342,11 +232,6 @@ class _RoutePage extends StatelessWidget {
             onPressed: () => context.go('/detail'),
             child: const Text('Detail'),
           ),
-          TextButton(
-            key: const Key('route_to_player'),
-            onPressed: () => context.go('/podcast/player/1'),
-            child: const Text('Player'),
-          ),
         ],
       ),
     );
@@ -359,9 +244,18 @@ class _TestAudioPlayerNotifier extends AudioPlayerNotifier {
   final AudioPlayerState _initialState;
 
   @override
-  AudioPlayerState build() {
-    return _initialState;
-  }
+  AudioPlayerState build() => _initialState;
+}
+
+class TestPodcastPlayerUiNotifier extends PodcastPlayerUiNotifier {
+  TestPodcastPlayerUiNotifier([
+    this._initialState = const PodcastPlayerUiState(),
+  ]);
+
+  final PodcastPlayerUiState _initialState;
+
+  @override
+  PodcastPlayerUiState build() => _initialState;
 }
 
 PodcastEpisodeModel _episode() {

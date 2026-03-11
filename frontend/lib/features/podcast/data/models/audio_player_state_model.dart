@@ -15,7 +15,6 @@ class AudioPlayerState extends Equatable {
   final bool queueSyncing;
   final bool isPlaying;
   final bool isLoading;
-  final bool isExpanded;
   final int position;
   final int duration;
   final double playbackRate;
@@ -33,7 +32,6 @@ class AudioPlayerState extends Equatable {
     this.queueSyncing = false,
     this.isPlaying = false,
     this.isLoading = false,
-    this.isExpanded = false,
     this.position = 0,
     this.duration = 0,
     this.playbackRate = 1.0,
@@ -52,7 +50,6 @@ class AudioPlayerState extends Equatable {
     bool? queueSyncing,
     bool? isPlaying,
     bool? isLoading,
-    bool? isExpanded,
     int? position,
     int? duration,
     double? playbackRate,
@@ -77,7 +74,6 @@ class AudioPlayerState extends Equatable {
       queueSyncing: queueSyncing ?? this.queueSyncing,
       isPlaying: isPlaying ?? this.isPlaying,
       isLoading: isLoading ?? this.isLoading,
-      isExpanded: isExpanded ?? this.isExpanded,
       position: position ?? this.position,
       duration: duration ?? this.duration,
       playbackRate: playbackRate ?? this.playbackRate,
@@ -136,7 +132,6 @@ class AudioPlayerState extends Equatable {
     queueSyncing,
     isPlaying,
     isLoading,
-    isExpanded,
     position,
     duration,
     playbackRate,

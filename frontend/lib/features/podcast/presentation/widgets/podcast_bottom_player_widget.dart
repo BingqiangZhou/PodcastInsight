@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/providers/route_provider.dart';
+import '../../../../core/router/app_router.dart';
 import '../../data/models/podcast_episode_model.dart';
-import '../../data/models/podcast_queue_model.dart';
 import '../constants/playback_speed_options.dart';
 import '../constants/podcast_ui_constants.dart';
 import '../navigation/podcast_navigation.dart';
@@ -16,7 +17,7 @@ import 'podcast_image_widget.dart';
 import 'podcast_queue_sheet.dart';
 import 'sleep_timer_selector_sheet.dart';
 
-const _kMiniPlayerTransition = Duration(milliseconds: 200);
+const _kPlayerTransition = Duration(milliseconds: 220);
 const _kPlayerModalScrimOpacity = 0.18;
 const _kPlayerDragDismissThreshold = 56.0;
 
@@ -37,7 +38,7 @@ class PodcastPlayerModalBarrier extends StatelessWidget {
     return IgnorePointer(
       ignoring: !visible || !interactive,
       child: AnimatedOpacity(
-        duration: _kMiniPlayerTransition,
+        duration: _kPlayerTransition,
         curve: Curves.easeOutCubic,
         opacity: visible ? 1 : 0,
         child: GestureDetector(
@@ -48,80 +49,6 @@ class PodcastPlayerModalBarrier extends StatelessWidget {
             color: Colors.black.withValues(alpha: _kPlayerModalScrimOpacity),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class PodcastExpandedPlayerPanel extends StatelessWidget {
-  const PodcastExpandedPlayerPanel({
-    super.key,
-    required this.episode,
-    this.onCollapse,
-    this.showDragHandle = false,
-    this.constrainHeight = false,
-    this.fullScreen = false,
-    this.padding,
-    this.elevation = 8,
-    this.borderRadius,
-  });
-
-  final PodcastEpisodeModel episode;
-  final VoidCallback? onCollapse;
-  final bool showDragHandle;
-  final bool constrainHeight;
-  final bool fullScreen;
-  final EdgeInsetsGeometry? padding;
-  final double elevation;
-  final BorderRadius? borderRadius;
-
-  @override
-  Widget build(BuildContext context) {
-    final effectivePadding =
-        padding ??
-        EdgeInsets.fromLTRB(
-          fullScreen ? 20 : 12,
-          showDragHandle ? 10 : 16,
-          fullScreen ? 20 : 12,
-          fullScreen ? 18 : 10,
-        );
-
-    Widget child = SingleChildScrollView(
-      child: Padding(
-        padding: effectivePadding,
-        child: _ExpandedPlayerContent(
-          episode: episode,
-          onCollapse: onCollapse,
-          showDragHandle: showDragHandle,
-          fullScreen: fullScreen,
-        ),
-      ),
-    );
-
-    if (constrainHeight) {
-      child = ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.48,
-        ),
-        child: child,
-      );
-    }
-
-    return SizedBox(
-      width: double.infinity,
-      child: Material(
-        key: key,
-        color: Theme.of(context).colorScheme.surface,
-        elevation: elevation,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius:
-              borderRadius ??
-              (fullScreen
-                  ? BorderRadius.circular(24)
-                  : BorderRadius.circular(20)),
-        ),
-        child: child,
       ),
     );
   }
@@ -139,209 +66,253 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final episode = ref.watch(audioCurrentEpisodeProvider);
-    if (episode == null) {
-      return const SizedBox.shrink();
-    }
-    final isExpanded = ref.watch(
-      audioPlayerProvider.select((state) => state.isExpanded),
-    );
-    final resolvedViewportSpec =
-        viewportSpec ??
-        resolvePodcastPlayerViewportSpec(
-          context,
-          ref.watch(podcastPlayerHostLayoutProvider),
-        );
-
-    Widget content = AnimatedSwitcher(
-      duration: _kMiniPlayerTransition,
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      child: isExpanded
-          ? PodcastExpandedPlayerPanel(
-              key: const ValueKey('expanded'),
-              episode: episode,
-              showDragHandle: true,
-              constrainHeight: true,
-              onCollapse: () =>
-                  ref.read(audioPlayerProvider.notifier).setExpanded(false),
-            )
-          : _MiniBottomPlayer(
-              key: const ValueKey('mini'),
-              episode: episode,
-              viewportSpec: resolvedViewportSpec,
-            ),
-    );
-
-    if (applySafeArea) {
-      content = SafeArea(top: false, child: content);
-    }
-
-    return AnimatedSize(
-      duration: _kMiniPlayerTransition,
-      curve: Curves.easeOutCubic,
-      alignment: Alignment.bottomCenter,
-      child: content,
+    return PodcastPlayerShell(
+      applySafeArea: applySafeArea,
+      viewportSpec: viewportSpec,
+      embedExpandedInFlow: true,
     );
   }
 }
 
-class _MiniBottomPlayer extends ConsumerWidget {
-  const _MiniBottomPlayer({
+class PodcastPlayerShell extends ConsumerWidget {
+  const PodcastPlayerShell({
+    super.key,
+    this.applySafeArea = true,
+    this.viewportSpec,
+    this.embedExpandedInFlow = false,
+  });
+
+  final bool applySafeArea;
+  final PodcastPlayerViewportSpec? viewportSpec;
+  final bool embedExpandedInFlow;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final episode = ref.watch(audioCurrentEpisodeProvider);
+    if (episode == null) {
+      return const SizedBox.shrink();
+    }
+
+    final layout = ref.watch(podcastPlayerHostLayoutProvider);
+    final spec =
+        viewportSpec ?? resolvePodcastPlayerViewportSpec(context, layout);
+    final isExpanded = ref.watch(podcastPlayerExpandedProvider);
+
+    final dock = PodcastPlayerDock(
+      episode: episode,
+      viewportSpec: spec,
+      applySafeArea: applySafeArea,
+    );
+
+    final expanded = !isExpanded
+        ? const SizedBox.shrink()
+        : switch (spec.layoutMode) {
+            PodcastPlayerLayoutMode.mobile => PodcastPlayerMobileSheet(
+              episode: episode,
+              viewportSpec: spec,
+              applySafeArea: applySafeArea,
+            ),
+            PodcastPlayerLayoutMode.tablet ||
+            PodcastPlayerLayoutMode.desktop => PodcastPlayerDesktopPanel(
+              episode: episode,
+              viewportSpec: spec,
+              applySafeArea: applySafeArea,
+            ),
+          };
+
+    if (embedExpandedInFlow) {
+      return AnimatedSize(
+        duration: _kPlayerTransition,
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.bottomCenter,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AnimatedSwitcher(
+              duration: _kPlayerTransition,
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: isExpanded ? expanded : const SizedBox.shrink(),
+            ),
+            dock,
+          ],
+        ),
+      );
+    }
+
+    return Stack(
+      key: const Key('podcast_player_shell'),
+      children: [
+        Align(alignment: Alignment.bottomCenter, child: dock),
+        IgnorePointer(
+          ignoring: !isExpanded,
+          child: AnimatedSwitcher(
+            duration: _kPlayerTransition,
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            child: isExpanded ? expanded : const SizedBox.shrink(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class PodcastPlayerDock extends ConsumerWidget {
+  const PodcastPlayerDock({
     super.key,
     required this.episode,
     required this.viewportSpec,
+    required this.applySafeArea,
   });
 
   final PodcastEpisodeModel episode;
   final PodcastPlayerViewportSpec viewportSpec;
-  static const double _miniHeight = kPodcastMiniPlayerHeight;
-  static const double _detailMiniHeight = 50.0;
+  final bool applySafeArea;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isEpisodeDetailSurface =
-        viewportSpec.surfaceContext ==
-        PodcastPlayerSurfaceContext.episodeDetail;
-    final progressColor = theme.colorScheme.onSurfaceVariant;
-    final progressTrackColor = theme.colorScheme.onSurfaceVariant.withValues(
-      alpha: 0.25,
-    );
-    final miniHeight = isEpisodeDetailSurface ? _detailMiniHeight : _miniHeight;
-
-    return Padding(
+    final content = Padding(
       key: const Key('podcast_bottom_player_mini_wrapper'),
       padding: EdgeInsets.fromLTRB(
-        viewportSpec.miniHorizontalPadding,
-        viewportSpec.miniTopPadding,
-        viewportSpec.miniHorizontalPadding,
-        0,
+        viewportSpec.dockLeftInset + viewportSpec.dockHorizontalPadding,
+        viewportSpec.dockTopPadding,
+        viewportSpec.dockRightInset + viewportSpec.dockHorizontalPadding,
+        viewportSpec.dockBottomOffset,
       ),
-      child: SizedBox(
-        height: miniHeight,
-        child: Material(
-          key: const Key('podcast_bottom_player_mini'),
-          color: isEpisodeDetailSurface
-              ? theme.colorScheme.surface.withValues(alpha: 0.88)
-              : theme.colorScheme.surface,
-          elevation: 0,
-          clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              isEpisodeDetailSurface ? 18 : kPodcastMiniCornerRadius,
-            ),
-            side: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(
-                alpha: isEpisodeDetailSurface ? 0.24 : 0.35,
-              ),
-              width: 1,
-            ),
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isEpisodeDetailSurface ? 10 : 12,
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () =>
-                      ref.read(audioPlayerProvider.notifier).setExpanded(true),
-                  child: _CoverImage(
-                    imageUrl: episode.subscriptionImageUrl ?? episode.imageUrl,
-                    size: isEpisodeDetailSurface ? 36 : 42,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: viewportSpec.dockMaxWidth),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            height: kPodcastGlobalPlayerMobileDockHeight,
+            child: Material(
+              key: const Key('podcast_bottom_player_mini'),
+              color: theme.colorScheme.surface.withValues(alpha: 0.96),
+              elevation: 10,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: BorderSide(
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.4,
                   ),
                 ),
-                SizedBox(width: isEpisodeDetailSurface ? 10 : 12),
-                Expanded(
-                  child: GestureDetector(
-                    key: const Key('podcast_bottom_player_mini_info'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => ref
-                        .read(audioPlayerProvider.notifier)
-                        .setExpanded(true),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          episode.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontSize: isEpisodeDetailSurface ? 14 : null,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(height: isEpisodeDetailSurface ? 2 : 3),
-                        Row(
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () =>
+                          ref.read(podcastPlayerUiProvider.notifier).expand(),
+                      child: _CoverImage(
+                        imageUrl:
+                            episode.subscriptionImageUrl ?? episode.imageUrl,
+                        size: 40,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        key: const Key('podcast_bottom_player_mini_info'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () =>
+                            ref.read(podcastPlayerUiProvider.notifier).expand(),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(999),
-                                child: _MiniProgressIndicator(
-                                  progressColor: progressColor,
-                                  progressTrackColor: progressTrackColor,
-                                ),
+                            Text(
+                              episode.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            _MiniProgressText(
-                              textStyle:
-                                  theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ) ??
-                                  const TextStyle(),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(999),
+                                    child: _MiniProgressIndicator(
+                                      progressColor: theme.colorScheme.primary,
+                                      progressTrackColor: theme
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: 0.18),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                _MiniProgressText(
+                                  textStyle:
+                                      theme.textTheme.bodySmall?.copyWith(
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
+                                      ) ??
+                                      const TextStyle(),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    _MiniPlayPauseButton(
+                      key: const Key('podcast_bottom_player_mini_play_pause'),
+                      iconColor: theme.colorScheme.onSurfaceVariant,
+                      pauseTooltip: l10n?.podcast_player_pause ?? 'Pause',
+                      playTooltip: l10n?.podcast_player_play ?? 'Play',
+                    ),
+                    IconButton(
+                      key: const Key('podcast_bottom_player_mini_playlist'),
+                      tooltip: l10n?.podcast_player_list ?? 'List',
+                      onPressed: () => _showQueueSheet(context, ref),
+                      icon: const Icon(Icons.playlist_play),
+                    ),
+                  ],
                 ),
-                SizedBox(width: isEpisodeDetailSurface ? 4 : 8),
-                _MiniPlayPauseButton(
-                  key: const Key('podcast_bottom_player_mini_play_pause'),
-                  iconColor: theme.colorScheme.onSurfaceVariant,
-                  pauseTooltip: l10n?.podcast_player_pause ?? 'Pause',
-                  playTooltip: l10n?.podcast_player_play ?? 'Play',
-                ),
-                IconButton(
-                  key: const Key('podcast_bottom_player_mini_playlist'),
-                  tooltip: l10n?.podcast_player_list ?? 'List',
-                  onPressed: () => _showQueueSheet(context, ref),
-                  icon: const Icon(Icons.playlist_play),
-                ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
+
+    if (!applySafeArea) {
+      return content;
+    }
+
+    return SafeArea(top: false, child: content);
   }
 }
 
-class _ExpandedPlayerContent extends ConsumerStatefulWidget {
-  const _ExpandedPlayerContent({
+class PodcastPlayerMobileSheet extends ConsumerStatefulWidget {
+  const PodcastPlayerMobileSheet({
+    super.key,
     required this.episode,
-    required this.showDragHandle,
-    required this.fullScreen,
-    this.onCollapse,
+    required this.viewportSpec,
+    required this.applySafeArea,
   });
 
   final PodcastEpisodeModel episode;
-  final VoidCallback? onCollapse;
-  final bool showDragHandle;
-  final bool fullScreen;
+  final PodcastPlayerViewportSpec viewportSpec;
+  final bool applySafeArea;
 
   @override
-  ConsumerState<_ExpandedPlayerContent> createState() =>
-      _ExpandedPlayerContentState();
+  ConsumerState<PodcastPlayerMobileSheet> createState() =>
+      _PodcastPlayerMobileSheetState();
 }
 
-class _ExpandedPlayerContentState
-    extends ConsumerState<_ExpandedPlayerContent> {
+class _PodcastPlayerMobileSheetState
+    extends ConsumerState<PodcastPlayerMobileSheet> {
   double _dragOffset = 0;
 
   void _onDragUpdate(DragUpdateDetails details) {
@@ -356,131 +327,229 @@ class _ExpandedPlayerContentState
     final shouldCollapse = _dragOffset >= _kPlayerDragDismissThreshold;
     _dragOffset = 0;
     if (shouldCollapse) {
-      widget.onCollapse?.call();
-    }
-  }
-
-  Future<void> _showSpeedSelector() async {
-    final playbackRate = ref.read(audioPlaybackRateProvider);
-    final selection = await showPlaybackSpeedSelectorSheet(
-      context: context,
-      initialSpeed: playbackRate,
-    );
-    if (!mounted || selection == null) {
-      return;
-    }
-
-    await ref
-        .read(audioPlayerProvider.notifier)
-        .setPlaybackRate(
-          selection.speed,
-          applyToSubscription: selection.applyToSubscription,
-        );
-  }
-
-  Future<void> _showSleepSelector() async {
-    final isTimerActive = ref.read(audioSleepTimerActiveProvider);
-    final selection = await showSleepTimerSelectorSheet(
-      context: context,
-      isTimerActive: isTimerActive,
-    );
-    if (!mounted || selection == null) {
-      return;
-    }
-
-    final notifier = ref.read(audioPlayerProvider.notifier);
-    if (selection.cancel) {
-      notifier.cancelSleepTimer();
-    } else if (selection.afterEpisode) {
-      notifier.setSleepTimerAfterEpisode();
-    } else if (selection.duration != null) {
-      notifier.setSleepTimer(selection.duration!);
+      ref.read(podcastPlayerUiProvider.notifier).collapse();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-
-    return Column(
-      key: const Key('podcast_bottom_player_expanded'),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (widget.showDragHandle)
-          GestureDetector(
-            key: const Key('podcast_bottom_player_drag_handle'),
-            behavior: HitTestBehavior.opaque,
-            onVerticalDragUpdate: _onDragUpdate,
-            onVerticalDragEnd: _onDragEnd,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Container(
-                width: 42,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(
-                    alpha: 0.35,
+    final content = Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: widget.applySafeArea
+              ? 0
+              : widget.viewportSpec.dockBottomOffset,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: widget.viewportSpec.mobileSheetMaxHeight,
+            maxWidth: widget.viewportSpec.dockMaxWidth,
+          ),
+          child: Material(
+            key: const Key('podcast_player_mobile_sheet'),
+            color: Theme.of(context).colorScheme.surface,
+            elevation: 16,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(
+                  widget.viewportSpec.mobileSheetBorderRadius,
+                ),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+                  child: Column(
+                    key: const Key('podcast_bottom_player_expanded'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        key: const Key('podcast_bottom_player_drag_handle'),
+                        behavior: HitTestBehavior.opaque,
+                        onVerticalDragUpdate: _onDragUpdate,
+                        onVerticalDragEnd: _onDragEnd,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Container(
+                            width: 42,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withValues(alpha: 0.35),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                        ),
+                      ),
+                      _ExpandedHeader(episode: widget.episode),
+                      const SizedBox(height: 12),
+                      _ExpandedSummary(episode: widget.episode, dense: false),
+                      const SizedBox(height: 12),
+                      const _ExpandedProgressSection(),
+                      const SizedBox(height: 12),
+                      const _TransportRow(),
+                    ],
                   ),
-                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ),
           ),
-        Row(
-          children: [
-            Text(
-              l10n?.podcast_player_now_playing ?? 'Now Playing',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+
+    return AnimatedSlide(
+      duration: _kPlayerTransition,
+      curve: Curves.easeOutCubic,
+      offset: Offset.zero,
+      child: content,
+    );
+  }
+}
+
+class PodcastPlayerDesktopPanel extends StatelessWidget {
+  const PodcastPlayerDesktopPanel({
+    super.key,
+    required this.episode,
+    required this.viewportSpec,
+    required this.applySafeArea,
+  });
+
+  final PodcastEpisodeModel episode;
+  final PodcastPlayerViewportSpec viewportSpec;
+  final bool applySafeArea;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget content = Align(
+      alignment: Alignment.centerRight,
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: viewportSpec.desktopPanelTopInset,
+          right: viewportSpec.desktopPanelRightInset,
+          bottom: viewportSpec.desktopPanelBottomInset,
+        ),
+        child: SizedBox(
+          width: viewportSpec.desktopPanelWidth,
+          child: Material(
+            key: const Key('podcast_player_desktop_panel'),
+            color: Theme.of(context).colorScheme.surface,
+            elevation: 14,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: BorderSide(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.45),
               ),
             ),
-            const Spacer(),
-            _SleepTimerButton(onPressed: _showSleepSelector),
-            if (widget.onCollapse != null)
-              IconButton(
-                key: const Key('podcast_bottom_player_collapse'),
-                tooltip: l10n?.podcast_player_collapse ?? 'Collapse',
-                onPressed: widget.onCollapse,
-                icon: const Icon(Icons.keyboard_arrow_down),
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                key: const Key('podcast_bottom_player_expanded'),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ExpandedHeader(episode: episode),
+                  const SizedBox(height: 16),
+                  _ExpandedSummary(episode: episode, dense: true),
+                  const SizedBox(height: 12),
+                  const _ExpandedProgressSection(),
+                  const SizedBox(height: 12),
+                  const _TransportRow(),
+                ],
               ),
-          ],
+            ),
+          ),
         ),
-        _EpisodeSummary(episode: widget.episode, fullScreen: widget.fullScreen),
-        const SizedBox(height: 8),
-        const _ExpandedProgressSection(),
-        const SizedBox(height: 8),
-        _ExpandedTransportControls(
-          onShowSpeedSelector: _showSpeedSelector,
-          onShowQueue: () => _showQueueSheet(context, ref),
+      ),
+    );
+
+    if (applySafeArea) {
+      content = SafeArea(top: false, child: content);
+    }
+
+    return AnimatedSlide(
+      duration: _kPlayerTransition,
+      curve: Curves.easeOutCubic,
+      offset: Offset.zero,
+      child: content,
+    );
+  }
+}
+
+class _ExpandedHeader extends ConsumerWidget {
+  const _ExpandedHeader({required this.episode});
+
+  final PodcastEpisodeModel episode;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final playbackRate = ref.watch(audioPlaybackRateProvider);
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            l10n?.podcast_player_now_playing ?? 'Now Playing',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+        _PlaybackSpeedChip(
+          speed: playbackRate,
+          onTap: () => _showSpeedSelector(context, ref),
+        ),
+        const SizedBox(width: 4),
+        IconButton(
+          key: const Key('podcast_bottom_player_playlist'),
+          tooltip: l10n?.podcast_player_list ?? 'List',
+          onPressed: () => _showQueueSheet(context, ref),
+          icon: const Icon(Icons.playlist_play),
+        ),
+        _SleepTimerButton(onPressed: () => _showSleepSelector(context, ref)),
+        IconButton(
+          key: const Key('podcast_bottom_player_collapse'),
+          tooltip: l10n?.podcast_player_collapse ?? 'Collapse',
+          onPressed: () =>
+              ref.read(podcastPlayerUiProvider.notifier).collapse(),
+          icon: const Icon(Icons.keyboard_arrow_down),
         ),
       ],
     );
   }
 }
 
-class _EpisodeSummary extends ConsumerWidget {
-  const _EpisodeSummary({required this.episode, required this.fullScreen});
+class _ExpandedSummary extends ConsumerWidget {
+  const _ExpandedSummary({required this.episode, required this.dense});
 
   final PodcastEpisodeModel episode;
-  final bool fullScreen;
+  final bool dense;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final textColor = theme.colorScheme.onSurfaceVariant.withValues(
-      alpha: 0.72,
+      alpha: 0.78,
     );
-    final imageSize = fullScreen ? 76.0 : 52.0;
+    final imageSize = dense ? 68.0 : 84.0;
     final currentLocation = ref.watch(currentRouteProvider);
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _CoverImage(
           imageUrl: episode.subscriptionImageUrl ?? episode.imageUrl,
           size: imageSize,
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 14),
         Expanded(
           child: GestureDetector(
             key: const Key('podcast_bottom_player_expanded_title'),
@@ -491,10 +560,7 @@ class _EpisodeSummary extends ConsumerWidget {
                 resolvedCurrentLocation = GoRouterState.of(
                   context,
                 ).uri.toString();
-              } catch (_) {
-                // Fall back to the globally tracked route when rendered from
-                // the player host overlay outside of the route subtree.
-              }
+              } catch (_) {}
               final episodeDetailPath =
                   '/podcast/episodes/${episode.subscriptionId}/${episode.id}';
               if (resolvedCurrentLocation.startsWith(episodeDetailPath)) {
@@ -512,18 +578,31 @@ class _EpisodeSummary extends ConsumerWidget {
               children: [
                 Text(
                   episode.title,
-                  maxLines: fullScreen ? 3 : 2,
+                  maxLines: dense ? 3 : 4,
                   overflow: TextOverflow.ellipsis,
                   style:
-                      (fullScreen
-                              ? theme.textTheme.titleLarge
-                              : theme.textTheme.titleSmall)
+                      (dense
+                              ? theme.textTheme.titleMedium
+                              : theme.textTheme.titleLarge)
                           ?.copyWith(fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
+                if ((episode.subscriptionTitle ?? '').isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      episode.subscriptionTitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 Wrap(
-                  spacing: 12,
-                  runSpacing: 4,
+                  spacing: 10,
+                  runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     _MetaChip(
@@ -619,32 +698,26 @@ class _ExpandedProgressSectionState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final miniProgress = ref.watch(audioMiniProgressProvider);
-    final sliderActiveColor = theme.colorScheme.onSurfaceVariant;
-    final sliderInactiveColor = theme.colorScheme.onSurfaceVariant.withValues(
-      alpha: 0.25,
-    );
-    final durationMs = miniProgress.durationMs > 0
-        ? miniProgress.durationMs
-        : 1;
+    final progress = ref.watch(audioMiniProgressProvider);
+    final durationMs = progress.durationMs > 0 ? progress.durationMs : 1;
     final effectivePositionMs = _isScrubbing
         ? _draftPositionMs.clamp(0, durationMs)
-        : miniProgress.positionMs;
-    final sliderValue = effectivePositionMs.clamp(0, durationMs).toDouble();
+        : progress.positionMs;
 
     return Column(
       children: [
         SliderTheme(
           data: theme.sliderTheme.copyWith(
-            activeTrackColor: sliderActiveColor,
-            inactiveTrackColor: sliderInactiveColor,
-            thumbColor: sliderActiveColor,
-            overlayColor: sliderActiveColor.withValues(alpha: 0.12),
-            valueIndicatorColor: sliderActiveColor,
+            activeTrackColor: theme.colorScheme.primary,
+            inactiveTrackColor: theme.colorScheme.primary.withValues(
+              alpha: 0.2,
+            ),
+            thumbColor: theme.colorScheme.primary,
+            overlayColor: theme.colorScheme.primary.withValues(alpha: 0.12),
           ),
           child: Slider(
             key: const Key('podcast_bottom_player_progress_slider'),
-            value: sliderValue,
+            value: effectivePositionMs.clamp(0, durationMs).toDouble(),
             max: durationMs.toDouble(),
             onChangeStart: _startScrub,
             onChanged: _updateScrub,
@@ -661,7 +734,7 @@ class _ExpandedProgressSectionState
                 style: theme.textTheme.bodySmall,
               ),
               Text(
-                _formatMilliseconds(miniProgress.durationMs),
+                _formatMilliseconds(progress.durationMs),
                 style: theme.textTheme.bodySmall,
               ),
             ],
@@ -672,53 +745,69 @@ class _ExpandedProgressSectionState
   }
 }
 
-class _ExpandedTransportControls extends StatelessWidget {
-  const _ExpandedTransportControls({
-    required this.onShowSpeedSelector,
-    required this.onShowQueue,
-  });
-
-  final Future<void> Function() onShowSpeedSelector;
-  final Future<void> Function() onShowQueue;
+class _TransportRow extends StatelessWidget {
+  const _TransportRow();
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
+      children: const [
         Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _PlaybackSpeedChip(onTap: onShowSpeedSelector),
-              const SizedBox(width: 8),
-              const _SkipButton(
-                keyValue: 'podcast_bottom_player_rewind_10',
-                deltaMs: -10000,
-                icon: Icons.replay_10,
-                tooltipLocalizationKey: _TooltipKey.rewind10,
-              ),
-            ],
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: _SkipButton(
+              keyValue: 'podcast_bottom_player_rewind_10',
+              deltaMs: -10000,
+              icon: Icons.replay_10,
+              tooltipLocalizationKey: _TooltipKey.rewind10,
+            ),
           ),
         ),
-        const SizedBox(width: 12),
-        const _PlayPauseButtonLarge(),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
+        _PlayPauseButtonLarge(),
+        SizedBox(width: 12),
         Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const _SkipButton(
-                keyValue: 'podcast_bottom_player_forward_30',
-                deltaMs: 30000,
-                icon: Icons.forward_30,
-                tooltipLocalizationKey: _TooltipKey.forward30,
-              ),
-              const SizedBox(width: 8),
-              _QueueButton(onPressed: onShowQueue),
-            ],
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: _SkipButton(
+              keyValue: 'podcast_bottom_player_forward_30',
+              deltaMs: 30000,
+              icon: Icons.forward_30,
+              tooltipLocalizationKey: _TooltipKey.forward30,
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PlaybackSpeedChip extends StatelessWidget {
+  const _PlaybackSpeedChip({required this.speed, required this.onTap});
+
+  final double speed;
+  final Future<void> Function() onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        key: const Key('podcast_bottom_player_speed'),
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Text(
+            formatPlaybackSpeed(speed),
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -752,40 +841,6 @@ class _SleepTimerButton extends ConsumerWidget {
   }
 }
 
-class _PlaybackSpeedChip extends ConsumerWidget {
-  const _PlaybackSpeedChip({required this.onTap});
-
-  final Future<void> Function() onTap;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final playbackRate = ref.watch(audioPlaybackRateProvider);
-
-    return Container(
-      key: const Key('podcast_bottom_player_speed'),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
-        color: theme.colorScheme.surface.withValues(alpha: 0.5),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Text(
-            formatPlaybackSpeed(playbackRate),
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 enum _TooltipKey { rewind10, forward30 }
 
 class _SkipButton extends ConsumerWidget {
@@ -804,7 +859,7 @@ class _SkipButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final miniProgress = ref.watch(audioMiniProgressProvider);
+    final progress = ref.watch(audioMiniProgressProvider);
     final tooltip = switch (tooltipLocalizationKey) {
       _TooltipKey.rewind10 => l10n?.podcast_player_rewind_10 ?? 'Rewind 10s',
       _TooltipKey.forward30 => l10n?.podcast_player_forward_30 ?? 'Forward 30s',
@@ -815,9 +870,9 @@ class _SkipButton extends ConsumerWidget {
       tooltip: tooltip,
       iconSize: 32,
       onPressed: () {
-        final next = (miniProgress.positionMs + deltaMs).clamp(
+        final next = (progress.positionMs + deltaMs).clamp(
           0,
-          miniProgress.durationMs,
+          progress.durationMs,
         );
         ref.read(audioPlayerProvider.notifier).seekTo(next);
       },
@@ -850,7 +905,6 @@ class _PlayPauseButtonLarge extends ConsumerWidget {
           if (transport.isLoading) {
             return;
           }
-
           if (transport.isPlaying) {
             await ref.read(audioPlayerProvider.notifier).pause();
           } else {
@@ -865,64 +919,6 @@ class _PlayPauseButtonLarge extends ConsumerWidget {
               )
             : Icon(transport.isPlaying ? Icons.pause : Icons.play_arrow),
       ),
-    );
-  }
-}
-
-class _QueueButton extends StatelessWidget {
-  const _QueueButton({required this.onPressed});
-
-  final Future<void> Function() onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return IconButton(
-      key: const Key('podcast_bottom_player_playlist'),
-      tooltip: l10n?.podcast_player_list ?? 'List',
-      iconSize: 32,
-      onPressed: onPressed,
-      icon: const Icon(Icons.playlist_play),
-    );
-  }
-}
-
-class _MiniProgressIndicator extends ConsumerWidget {
-  const _MiniProgressIndicator({
-    required this.progressColor,
-    required this.progressTrackColor,
-  });
-
-  final Color progressColor;
-  final Color progressTrackColor;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final miniProgress = ref.watch(audioMiniProgressProvider);
-    return LinearProgressIndicator(
-      key: const Key('podcast_bottom_player_mini_progress'),
-      value: miniProgress.progress,
-      minHeight: 3,
-      color: progressColor,
-      backgroundColor: progressTrackColor,
-    );
-  }
-}
-
-class _MiniProgressText extends ConsumerWidget {
-  const _MiniProgressText({required this.textStyle});
-
-  final TextStyle textStyle;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final miniProgress = ref.watch(audioMiniProgressProvider);
-    return Text(
-      key: const Key('podcast_bottom_player_mini_time'),
-      '${miniProgress.formattedPosition} / ${miniProgress.formattedDuration}',
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: textStyle,
     );
   }
 }
@@ -979,6 +975,46 @@ class _MiniPlayPauseButton extends ConsumerWidget {
   }
 }
 
+class _MiniProgressIndicator extends ConsumerWidget {
+  const _MiniProgressIndicator({
+    required this.progressColor,
+    required this.progressTrackColor,
+  });
+
+  final Color progressColor;
+  final Color progressTrackColor;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progress = ref.watch(audioMiniProgressProvider);
+    return LinearProgressIndicator(
+      key: const Key('podcast_bottom_player_mini_progress'),
+      value: progress.progress,
+      minHeight: 3,
+      color: progressColor,
+      backgroundColor: progressTrackColor,
+    );
+  }
+}
+
+class _MiniProgressText extends ConsumerWidget {
+  const _MiniProgressText({required this.textStyle});
+
+  final TextStyle textStyle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progress = ref.watch(audioMiniProgressProvider);
+    return Text(
+      key: const Key('podcast_bottom_player_mini_time'),
+      '${progress.formattedPosition} / ${progress.formattedDuration}',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: textStyle,
+    );
+  }
+}
+
 class _CoverImage extends StatelessWidget {
   const _CoverImage({required this.imageUrl, required this.size});
 
@@ -988,7 +1024,7 @@ class _CoverImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: SizedBox(
         width: size,
         height: size,
@@ -996,10 +1032,55 @@ class _CoverImage extends StatelessWidget {
           imageUrl: imageUrl,
           width: size,
           height: size,
-          iconSize: size * 0.52,
+          iconSize: size * 0.5,
         ),
       ),
     );
+  }
+}
+
+BuildContext _resolveNavigatorContext(BuildContext context) {
+  final navContext = appNavigatorKey.currentContext;
+  if (navContext != null && navContext.mounted) {
+    return navContext;
+  }
+  return context;
+}
+
+Future<void> _showSpeedSelector(BuildContext context, WidgetRef ref) async {
+  final playbackRate = ref.read(audioPlaybackRateProvider);
+  final selection = await showPlaybackSpeedSelectorSheet(
+    context: _resolveNavigatorContext(context),
+    initialSpeed: playbackRate,
+  );
+  if (selection == null) {
+    return;
+  }
+  await ref
+      .read(audioPlayerProvider.notifier)
+      .setPlaybackRate(
+        selection.speed,
+        applyToSubscription: selection.applyToSubscription,
+      );
+}
+
+Future<void> _showSleepSelector(BuildContext context, WidgetRef ref) async {
+  final isTimerActive = ref.read(audioSleepTimerActiveProvider);
+  final selection = await showSleepTimerSelectorSheet(
+    context: _resolveNavigatorContext(context),
+    isTimerActive: isTimerActive,
+  );
+  if (selection == null) {
+    return;
+  }
+
+  final notifier = ref.read(audioPlayerProvider.notifier);
+  if (selection.cancel) {
+    notifier.cancelSleepTimer();
+  } else if (selection.afterEpisode) {
+    notifier.setSleepTimerAfterEpisode();
+  } else if (selection.duration != null) {
+    notifier.setSleepTimer(selection.duration!);
   }
 }
 
@@ -1016,17 +1097,24 @@ String _formatMilliseconds(int value) {
 }
 
 Future<void> _showQueueSheet(BuildContext context, WidgetRef ref) async {
+  final modalContext = _resolveNavigatorContext(context);
   final queueController = ref.read(podcastQueueControllerProvider.notifier);
   final queueState = ref.read(podcastQueueControllerProvider);
-  if (queueState.hasValue && queueState.value != null) {
-    unawaited(queueController.refreshQueueInBackground());
+
+  if (queueState.isLoading) {
+    await queueController.refreshQueueInBackground();
   } else {
-    unawaited(
-      queueController.loadQueue(forceRefresh: false).catchError((_) {
-        // Let the sheet render its own error state if the initial fetch fails.
-        return PodcastQueueModel.empty();
-      }),
-    );
+    unawaited(queueController.refreshQueueInBackground());
   }
-  await PodcastQueueSheet.show(context);
+
+  if (!modalContext.mounted) {
+    return;
+  }
+
+  await showModalBottomSheet<void>(
+    context: modalContext,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (_) => const PodcastQueueSheet(),
+  );
 }

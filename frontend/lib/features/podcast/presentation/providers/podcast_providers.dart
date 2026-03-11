@@ -4,6 +4,7 @@ export 'podcast_daily_report_providers.dart';
 export 'podcast_episodes_providers.dart';
 export 'podcast_feed_providers.dart';
 export 'podcast_player_host_layout_provider.dart';
+export 'podcast_player_ui_state.dart';
 export 'podcast_playback_providers.dart';
 export 'podcast_search_provider.dart';
 export 'podcast_stats_providers.dart';

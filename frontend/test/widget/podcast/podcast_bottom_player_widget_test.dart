@@ -3,30 +3,64 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
-import 'package:personal_ai_assistant/core/theme/mindriver_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/navigation/podcast_navigation.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_player_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_queue_sheet.dart';
 
 void main() {
-  group('PodcastBottomPlayerWidget playlist behavior', () {
-    testWidgets('mini playlist button opens queue sheet', (tester) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: false,
-        ),
+  group('PodcastBottomPlayerWidget', () {
+    testWidgets('dock info tap expands into mobile sheet', (tester) async {
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
       );
       final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier();
 
       await tester.pumpWidget(
-        _createWidget(notifier: notifier, queueController: queueController),
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const Key('podcast_bottom_player_mini_info')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(uiNotifier.state.isExpanded, isTrue);
+      expect(
+        find.byKey(const Key('podcast_player_mobile_sheet')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('podcast_bottom_player_expanded')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('dock playlist button opens queue sheet directly', (
+      tester,
+    ) async {
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+      );
+      final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier();
+
+      await tester.pumpWidget(
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -37,320 +71,108 @@ void main() {
 
       expect(find.byType(PodcastQueueSheet), findsOneWidget);
       expect(queueController.queueOpenPreparationCalls, 1);
-      await _closeQueueSheet(tester);
     });
 
-    testWidgets(
-      'queue sheet opens immediately while refreshing in background',
-      (tester) async {
-        final notifier = TestAudioPlayerNotifier(
-          AudioPlayerState(
-            currentEpisode: _testEpisode(),
-            duration: 180000,
-            isExpanded: false,
-          ),
-        );
-        final queueController = TestPodcastQueueController(
-          refreshDelay: const Duration(seconds: 1),
-        );
-
-        await tester.pumpWidget(
-          _createWidget(notifier: notifier, queueController: queueController),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(
-          find.byKey(const Key('podcast_bottom_player_mini_playlist')),
-        );
-        await tester.pump(const Duration(milliseconds: 250));
-
-        expect(find.byType(PodcastQueueSheet), findsOneWidget);
-        expect(queueController.queueOpenPreparationCalls, 1);
-        await tester.pump(const Duration(seconds: 1));
-        await _closeQueueSheet(tester);
-      },
-    );
-  });
-
-  group('PodcastBottomPlayerWidget interaction updates', () {
-    testWidgets('mini info tap expands player and does not navigate', (
+    testWidgets('expanded header shows direct speed and sleep actions', (
       tester,
     ) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: false,
-        ),
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
       );
       final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
 
       await tester.pumpWidget(
-        _createRouterWidget(
-          notifier: notifier,
+        _createWidget(
+          audioNotifier: audioNotifier,
           queueController: queueController,
-          initialLocation: '/',
+          uiNotifier: uiNotifier,
         ),
       );
       await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('podcast_bottom_player_speed')));
+      await tester.pumpAndSettle();
+      expect(find.text('Playback Speed'), findsOneWidget);
+      Navigator.of(tester.element(find.text('Playback Speed'))).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('podcast_bottom_player_sleep')));
+      await tester.pumpAndSettle();
+      expect(find.text('Sleep Timer'), findsOneWidget);
+    });
+
+    testWidgets('expanded transport controls seek and toggle playback', (
+      tester,
+    ) async {
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(
+          currentEpisode: _episode(),
+          duration: 180000,
+          position: 45000,
+        ),
+      );
+      final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final slider = tester.widget<Slider>(
+        find.byKey(const Key('podcast_bottom_player_progress_slider')),
+      );
+      slider.onChangeStart?.call(60000);
+      slider.onChanged?.call(60000);
+      await tester.pump();
+      expect(audioNotifier.seekToPositions, isEmpty);
+
+      slider.onChangeEnd?.call(60000);
+      await tester.pumpAndSettle();
+      expect(audioNotifier.seekToPositions, <int>[60000]);
 
       await tester.tap(
-        find.byKey(const Key('podcast_bottom_player_mini_info')),
-      );
-      await tester.pumpAndSettle();
-
-      expect(notifier.state.isExpanded, isTrue);
-      expect(find.text('Episode Detail Page'), findsNothing);
-      expect(find.byKey(const Key('podcast_bottom_player_expanded')), findsOne);
-    });
-
-    testWidgets('expanded title tap navigates to episode detail', (
-      tester,
-    ) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createRouterWidget(
-          notifier: notifier,
-          queueController: queueController,
-          initialLocation: '/',
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(
-        find.byKey(const Key('podcast_bottom_player_expanded_title')),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Episode Detail Page'), findsOneWidget);
-    });
-
-    testWidgets('expanded title tap no-ops when already on same detail route', (
-      tester,
-    ) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-      final observer = _TestNavigatorObserver();
-
-      await tester.pumpWidget(
-        _createRouterWidget(
-          notifier: notifier,
-          queueController: queueController,
-          initialLocation: '/podcast/episodes/1/1',
-          observers: [observer],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final pushCountBeforeTap = observer.didPushCount;
-
-      await tester.tap(
-        find.byKey(const Key('podcast_bottom_player_expanded_title')),
-      );
-      await tester.pumpAndSettle();
-
-      expect(observer.didPushCount, pushCountBeforeTap);
-      expect(find.text('Episode Detail Page'), findsOneWidget);
-    });
-
-    testWidgets('expanded header removes close and keeps top sleep button', (
-      tester,
-    ) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createWidget(notifier: notifier, queueController: queueController),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.close), findsNothing);
-      expect(
-        find.byKey(const Key('podcast_bottom_player_sleep')),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('expanded lower playlist button opens queue sheet', (
-      tester,
-    ) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createWidget(notifier: notifier, queueController: queueController),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('podcast_bottom_player_playlist')));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(PodcastQueueSheet), findsOneWidget);
-      expect(queueController.queueOpenPreparationCalls, 1);
-      await _closeQueueSheet(tester);
-    });
-
-    testWidgets('expanded layout places sleep button above playlist button', (
-      tester,
-    ) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createWidget(notifier: notifier, queueController: queueController),
-      );
-      await tester.pumpAndSettle();
-
-      final sleepCenter = tester.getCenter(
-        find.byKey(const Key('podcast_bottom_player_sleep')),
-      );
-      final playlistCenter = tester.getCenter(
-        find.byKey(const Key('podcast_bottom_player_playlist')),
-      );
-
-      expect(sleepCenter.dy, lessThan(playlistCenter.dy));
-    });
-
-    testWidgets(
-      'expanded controls show speed and sleep, and now playing has no rate',
-      (tester) async {
-        final notifier = TestAudioPlayerNotifier(
-          AudioPlayerState(
-            currentEpisode: _testEpisode(),
-            duration: 180000,
-            isExpanded: true,
-            playbackRate: 1.75,
-          ),
-        );
-        final queueController = TestPodcastQueueController();
-
-        await tester.pumpWidget(
-          _createWidget(notifier: notifier, queueController: queueController),
-        );
-        await tester.pumpAndSettle();
-
-        expect(find.byKey(const Key('podcast_bottom_player_speed')), findsOne);
-        expect(find.text('1.75x'), findsOneWidget);
-        expect(find.byKey(const Key('podcast_bottom_player_sleep')), findsOne);
-        expect(
-          find.byKey(const Key('podcast_bottom_player_settings')),
-          findsNothing,
-        );
-        expect(find.text('Now Playing (1.75x)'), findsNothing);
-      },
-    );
-
-    testWidgets('expanded play button stays horizontally centered', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createWidget(notifier: notifier, queueController: queueController),
-      );
-      await tester.pumpAndSettle();
-
-      final playCenter = tester.getCenter(
         find.byKey(const Key('podcast_bottom_player_play_pause')),
       );
-      expect(playCenter.dx, closeTo(390 / 2, 1));
+      await tester.pumpAndSettle();
+      expect(audioNotifier.resumeCalls, 1);
     });
 
-    testWidgets(
-      'slider scrubbing previews position and seeks only on release',
-      (tester) async {
-        final notifier = TestAudioPlayerNotifier(
-          AudioPlayerState(
-            currentEpisode: _testEpisode(),
-            position: 45000,
-            duration: 180000,
-            isExpanded: true,
-          ),
-        );
-        final queueController = TestPodcastQueueController();
-
-        await tester.pumpWidget(
-          _createWidget(notifier: notifier, queueController: queueController),
-        );
-        await tester.pumpAndSettle();
-
-        final slider = tester.widget<Slider>(
-          find.byKey(const Key('podcast_bottom_player_progress_slider')),
-        );
-
-        slider.onChangeStart?.call(60000);
-        slider.onChanged?.call(60000);
-        await tester.pump();
-
-        expect(notifier.seekToPositions, isEmpty);
-        expect(find.text('01:00'), findsOneWidget);
-
-        slider.onChangeEnd?.call(60000);
-        await tester.pumpAndSettle();
-
-        expect(notifier.seekToPositions, <int>[60000]);
-        expect(find.text('01:00'), findsOneWidget);
-      },
-    );
-
-    testWidgets('dragging handle downward collapses expanded player', (
+    testWidgets('dragging mobile handle collapses expanded sheet', (
       tester,
     ) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
       );
       final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
 
       await tester.pumpWidget(
-        _createWidget(notifier: notifier, queueController: queueController),
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -360,323 +182,104 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(notifier.state.isExpanded, isFalse);
+      expect(uiNotifier.state.isExpanded, isFalse);
       expect(
         find.byKey(const Key('podcast_bottom_player_expanded')),
         findsNothing,
       );
     });
-  });
 
-  group('PodcastBottomPlayerWidget mini styling', () {
-    testWidgets(
-      'mobile mini width matches feed card width and has rounded border',
-      (tester) async {
-        tester.view.physicalSize = const Size(390, 844);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-
-        final notifier = TestAudioPlayerNotifier(
-          AudioPlayerState(
-            currentEpisode: _testEpisode(),
-            duration: 180000,
-            isExpanded: false,
-          ),
-        );
-        final queueController = TestPodcastQueueController();
-
-        await tester.pumpWidget(
-          _createWidget(notifier: notifier, queueController: queueController),
-        );
-        await tester.pumpAndSettle();
-
-        final miniFinder = find.byKey(const Key('podcast_bottom_player_mini'));
-        expect(miniFinder, findsOneWidget);
-
-        final miniRect = tester.getRect(miniFinder);
-        expect(miniRect.width, closeTo(350, 1));
-
-        final miniMaterial = tester.widget<Material>(miniFinder);
-        expect(miniMaterial.shape, isA<RoundedRectangleBorder>());
-        final theme = Theme.of(tester.element(miniFinder));
-        expect(miniMaterial.color, theme.colorScheme.surface);
-        expect(miniMaterial.elevation, 0);
-        final roundedShape = miniMaterial.shape! as RoundedRectangleBorder;
-        final borderRadius = roundedShape.borderRadius.resolve(
-          TextDirection.ltr,
-        );
-        expect(borderRadius.topLeft.x, 12);
-        expect(borderRadius.topRight.x, 12);
-        expect(borderRadius.bottomLeft.x, 12);
-        expect(borderRadius.bottomRight.x, 12);
-        expect(roundedShape.side.width, 1);
-      },
-    );
-
-    testWidgets('desktop mini keeps wide layout width', (tester) async {
+    testWidgets('desktop layout uses side panel instead of mobile sheet', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(1200, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: false,
-        ),
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
       );
       final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createWidget(notifier: notifier, queueController: queueController),
-      );
-      await tester.pumpAndSettle();
-
-      final miniRect = tester.getRect(
-        find.byKey(const Key('podcast_bottom_player_mini')),
-      );
-      expect(miniRect.width, greaterThan(1100));
-    });
-
-    testWidgets('mini shows progress before time with state progress value', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          position: 45000,
-          duration: 180000,
-          isExpanded: false,
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
         ),
       );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createWidget(notifier: notifier, queueController: queueController),
-      );
-      await tester.pumpAndSettle();
-
-      final progressFinder = find.byKey(
-        const Key('podcast_bottom_player_mini_progress'),
-      );
-      final timeFinder = find.byKey(
-        const Key('podcast_bottom_player_mini_time'),
-      );
-      expect(progressFinder, findsOneWidget);
-      expect(timeFinder, findsOneWidget);
-
-      final progressWidget = tester.widget<LinearProgressIndicator>(
-        progressFinder,
-      );
-      expect(progressWidget.value, closeTo(0.25, 0.0001));
-      expect(find.text('00:45 / 03:00'), findsOneWidget);
-
-      final progressRect = tester.getRect(progressFinder);
-      final timeRect = tester.getRect(timeFinder);
-      expect(progressRect.center.dx, lessThan(timeRect.center.dx));
-    });
-
-    testWidgets('mini progress stays visible in dark theme', (tester) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          position: 45000,
-          duration: 180000,
-          isExpanded: false,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
 
       await tester.pumpWidget(
         _createWidget(
-          notifier: notifier,
+          audioNotifier: audioNotifier,
           queueController: queueController,
-          theme: MindriverTheme.lightTheme,
-          darkTheme: MindriverTheme.darkTheme,
-          themeMode: ThemeMode.dark,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final progressFinder = find.byKey(
-        const Key('podcast_bottom_player_mini_progress'),
-      );
-      expect(progressFinder, findsOneWidget);
-
-      final progressWidget = tester.widget<LinearProgressIndicator>(
-        progressFinder,
-      );
-      final expectedColor =
-          MindriverTheme.darkTheme.colorScheme.onSurfaceVariant;
-      expect(progressWidget.color, expectedColor);
-    });
-
-    testWidgets('mini progress uses onSurfaceVariant in light theme', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          position: 45000,
-          duration: 180000,
-          isExpanded: false,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createWidget(
-          notifier: notifier,
-          queueController: queueController,
-          theme: MindriverTheme.lightTheme,
-          darkTheme: MindriverTheme.darkTheme,
-          themeMode: ThemeMode.light,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final progressFinder = find.byKey(
-        const Key('podcast_bottom_player_mini_progress'),
-      );
-      expect(progressFinder, findsOneWidget);
-
-      final progressWidget = tester.widget<LinearProgressIndicator>(
-        progressFinder,
-      );
-      final expectedColor =
-          MindriverTheme.lightTheme.colorScheme.onSurfaceVariant;
-      expect(progressWidget.color, expectedColor);
-    });
-  });
-
-  group('Podcast player modal overlay', () {
-    testWidgets('tapping scrim collapses expanded player', (tester) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          duration: 180000,
-          isExpanded: true,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createOverlayHarness(
-          notifier: notifier,
-          queueController: queueController,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('podcast_player_modal_barrier')));
-      await tester.pumpAndSettle();
-
-      expect(notifier.state.isExpanded, isFalse);
-    });
-  });
-
-  group('PodcastPlayerPage', () {
-    testWidgets('full-screen route reuses shared playback state', (
-      tester,
-    ) async {
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          position: 45000,
-          duration: 180000,
-          isExpanded: false,
-          playbackRate: 1.5,
-        ),
-      );
-      final queueController = TestPodcastQueueController();
-
-      await tester.pumpWidget(
-        _createPlayerRouteWidget(
-          notifier: notifier,
-          queueController: queueController,
-          initialLocation: '/podcast/player/1?subscriptionId=1',
+          uiNotifier: uiNotifier,
         ),
       );
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(const Key('podcast_fullscreen_player_panel')),
-        findsOne,
+        find.byKey(const Key('podcast_player_desktop_panel')),
+        findsOneWidget,
       );
-      expect(find.text('Test Episode'), findsOneWidget);
-      expect(find.text('1.5x'), findsOneWidget);
-      expect(find.text('00:45'), findsOneWidget);
+      expect(
+        find.byKey(const Key('podcast_player_mobile_sheet')),
+        findsNothing,
+      );
     });
 
-    testWidgets('full-screen route is no longer capped to the old 720 width', (
+    testWidgets('expanded title tap navigates to episode detail', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(1200, 900);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final notifier = TestAudioPlayerNotifier(
-        AudioPlayerState(
-          currentEpisode: _testEpisode(),
-          position: 45000,
-          duration: 180000,
-        ),
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
       );
       final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
 
       await tester.pumpWidget(
-        _createPlayerRouteWidget(
-          notifier: notifier,
+        _createRouterWidget(
+          audioNotifier: audioNotifier,
           queueController: queueController,
-          initialLocation: '/podcast/player/1?subscriptionId=1',
+          uiNotifier: uiNotifier,
         ),
       );
       await tester.pumpAndSettle();
 
-      final panelRect = tester.getRect(
-        find.byKey(const Key('podcast_fullscreen_player_panel')),
+      await tester.tap(
+        find.byKey(const Key('podcast_bottom_player_expanded_title')),
       );
-      expect(panelRect.width, greaterThan(1000));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Episode Detail Page'), findsOneWidget);
     });
   });
 }
 
+void _setMobileViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 Widget _createWidget({
-  required TestAudioPlayerNotifier notifier,
+  required TestAudioPlayerNotifier audioNotifier,
   required TestPodcastQueueController queueController,
-  ThemeData? theme,
-  ThemeData? darkTheme,
-  ThemeMode themeMode = ThemeMode.system,
+  required TestPodcastPlayerUiNotifier uiNotifier,
 }) {
   return ProviderScope(
     overrides: [
-      audioPlayerProvider.overrideWith(() => notifier),
+      audioPlayerProvider.overrideWith(() => audioNotifier),
       podcastQueueControllerProvider.overrideWith(() => queueController),
+      podcastPlayerUiProvider.overrideWith(() => uiNotifier),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: theme,
-      darkTheme: darkTheme,
-      themeMode: themeMode,
       home: const Scaffold(
         body: SizedBox.shrink(),
         bottomNavigationBar: PodcastBottomPlayerWidget(),
@@ -686,14 +289,12 @@ Widget _createWidget({
 }
 
 Widget _createRouterWidget({
-  required TestAudioPlayerNotifier notifier,
+  required TestAudioPlayerNotifier audioNotifier,
   required TestPodcastQueueController queueController,
-  required String initialLocation,
-  List<NavigatorObserver> observers = const [],
+  required TestPodcastPlayerUiNotifier uiNotifier,
 }) {
   final router = GoRouter(
-    initialLocation: initialLocation,
-    observers: observers,
+    initialLocation: '/',
     routes: [
       GoRoute(
         path: '/',
@@ -715,8 +316,9 @@ Widget _createRouterWidget({
 
   return ProviderScope(
     overrides: [
-      audioPlayerProvider.overrideWith(() => notifier),
+      audioPlayerProvider.overrideWith(() => audioNotifier),
       podcastQueueControllerProvider.overrideWith(() => queueController),
+      podcastPlayerUiProvider.overrideWith(() => uiNotifier),
     ],
     child: MaterialApp.router(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -726,79 +328,7 @@ Widget _createRouterWidget({
   );
 }
 
-Widget _createOverlayHarness({
-  required TestAudioPlayerNotifier notifier,
-  required TestPodcastQueueController queueController,
-}) {
-  return ProviderScope(
-    overrides: [
-      audioPlayerProvider.overrideWith(() => notifier),
-      podcastQueueControllerProvider.overrideWith(() => queueController),
-    ],
-    child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Consumer(
-        builder: (context, ref, _) {
-          final isExpanded = ref.watch(
-            audioPlayerProvider.select((state) => state.isExpanded),
-          );
-          return Scaffold(
-            body: Stack(
-              children: [
-                const Align(
-                  alignment: Alignment.bottomCenter,
-                  child: PodcastBottomPlayerWidget(applySafeArea: false),
-                ),
-                Positioned.fill(
-                  child: PodcastPlayerModalBarrier(
-                    visible: isExpanded,
-                    onDismiss: () {
-                      ref.read(audioPlayerProvider.notifier).setExpanded(false);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    ),
-  );
-}
-
-Widget _createPlayerRouteWidget({
-  required TestAudioPlayerNotifier notifier,
-  required TestPodcastQueueController queueController,
-  required String initialLocation,
-}) {
-  final router = GoRouter(
-    initialLocation: initialLocation,
-    routes: [
-      GoRoute(
-        path: '/podcast/player/:episodeId',
-        builder: (context, state) {
-          final args = PodcastPlayerPageArgs.extractFromState(state);
-          return PodcastPlayerPage(args: args);
-        },
-      ),
-    ],
-  );
-
-  return ProviderScope(
-    overrides: [
-      audioPlayerProvider.overrideWith(() => notifier),
-      podcastQueueControllerProvider.overrideWith(() => queueController),
-    ],
-    child: MaterialApp.router(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      routerConfig: router,
-    ),
-  );
-}
-
-PodcastEpisodeModel _testEpisode() {
+PodcastEpisodeModel _episode() {
   final now = DateTime.now();
   return PodcastEpisodeModel(
     id: 1,
@@ -820,14 +350,7 @@ class TestAudioPlayerNotifier extends AudioPlayerNotifier {
   int resumeCalls = 0;
 
   @override
-  AudioPlayerState build() {
-    return _initialState;
-  }
-
-  @override
-  void setExpanded(bool expanded) {
-    state = state.copyWith(isExpanded: expanded);
-  }
+  AudioPlayerState build() => _initialState;
 
   @override
   Future<void> seekTo(int position) async {
@@ -848,10 +371,18 @@ class TestAudioPlayerNotifier extends AudioPlayerNotifier {
   }
 }
 
-class TestPodcastQueueController extends PodcastQueueController {
-  TestPodcastQueueController({this.refreshDelay = Duration.zero});
+class TestPodcastPlayerUiNotifier extends PodcastPlayerUiNotifier {
+  TestPodcastPlayerUiNotifier([
+    this._initialState = const PodcastPlayerUiState(),
+  ]);
 
-  final Duration refreshDelay;
+  final PodcastPlayerUiState _initialState;
+
+  @override
+  PodcastPlayerUiState build() => _initialState;
+}
+
+class TestPodcastQueueController extends PodcastQueueController {
   int refreshQueueInBackgroundCalls = 0;
   int loadQueueCalls = 0;
 
@@ -859,9 +390,7 @@ class TestPodcastQueueController extends PodcastQueueController {
       refreshQueueInBackgroundCalls + loadQueueCalls;
 
   @override
-  Future<PodcastQueueModel> build() async {
-    return PodcastQueueModel.empty();
-  }
+  Future<PodcastQueueModel> build() async => PodcastQueueModel.empty();
 
   @override
   Future<PodcastQueueModel> loadQueue({bool forceRefresh = true}) async {
@@ -873,33 +402,11 @@ class TestPodcastQueueController extends PodcastQueueController {
   @override
   Future<void> refreshQueueInBackground() async {
     refreshQueueInBackgroundCalls += 1;
-    if (refreshDelay > Duration.zero) {
-      await Future<void>.delayed(refreshDelay);
-    }
     state = const AsyncValue.data(PodcastQueueModel());
   }
 
   @override
   Future<PodcastQueueModel> activateEpisode(int episodeId) async {
-    return state.value ?? PodcastQueueModel.empty();
-  }
-}
-
-class _TestNavigatorObserver extends NavigatorObserver {
-  int didPushCount = 0;
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    super.didPush(route, previousRoute);
-    didPushCount += 1;
-  }
-}
-
-Future<void> _closeQueueSheet(WidgetTester tester) async {
-  final sheetFinder = find.byType(PodcastQueueSheet);
-  if (sheetFinder.evaluate().isNotEmpty) {
-    final context = tester.element(sheetFinder.first);
-    Navigator.of(context).pop();
-    await tester.pumpAndSettle();
+    return PodcastQueueModel.empty();
   }
 }

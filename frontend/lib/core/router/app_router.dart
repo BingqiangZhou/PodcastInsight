@@ -12,7 +12,6 @@ import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/podcast/presentation/pages/podcast_list_page.dart';
-import '../../features/podcast/presentation/pages/podcast_player_page.dart';
 import '../../features/podcast/presentation/pages/podcast_episodes_page.dart';
 import '../../features/podcast/presentation/pages/podcast_episode_detail_page.dart';
 import '../../features/podcast/presentation/pages/podcast_daily_report_page.dart';
@@ -156,21 +155,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 );
               }
               return PodcastEpisodeDetailPage(episodeId: episodeId);
-            },
-          ),
-          // 4. 播放器: /podcast/player/1?subscriptionId=1
-          GoRoute(
-            path: 'player/:episodeId',
-            name: 'episodePlayer',
-            builder: (context, state) {
-              final args = PodcastPlayerPageArgs.extractFromState(state);
-              if (args == null) {
-                final l10n = AppLocalizations.of(context)!;
-                return Scaffold(
-                  body: Center(child: Text(l10n.invalid_navigation_arguments)),
-                );
-              }
-              return PodcastPlayerPage(args: args);
             },
           ),
         ],
