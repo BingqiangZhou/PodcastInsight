@@ -220,7 +220,7 @@ void main() {
         find.byKey(const Key('podcast_player_mobile_sheet')),
         findsOneWidget,
       );
-      expect(find.text('Player'), findsOneWidget);
+      expect(find.text('Player'), findsNothing);
       expect(find.text('Playback Console'), findsNothing);
     });
 

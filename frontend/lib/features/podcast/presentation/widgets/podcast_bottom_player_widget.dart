@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -278,6 +277,7 @@ class _MiniDockBody extends ConsumerWidget {
             pauseTooltip: pauseTooltip,
             playTooltip: playTooltip,
           ),
+          const SizedBox(width: 6),
           IconButton(
             key: showPrimaryKeys
                 ? const Key('podcast_bottom_player_mini_playlist')
@@ -307,7 +307,6 @@ class _PodcastExpandedOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final mediaSize = MediaQuery.sizeOf(context);
     final maxPanelWidth = math.min(
@@ -316,99 +315,50 @@ class _PodcastExpandedOverlay extends ConsumerWidget {
           ? double.infinity
           : 720.0,
     );
-    final maxPanelHeight = math.min(
-      mediaSize.height *
-          (viewportSpec.layoutMode == PodcastPlayerLayoutMode.mobile
-              ? 0.82
-              : 0.76),
-      760.0,
-    );
-
-    final surface = TweenAnimationBuilder<double>(
-      tween: Tween<double>(end: visible ? 1 : 0),
-      duration: _kPlayerTransition,
-      curve: Curves.easeOutCubic,
-      builder: (context, value, _) {
-        final width = lerpDouble(
-          viewportSpec.dockMaxWidth,
-          maxPanelWidth,
-          value,
-        )!;
-        final height = lerpDouble(78, maxPanelHeight, value)!;
-        final borderRadius = lerpDouble(
-          22,
-          viewportSpec.mobileDrawerBorderRadius,
-          value,
-        )!;
-        final miniOpacity =
-            (1.0 - Curves.easeIn.transform(value.clamp(0.0, 0.45) / 0.45))
-                .clamp(0.0, 1.0)
-                .toDouble();
-        final expandedOpacity = Curves.easeOut
-            .transform(((value - 0.2) / 0.8).clamp(0.0, 1.0))
-            .toDouble();
-
-        return Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              viewportSpec.dockHorizontalPadding,
-              viewportSpec.dockTopPadding,
-              viewportSpec.dockHorizontalPadding,
-              viewportSpec.dockBottomSpacing,
-            ),
-            child: Material(
-              key: value > 0 ? const Key('podcast_player_mobile_sheet') : null,
-              color: theme.colorScheme.surface,
-              elevation: lerpDouble(4, 10, value)!,
-              shadowColor: theme.shadowColor.withValues(
-                alpha: lerpDouble(0.10, 0.16, value)!,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(borderRadius),
-                side: BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(
-                    alpha: lerpDouble(0.45, 0.56, value)!,
+    final surface = Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          viewportSpec.dockHorizontalPadding,
+          viewportSpec.dockTopPadding,
+          viewportSpec.dockHorizontalPadding,
+          viewportSpec.dockBottomSpacing,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxPanelWidth),
+          child: AnimatedSlide(
+            duration: _kPlayerTransition,
+            curve: Curves.easeOutCubic,
+            offset: visible ? Offset.zero : const Offset(0, 1.08),
+            child: AnimatedOpacity(
+              duration: _kPlayerTransition,
+              curve: Curves.easeOutCubic,
+              opacity: visible ? 1 : 0,
+              child: Material(
+                key: visible ? const Key('podcast_player_mobile_sheet') : null,
+                color: theme.colorScheme.surface,
+                elevation: 10,
+                shadowColor: theme.shadowColor.withValues(alpha: 0.16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    viewportSpec.mobileDrawerBorderRadius,
+                  ),
+                  side: BorderSide(
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.56,
+                    ),
                   ),
                 ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: SizedBox(
-                width: width,
-                height: height,
-                child: Stack(
-                  children: [
-                    if (miniOpacity > 0)
-                      Positioned.fill(
-                        child: Opacity(
-                          opacity: miniOpacity,
-                          child: _MiniDockBody(
-                            episode: episode,
-                            onExpand: () {},
-                            showPrimaryKeys: false,
-                            pauseTooltip: l10n?.podcast_player_pause ?? 'Pause',
-                            playTooltip: l10n?.podcast_player_play ?? 'Play',
-                            listTooltip: l10n?.podcast_player_list ?? 'List',
-                          ),
-                        ),
-                      ),
-                    if (expandedOpacity > 0)
-                      Positioned.fill(
-                        child: Opacity(
-                          opacity: expandedOpacity,
-                          child: _ExpandedPanelContent(
-                            episode: episode,
-                            showPrimaryKeys: value > 0.8,
-                          ),
-                        ),
-                      ),
-                  ],
+                clipBehavior: Clip.antiAlias,
+                child: _ExpandedPanelContent(
+                  episode: episode,
+                  showPrimaryKeys: visible,
                 ),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
 
     final overlay = Stack(
@@ -429,10 +379,7 @@ class _PodcastExpandedOverlay extends ConsumerWidget {
             ),
           ),
         ),
-        IgnorePointer(
-          ignoring: !visible,
-          child: surface,
-        ),
+        IgnorePointer(ignoring: !visible, child: surface),
       ],
     );
 
@@ -455,46 +402,45 @@ class _ExpandedPanelContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 10, 18, 24),
-        child: Column(
-          key: showPrimaryKeys
-              ? const Key('podcast_bottom_player_expanded')
-              : null,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: GestureDetector(
-                key: showPrimaryKeys
-                    ? const Key('podcast_bottom_player_drag_handle')
-                    : null,
-                behavior: HitTestBehavior.opaque,
-                onVerticalDragEnd: (_) => ProviderScope.containerOf(
-                  context,
-                  listen: false,
-                ).read(podcastPlayerUiProvider.notifier).collapse(),
-                child: Container(
-                  width: 44,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      child: Column(
+        key: showPrimaryKeys
+            ? const Key('podcast_bottom_player_expanded')
+            : null,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: GestureDetector(
+              key: showPrimaryKeys
+                  ? const Key('podcast_bottom_player_drag_handle')
+                  : null,
+              behavior: HitTestBehavior.opaque,
+              onVerticalDragEnd: (_) => ProviderScope.containerOf(
+                context,
+                listen: false,
+              ).read(podcastPlayerUiProvider.notifier).collapse(),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            _ExpandedHeader(episode: episode),
-            const SizedBox(height: 18),
-            _ExpandedHero(episode: episode),
-            const SizedBox(height: 18),
-            const _ExpandedProgressSection(),
-            const SizedBox(height: 16),
-            const _TransportRow(),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          _ExpandedHeader(episode: episode),
+          const SizedBox(height: 10),
+          _ExpandedHero(episode: episode),
+          const SizedBox(height: 10),
+          const _ExpandedProgressSection(),
+          const SizedBox(height: 10),
+          const _TransportRow(),
+        ],
       ),
     );
   }
@@ -512,38 +458,20 @@ class _ExpandedHeader extends ConsumerWidget {
     return Row(
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n?.podcast_player_now_playing ?? 'Now Playing',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Player',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+          child: Text(
+            l10n?.podcast_player_now_playing ?? 'Now Playing',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
-        _PlaybackSpeedChip(
-          speed: playbackRate,
-          onTap: () => _showSpeedSelector(context, ref),
-        ),
-        const SizedBox(width: 6),
         IconButton(
           key: const Key('podcast_bottom_player_playlist'),
           tooltip: l10n?.podcast_player_list ?? 'List',
           onPressed: () => _showQueueSheet(context, ref),
           icon: const Icon(Icons.playlist_play_rounded),
         ),
-        _SleepTimerButton(onPressed: () => _showSleepSelector(context, ref)),
         IconButton(
           key: const Key('podcast_bottom_player_collapse'),
           tooltip: l10n?.podcast_player_collapse ?? 'Collapse',
@@ -565,11 +493,11 @@ class _ExpandedHero extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final textColor = theme.colorScheme.onSurfaceVariant;
-    final imageSize = 96.0;
+    final imageSize = 72.0;
     final currentLocation = ref.watch(currentRouteProvider);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(24),
@@ -584,7 +512,7 @@ class _ExpandedHero extends ConsumerWidget {
             imageUrl: episode.subscriptionImageUrl ?? episode.imageUrl,
             size: imageSize,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
               key: const Key('podcast_bottom_player_expanded_title'),
@@ -613,38 +541,21 @@ class _ExpandedHero extends ConsumerWidget {
                 children: [
                   Text(
                     episode.title,
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  if ((episode.subscriptionTitle ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      episode.subscriptionTitle!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _buildEpisodeMetaLine(episode),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _MetaPill(
-                        icon: Icons.calendar_today_outlined,
-                        label: episode.publishedAt.toString().split(' ')[0],
-                      ),
-                      _MetaPill(
-                        icon: Icons.access_time_rounded,
-                        label: episode.formattedDuration,
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -654,40 +565,15 @@ class _ExpandedHero extends ConsumerWidget {
       ),
     );
   }
-}
 
-class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.36),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: theme.colorScheme.onSurfaceVariant),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
+  String _buildEpisodeMetaLine(PodcastEpisodeModel episode) {
+    final parts = <String>[
+      if ((episode.subscriptionTitle ?? '').trim().isNotEmpty)
+        episode.subscriptionTitle!.trim(),
+      episode.publishedAt.toString().split(' ')[0],
+      episode.formattedDuration,
+    ];
+    return parts.join('  ·  ');
   }
 }
 
@@ -741,7 +627,7 @@ class _ExpandedProgressSectionState
         : progress.positionMs;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+      padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(22),
@@ -757,6 +643,7 @@ class _ExpandedProgressSectionState
               inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
               thumbColor: theme.colorScheme.primary,
               overlayColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+              trackHeight: 3,
             ),
             child: Slider(
               key: const Key('podcast_bottom_player_progress_slider'),
@@ -799,34 +686,38 @@ class _TransportRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: const [
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: _SkipButton(
+    return Consumer(
+      builder: (context, ref, _) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _PlaybackSpeedChip(
+              speed: ref.watch(audioPlaybackRateProvider),
+              onTap: () => _showSpeedSelector(context, ref),
+            ),
+            const SizedBox(width: 8),
+            const _SkipButton(
               keyValue: 'podcast_bottom_player_rewind_10',
               deltaMs: -10000,
               icon: Icons.replay_10_rounded,
               tooltipLocalizationKey: _TooltipKey.rewind10,
             ),
-          ),
-        ),
-        SizedBox(width: 14),
-        _PlayPauseButtonLarge(),
-        SizedBox(width: 14),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: _SkipButton(
+            const SizedBox(width: 10),
+            const _PlayPauseButtonLarge(),
+            const SizedBox(width: 10),
+            const _SkipButton(
               keyValue: 'podcast_bottom_player_forward_30',
               deltaMs: 30000,
               icon: Icons.forward_30_rounded,
               tooltipLocalizationKey: _TooltipKey.forward30,
             ),
-          ),
-        ),
-      ],
+            const SizedBox(width: 8),
+            _SleepTimerButton(
+              onPressed: () => _showSleepSelector(context, ref),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -848,10 +739,10 @@ class _PlaybackSpeedChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           child: Text(
             formatPlaybackSpeed(speed),
-            style: theme.textTheme.labelLarge?.copyWith(
+            style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -876,15 +767,11 @@ class _SleepTimerButton extends ConsumerWidget {
       key: const Key('podcast_bottom_player_sleep'),
       tooltip: l10n?.podcast_player_sleep_mode ?? 'Sleep Mode',
       onPressed: onPressed,
-      icon: Transform(
-        alignment: Alignment.center,
-        transform: Matrix4.diagonal3Values(-1.0, 1.0, 1.0),
-        child: Icon(
-          isActive ? Icons.bedtime_rounded : Icons.bedtime_outlined,
-          color: isActive
-              ? theme.colorScheme.primary
-              : theme.colorScheme.onSurfaceVariant,
-        ),
+      icon: Icon(
+        isActive ? Icons.bedtime_rounded : Icons.bedtime_outlined,
+        color: isActive
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -946,7 +833,7 @@ class _PlayPauseButtonLarge extends ConsumerWidget {
       ),
       child: IconButton(
         key: const Key('podcast_bottom_player_play_pause'),
-        iconSize: 46,
+        iconSize: 42,
         tooltip: transport.isPlaying
             ? (l10n?.podcast_player_pause ?? 'Pause')
             : (l10n?.podcast_player_play ?? 'Play'),
