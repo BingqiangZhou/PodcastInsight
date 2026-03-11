@@ -310,6 +310,24 @@ def test_build_summary_and_playback_responses():
     assert effective_rate.source == "subscription"
 
 
+def test_build_summary_response_accepts_model_used_key():
+    now = datetime.now(UTC)
+
+    summary = build_summary_response(
+        episode_id=9,
+        summary_result={
+            "summary": "alpha beta gamma",
+            "version": "v2",
+            "generated_at": now,
+            "model_used": "workflow-model",
+            "processing_time": 1.2,
+        },
+    )
+
+    assert summary.model_used == "workflow-model"
+    assert summary.word_count == 3
+
+
 def test_build_playback_and_queue_responses_from_projections():
     now = datetime.now(UTC)
 

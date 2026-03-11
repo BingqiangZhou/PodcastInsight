@@ -75,7 +75,7 @@ async def test_generate_summary_response_uses_persisted_episode_summary() -> Non
         "summary": "final summary from db",
         "version": "1.0",
         "generated_at": datetime.now(UTC),
-        "model_name": "test-model",
+        "model_used": "test-model",
         "processing_time": 1.23,
     }
 
@@ -88,6 +88,7 @@ async def test_generate_summary_response_uses_persisted_episode_summary() -> Non
 
     assert response.summary == "final summary from db"
     assert response.word_count == 4
+    assert response.model_used == "test-model"
 
 
 @pytest.mark.asyncio

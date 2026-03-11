@@ -161,6 +161,17 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     final summaryNotifier = ref.read(provider.notifier);
     final transcriptionProvider = getTranscriptionProvider(widget.episodeId);
     final transcriptionState = ref.watch(transcriptionProvider);
+    final hasEpisodeTranscript =
+        episode.transcriptContent != null &&
+        episode.transcriptContent!.isNotEmpty;
+    final hasLoadedTranscript =
+        transcriptionState.value?.transcriptContent != null &&
+        transcriptionState.value!.transcriptContent!.isNotEmpty;
+    final hasExistingSummary =
+        summaryState.hasSummary ||
+        (episode.aiSummary != null && episode.aiSummary!.isNotEmpty);
+    final canManageSummary =
+        hasEpisodeTranscript || hasLoadedTranscript || hasExistingSummary;
 
     if (episode.aiSummary != null &&
         episode.aiSummary!.isNotEmpty &&
@@ -181,9 +192,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
         children: [
           AISummaryControlWidget(
             episodeId: widget.episodeId,
-            hasTranscript:
-                transcriptionState.value?.transcriptContent != null &&
-                transcriptionState.value!.transcriptContent!.isNotEmpty,
+            hasTranscript: canManageSummary,
           ),
 
           const SizedBox(height: 16),
@@ -201,28 +210,6 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ] else if (summaryState.hasError) ...[
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    summaryState.errorMessage ??
-                        (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                            .podcast_summary_generate_failed,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
                     ),
                   ),
                 ],

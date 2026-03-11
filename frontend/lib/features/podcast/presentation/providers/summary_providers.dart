@@ -36,6 +36,8 @@ final availableModelsProvider = FutureProvider<List<SummaryModelInfo>>((
 
 /// Summary state class
 class SummaryState {
+  static const Object _unset = Object();
+
   final String? summary;
   final String? modelUsed;
   final double? processingTime;
@@ -59,22 +61,32 @@ class SummaryState {
   bool get isSuccess => hasSummary && !isLoading && !hasError;
 
   SummaryState copyWith({
-    String? summary,
-    String? modelUsed,
-    double? processingTime,
-    int? wordCount,
-    DateTime? generatedAt,
+    Object? summary = _unset,
+    Object? modelUsed = _unset,
+    Object? processingTime = _unset,
+    Object? wordCount = _unset,
+    Object? generatedAt = _unset,
     bool? isLoading,
-    String? errorMessage,
+    Object? errorMessage = _unset,
   }) {
     return SummaryState(
-      summary: summary ?? this.summary,
-      modelUsed: modelUsed ?? this.modelUsed,
-      processingTime: processingTime ?? this.processingTime,
-      wordCount: wordCount ?? this.wordCount,
-      generatedAt: generatedAt ?? this.generatedAt,
+      summary: identical(summary, _unset) ? this.summary : summary as String?,
+      modelUsed: identical(modelUsed, _unset)
+          ? this.modelUsed
+          : modelUsed as String?,
+      processingTime: identical(processingTime, _unset)
+          ? this.processingTime
+          : processingTime as double?,
+      wordCount: identical(wordCount, _unset)
+          ? this.wordCount
+          : wordCount as int?,
+      generatedAt: identical(generatedAt, _unset)
+          ? this.generatedAt
+          : generatedAt as DateTime?,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: identical(errorMessage, _unset)
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 }

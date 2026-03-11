@@ -235,7 +235,10 @@ def build_summary_response(
     summary_result: dict[str, Any],
 ) -> PodcastSummaryResponse:
     """Build the episode summary response."""
-    summary_text = summary_result["summary"]
+    summary_text = summary_result.get("summary") or summary_result.get(
+        "summary_content", ""
+    )
+    model_used = summary_result.get("model_used") or summary_result.get("model_name")
     return PodcastSummaryResponse(
         episode_id=episode_id,
         summary=summary_text,
@@ -244,7 +247,7 @@ def build_summary_response(
         transcript_used=True,
         generated_at=summary_result["generated_at"],
         word_count=len(summary_text.split()),
-        model_used=summary_result["model_name"],
+        model_used=model_used,
         processing_time=summary_result["processing_time"],
     )
 

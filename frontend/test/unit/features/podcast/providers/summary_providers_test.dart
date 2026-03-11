@@ -17,9 +17,7 @@ void main() {
         summaryAvailableOnFetch: 2,
       );
       final container = ProviderContainer(
-        overrides: [
-          podcastRepositoryProvider.overrideWithValue(repository),
-        ],
+        overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
       );
       addTearDown(container.dispose);
 
@@ -41,16 +39,52 @@ void main() {
       expect(container.read(provider).summary, 'Persisted summary');
     });
   });
+
+  test(
+    'clearError removes stale error and retry keeps summary state usable',
+    () {
+      fakeAsync((async) {
+        final repository = _FakeSummaryRepository(
+          episodeId: 1002,
+          summaryAvailableOnFetch: 1,
+          failGenerateCalls: const {1},
+        );
+        final container = ProviderContainer(
+          overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
+        );
+        addTearDown(container.dispose);
+
+        final provider = getSummaryProvider(1002);
+
+        container.read(provider.notifier).generateSummary();
+        async.flushMicrotasks();
+
+        expect(container.read(provider).hasError, isTrue);
+
+        container.read(provider.notifier).clearError();
+        expect(container.read(provider).hasError, isFalse);
+
+        container.read(provider.notifier).generateSummary();
+        async.flushMicrotasks();
+
+        expect(repository.generateSummaryCalls, 2);
+        expect(container.read(provider).hasError, isFalse);
+        expect(container.read(provider).summary, 'Persisted summary');
+      });
+    },
+  );
 }
 
 class _FakeSummaryRepository extends PodcastRepository {
   _FakeSummaryRepository({
     required this.episodeId,
     required this.summaryAvailableOnFetch,
+    this.failGenerateCalls = const {},
   }) : super(PodcastApiService(Dio()));
 
   final int episodeId;
   final int summaryAvailableOnFetch;
+  final Set<int> failGenerateCalls;
   int generateSummaryCalls = 0;
   int getEpisodeCalls = 0;
 
@@ -63,6 +97,9 @@ class _FakeSummaryRepository extends PodcastRepository {
     String? customPrompt,
   }) async {
     generateSummaryCalls += 1;
+    if (failGenerateCalls.contains(generateSummaryCalls)) {
+      throw StateError('summary generation failed');
+    }
     return PodcastSummaryResponse(
       episodeId: episodeId,
       summary: 'Fresh summary',

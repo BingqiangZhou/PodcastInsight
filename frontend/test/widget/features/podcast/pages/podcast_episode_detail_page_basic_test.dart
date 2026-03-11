@@ -51,6 +51,57 @@ void main() {
       expect(find.text('Generated summary'), findsOneWidget);
     });
 
+    testWidgets(
+      'summary tab allows generation when transcript exists only on episode detail',
+      (tester) async {
+        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+
+        await tester.pumpWidget(
+          _createWidget(
+            episode: _episode(
+              aiSummary: null,
+              transcriptContent: 'Episode transcript from detail',
+            ),
+            createSummaryNotifier: () => _SummaryEmptyNotifier(),
+            createTranscriptionNotifier: () => _EmptyTranscriptionNotifier(1),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final context = tester.element(find.byType(PodcastEpisodeDetailPage));
+        final l10n = AppLocalizations.of(context)!;
+
+        await tester.tap(find.byKey(const Key('episode_detail_mobile_tab_2')));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10n.podcast_summary_generate), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'summary tab keeps summary visible when notifier also has an error',
+      (tester) async {
+        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+
+        await tester.pumpWidget(
+          _createWidget(
+            episode: _episode(aiSummary: null),
+            createSummaryNotifier: () => _SummaryWithErrorNotifier(),
+            createTranscriptionNotifier: () => _EmptyTranscriptionNotifier(1),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('episode_detail_mobile_tab_2')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Persisted summary'), findsOneWidget);
+        expect(find.text('regeneration failed'), findsOneWidget);
+      },
+    );
+
     testWidgets('shows localized not-found state', (tester) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -69,15 +120,21 @@ void main() {
   });
 }
 
-Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
+Widget _createWidget({
+  required PodcastEpisodeDetailResponse? episode,
+  SummaryNotifier Function()? createSummaryNotifier,
+  TranscriptionNotifier Function()? createTranscriptionNotifier,
+}) {
   return ProviderScope(
     overrides: [
       audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
       episodeDetailProvider.overrideWith((ref, episodeId) async => episode),
-      getSummaryProvider(1).overrideWith(() => _SummaryWithContentNotifier()),
-      getTranscriptionProvider(
-        1,
-      ).overrideWith(() => _NoopTranscriptionNotifier(1)),
+      getSummaryProvider(1).overrideWith(
+        createSummaryNotifier ?? () => _SummaryWithContentNotifier(),
+      ),
+      getTranscriptionProvider(1).overrideWith(
+        createTranscriptionNotifier ?? () => _NoopTranscriptionNotifier(1),
+      ),
       getConversationProvider(
         1,
       ).overrideWith(() => _ConversationWithoutMessagesNotifier()),
@@ -96,7 +153,10 @@ Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
   );
 }
 
-PodcastEpisodeDetailResponse _episode() {
+PodcastEpisodeDetailResponse _episode({
+  String? aiSummary = 'summary',
+  String? transcriptContent = 'Transcript content',
+}) {
   final now = DateTime.now();
   return PodcastEpisodeDetailResponse(
     id: 1,
@@ -107,8 +167,8 @@ PodcastEpisodeDetailResponse _episode() {
     itemLink: 'https://example.com/source',
     audioDuration: 180,
     publishedAt: now,
-    aiSummary: 'summary',
-    transcriptContent: 'Transcript content',
+    aiSummary: aiSummary,
+    transcriptContent: transcriptContent,
     status: 'published',
     createdAt: now,
     updatedAt: now,
@@ -164,6 +224,43 @@ class _SummaryWithContentNotifier extends SummaryNotifier {
   SummaryState build() {
     return const SummaryState(summary: 'Generated summary');
   }
+}
+
+class _SummaryEmptyNotifier extends SummaryNotifier {
+  _SummaryEmptyNotifier() : super(1);
+
+  @override
+  SummaryState build() {
+    return const SummaryState();
+  }
+}
+
+class _SummaryWithErrorNotifier extends SummaryNotifier {
+  _SummaryWithErrorNotifier() : super(1);
+
+  @override
+  SummaryState build() {
+    return const SummaryState(
+      summary: 'Persisted summary',
+      errorMessage: 'regeneration failed',
+    );
+  }
+}
+
+class _EmptyTranscriptionNotifier extends TranscriptionNotifier {
+  _EmptyTranscriptionNotifier(super.episodeId);
+
+  @override
+  Future<PodcastTranscriptionResponse?> build() async => null;
+
+  @override
+  Future<void> checkOrStartTranscription() async {}
+
+  @override
+  Future<void> startTranscription() async {}
+
+  @override
+  Future<void> loadTranscription() async {}
 }
 
 class _ConversationWithoutMessagesNotifier extends ConversationNotifier {
