@@ -49,6 +49,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       key: AppConstants.savedPasswordKey,
     );
 
+    if (!mounted) {
+      return;
+    }
+
     if (savedUsername != null && savedPassword != null) {
       setState(() {
         _emailController.text = savedUsername;
@@ -74,6 +78,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         await _secureStorage.delete(key: AppConstants.savedPasswordKey);
       }
 
+      if (!mounted) {
+        return;
+      }
+
       ref
           .read(authProvider.notifier)
           .login(
@@ -95,6 +103,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ? serverConfig.serverUrl
             : null,
         onSave: () {
+          if (!mounted) {
+            return;
+          }
           setState(() {});
         },
       ),
@@ -211,7 +222,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         side: BorderSide(
                           color: _rememberMe
                               ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                           width: 2,
                         ),
                         shape: RoundedRectangleBorder(

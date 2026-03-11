@@ -37,6 +37,7 @@ class ConversationChatWidgetState
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
   SummaryModelInfo? _selectedModel;
+  Timer? _pendingScrollTimer;
   String _lastSelectedChatText = '';
   String _lastSelectedChatRoleLabel = '';
   bool _lastSelectedChatIsUser = false;
@@ -50,13 +51,14 @@ class ConversationChatWidgetState
 
   /// 滚动到顶部
   void scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0.0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    if (!mounted || !_scrollController.hasClients) {
+      return;
     }
+    _scrollController.animateTo(
+      0.0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -65,8 +67,7 @@ class ConversationChatWidgetState
     _messageController.addListener(_onMessageInputChanged);
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
-        // Scroll to bottom when keyboard appears
-        Future.delayed(const Duration(milliseconds: 300), _scrollToBottom);
+        _scheduleScrollToBottom(const Duration(milliseconds: 300));
       }
     });
     // 自动选择默认模型
@@ -92,6 +93,7 @@ class ConversationChatWidgetState
 
   @override
   void dispose() {
+    _pendingScrollTimer?.cancel();
     _messageController.removeListener(_onMessageInputChanged);
     _messageController.dispose();
     _scrollController.dispose();
@@ -99,9 +101,16 @@ class ConversationChatWidgetState
     super.dispose();
   }
 
+  void _scheduleScrollToBottom(Duration delay) {
+    _pendingScrollTimer?.cancel();
+    _pendingScrollTimer = Timer(delay, _scrollToBottom);
+  }
+
   void _scrollToBottom() {
-    if (_scrollController.hasClients &&
-        _scrollController.position.maxScrollExtent > 0) {
+    if (!mounted || !_scrollController.hasClients) {
+      return;
+    }
+    if (_scrollController.position.maxScrollExtent > 0) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 300),
@@ -321,6 +330,9 @@ class ConversationChatWidgetState
       await ref
           .read(getConversationProvider(widget.episodeId).notifier)
           .startNewChat();
+      if (!mounted) {
+        return;
+      }
       _messageController.clear();
       _focusNode.requestFocus();
     }
@@ -339,7 +351,7 @@ class ConversationChatWidgetState
     ) {
       _syncSelectedMessageIds(next.messages);
       if (next.messages.length > (previous?.messages.length ?? 0)) {
-        Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
+        _scheduleScrollToBottom(const Duration(milliseconds: 100));
       }
     });
 

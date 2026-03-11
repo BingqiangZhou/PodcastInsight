@@ -68,15 +68,15 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   Future<void> _loadServerHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final historyList = prefs.getStringList(_serverHistoryKey);
-    if (historyList != null) {
-      setState(() {
-        _serverHistory = historyList;
-      });
-    }
+    if (!mounted || historyList == null) return;
+
+    setState(() {
+      _serverHistory = historyList;
+    });
   }
 
   Future<void> _addToServerHistory(String url) async {
-    if (url.trim().isEmpty) return;
+    if (!mounted || url.trim().isEmpty) return;
 
     final normalizedUrl = url.trim();
     setState(() {
@@ -382,16 +382,21 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
     try {
       // Use ServerConfigNotifier to properly save and update DioClient
       await ref.read(serverConfigProvider.notifier).updateServerUrl(baseUrl);
+      if (!mounted) return;
 
       // Add to history after successful save
       await _addToServerHistory(baseUrl);
+      if (!mounted) return;
 
       if (!dialogContext.mounted) return;
-      if (!mounted) return;
+      final rootContext = Navigator.of(
+        dialogContext,
+        rootNavigator: true,
+      ).context;
       Navigator.of(dialogContext).pop();
-      if (!mounted) return;
+      if (!rootContext.mounted) return;
       showTopFloatingNotice(
-        context,
+        rootContext,
         message: l10n.restore_defaults_success,
         duration: const Duration(milliseconds: 1500),
       );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show PathMetric;
 import 'package:flutter/material.dart';
@@ -10,6 +11,11 @@ import 'package:dio/dio.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
+
+typedef RssUrlValidator = Future<bool> Function(String url);
+
+@visibleForTesting
+RssUrlValidator? debugBulkImportRssUrlValidator;
 
 /// Model to represent URL validation status
 class UrlValidationItem {
@@ -89,7 +95,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
     multiLine: true,
   );
 
-  void _analyzeText() async {
+  Future<void> _analyzeText() async {
     final text = _textController.text;
     if (text.isEmpty) return;
 
@@ -186,6 +192,11 @@ class _BulkImportDialogState extends State<BulkImportDialog>
 
   /// Validate if a URL is a valid RSS feed by checking the content
   Future<bool> _validateRssUrl(String url) async {
+    final override = debugBulkImportRssUrlValidator;
+    if (override != null) {
+      return override(url);
+    }
+
     try {
       // Set timeout to 5 seconds
       final response = await _dio.get(
@@ -256,7 +267,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
       }
     });
 
-    _startValidation(items);
+    await _startValidation(items);
   }
 
   /// Validate all URLs with titles and update the validation items
@@ -309,10 +320,10 @@ class _BulkImportDialogState extends State<BulkImportDialog>
       }
     });
 
-    _startValidation(items);
+    await _startValidation(items);
   }
 
-  void _startValidation(List<UrlValidationItem> items) async {
+  Future<void> _startValidation(List<UrlValidationItem> items) async {
     // Validate each URL in parallel with concurrency limit
     final futures = <Future<void>>[];
     const concurrencyLimit = 5;
@@ -327,6 +338,9 @@ class _BulkImportDialogState extends State<BulkImportDialog>
     }
     if (futures.isNotEmpty) {
       await Future.wait(futures);
+    }
+    if (!mounted) {
+      return;
     }
     setState(() {}); // Trigger rebuild after batch
   }
@@ -356,39 +370,47 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   Future<void> _showEditUrlDialog(UrlValidationItem item) async {
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: item.url);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.podcast_bulk_import_edit_url),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: l10n.podcast_bulk_import_hint_text,
-            hintText: 'https://example.com/feed',
-            border: OutlineInputBorder(),
+    try {
+      final result = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.podcast_bulk_import_edit_url),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: l10n.podcast_bulk_import_hint_text,
+              hintText: 'https://example.com/feed',
+              border: const OutlineInputBorder(),
+            ),
+            autofocus: true,
           ),
-          autofocus: true,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: Text(l10n.podcast_bulk_import_save_revalidate),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: Text(l10n.podcast_bulk_import_save_revalidate),
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (result != null && result.isNotEmpty && result != item.url) {
-      // Check duplication with OTHER items?
-      // For now, let's just update this one.
-      setState(() {
-        item.url = result;
-      });
-      await _validateSingleUrl(item);
+      if (!mounted) {
+        return;
+      }
+
+      if (result != null && result.isNotEmpty && result != item.url) {
+        // Check duplication with OTHER items?
+        // For now, let's just update this one.
+        setState(() {
+          item.url = result;
+        });
+        await _validateSingleUrl(item);
+      }
+    } finally {
+      controller.dispose();
     }
   }
 
@@ -488,6 +510,10 @@ class _BulkImportDialogState extends State<BulkImportDialog>
         allowMultiple: false,
       );
 
+      if (!mounted) {
+        return;
+      }
+
       if (result != null && result.files.single.path != null) {
         await _processFile(result.files.single.path!);
       }
@@ -524,9 +550,13 @@ class _BulkImportDialogState extends State<BulkImportDialog>
     try {
       await widget.onImport(validUrls);
       if (mounted) {
+        final rootContext = Navigator.of(context, rootNavigator: true).context;
         Navigator.of(context).pop();
+        if (!rootContext.mounted) {
+          return;
+        }
         showTopFloatingNotice(
-          context,
+          rootContext,
           message: l10n.podcast_bulk_import_imported_count(validUrls.length),
         );
       }
@@ -632,11 +662,13 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   Widget _buildCompressedInput() {
     final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
-      onTap: () => setState(() {
-        _tabController.index = 1; // Switch to file tab
-        _isInputExpanded = true;
-        _pickFile(); // Auto-trigger file picker
-      }),
+      onTap: () {
+        setState(() {
+          _tabController.index = 1; // Switch to file tab
+          _isInputExpanded = true;
+        });
+        unawaited(_pickFile());
+      },
       child: Container(
         height: 60,
         decoration: BoxDecoration(
@@ -857,6 +889,9 @@ class _BulkImportDialogState extends State<BulkImportDialog>
       onDragDone: (detail) async {
         for (final file in detail.files) {
           await _processFile(file.path);
+        }
+        if (!mounted) {
+          return;
         }
         setState(() => _isDragging = false);
       },
@@ -1165,6 +1200,9 @@ class _BulkImportDialogState extends State<BulkImportDialog>
           _isInputExpanded = true;
           _tabController.index = index;
         });
+        if (index == 1) {
+          unawaited(_pickFile());
+        }
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(
