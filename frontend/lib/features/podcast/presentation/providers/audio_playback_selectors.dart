@@ -20,6 +20,8 @@ typedef AudioMiniProgress = ({
   int durationMs,
 });
 
+typedef AudioPlayPauseState = ({bool isPlaying, bool isLoading});
+
 typedef AudioCurrentQueueProgress = ({
   int? currentEpisodeId,
   int positionMs,
@@ -50,6 +52,24 @@ final audioTransportStateProvider = Provider<AudioTransportState>((ref) {
         durationMs: state.duration,
       ),
     ),
+  );
+});
+
+final audioPlayPauseStateProvider = Provider<AudioPlayPauseState>((ref) {
+  return ref.watch(
+    audioPlayerProvider.select(
+      (state) => (isPlaying: state.isPlaying, isLoading: state.isLoading),
+    ),
+  );
+});
+
+final audioPlaybackRateProvider = Provider<double>((ref) {
+  return ref.watch(audioPlayerProvider.select((state) => state.playbackRate));
+});
+
+final audioSleepTimerActiveProvider = Provider<bool>((ref) {
+  return ref.watch(
+    audioPlayerProvider.select((state) => state.isSleepTimerActive),
   );
 });
 

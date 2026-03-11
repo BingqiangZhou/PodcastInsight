@@ -329,10 +329,10 @@ class _ExpandedPlayerContentState
   }
 
   Future<void> _showSpeedSelector() async {
-    final transport = ref.read(audioTransportStateProvider);
+    final playbackRate = ref.read(audioPlaybackRateProvider);
     final selection = await showPlaybackSpeedSelectorSheet(
       context: context,
-      initialSpeed: transport.playbackRate,
+      initialSpeed: playbackRate,
     );
     if (!mounted || selection == null) {
       return;
@@ -347,10 +347,10 @@ class _ExpandedPlayerContentState
   }
 
   Future<void> _showSleepSelector() async {
-    final transport = ref.read(audioTransportStateProvider);
+    final isTimerActive = ref.read(audioSleepTimerActiveProvider);
     final selection = await showSleepTimerSelectorSheet(
       context: context,
-      isTimerActive: transport.isSleepTimerActive,
+      isTimerActive: isTimerActive,
     );
     if (!mounted || selection == null) {
       return;
@@ -690,9 +690,7 @@ class _SleepTimerButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final isActive = ref.watch(
-      audioPlayerProvider.select((state) => state.isSleepTimerActive),
-    );
+    final isActive = ref.watch(audioSleepTimerActiveProvider);
     final theme = Theme.of(context);
 
     return IconButton(
@@ -721,9 +719,7 @@ class _PlaybackSpeedChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final playbackRate = ref.watch(
-      audioPlayerProvider.select((state) => state.playbackRate),
-    );
+    final playbackRate = ref.watch(audioPlaybackRateProvider);
 
     return Container(
       key: const Key('podcast_bottom_player_speed'),
@@ -794,7 +790,7 @@ class _PlayPauseButtonLarge extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transport = ref.watch(audioTransportStateProvider);
+    final transport = ref.watch(audioPlayPauseStateProvider);
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -904,7 +900,7 @@ class _MiniPlayPauseButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transport = ref.watch(audioTransportStateProvider);
+    final transport = ref.watch(audioPlayPauseStateProvider);
     return IconButton(
       key: key,
       tooltip: transport.isPlaying ? pauseTooltip : playTooltip,

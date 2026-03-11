@@ -25,6 +25,7 @@ class DiscoverShowEpisodesSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final now = DateTime.now();
 
     return SafeArea(
       child: Padding(
@@ -59,23 +60,26 @@ class DiscoverShowEpisodesSheet extends StatelessWidget {
                       ),
                     )
                   : ListView.builder(
-                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
                       itemCount: episodes.length,
                       itemBuilder: (context, index) {
                         final episode = episodes[index];
-                        final now = DateTime.now();
                         final discoverEpisode = PodcastEpisodeModel(
                           id: episode.trackId,
                           subscriptionId: 0,
                           title: episode.trackName,
                           subscriptionTitle: episode.collectionName,
-                          description: episode.description ?? episode.shortDescription ?? '',
+                          description:
+                              episode.description ??
+                              episode.shortDescription ??
+                              '',
                           audioUrl: episode.resolvedAudioUrl ?? '',
                           audioDuration: episode.trackTimeMillis == null
                               ? null
                               : (episode.trackTimeMillis! / 1000).round(),
                           publishedAt: episode.releaseDate ?? now,
-                          imageUrl: episode.artworkUrl600 ?? episode.artworkUrl100,
+                          imageUrl:
+                              episode.artworkUrl600 ?? episode.artworkUrl100,
                           itemLink: episode.trackViewUrl,
                           metadata: {
                             'discover_preview': true,
@@ -99,6 +103,4 @@ class DiscoverShowEpisodesSheet extends StatelessWidget {
       ),
     );
   }
-
-
 }
