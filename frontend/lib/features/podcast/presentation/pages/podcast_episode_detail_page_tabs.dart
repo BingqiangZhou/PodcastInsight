@@ -1,217 +1,81 @@
 part of 'podcast_episode_detail_page.dart';
 
 extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
-  Widget _buildTopButtonBar() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
-        ),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Shownotes Tab
-            _buildTabButton(
-              tabIndex: 0,
-              text: (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                  .podcast_tab_shownotes,
-              isSelected: _selectedTabIndex == 0,
-              onTap: () {
-                if (_selectedTabIndex != 0) {
-                  _updatePageState(() {
-                    _updateHeaderStateForTab(0);
-                  });
-                  _pageController.animateToPage(
-                    0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
-            ),
-            // Transcript Tab
-            _buildTabButton(
-              tabIndex: 1,
-              text: (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                  .podcast_tab_transcript,
-              isSelected: _selectedTabIndex == 1,
-              onTap: () {
-                if (_selectedTabIndex != 1) {
-                  _updatePageState(() {
-                    _updateHeaderStateForTab(1);
-                  });
-                  _pageController.animateToPage(
-                    1,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
-            ),
-            // AI Summary Tab
-            _buildTabButton(
-              tabIndex: 2,
-              text: (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                  .podcast_filter_with_summary,
-              isSelected: _selectedTabIndex == 2,
-              onTap: () {
-                if (_selectedTabIndex != 2) {
-                  _updatePageState(() {
-                    _updateHeaderStateForTab(2);
-                  });
-                  _pageController.animateToPage(
-                    2,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
-            ),
-            // Conversation Tab
-            _buildTabButton(
-              tabIndex: 3,
-              text: (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                  .podcast_tab_chat,
-              isSelected: _selectedTabIndex == 3,
-              onTap: () {
-                if (_selectedTabIndex != 3) {
-                  _updatePageState(() {
-                    _updateHeaderStateForTab(3);
-                  });
-                  _pageController.animateToPage(
-                    3,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  List<String> _episodeDetailTabLabels() {
+    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    return <String>[
+      l10n.podcast_tab_shownotes,
+      l10n.podcast_tab_transcript,
+      l10n.podcast_tab_summary,
+    ];
   }
 
-  Widget _buildLeftSidebar() {
-    return Container(
-      key: const Key('podcast_episode_detail_wide_sidebar'),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          right: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildTopButtonBar({required bool isWide}) {
+    final labels = _episodeDetailTabLabels();
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final chatDensity = screenWidth < 360
+        ? HeaderCapsuleActionButtonDensity.iconOnly
+        : screenWidth < 600
+        ? HeaderCapsuleActionButtonDensity.compact
+        : HeaderCapsuleActionButtonDensity.regular;
+    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+
+    return GlassPanel(
+      key: const Key('podcast_episode_detail_primary_tabs'),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      backgroundColor: Theme.of(
+        context,
+      ).colorScheme.surface.withValues(alpha: isWide ? 0.24 : 0.18),
+      showHighlight: false,
+      child: Row(
         children: [
-          // Shownotes Tab
-          _buildSidebarTabButton(
-            (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                .podcast_tab_shownotes,
-            _selectedTabIndex == 0,
-            () {
-              if (_selectedTabIndex != 0) {
-                _updatePageState(() {
-                  _selectedTabIndex = 0;
-                  _updateHeaderStateForTab(0);
-                });
-              }
-            },
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List<Widget>.generate(labels.length, (index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: index == labels.length - 1 ? 0 : 8,
+                    ),
+                    child: _buildTabButton(
+                      tabIndex: index,
+                      text: labels[index],
+                      isSelected: _selectedTabIndex == index,
+                      onTap: () {
+                        if (_selectedTabIndex == index) {
+                          return;
+                        }
+                        _updatePageState(() {
+                          _selectedTabIndex = index;
+                          _updateHeaderStateForTab(index);
+                        });
+                        if (!isWide) {
+                          _pageController.animateToPage(
+                            index,
+                            duration: const Duration(milliseconds: 280),
+                            curve: Curves.easeInOutCubic,
+                          );
+                        }
+                      },
+                    ),
+                  );
+                }),
+              ),
+            ),
           ),
-          const SizedBox(height: 8),
-          // Transcript Tab
-          _buildSidebarTabButton(
-            (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                .podcast_tab_transcript,
-            _selectedTabIndex == 1,
-            () {
-              if (_selectedTabIndex != 1) {
-                _updatePageState(() {
-                  _selectedTabIndex = 1;
-                  _updateHeaderStateForTab(1);
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 8),
-          // AI Summary Tab
-          _buildSidebarTabButton(
-            (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                .podcast_filter_with_summary,
-            _selectedTabIndex == 2,
-            () {
-              if (_selectedTabIndex != 2) {
-                _updatePageState(() {
-                  _selectedTabIndex = 2;
-                  _updateHeaderStateForTab(2);
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 8),
-          // Conversation Tab
-          _buildSidebarTabButton(
-            (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                .podcast_tab_chat,
-            _selectedTabIndex == 3,
-            () {
-              if (_selectedTabIndex != 3) {
-                _updatePageState(() {
-                  _selectedTabIndex = 3;
-                  _updateHeaderStateForTab(3);
-                });
-              }
-            },
+          const SizedBox(width: 12),
+          HeaderCapsuleActionButton(
+            key: const Key('podcast_episode_detail_chat_button'),
+            tooltip: l10n.podcast_tab_chat,
+            icon: Icons.auto_awesome_outlined,
+            density: chatDensity,
+            label: chatDensity == HeaderCapsuleActionButtonDensity.iconOnly
+                ? null
+                : Text(l10n.podcast_tab_chat),
+            onPressed: _openChatDrawer,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSidebarTabButton(
-    String text,
-    bool isSelected,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.transparent,
-            width: 1,
-          ),
-        ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSelected
-                ? Theme.of(context).colorScheme.onPrimaryContainer
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          ),
-        ),
       ),
     );
   }
@@ -222,11 +86,12 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
     final colorScheme = Theme.of(context).colorScheme;
     final textStyle = DefaultTextStyle.of(context).style.copyWith(
       color: isSelected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
-      fontSize: 13,
-      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+      fontSize: isCompact ? 12 : 13,
+      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
       decoration: TextDecoration.none,
       decorationColor: Colors.transparent,
     );
@@ -239,27 +104,45 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
     )..layout(minWidth: 0, maxWidth: double.infinity);
     final indicatorWidth = textPainter.width;
 
-    return GestureDetector(
+    return Material(
       key: Key('episode_detail_mobile_tab_$tabIndex'),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 6),
-        color: Colors.transparent,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(text, style: textStyle),
-            const SizedBox(height: 6),
-            Container(
-              key: Key('episode_detail_mobile_tab_indicator_$tabIndex'),
-              width: indicatorWidth,
-              height: 3,
-              decoration: BoxDecoration(
-                color: isSelected ? colorScheme.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
+      color: isSelected
+          ? colorScheme.primary.withValues(alpha: 0.16)
+          : Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: isSelected
+              ? colorScheme.primary.withValues(alpha: 0.35)
+              : colorScheme.outlineVariant.withValues(alpha: 0.32),
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            isCompact ? 12 : 14,
+            isCompact ? 8 : 10,
+            isCompact ? 12 : 14,
+            isCompact ? 8 : 10,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(text, style: textStyle),
+              const SizedBox(height: 6),
+              Container(
+                key: Key('episode_detail_mobile_tab_indicator_$tabIndex'),
+                width: indicatorWidth,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: isSelected ? colorScheme.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

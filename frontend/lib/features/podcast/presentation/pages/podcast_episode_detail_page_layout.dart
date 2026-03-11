@@ -1,192 +1,143 @@
 part of 'podcast_episode_detail_page.dart';
 
 extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
-  Widget _buildNewLayout(BuildContext context, dynamic episode) {
-    final hostLayout = ref.watch(podcastPlayerHostLayoutProvider);
+  Widget _buildNewLayout(
+    BuildContext context,
+    PodcastEpisodeDetailResponse episode,
+  ) {
+    final safeTop = MediaQuery.viewPaddingOf(context).top;
 
     return LayoutBuilder(
       builder: (context, layoutConstraints) {
-        // Use split-pane layout on desktop/tablet widths.
         final isWideScreen =
             layoutConstraints.maxWidth >
             _PodcastEpisodeDetailPageState._wideLayoutBreakpoint;
-        final wideSidebarWidth = _resolveWideSidebarWidth(context, hostLayout);
+        final outerPadding = EdgeInsets.fromLTRB(
+          layoutConstraints.maxWidth < 600 ? 16 : 20,
+          (layoutConstraints.maxWidth < 600 ? 12 : 16) + safeTop,
+          layoutConstraints.maxWidth < 600 ? 16 : 20,
+          16,
+        );
 
-        if (isWideScreen) {
-          return Stack(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: wideSidebarWidth,
-                    child: Column(
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeInOut,
-                          height: _isHeaderExpanded ? 90 : 100,
-                        ),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: _buildLeftSidebar(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      key: const Key('podcast_episode_detail_wide_right_pane'),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          NotificationListener<ScrollNotification>(
-                            onNotification: (scrollNotification) {
-                              _handleAutoCollapseOnRead(scrollNotification);
-                              if (scrollNotification
-                                  is ScrollUpdateNotification) {
-                                _recordScrollMetrics(
-                                  scrollNotification.metrics,
-                                );
-                              }
-                              return false;
-                            },
-                            child: Container(
-                              padding: EdgeInsets.only(
-                                top: _isHeaderExpanded ? 90 : 16,
-                                right: _PodcastEpisodeDetailPageState
-                                    ._wideContentRightInset,
-                                bottom: 16,
-                              ),
-                              child: _buildTabContent(episode),
-                            ),
-                          ),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: _showScrollToTopButton,
-                            builder: (context, shouldShow, _) {
-                              if (!shouldShow) {
-                                return const SizedBox.shrink();
-                              }
-                              return Positioned(
-                                right: 16,
-                                bottom: 16,
-                                child: _buildScrollToTopButton(),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                top: 0,
-                left: 0,
-                right: _isHeaderExpanded ? 0 : null,
-                width: _isHeaderExpanded ? null : wideSidebarWidth,
-                child: _buildAnimatedHeader(episode),
-              ),
-              if (!_isHeaderExpanded)
-                Positioned(
-                  left: 16,
-                  bottom: 16,
-                  child: _buildCollapsedFloatingActions(
-                    episode,
-                    (AppLocalizations.of(context) ?? AppLocalizationsEn()),
-                  ),
-                ),
-            ],
-          );
-        } else {
-          final topPadding = MediaQuery.of(context).padding.top;
-          final totalTopPadding = topPadding > 0 ? topPadding + 8.0 : 8.0;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: totalTopPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ClipRect(
-                      child: ValueListenableBuilder<double>(
-                        valueListenable: _scrollOffset,
-                        builder: (context, _, _) {
-                          return Align(
-                            alignment: Alignment.topCenter,
-                            heightFactor: _headerClipHeight / 100.0,
-                            child: AnimatedOpacity(
-                              opacity: _headerOpacity,
-                              duration: const Duration(milliseconds: 100),
-                              curve: Curves.easeInOut,
-                              child: _buildHeader(episode),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    _buildTopButtonBar(),
-                  ],
-                ),
-              ),
-
-              Expanded(
-                child: Stack(
-                  children: [
-                    NotificationListener<ScrollNotification>(
-                      onNotification: (scrollNotification) {
-                        _handleAutoCollapseOnRead(scrollNotification);
-                        if (scrollNotification is ScrollUpdateNotification) {
-                          _recordScrollMetrics(scrollNotification.metrics);
-                        }
-                        return false;
-                      },
-                      child: PageView(
-                        controller: _pageController,
-                        onPageChanged: (index) {
-                          _updatePageState(() {
-                            _selectedTabIndex = index;
-                            _updateHeaderStateForTab(index);
-                          });
-                        },
-                        children: [
-                          // 0 = Shownotes
-                          _buildSingleTabContent(episode, 0),
-                          // 1 = Transcript
-                          _buildSingleTabContent(episode, 1),
-                          // 2 = AI Summary
-                          _buildSingleTabContent(episode, 2),
-                          // 3 = Conversation
-                          _buildSingleTabContent(episode, 3),
-                        ],
-                      ),
-                    ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _showScrollToTopButton,
-                      builder: (context, shouldShow, _) {
-                        if (!shouldShow) {
-                          return const SizedBox.shrink();
-                        }
-                        return Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: _buildScrollToTopButton(),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        }
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            const AppPageBackdrop(),
+            Padding(
+              padding: outerPadding,
+              child: isWideScreen
+                  ? _buildWideLayout(context, episode)
+                  : _buildMobileLayout(episode),
+            ),
+          ],
+        );
       },
+    );
+  }
+
+  Widget _buildWideLayout(
+    BuildContext context,
+    PodcastEpisodeDetailResponse episode,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildAnimatedHeader(episode),
+        const SizedBox(height: 12),
+        _buildTopButtonBar(isWide: true),
+        const SizedBox(height: 12),
+        Expanded(
+          child: Stack(
+            children: [
+              NotificationListener<ScrollNotification>(
+                onNotification: (scrollNotification) {
+                  _handleAutoCollapseOnRead(scrollNotification);
+                  if (scrollNotification is ScrollUpdateNotification) {
+                    _recordScrollMetrics(scrollNotification.metrics);
+                  }
+                  return false;
+                },
+                child: _buildTabSurface(
+                  _buildTabContent(episode),
+                  key: const Key('podcast_episode_detail_primary_content'),
+                ),
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: _showScrollToTopButton,
+                builder: (context, shouldShow, _) {
+                  if (!shouldShow) {
+                    return const SizedBox.shrink();
+                  }
+                  return Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: _buildScrollToTopButton(),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(PodcastEpisodeDetailResponse episode) {
+    final pageCount = _episodeDetailTabLabels().length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildHeader(episode),
+        const SizedBox(height: 12),
+        _buildTopButtonBar(isWide: false),
+        const SizedBox(height: 12),
+        Expanded(
+          child: Stack(
+            children: [
+              NotificationListener<ScrollNotification>(
+                onNotification: (scrollNotification) {
+                  _handleAutoCollapseOnRead(scrollNotification);
+                  if (scrollNotification is ScrollUpdateNotification) {
+                    _recordScrollMetrics(scrollNotification.metrics);
+                  }
+                  return false;
+                },
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    _updatePageState(() {
+                      _selectedTabIndex = index;
+                      _updateHeaderStateForTab(index);
+                    });
+                  },
+                  children: List<Widget>.generate(pageCount, (index) {
+                    return _buildTabSurface(
+                      _buildSingleTabContent(episode, index),
+                      key: Key(
+                        'podcast_episode_detail_mobile_content_surface_$index',
+                      ),
+                    );
+                  }),
+                ),
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: _showScrollToTopButton,
+                builder: (context, shouldShow, _) {
+                  if (!shouldShow) {
+                    return const SizedBox.shrink();
+                  }
+                  return Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: _buildScrollToTopButton(),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

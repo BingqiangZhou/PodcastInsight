@@ -1,96 +1,152 @@
 part of 'podcast_episode_detail_page.dart';
 
 extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
-  Widget _buildTabContent(dynamic episode) {
+  Widget _buildTabSurface(Widget child, {Key? key}) {
+    final tokens = mindriverThemeOf(context);
+    final theme = Theme.of(context);
+
+    return GlassPanel(
+      key: key,
+      padding: EdgeInsets.zero,
+      borderRadius: tokens.panelRadius,
+      backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.22),
+      showHighlight: false,
+      child: child,
+    );
+  }
+
+  Widget _buildPageLoadingState(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const AppPageBackdrop(),
+        Center(
+          child: GlassPanel(
+            padding: const EdgeInsets.fromLTRB(28, 26, 28, 26),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(
+                  (AppLocalizations.of(context) ?? AppLocalizationsEn())
+                      .loading,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabContent(PodcastEpisodeDetailResponse episode) {
     switch (_selectedTabIndex) {
       case 0:
-        return ShownotesDisplayWidget(key: _shownotesKey, episode: episode);
+        return ShownotesDisplayWidget(
+          key: _shownotesKey,
+          episode: episode,
+          onAnchorsChanged: _updateShownotesAnchors,
+        );
       case 1:
         return _buildTranscriptContent(episode);
       case 2:
-        return _buildAiSummaryContent(episode);
-      case 3:
-        return _buildConversationContent(episode);
+        return _buildSummaryTabContent(episode);
       default:
-        return ShownotesDisplayWidget(key: _shownotesKey, episode: episode);
+        return ShownotesDisplayWidget(
+          key: _shownotesKey,
+          episode: episode,
+          onAnchorsChanged: _updateShownotesAnchors,
+        );
     }
   }
 
-  Widget _buildSingleTabContent(dynamic episode, int index) {
+  Widget _buildSingleTabContent(
+    PodcastEpisodeDetailResponse episode,
+    int index,
+  ) {
     switch (index) {
       case 0:
-        return ShownotesDisplayWidget(key: _shownotesKey, episode: episode);
+        return ShownotesDisplayWidget(
+          key: _shownotesKey,
+          episode: episode,
+          onAnchorsChanged: _updateShownotesAnchors,
+        );
       case 1:
         return _buildTranscriptContent(episode);
       case 2:
-        return _buildAiSummaryContent(episode);
-      case 3:
-        return _buildConversationContent(episode);
+        return _buildSummaryTabContent(episode);
       default:
-        return ShownotesDisplayWidget(key: _shownotesKey, episode: episode);
+        return ShownotesDisplayWidget(
+          key: _shownotesKey,
+          episode: episode,
+          onAnchorsChanged: _updateShownotesAnchors,
+        );
     }
   }
 
-  Widget _buildTranscriptContent(dynamic episode) {
+  Widget _buildTranscriptContent(PodcastEpisodeDetailResponse episode) {
     final transcriptionProvider = getTranscriptionProvider(widget.episodeId);
     final transcriptionState = ref.watch(transcriptionProvider);
 
     return transcriptionState.when(
       data: (transcription) {
-        // If transcription is completed, show the text
         if (transcription != null && isTranscriptionCompleted(transcription)) {
           return TranscriptDisplayWidget(
             key: _transcriptKey,
             episodeId: widget.episodeId,
-            episodeTitle: episode.title ?? '',
+            episodeTitle: episode.title,
             transcription: transcription,
           );
         }
 
-        // Otherwise (pending, processing, failed, or null), show the status widget
         return TranscriptionStatusWidget(
           episodeId: widget.episodeId,
           transcription: transcription,
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => _buildCenteredLoadingState(
+        (AppLocalizations.of(context) ?? AppLocalizationsEn()).loading,
+      ),
       error: (error, stack) => _buildTranscriptErrorState(context, error),
     );
   }
 
-  Widget _buildTranscriptErrorState(BuildContext context, dynamic error) {
+  Widget _buildSummaryTabContent(PodcastEpisodeDetailResponse episode) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+
+    return ScrollableContentWrapper(
+      key: _summaryKey,
+      padding: EdgeInsets.all(isCompact ? 14 : 18),
+      child: _buildAiSummarySection(episode, compact: isCompact),
+    );
+  }
+
+  Widget _buildCenteredLoadingState(String label) {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Theme.of(context).colorScheme.error,
-          ),
+          const CircularProgressIndicator(),
           const SizedBox(height: 16),
           Text(
-            (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                .podcast_transcription_failed,
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              error.toString(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTranscriptErrorState(BuildContext context, dynamic error) {
+    return AppEmptyState(
+      icon: Icons.error_outline,
+      title: (AppLocalizations.of(context) ?? AppLocalizationsEn())
+          .podcast_transcription_failed,
+      subtitle: error.toString(),
     );
   }
 
@@ -155,7 +211,33 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     }
   }
 
-  Widget _buildAiSummaryContent(dynamic episode) {
+  Widget _buildRightRail(PodcastEpisodeDetailResponse episode) {
+    return GlassPanel(
+      key: const Key('podcast_episode_detail_side_rail'),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      backgroundColor: Theme.of(
+        context,
+      ).colorScheme.surface.withValues(alpha: 0.18),
+      showHighlight: false,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildAnchorRailCard(),
+            if ((episode.relatedEpisodes?.isNotEmpty ?? false)) ...[
+              const SizedBox(height: 16),
+              _buildRelatedEpisodesCard(episode),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAiSummarySection(
+    PodcastEpisodeDetailResponse episode, {
+    bool compact = false,
+  }) {
     final provider = getSummaryProvider(widget.episodeId);
     final summaryState = ref.watch(provider);
     final summaryNotifier = ref.read(provider.notifier);
@@ -184,53 +266,48 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
       });
     }
 
-    return ScrollableContentWrapper(
-      key: _aiSummaryKey,
-      padding: const EdgeInsets.all(16),
+    return Container(
+      key: const Key('podcast_episode_detail_summary_section'),
+      padding: EdgeInsets.all(compact ? 14 : 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.24),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AISummaryControlWidget(
             episodeId: widget.episodeId,
             hasTranscript: canManageSummary,
+            compact: compact,
           ),
-
           const SizedBox(height: 16),
-
-          if (summaryState.isLoading) ...[
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text(
-                    (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                        .podcast_generating_summary,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ] else if (summaryState.hasSummary) ...[
+          if (summaryState.isLoading)
+            _buildCenteredLoadingState(
+              (AppLocalizations.of(context) ?? AppLocalizationsEn())
+                  .podcast_generating_summary,
+            )
+          else if (summaryState.hasSummary)
             _buildSummaryCard(
               context,
-              episodeTitle: episode.title ?? '',
+              episodeTitle: episode.title,
               summary: summaryState.summary!,
-            ),
-          ] else if (episode.aiSummary != null &&
-              episode.aiSummary!.isNotEmpty) ...[
+              compact: compact,
+            )
+          else if (episode.aiSummary != null && episode.aiSummary!.isNotEmpty)
             _buildSummaryCard(
               context,
-              episodeTitle: episode.title ?? '',
+              episodeTitle: episode.title,
               summary: episode.aiSummary!,
-            ),
-          ] else ...[
+              compact: compact,
+            )
+          else
             _buildAiSummaryEmptyState(context),
-          ],
         ],
       ),
     );
@@ -240,37 +317,32 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     BuildContext context, {
     required String episodeTitle,
     required String summary,
+    bool compact = false,
   }) {
     final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
-    final onSurfaceColor = Theme.of(context).colorScheme.onSurface;
+    final theme = Theme.of(context);
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(compact ? 14 : 18),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
+        color: theme.colorScheme.surface.withValues(alpha: 0.26),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(
-                Icons.auto_awesome,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
+              StatusBadge(
+                label: l10n.podcast_filter_with_summary,
+                icon: Icons.auto_awesome,
               ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.podcast_filter_with_summary,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: onSurfaceColor,
-                ),
-              ),
-              const Spacer(),
               TextButton.icon(
                 onPressed: () =>
                     unawaited(_shareAllSummaryAsImage(episodeTitle, summary)),
@@ -279,7 +351,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           SelectionArea(
             onSelectionChanged: (selectedContent) {
               _selectedSummaryText = selectedContent?.plainText.trim() ?? '';
@@ -304,26 +376,21 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
             child: MarkdownBody(
               data: summary,
               styleSheet: MarkdownStyleSheet(
-                p: TextStyle(fontSize: 15, height: 1.6, color: onSurfaceColor),
-                h1: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: onSurfaceColor,
+                p: theme.textTheme.bodyLarge?.copyWith(
+                  height: compact ? 1.55 : 1.65,
                 ),
-                h2: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: onSurfaceColor,
+                h1: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
-                h3: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: onSurfaceColor,
+                h2: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
-                listBullet: TextStyle(color: onSurfaceColor),
-                strong: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: onSurfaceColor,
+                h3: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+                listBullet: theme.textTheme.bodyLarge,
+                strong: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
@@ -334,41 +401,200 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildAiSummaryEmptyState(BuildContext context) {
-    return Center(
+    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    return AppEmptyState(
+      icon: Icons.auto_awesome,
+      title: l10n.podcast_summary_no_summary,
+      subtitle: l10n.podcast_summary_empty_hint,
+    );
+  }
+
+  Widget _buildAnchorRailCard() {
+    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+
+    return Container(
+      key: const Key('podcast_episode_detail_anchor_rail'),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.auto_awesome,
-            size: 64,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 16),
           Text(
-            (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                .podcast_summary_no_summary,
-            style: TextStyle(
-              fontSize: 16,
+            'Shownotes',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.podcast_source,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                .podcast_summary_empty_hint,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+          const SizedBox(height: 12),
+          if (_shownotesAnchors.isEmpty)
+            Text(
+              (AppLocalizations.of(context) ?? AppLocalizationsEn())
+                  .podcast_no_shownotes,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            )
+          else
+            Column(
+              children: _shownotesAnchors
+                  .map((anchor) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          key: Key(
+                            'podcast_episode_detail_anchor_${anchor.index}',
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => _jumpToShownotesAnchor(anchor),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 7,
+                                  height: 7,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    anchor.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  })
+                  .toList(growable: false),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildConversationContent(dynamic episode) {
+  Widget _buildRelatedEpisodesCard(PodcastEpisodeDetailResponse episode) {
+    final relatedEpisodes = episode.relatedEpisodes ?? const <dynamic>[];
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Related',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          ...relatedEpisodes.take(4).map((relatedEpisode) {
+            final title = relatedEpisode is Map<String, dynamic>
+                ? (relatedEpisode['title']?.toString() ?? '')
+                : relatedEpisode.toString();
+            if (title.trim().isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChatDrawer(PodcastEpisodeDetailResponse episode) {
+    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final width = MediaQuery.sizeOf(context).width;
+    final drawerWidth =
+        width >= _PodcastEpisodeDetailPageState._wideLayoutBreakpoint
+        ? 420.0
+        : width * 0.94;
+
+    return SizedBox(
+      width: drawerWidth,
+      child: Drawer(
+        key: const Key('podcast_episode_detail_chat_drawer'),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.podcast_conversation_title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(child: _buildConversationContent(episode)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConversationContent(PodcastEpisodeDetailResponse episode) {
     final episodeDetailAsync = ref.watch(
       episodeDetailProvider(widget.episodeId),
     );
@@ -376,11 +602,10 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     return episodeDetailAsync.when(
       data: (episode) {
         if (episode == null) {
-          return Center(
-            child: Text(
-              (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                  .podcast_episode_not_found,
-            ),
+          return AppEmptyState(
+            icon: Icons.error_outline,
+            title: (AppLocalizations.of(context) ?? AppLocalizationsEn())
+                .podcast_episode_not_found,
           );
         }
         return ConversationChatWidget(
@@ -390,77 +615,38 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
           aiSummary: episode.aiSummary,
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                  .podcast_load_failed,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              error.toString(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+      loading: () => _buildCenteredLoadingState(
+        (AppLocalizations.of(context) ?? AppLocalizationsEn()).loading,
+      ),
+      error: (error, stack) => AppEmptyState(
+        icon: Icons.error_outline,
+        title: (AppLocalizations.of(context) ?? AppLocalizationsEn())
+            .podcast_load_failed,
+        subtitle: error.toString(),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    final localDate = date.isUtc ? date.toLocal() : date;
-    final year = localDate.year;
-    final month = localDate.month.toString().padLeft(2, '0');
-    final day = localDate.day.toString().padLeft(2, '0');
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
-    return l10n.date_format(year, month, day);
-  }
-
   Widget _buildErrorState(BuildContext context, dynamic error) {
     final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 64, color: Colors.red),
-          const SizedBox(height: 16),
-          Text(
-            l10n.podcast_error_loading,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              error.toString(),
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const AppPageBackdrop(),
+        Center(
+          child: AppEmptyState(
+            icon: Icons.error_outline,
+            title: l10n.podcast_error_loading,
+            subtitle: error.toString(),
+            action: FilledButton(
+              onPressed: () {
+                context.pop();
+              },
+              child: Text(l10n.podcast_go_back),
             ),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              context.pop();
-            },
-            child: Text(l10n.podcast_go_back),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

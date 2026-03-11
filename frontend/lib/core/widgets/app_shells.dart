@@ -238,6 +238,8 @@ const EdgeInsets kCompactHeaderPanelPadding = EdgeInsets.fromLTRB(
   16,
 );
 
+enum HeaderCapsuleActionButtonDensity { regular, compact, iconOnly }
+
 class HeaderCapsuleActionButton extends StatelessWidget {
   const HeaderCapsuleActionButton({
     super.key,
@@ -248,6 +250,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
     this.trailingIcon,
     this.padding,
     this.circular = false,
+    this.density = HeaderCapsuleActionButtonDensity.regular,
   });
 
   final IconData icon;
@@ -257,20 +260,45 @@ class HeaderCapsuleActionButton extends StatelessWidget {
   final IconData? trailingIcon;
   final EdgeInsetsGeometry? padding;
   final bool circular;
+  final HeaderCapsuleActionButtonDensity density;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasLabel = label != null;
-    final iconOnlyCircular = circular && !hasLabel && trailingIcon == null;
-    final effectivePadding =
+    final hidesLabel = density == HeaderCapsuleActionButtonDensity.iconOnly;
+    final showLabel = hasLabel && !hidesLabel;
+    final showTrailing = trailingIcon != null && !hidesLabel;
+    final iconOnlyCircular = circular || hidesLabel;
+    final resolvedIconSize = switch (density) {
+      HeaderCapsuleActionButtonDensity.regular => 18.0,
+      HeaderCapsuleActionButtonDensity.compact => 16.0,
+      HeaderCapsuleActionButtonDensity.iconOnly => 18.0,
+    };
+    final resolvedPadding =
         padding ??
-        (iconOnlyCircular
-            ? EdgeInsets.zero
-            : EdgeInsets.symmetric(
-                horizontal: hasLabel ? 10 : 12,
-                vertical: hasLabel ? 8 : 10,
-              ));
+        switch (density) {
+          HeaderCapsuleActionButtonDensity.regular =>
+            iconOnlyCircular
+                ? EdgeInsets.zero
+                : EdgeInsets.symmetric(
+                    horizontal: showLabel ? 10 : 12,
+                    vertical: showLabel ? 8 : 10,
+                  ),
+          HeaderCapsuleActionButtonDensity.compact =>
+            iconOnlyCircular
+                ? EdgeInsets.zero
+                : EdgeInsets.symmetric(
+                    horizontal: showLabel ? 8 : 10,
+                    vertical: showLabel ? 6 : 8,
+                  ),
+          HeaderCapsuleActionButtonDensity.iconOnly => EdgeInsets.zero,
+        };
+    final iconOnlySize = switch (density) {
+      HeaderCapsuleActionButtonDensity.regular => 40.0,
+      HeaderCapsuleActionButtonDensity.compact => 36.0,
+      HeaderCapsuleActionButtonDensity.iconOnly => 36.0,
+    };
     final button = Material(
       color: theme.colorScheme.primary.withValues(
         alpha: onPressed == null ? 0.05 : 0.09,
@@ -288,25 +316,32 @@ class HeaderCapsuleActionButton extends StatelessWidget {
         onTap: onPressed,
         child: ConstrainedBox(
           constraints: iconOnlyCircular
-              ? const BoxConstraints.tightFor(width: 40, height: 40)
+              ? BoxConstraints.tightFor(
+                  width: iconOnlySize,
+                  height: iconOnlySize,
+                )
               : const BoxConstraints(),
           child: Center(
             child: Padding(
-              padding: effectivePadding,
+              padding: resolvedPadding,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     icon,
-                    size: 18,
+                    size: resolvedIconSize,
                     color: theme.colorScheme.onSurfaceVariant.withValues(
                       alpha: onPressed == null ? 0.6 : 1,
                     ),
                   ),
-                  if (hasLabel) ...[
+                  if (showLabel) ...[
                     const SizedBox(width: 5),
                     DefaultTextStyle(
                       style: theme.textTheme.labelMedium!.copyWith(
+                        fontSize:
+                            density == HeaderCapsuleActionButtonDensity.compact
+                            ? 12
+                            : null,
                         fontWeight: FontWeight.w700,
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: onPressed == null ? 0.6 : 1,
@@ -315,11 +350,13 @@ class HeaderCapsuleActionButton extends StatelessWidget {
                       child: label!,
                     ),
                   ],
-                  if (trailingIcon != null) ...[
-                    SizedBox(width: hasLabel ? 4 : 0),
+                  if (showTrailing) ...[
+                    SizedBox(width: showLabel ? 4 : 0),
                     Icon(
                       trailingIcon,
-                      size: 16,
+                      size: density == HeaderCapsuleActionButtonDensity.compact
+                          ? 14
+                          : 16,
                       color: theme.colorScheme.onSurfaceVariant.withValues(
                         alpha: onPressed == null ? 0.6 : 1,
                       ),

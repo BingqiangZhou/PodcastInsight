@@ -1730,6 +1730,12 @@ abstract class AppLocalizations {
   /// **'Transcript'**
   String get podcast_tab_transcript;
 
+  /// Episode detail tab: Summary
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get podcast_tab_summary;
+
   /// Episode detail tab: Chat
   ///
   /// In en, this message translates to:

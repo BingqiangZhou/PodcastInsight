@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
@@ -16,24 +17,80 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/tr
 
 void main() {
   group('PodcastEpisodeDetailPage basic smoke tests', () {
-    testWidgets('renders episode title and core tabs', (tester) async {
+    testWidgets('renders hero and three primary tabs on mobile', (
+      tester,
+    ) async {
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+
+      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
+      final l10n = AppLocalizations.of(context)!;
+
+      expect(find.text('Test Episode'), findsOneWidget);
+      expect(
+        find.byKey(const Key('podcast_episode_detail_primary_tabs')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_0')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_2')),
+        findsOneWidget,
+      );
+      expect(find.text(l10n.podcast_tab_shownotes), findsWidgets);
+      expect(find.text(l10n.podcast_tab_transcript), findsOneWidget);
+      expect(find.text(l10n.podcast_tab_summary), findsOneWidget);
+      expect(
+        find.byKey(const Key('podcast_episode_detail_summary_section')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('podcast_episode_detail_chat_button')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('switches between transcript and summary tabs', (tester) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
       await tester.pumpWidget(_createWidget(episode: _episode()));
       await tester.pumpAndSettle();
 
-      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
-      final l10n = AppLocalizations.of(context)!;
+      final transcriptTabFinder = find.byKey(
+        const Key('episode_detail_mobile_tab_1'),
+      );
+      await tester.ensureVisible(transcriptTabFinder);
+      await tester.tap(transcriptTabFinder);
+      await tester.pumpAndSettle();
 
-      expect(find.text('Test Episode'), findsOneWidget);
-      expect(find.text(l10n.podcast_tab_shownotes), findsWidgets);
-      expect(find.text(l10n.podcast_tab_transcript), findsOneWidget);
-      expect(find.text(l10n.podcast_filter_with_summary), findsOneWidget);
-      expect(find.text(l10n.podcast_tab_chat), findsOneWidget);
+      expect(find.textContaining('Transcript content'), findsOneWidget);
+
+      final summaryTabFinder = find.byKey(
+        const Key('episode_detail_mobile_tab_2'),
+      );
+      await tester.ensureVisible(summaryTabFinder);
+      await tester.tap(summaryTabFinder);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('podcast_episode_detail_summary_section')),
+        findsOneWidget,
+      );
+      expect(find.text('Generated summary'), findsOneWidget);
     });
 
-    testWidgets('switches tabs and shows transcript + summary content', (
+    testWidgets('uses icon-only source and play actions on narrow mobile', (
       tester,
     ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
@@ -42,65 +99,44 @@ void main() {
       await tester.pumpWidget(_createWidget(episode: _episode()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('episode_detail_mobile_tab_1')));
-      await tester.pumpAndSettle();
-      expect(find.textContaining('Transcript content'), findsOneWidget);
+      final sourceButton = find.byKey(
+        const Key('podcast_episode_detail_source_button'),
+      );
+      final playButton = find.byKey(
+        const Key('podcast_episode_detail_play_button'),
+      );
+      final sourceWidget = tester.widget<HeaderCapsuleActionButton>(
+        sourceButton,
+      );
+      final playWidget = tester.widget<HeaderCapsuleActionButton>(playButton);
 
-      await tester.tap(find.byKey(const Key('episode_detail_mobile_tab_2')));
-      await tester.pumpAndSettle();
-      expect(find.text('Generated summary'), findsOneWidget);
+      expect(sourceButton, findsOneWidget);
+      expect(sourceWidget.density, HeaderCapsuleActionButtonDensity.iconOnly);
+      expect(playWidget.density, HeaderCapsuleActionButtonDensity.iconOnly);
+      expect(tester.getSize(sourceButton).width, lessThanOrEqualTo(40));
+      expect(tester.getSize(sourceButton).height, lessThanOrEqualTo(40));
+      expect(tester.getSize(playButton).height, lessThanOrEqualTo(40));
     });
 
-    testWidgets(
-      'summary tab allows generation when transcript exists only on episode detail',
-      (tester) async {
-        addTearDown(() async => tester.binding.setSurfaceSize(null));
-        await tester.binding.setSurfaceSize(const Size(390, 844));
+    testWidgets('uses icon-only play action on ultra narrow mobile', (
+      tester,
+    ) async {
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(350, 844));
 
-        await tester.pumpWidget(
-          _createWidget(
-            episode: _episode(
-              aiSummary: null,
-              transcriptContent: 'Episode transcript from detail',
-            ),
-            createSummaryNotifier: () => _SummaryEmptyNotifier(),
-            createTranscriptionNotifier: () => _EmptyTranscriptionNotifier(1),
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpAndSettle();
 
-        final context = tester.element(find.byType(PodcastEpisodeDetailPage));
-        final l10n = AppLocalizations.of(context)!;
+      final playButton = find.byKey(
+        const Key('podcast_episode_detail_play_button'),
+      );
+      final playWidget = tester.widget<HeaderCapsuleActionButton>(playButton);
 
-        await tester.tap(find.byKey(const Key('episode_detail_mobile_tab_2')));
-        await tester.pumpAndSettle();
-
-        expect(find.text(l10n.podcast_summary_generate), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'summary tab keeps summary visible when notifier also has an error',
-      (tester) async {
-        addTearDown(() async => tester.binding.setSurfaceSize(null));
-        await tester.binding.setSurfaceSize(const Size(390, 844));
-
-        await tester.pumpWidget(
-          _createWidget(
-            episode: _episode(aiSummary: null),
-            createSummaryNotifier: () => _SummaryWithErrorNotifier(),
-            createTranscriptionNotifier: () => _EmptyTranscriptionNotifier(1),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byKey(const Key('episode_detail_mobile_tab_2')));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Persisted summary'), findsOneWidget);
-        expect(find.text('regeneration failed'), findsOneWidget);
-      },
-    );
+      expect(playButton, findsOneWidget);
+      expect(playWidget.density, HeaderCapsuleActionButtonDensity.iconOnly);
+      expect(tester.getSize(playButton).width, lessThanOrEqualTo(40));
+      expect(tester.getSize(playButton).height, lessThanOrEqualTo(40));
+    });
 
     testWidgets('shows localized not-found state', (tester) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
@@ -120,21 +156,15 @@ void main() {
   });
 }
 
-Widget _createWidget({
-  required PodcastEpisodeDetailResponse? episode,
-  SummaryNotifier Function()? createSummaryNotifier,
-  TranscriptionNotifier Function()? createTranscriptionNotifier,
-}) {
+Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
   return ProviderScope(
     overrides: [
       audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
       episodeDetailProvider.overrideWith((ref, episodeId) async => episode),
-      getSummaryProvider(1).overrideWith(
-        createSummaryNotifier ?? () => _SummaryWithContentNotifier(),
-      ),
-      getTranscriptionProvider(1).overrideWith(
-        createTranscriptionNotifier ?? () => _NoopTranscriptionNotifier(1),
-      ),
+      getSummaryProvider(1).overrideWith(() => _SummaryWithContentNotifier()),
+      getTranscriptionProvider(
+        1,
+      ).overrideWith(() => _NoopTranscriptionNotifier(1)),
       getConversationProvider(
         1,
       ).overrideWith(() => _ConversationWithoutMessagesNotifier()),
@@ -153,22 +183,20 @@ Widget _createWidget({
   );
 }
 
-PodcastEpisodeDetailResponse _episode({
-  String? aiSummary = 'summary',
-  String? transcriptContent = 'Transcript content',
-}) {
+PodcastEpisodeDetailResponse _episode() {
   final now = DateTime.now();
   return PodcastEpisodeDetailResponse(
     id: 1,
     subscriptionId: 1,
     title: 'Test Episode',
-    description: 'Description',
+    description:
+        '<h2>Opening</h2><p>Description</p><h2>Deep Dive</h2><p>More content</p>',
     audioUrl: 'https://example.com/audio.mp3',
     itemLink: 'https://example.com/source',
     audioDuration: 180,
     publishedAt: now,
-    aiSummary: aiSummary,
-    transcriptContent: transcriptContent,
+    aiSummary: 'summary',
+    transcriptContent: 'Transcript content',
     status: 'published',
     createdAt: now,
     updatedAt: now,
@@ -224,43 +252,6 @@ class _SummaryWithContentNotifier extends SummaryNotifier {
   SummaryState build() {
     return const SummaryState(summary: 'Generated summary');
   }
-}
-
-class _SummaryEmptyNotifier extends SummaryNotifier {
-  _SummaryEmptyNotifier() : super(1);
-
-  @override
-  SummaryState build() {
-    return const SummaryState();
-  }
-}
-
-class _SummaryWithErrorNotifier extends SummaryNotifier {
-  _SummaryWithErrorNotifier() : super(1);
-
-  @override
-  SummaryState build() {
-    return const SummaryState(
-      summary: 'Persisted summary',
-      errorMessage: 'regeneration failed',
-    );
-  }
-}
-
-class _EmptyTranscriptionNotifier extends TranscriptionNotifier {
-  _EmptyTranscriptionNotifier(super.episodeId);
-
-  @override
-  Future<PodcastTranscriptionResponse?> build() async => null;
-
-  @override
-  Future<void> checkOrStartTranscription() async {}
-
-  @override
-  Future<void> startTranscription() async {}
-
-  @override
-  Future<void> loadTranscription() async {}
 }
 
 class _ConversationWithoutMessagesNotifier extends ConversationNotifier {

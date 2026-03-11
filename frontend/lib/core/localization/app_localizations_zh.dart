@@ -850,6 +850,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get podcast_tab_transcript => '文字稿';
 
   @override
+  String get podcast_tab_summary => '摘要';
+
+  @override
   String get podcast_tab_chat => 'AI对话';
 
   @override

@@ -196,15 +196,20 @@ class _MiniBottomPlayer extends ConsumerWidget {
   final PodcastEpisodeModel episode;
   final PodcastPlayerViewportSpec viewportSpec;
   static const double _miniHeight = kPodcastMiniPlayerHeight;
+  static const double _detailMiniHeight = 50.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final isEpisodeDetailSurface =
+        viewportSpec.surfaceContext ==
+        PodcastPlayerSurfaceContext.episodeDetail;
     final progressColor = theme.colorScheme.onSurfaceVariant;
     final progressTrackColor = theme.colorScheme.onSurfaceVariant.withValues(
       alpha: 0.25,
     );
+    final miniHeight = isEpisodeDetailSurface ? _detailMiniHeight : _miniHeight;
 
     return Padding(
       key: const Key('podcast_bottom_player_mini_wrapper'),
@@ -215,21 +220,29 @@ class _MiniBottomPlayer extends ConsumerWidget {
         0,
       ),
       child: SizedBox(
-        height: _miniHeight,
+        height: miniHeight,
         child: Material(
           key: const Key('podcast_bottom_player_mini'),
-          color: theme.colorScheme.surface,
+          color: isEpisodeDetailSurface
+              ? theme.colorScheme.surface.withValues(alpha: 0.88)
+              : theme.colorScheme.surface,
           elevation: 0,
           clipBehavior: Clip.antiAlias,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kPodcastMiniCornerRadius),
+            borderRadius: BorderRadius.circular(
+              isEpisodeDetailSurface ? 18 : kPodcastMiniCornerRadius,
+            ),
             side: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+              color: theme.colorScheme.outlineVariant.withValues(
+                alpha: isEpisodeDetailSurface ? 0.24 : 0.35,
+              ),
               width: 1,
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: isEpisodeDetailSurface ? 10 : 12,
+            ),
             child: Row(
               children: [
                 GestureDetector(
@@ -237,10 +250,10 @@ class _MiniBottomPlayer extends ConsumerWidget {
                       ref.read(audioPlayerProvider.notifier).setExpanded(true),
                   child: _CoverImage(
                     imageUrl: episode.subscriptionImageUrl ?? episode.imageUrl,
-                    size: 42,
+                    size: isEpisodeDetailSurface ? 36 : 42,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: isEpisodeDetailSurface ? 10 : 12),
                 Expanded(
                   child: GestureDetector(
                     key: const Key('podcast_bottom_player_mini_info'),
@@ -257,10 +270,11 @@ class _MiniBottomPlayer extends ConsumerWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall?.copyWith(
+                            fontSize: isEpisodeDetailSurface ? 14 : null,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 3),
+                        SizedBox(height: isEpisodeDetailSurface ? 2 : 3),
                         Row(
                           children: [
                             Expanded(
@@ -286,7 +300,7 @@ class _MiniBottomPlayer extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: isEpisodeDetailSurface ? 4 : 8),
                 _MiniPlayPauseButton(
                   key: const Key('podcast_bottom_player_mini_play_pause'),
                   iconColor: theme.colorScheme.onSurfaceVariant,

@@ -868,6 +868,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get podcast_tab_transcript => 'Transcript';
 
   @override
+  String get podcast_tab_summary => 'Summary';
+
+  @override
   String get podcast_tab_chat => 'Chat';
 
   @override

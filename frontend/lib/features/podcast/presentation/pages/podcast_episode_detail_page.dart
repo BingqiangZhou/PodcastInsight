@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/app_localizations_en.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/widgets/app_shells.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 
 import '../providers/podcast_providers.dart';
@@ -15,7 +17,6 @@ import '../providers/summary_providers.dart';
 import '../../data/models/podcast_episode_model.dart';
 import '../../data/models/audio_player_state_model.dart';
 import '../../data/models/podcast_transcription_model.dart';
-import '../constants/podcast_ui_constants.dart';
 import '../widgets/transcript_display_widget.dart';
 import '../widgets/shownotes_display_widget.dart';
 import '../widgets/transcription_status_widget.dart';
@@ -44,11 +45,9 @@ class PodcastEpisodeDetailPage extends ConsumerStatefulWidget {
 class _PodcastEpisodeDetailPageState
     extends ConsumerState<PodcastEpisodeDetailPage>
     with RouteAware {
-  static const double _wideLayoutBreakpoint = 840.0;
-  static const double _wideContentHorizontalInset = 16.0;
-  static const double _wideContentRightInset = 16.0;
-  int _selectedTabIndex =
-      0; // 0 = Shownotes, 1 = Transcript, 2 = AI Summary, 3 = Conversation
+  static const double _wideLayoutBreakpoint = 1040.0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  int _selectedTabIndex = 0; // 0 = Shownotes, 1 = Transcript, 2 = Summary
   ProviderSubscription<AsyncValue<PodcastTranscriptionResponse?>>?
   _transcriptionNoticeSubscription;
   bool _hasTrackedEpisodeView = false;
@@ -62,19 +61,20 @@ class _PodcastEpisodeDetailPageState
   final ValueNotifier<double> _scrollOffset = ValueNotifier(0.0);
   final ValueNotifier<bool> _showScrollToTopButton = ValueNotifier(false);
   bool _isHeaderExpandedState = true;
-  bool _deferReadablePlayerHideUntilNextScroll = false;
+  int _headerAnimationVersion = 0;
   ModalRoute<dynamic>? _subscribedRoute;
   static const double _headerScrollThreshold =
       50.0; // Header starts fading after 50px scroll
   static const double _autoCollapseScrollDeltaThreshold = 6.0;
   static const double _scrollToTopFixedLift = 72.0;
+  List<ShownotesAnchor> _shownotesAnchors = const <ShownotesAnchor>[];
 
   // GlobalKeys for accessing child widget states to call scrollToTop
   final GlobalKey<ShownotesDisplayWidgetState> _shownotesKey =
       GlobalKey<ShownotesDisplayWidgetState>();
   final GlobalKey<TranscriptDisplayWidgetState> _transcriptKey =
       GlobalKey<TranscriptDisplayWidgetState>();
-  final GlobalKey<ScrollableContentWrapperState> _aiSummaryKey =
+  final GlobalKey<ScrollableContentWrapperState> _summaryKey =
       GlobalKey<ScrollableContentWrapperState>();
   final GlobalKey<ConversationChatWidgetState> _conversationKey =
       GlobalKey<ConversationChatWidgetState>();
@@ -186,7 +186,7 @@ class _PodcastEpisodeDetailPageState
 
   // Calculate header clipping height based on scroll offset
   double get _headerClipHeight {
-    const maxHeaderHeight = 100.0;
+    const maxHeaderHeight = 220.0;
     if (_scrollOffset.value <= 0) return maxHeaderHeight;
     if (_scrollOffset.value >= _headerScrollThreshold) return 0.0;
     return maxHeaderHeight * (1 - _scrollOffset.value / _headerScrollThreshold);
@@ -197,44 +197,18 @@ class _PodcastEpisodeDetailPageState
   }
 
   bool get _isReadableContentTab {
-    return _selectedTabIndex == 0 ||
-        _selectedTabIndex == 1 ||
-        _selectedTabIndex == 2;
-  }
-
-  bool get _isChatTab {
-    return _selectedTabIndex == 3;
+    return _selectedTabIndex >= 0 && _selectedTabIndex <= 2;
   }
 
   bool _shouldHideBottomPlayer({
     required bool isPlayerExpanded,
     required bool hasCurrentEpisode,
   }) {
-    if (!hasCurrentEpisode) {
-      return false;
-    }
-
-    if (_isChatTab) {
-      return true;
-    }
-
-    if (!_isReadableContentTab) {
-      return false;
-    }
-
-    if (_deferReadablePlayerHideUntilNextScroll) {
-      return false;
-    }
-
-    return !isPlayerExpanded && !_isHeaderExpandedState;
+    return false;
   }
 
   void _updateHeaderStateForTab(int tabIndex) {
-    final nextOffset = tabIndex == 3 ? _headerScrollThreshold : 0.0;
-    _scrollOffset.value = nextOffset;
-    _isHeaderExpandedState = nextOffset < _headerScrollThreshold;
-    _showScrollToTopButton.value = nextOffset > 0;
-    _deferReadablePlayerHideUntilNextScroll = false;
+    _showScrollToTopButton.value = false;
   }
 
   void _syncPlayerHostOverride(PodcastPlayerHostPageOverride override) {
@@ -374,17 +348,9 @@ class _PodcastEpisodeDetailPageState
 
     final playerState = ref.read(audioPlayerProvider);
     if (!playerState.isExpanded) {
-      if (_deferReadablePlayerHideUntilNextScroll) {
-        _updatePageState(() {
-          _deferReadablePlayerHideUntilNextScroll = false;
-        });
-      }
       return;
     }
 
-    _updatePageState(() {
-      _deferReadablePlayerHideUntilNextScroll = true;
-    });
     ref.read(audioPlayerProvider.notifier).setExpanded(false);
   }
 
@@ -405,12 +371,7 @@ class _PodcastEpisodeDetailPageState
     if (isExpanded != _isHeaderExpandedState && mounted) {
       setState(() {
         _isHeaderExpandedState = isExpanded;
-      });
-    }
-
-    if (isExpanded && _deferReadablePlayerHideUntilNextScroll && mounted) {
-      setState(() {
-        _deferReadablePlayerHideUntilNextScroll = false;
+        _headerAnimationVersion++;
       });
     }
   }
@@ -440,13 +401,22 @@ class _PodcastEpisodeDetailPageState
         routeOwner: PodcastPlayerHostRouteOwner.episodeDetail,
         surfaceContext: PodcastPlayerSurfaceContext.episodeDetail,
         hiddenByPage: hideBottomPlayer,
+        contentBottomInset: 54,
+        overlayBottomOffset: MediaQuery.sizeOf(context).width >= 600
+            ? 10
+            : MediaQuery.viewPaddingOf(context).bottom + 8,
       ),
     );
 
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          key: _scaffoldKey,
+          backgroundColor: Colors.transparent,
+          endDrawerEnableOpenDragGesture: false,
+          endDrawer: episodeDetailAsync.asData?.value == null
+              ? null
+              : _buildChatDrawer(episodeDetailAsync.asData!.value!),
           body: AnimatedPadding(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOutCubic,
@@ -464,7 +434,7 @@ class _PodcastEpisodeDetailPageState
                 _trackEpisodeViewOnce(episodeDetail);
                 return _buildNewLayout(context, episodeDetail);
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => _buildPageLoadingState(context),
               error: (error, stack) => _buildErrorState(context, error),
             ),
           ),
@@ -498,7 +468,7 @@ class _PodcastEpisodeDetailPageState
 
       // Reset tab selection
       _selectedTabIndex = 0;
-      _deferReadablePlayerHideUntilNextScroll = false;
+      _shownotesAnchors = const <ShownotesAnchor>[];
 
       _bindTranscriptionNoticeListener();
 
@@ -527,17 +497,6 @@ class _PodcastEpisodeDetailPageState
       case TargetPlatform.fuchsia:
         return false;
     }
-  }
-
-  double _resolveWideSidebarWidth(
-    BuildContext context,
-    PodcastPlayerHostLayout hostLayout,
-  ) {
-    final viewportSpec = resolvePodcastPlayerViewportSpec(context, hostLayout);
-    final targetWidth = viewportSpec.leftInset - viewportSpec.rightInset;
-    return targetWidth > kPodcastEpisodeDetailDesktopRailWidth
-        ? targetWidth
-        : kPodcastEpisodeDetailDesktopRailWidth;
   }
 
   Widget _buildScrollToTopButton() {
@@ -588,7 +547,6 @@ class _PodcastEpisodeDetailPageState
     if (!_isHeaderExpandedState && mounted) {
       setState(() {
         _isHeaderExpandedState = true;
-        _deferReadablePlayerHideUntilNextScroll = false;
       });
     }
 
@@ -600,12 +558,47 @@ class _PodcastEpisodeDetailPageState
       case 1: // Transcript
         _transcriptKey.currentState?.scrollToTop();
         break;
-      case 2: // AI Summary
-        _aiSummaryKey.currentState?.scrollToTop();
-        break;
-      case 3: // Conversation
-        _conversationKey.currentState?.scrollToTop();
+      case 2: // Summary
+        _summaryKey.currentState?.scrollToTop();
         break;
     }
+  }
+
+  void _openChatDrawer() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  void _updateShownotesAnchors(List<ShownotesAnchor> anchors) {
+    if (listEquals(_shownotesAnchors, anchors)) {
+      return;
+    }
+    if (!mounted) {
+      _shownotesAnchors = anchors;
+      return;
+    }
+    setState(() {
+      _shownotesAnchors = anchors;
+    });
+  }
+
+  Future<void> _jumpToShownotesAnchor(ShownotesAnchor anchor) async {
+    if (_selectedTabIndex != 0) {
+      if (MediaQuery.sizeOf(context).width < _wideLayoutBreakpoint) {
+        await _pageController.animateToPage(
+          0,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+      if (mounted) {
+        setState(() {
+          _selectedTabIndex = 0;
+        });
+      }
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _shownotesKey.currentState?.scrollToAnchor(anchor.id);
+    });
   }
 }

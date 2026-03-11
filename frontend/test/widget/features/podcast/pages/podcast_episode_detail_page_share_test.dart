@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
@@ -14,38 +15,47 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/su
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
 
 void main() {
-  testWidgets('AI summary tab shows share-all when summary exists', (
+  testWidgets('summary tab shows share-all when summary exists', (
     tester,
   ) async {
+    addTearDown(() async => tester.binding.setSurfaceSize(null));
+    await tester.binding.setSurfaceSize(const Size(390, 844));
     await tester.pumpWidget(
       _createWidget(hasSummary: true, episodeSummary: null),
     );
-
     await tester.pumpAndSettle();
+
     final context = tester.element(find.byType(PodcastEpisodeDetailPage));
     final l10n = AppLocalizations.of(context)!;
 
-    await tester.tap(find.text(l10n.podcast_filter_with_summary).first);
+    final summaryTabFinder = find.byKey(
+      const Key('episode_detail_mobile_tab_2'),
+    );
+    await tester.ensureVisible(summaryTabFinder);
+    await tester.tap(summaryTabFinder);
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.podcast_share_all_content), findsOneWidget);
   });
 
-  testWidgets('AI summary tab hides share-all when summary is empty', (
+  testWidgets('summary tab hides generated content when summary is empty', (
     tester,
   ) async {
+    addTearDown(() async => tester.binding.setSurfaceSize(null));
+    await tester.binding.setSurfaceSize(const Size(390, 844));
     await tester.pumpWidget(
       _createWidget(hasSummary: false, episodeSummary: null),
     );
-
-    await tester.pumpAndSettle();
-    final context = tester.element(find.byType(PodcastEpisodeDetailPage));
-    final l10n = AppLocalizations.of(context)!;
-
-    await tester.tap(find.text(l10n.podcast_filter_with_summary).first);
     await tester.pumpAndSettle();
 
-    expect(find.text(l10n.podcast_share_all_content), findsNothing);
+    final summaryTabFinder = find.byKey(
+      const Key('episode_detail_mobile_tab_2'),
+    );
+    await tester.ensureVisible(summaryTabFinder);
+    await tester.tap(summaryTabFinder);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Generated summary'), findsNothing);
   });
 }
 
@@ -79,6 +89,7 @@ Widget _createWidget({
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
       home: const PodcastEpisodeDetailPage(episodeId: 1),
     ),
   );

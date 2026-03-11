@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
@@ -12,119 +14,74 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/co
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shownotes_display_widget.dart';
 
 void main() {
-  group('PodcastEpisodeDetailPage new layout tests', () {
-    testWidgets('renders header and all mobile tabs', (tester) async {
-      addTearDown(() async => tester.binding.setSurfaceSize(null));
-      await tester.binding.setSurfaceSize(const Size(390, 844));
-
-      await tester.pumpWidget(
-        _createWidget(themeMode: ThemeMode.light, episode: _episode()),
-      );
-      await tester.pumpAndSettle();
-
-      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
-      final l10n = AppLocalizations.of(context)!;
-
-      expect(find.text('Test Episode'), findsOneWidget);
-      expect(find.text(l10n.podcast_tab_shownotes), findsWidgets);
-      expect(find.text(l10n.podcast_tab_transcript), findsOneWidget);
-      expect(find.text(l10n.podcast_filter_with_summary), findsOneWidget);
-      expect(find.text(l10n.podcast_tab_chat), findsOneWidget);
-
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_0')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_1')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_2')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_3')),
-        findsOneWidget,
-      );
-
-      expect(find.byType(ShownotesDisplayWidget), findsOneWidget);
-      expect(find.text(l10n.podcast_source), findsOneWidget);
-    });
-
-    testWidgets('tap summary tab updates indicator selection', (tester) async {
-      addTearDown(() async => tester.binding.setSurfaceSize(null));
-      await tester.binding.setSurfaceSize(const Size(390, 844));
-
-      await tester.pumpWidget(
-        _createWidget(themeMode: ThemeMode.light, episode: _episode()),
-      );
-      await tester.pumpAndSettle();
-
-      final summaryTabFinder = find.byKey(
-        const Key('episode_detail_mobile_tab_2'),
-      );
-      await tester.ensureVisible(summaryTabFinder);
-      await tester.tap(summaryTabFinder);
-      await tester.pumpAndSettle();
-
-      expect(_indicatorColor(tester, 0), Colors.transparent);
-      expect(_indicatorColor(tester, 1), Colors.transparent);
-      expect(_indicatorColor(tester, 2), isNot(Colors.transparent));
-      expect(_indicatorColor(tester, 3), Colors.transparent);
-      expect(find.text('Generated summary'), findsOneWidget);
-    });
-
-    testWidgets('tap transcript tab updates indicator selection', (
+  group('PodcastEpisodeDetailPage wide layout tests', () {
+    testWidgets('renders wide primary content without side rail', (
       tester,
     ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
-      await tester.binding.setSurfaceSize(const Size(390, 844));
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
 
-      await tester.pumpWidget(
-        _createWidget(themeMode: ThemeMode.light, episode: _episode()),
+      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('podcast_episode_detail_primary_content')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('podcast_episode_detail_side_rail')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('podcast_episode_detail_summary_section')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('opens chat drawer from secondary action', (tester) async {
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
+
+      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const Key('podcast_episode_detail_chat_button')),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('episode_detail_mobile_tab_1')));
-      await tester.pumpAndSettle();
-
-      expect(_indicatorColor(tester, 0), Colors.transparent);
-      expect(_indicatorColor(tester, 1), isNot(Colors.transparent));
-      expect(_indicatorColor(tester, 2), Colors.transparent);
-      expect(_indicatorColor(tester, 3), Colors.transparent);
-      expect(find.textContaining('Transcript content'), findsOneWidget);
+      expect(
+        find.byKey(const Key('podcast_episode_detail_chat_drawer')),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('shows localized error state when episode is not found', (
+    testWidgets('wide header uses compact source chip in metadata row', (
       tester,
     ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
-      await tester.binding.setSurfaceSize(const Size(390, 844));
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
 
-      await tester.pumpWidget(
-        _createWidget(themeMode: ThemeMode.light, episode: null),
-      );
+      await tester.pumpWidget(_createWidget(episode: _episode()));
       await tester.pumpAndSettle();
 
-      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
-      final l10n = AppLocalizations.of(context)!;
+      final sourceButton = find.byKey(
+        const Key('podcast_episode_detail_source_button'),
+      );
+      final sourceWidget = tester.widget<HeaderCapsuleActionButton>(
+        sourceButton,
+      );
 
-      expect(find.text(l10n.podcast_error_loading), findsOneWidget);
-      expect(find.text(l10n.podcast_episode_not_found), findsOneWidget);
-      expect(find.text(l10n.podcast_go_back), findsOneWidget);
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(sourceButton, findsOneWidget);
+      expect(sourceWidget.density, HeaderCapsuleActionButtonDensity.compact);
+      expect(tester.getSize(sourceButton).width, lessThanOrEqualTo(112));
     });
   });
 }
 
-Widget _createWidget({
-  required ThemeMode themeMode,
-  required PodcastEpisodeDetailResponse? episode,
-}) {
+Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
   return ProviderScope(
     overrides: [
       audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
@@ -143,15 +100,9 @@ Widget _createWidget({
       availableModelsProvider.overrideWith((ref) async => <SummaryModelInfo>[]),
     ],
     child: MaterialApp(
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: Colors.blue,
-      ),
-      themeMode: themeMode,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
       home: const PodcastEpisodeDetailPage(episodeId: 1),
     ),
   );
@@ -163,7 +114,8 @@ PodcastEpisodeDetailResponse _episode() {
     id: 1,
     subscriptionId: 1,
     title: 'Test Episode',
-    description: 'Description',
+    description:
+        '<h2>Opening</h2><p>Description</p><h2>Deep Dive</h2><p>More content</p>',
     audioUrl: 'https://example.com/audio.mp3',
     itemLink: 'https://example.com/source',
     audioDuration: 180,
@@ -175,14 +127,6 @@ PodcastEpisodeDetailResponse _episode() {
     updatedAt: now,
     relatedEpisodes: const [],
   );
-}
-
-Color _indicatorColor(WidgetTester tester, int index) {
-  final indicator = tester.widget<Container>(
-    find.byKey(Key('episode_detail_mobile_tab_indicator_$index')),
-  );
-  final decoration = indicator.decoration as BoxDecoration?;
-  return decoration?.color ?? Colors.transparent;
 }
 
 class _MockAudioPlayerNotifier extends AudioPlayerNotifier {

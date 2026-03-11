@@ -1155,6 +1155,10 @@
     "@podcast_tab_transcript":  {
                                     "description":  "Episode detail tab: Transcript"
                                 },
+    "podcast_tab_summary":  "Summary",
+    "@podcast_tab_summary":  {
+                                 "description":  "Episode detail tab: Summary"
+                             },
     "podcast_tab_chat":  "Chat",
     "@podcast_tab_chat":  {
                               "description":  "Episode detail tab: Chat"

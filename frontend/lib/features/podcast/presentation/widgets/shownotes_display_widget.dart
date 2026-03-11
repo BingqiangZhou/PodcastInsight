@@ -1,23 +1,66 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:html/dom.dart' as dom;
+import 'package:html/parser.dart' as html_parser;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_en.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../core/utils/html_sanitizer.dart';
 import '../../data/models/podcast_episode_model.dart';
 
+@immutable
+class ShownotesAnchor {
+  const ShownotesAnchor({
+    required this.id,
+    required this.title,
+    required this.index,
+  });
+
+  final String id;
+  final String title;
+  final int index;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is ShownotesAnchor &&
+        other.id == id &&
+        other.title == title &&
+        other.index == index;
+  }
+
+  @override
+  int get hashCode => Object.hash(id, title, index);
+}
+
 class ShownotesDisplayWidget extends ConsumerStatefulWidget {
   final PodcastEpisodeDetailResponse episode;
+  final ValueChanged<List<ShownotesAnchor>>? onAnchorsChanged;
 
-  const ShownotesDisplayWidget({super.key, required this.episode});
+  const ShownotesDisplayWidget({
+    super.key,
+    required this.episode,
+    this.onAnchorsChanged,
+  });
 
   @override
   ConsumerState<ShownotesDisplayWidget> createState() =>
       ShownotesDisplayWidgetState();
+}
+
+class _ShownotesSection {
+  const _ShownotesSection({required this.anchor, required this.contentHtml});
+
+  final ShownotesAnchor anchor;
+  final String contentHtml;
 }
 
 class ShownotesDisplayWidgetState
@@ -25,6 +68,9 @@ class ShownotesDisplayWidgetState
   final ScrollController _scrollController = ScrollController();
   String _shownotes = '';
   String _sanitizedShownotes = '';
+  List<ShownotesAnchor> _anchors = const <ShownotesAnchor>[];
+  List<_ShownotesSection> _sections = const <_ShownotesSection>[];
+  final Map<String, GlobalKey> _sectionKeys = <String, GlobalKey>{};
 
   void scrollToTop() {
     if (_scrollController.hasClients) {
@@ -34,6 +80,22 @@ class ShownotesDisplayWidgetState
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  Future<void> scrollToAnchor(String anchorId) async {
+    final targetKey = _sectionKeys[anchorId];
+    final targetContext = targetKey?.currentContext;
+    if (targetContext == null) {
+      scrollToTop();
+      return;
+    }
+
+    await Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOutCubic,
+      alignment: 0.08,
+    );
   }
 
   @override
@@ -63,121 +125,39 @@ class ShownotesDisplayWidgetState
       return _buildEmptyState(context);
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
+    final theme = Theme.of(context);
+    final titleStyle = TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.bold,
+      color: theme.colorScheme.onSurface,
+      fontFamily: theme.textTheme.titleLarge?.fontFamily,
+      fontFamilyFallback: theme.textTheme.titleLarge?.fontFamilyFallback,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(18),
       child: SingleChildScrollView(
         controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Shownotes',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-                fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
-                fontFamilyFallback: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.fontFamilyFallback,
+        child: SelectionArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: Text('Shownotes', style: titleStyle)),
+                  IconButton(
+                    tooltip:
+                        (AppLocalizations.of(context) ?? AppLocalizationsEn())
+                            .podcast_copy,
+                    onPressed: _copyShownotes,
+                    icon: const Icon(Icons.content_copy_rounded, size: 18),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-            SelectionArea(
-              child: HtmlWidget(
-                _sanitizedShownotes,
-                textStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontSize: 15,
-                  height: 1.6,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                onTapUrl: (url) async {
-                  try {
-                    final uri = Uri.parse(url);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      );
-                      return true;
-                    }
-                    return false;
-                  } catch (e) {
-                    if (context.mounted) {
-                      final l10n = AppLocalizations.of(context)!;
-                      showTopFloatingNotice(
-                        context,
-                        message: l10n.error_opening_link(e.toString()),
-                        isError: true,
-                      );
-                    }
-                    return false;
-                  }
-                },
-                onErrorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Failed to render shownotes',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                customStylesBuilder: (element) {
-                  final styles = <String, String>{};
-
-                  if (element.localName == 'blockquote') {
-                    styles['border-left'] =
-                        '4px solid ${_colorToHex(Theme.of(context).colorScheme.primary)}';
-                    styles['padding-left'] = '16px';
-                    styles['margin-left'] = '0';
-                    styles['color'] = _colorToHex(
-                      Theme.of(context).colorScheme.onSurfaceVariant,
-                    );
-                  }
-
-                  if (element.localName == 'pre' ||
-                      element.localName == 'code') {
-                    styles['background-color'] = _colorToHex(
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
-                    );
-                    styles['padding'] = '8px';
-                    styles['border-radius'] = '4px';
-                    styles['font-family'] = 'monospace';
-                  }
-
-                  if (element.localName?.startsWith('h') == true) {
-                    styles['color'] = _colorToHex(
-                      Theme.of(context).colorScheme.onSurface,
-                    );
-                    styles['font-weight'] = 'bold';
-                  }
-
-                  if (element.localName == 'a') {
-                    styles['color'] = _colorToHex(
-                      Theme.of(context).colorScheme.primary,
-                    );
-                    styles['text-decoration'] = 'underline';
-                  }
-
-                  return styles.isNotEmpty ? styles : null;
-                },
-                enableCaching: true,
-                renderMode: RenderMode.column,
-              ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              ..._buildSections(context),
+            ],
+          ),
         ),
       ),
     );
@@ -188,7 +168,16 @@ class ShownotesDisplayWidgetState
     final nextSanitized = nextShownotes.isEmpty
         ? ''
         : HtmlSanitizer.sanitize(nextShownotes);
-    if (nextShownotes == _shownotes && nextSanitized == _sanitizedShownotes) {
+    final nextSections = nextSanitized.isEmpty
+        ? const <_ShownotesSection>[]
+        : _extractSections(nextSanitized);
+    final nextAnchors = nextSections
+        .map((section) => section.anchor)
+        .toList(growable: false);
+
+    if (nextShownotes == _shownotes &&
+        nextSanitized == _sanitizedShownotes &&
+        listEquals(nextAnchors, _anchors)) {
       return;
     }
 
@@ -202,12 +191,16 @@ class ShownotesDisplayWidgetState
       setState(() {
         _shownotes = nextShownotes;
         _sanitizedShownotes = nextSanitized;
+        _applySections(nextSections);
       });
+      _notifyAnchorsChanged();
       return;
     }
 
     _shownotes = nextShownotes;
     _sanitizedShownotes = nextSanitized;
+    _applySections(nextSections);
+    _notifyAnchorsChanged();
   }
 
   String _resolveShownotesContent(PodcastEpisodeDetailResponse episode) {
@@ -237,8 +230,337 @@ class ShownotesDisplayWidgetState
     return '${episode.description}|${episode.aiSummary}|${episode.metadata?['shownotes']}|${episode.subscription?['description']}';
   }
 
+  void _applySections(List<_ShownotesSection> sections) {
+    _sections = sections;
+    _anchors = sections
+        .map((section) => section.anchor)
+        .toList(growable: false);
+    _sectionKeys
+      ..clear()
+      ..addEntries(
+        sections.map(
+          (section) =>
+              MapEntry<String, GlobalKey>(section.anchor.id, GlobalKey()),
+        ),
+      );
+  }
+
+  void _notifyAnchorsChanged() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      widget.onAnchorsChanged?.call(_anchors);
+    });
+  }
+
+  List<_ShownotesSection> _extractSections(String sanitizedShownotes) {
+    final fragment = html_parser.parseFragment(sanitizedShownotes);
+    final nodes = fragment.nodes
+        .where((node) => _nodeText(node).isNotEmpty)
+        .toList(growable: false);
+
+    if (nodes.isEmpty) {
+      return const <_ShownotesSection>[];
+    }
+
+    final hasHeading = nodes.any(_isHeadingNode);
+    final sections = hasHeading
+        ? _buildSectionsFromHeadings(nodes)
+        : _buildFallbackSections(nodes);
+
+    if (sections.isNotEmpty) {
+      return sections;
+    }
+
+    return <_ShownotesSection>[
+      _ShownotesSection(
+        anchor: const ShownotesAnchor(
+          id: 'shownotes-0',
+          title: 'Shownotes',
+          index: 0,
+        ),
+        contentHtml: sanitizedShownotes,
+      ),
+    ];
+  }
+
+  List<_ShownotesSection> _buildSectionsFromHeadings(List<dom.Node> nodes) {
+    final sections = <_ShownotesSection>[];
+    final introNodes = <dom.Node>[];
+    String? currentTitle;
+    final currentNodes = <dom.Node>[];
+
+    void flushSection() {
+      final title = (currentTitle ?? '').trim();
+      final html = currentNodes.map(_nodeOuterHtml).join();
+      if (title.isEmpty && html.trim().isEmpty) {
+        return;
+      }
+
+      final safeTitle = title.isEmpty
+          ? 'Section ${sections.length + 1}'
+          : title;
+      sections.add(
+        _ShownotesSection(
+          anchor: ShownotesAnchor(
+            id: _slugifyAnchor(safeTitle, sections.length),
+            title: safeTitle,
+            index: sections.length,
+          ),
+          contentHtml: html,
+        ),
+      );
+      currentNodes.clear();
+    }
+
+    for (final node in nodes) {
+      if (_isHeadingNode(node)) {
+        if (currentTitle == null && introNodes.isNotEmpty) {
+          currentNodes.addAll(introNodes);
+          introNodes.clear();
+        } else {
+          flushSection();
+        }
+        currentTitle = _nodeText(node);
+        continue;
+      }
+
+      if (currentTitle == null) {
+        introNodes.add(node);
+      } else {
+        currentNodes.add(node);
+      }
+    }
+
+    if (currentTitle == null) {
+      return _buildFallbackSections(nodes);
+    }
+
+    if (currentNodes.isEmpty && introNodes.isNotEmpty) {
+      currentNodes.addAll(introNodes);
+    }
+    flushSection();
+    return sections;
+  }
+
+  List<_ShownotesSection> _buildFallbackSections(List<dom.Node> nodes) {
+    final sections = <_ShownotesSection>[];
+    final buffer = <dom.Node>[];
+    var bufferLength = 0;
+
+    void flushBuffer() {
+      if (buffer.isEmpty) {
+        return;
+      }
+      final title = _deriveFallbackTitle(buffer, sections.length);
+      final html = buffer.map(_nodeOuterHtml).join();
+      sections.add(
+        _ShownotesSection(
+          anchor: ShownotesAnchor(
+            id: _slugifyAnchor(title, sections.length),
+            title: title,
+            index: sections.length,
+          ),
+          contentHtml: html,
+        ),
+      );
+      buffer.clear();
+      bufferLength = 0;
+    }
+
+    for (final node in nodes) {
+      buffer.add(node);
+      bufferLength += _nodeText(node).length;
+      if (bufferLength >= 420 || buffer.length >= 3) {
+        flushBuffer();
+      }
+    }
+
+    flushBuffer();
+    return sections;
+  }
+
+  String _deriveFallbackTitle(List<dom.Node> nodes, int index) {
+    for (final node in nodes) {
+      final text = _nodeText(node);
+      if (text.isNotEmpty) {
+        return text.length > 28 ? '${text.substring(0, 28)}...' : text;
+      }
+    }
+    return 'Section ${index + 1}';
+  }
+
+  bool _isHeadingNode(dom.Node node) {
+    return node is dom.Element &&
+        const <String>{
+          'h1',
+          'h2',
+          'h3',
+          'h4',
+          'h5',
+          'h6',
+        }.contains(node.localName);
+  }
+
+  String _slugifyAnchor(String title, int index) {
+    final normalized = title
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9\u4e00-\u9fa5]+'), '-')
+        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+    return normalized.isEmpty ? 'shownotes-$index' : '$normalized-$index';
+  }
+
+  String _nodeText(dom.Node node) {
+    return node.text?.trim() ?? '';
+  }
+
+  String _nodeOuterHtml(dom.Node node) {
+    if (node is dom.Element) {
+      return node.outerHtml;
+    }
+    final text = node.text?.trim() ?? '';
+    return text.isEmpty ? '' : '<p>$text</p>';
+  }
+
+  List<Widget> _buildSections(BuildContext context) {
+    final widgets = <Widget>[];
+    for (var index = 0; index < _sections.length; index++) {
+      final section = _sections[index];
+      final sectionKey = _sectionKeys[section.anchor.id]!;
+      widgets.add(
+        Container(
+          key: sectionKey,
+          padding: EdgeInsets.only(
+            bottom: index == _sections.length - 1 ? 0 : 20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (section.anchor.title.isNotEmpty) ...[
+                Text(
+                  section.anchor.title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+              _buildHtmlBody(context, section.contentHtml),
+            ],
+          ),
+        ),
+      );
+    }
+    return widgets;
+  }
+
+  Widget _buildHtmlBody(BuildContext context, String html) {
+    return HtmlWidget(
+      html,
+      textStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+        fontSize: 15,
+        height: 1.65,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+      onTapUrl: (url) async {
+        try {
+          final uri = Uri.parse(url);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            return true;
+          }
+          return false;
+        } catch (e) {
+          if (context.mounted) {
+            final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
+            showTopFloatingNotice(
+              context,
+              message: l10n.error_opening_link(e.toString()),
+              isError: true,
+            );
+          }
+          return false;
+        }
+      },
+      onErrorBuilder: (context, error, stackTrace) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Failed to render shownotes',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+          ),
+        );
+      },
+      customStylesBuilder: (element) {
+        final styles = <String, String>{};
+
+        if (element.localName == 'blockquote') {
+          styles['border-left'] =
+              '4px solid ${_colorToHex(Theme.of(context).colorScheme.primary)}';
+          styles['padding-left'] = '16px';
+          styles['margin-left'] = '0';
+          styles['color'] = _colorToHex(
+            Theme.of(context).colorScheme.onSurfaceVariant,
+          );
+        }
+
+        if (element.localName == 'pre' || element.localName == 'code') {
+          styles['background-color'] = _colorToHex(
+            Theme.of(context).colorScheme.surfaceContainerHighest,
+          );
+          styles['padding'] = '8px';
+          styles['border-radius'] = '4px';
+          styles['font-family'] = 'monospace';
+        }
+
+        if (element.localName?.startsWith('h') == true) {
+          styles['color'] = _colorToHex(
+            Theme.of(context).colorScheme.onSurface,
+          );
+          styles['font-weight'] = 'bold';
+        }
+
+        if (element.localName == 'a') {
+          styles['color'] = _colorToHex(Theme.of(context).colorScheme.primary);
+          styles['text-decoration'] = 'underline';
+        }
+
+        return styles.isNotEmpty ? styles : null;
+      },
+      enableCaching: true,
+      renderMode: RenderMode.column,
+    );
+  }
+
+  Future<void> _copyShownotes() async {
+    if (_shownotes.isEmpty) {
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
+    final plainText =
+        html_parser.parseFragment(_sanitizedShownotes).text?.trim() ?? '';
+    await Clipboard.setData(ClipboardData(text: plainText));
+    if (!mounted) {
+      return;
+    }
+    showTopFloatingNotice(context, message: l10n.podcast_copied('Shownotes'));
+  }
+
   Widget _buildEmptyState(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
