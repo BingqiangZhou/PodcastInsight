@@ -56,26 +56,11 @@ class _PodcastEpisodeDetailPageState
   final ValueNotifier<double> _scrollOffset = ValueNotifier(0.0);
   final ValueNotifier<bool> _showScrollToTopButton = ValueNotifier(false);
   bool _isHeaderExpandedState = true;
+  bool _deferReadablePlayerHideUntilNextScroll = false;
   static const double _headerScrollThreshold =
       50.0; // Header starts fading after 50px scroll
   static const double _autoCollapseScrollDeltaThreshold = 6.0;
   static const double _scrollToTopFixedLift = 72.0;
-
-  // Scroll to top button
-  final Map<int, double> _tabScrollPositions = {
-    0: 0.0,
-    1: 0.0,
-    2: 0.0,
-    3: 0.0,
-  }; // Track scroll position for each tab
-  final Map<int, double> _tabScrollPercentages = {
-    0: 0.0,
-    1: 0.0,
-    2: 0.0,
-    3: 0.0,
-  }; // Track scroll percentage for each tab
-  final Map<int, ScrollController> _tabScrollControllers =
-      {}; // ScrollController for each tab
 
   // GlobalKeys for accessing child widget states to call scrollToTop
   final GlobalKey<ShownotesDisplayWidgetState> _shownotesKey =
@@ -106,10 +91,6 @@ class _PodcastEpisodeDetailPageState
     _pageController.dispose();
     _scrollOffset.dispose();
     _showScrollToTopButton.dispose();
-    // Clean up tab scroll controllers
-    for (final controller in _tabScrollControllers.values) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
@@ -178,11 +159,45 @@ class _PodcastEpisodeDetailPageState
     return _scrollOffset.value < _headerScrollThreshold;
   }
 
+  bool get _isReadableContentTab {
+    return _selectedTabIndex == 0 ||
+        _selectedTabIndex == 1 ||
+        _selectedTabIndex == 2;
+  }
+
+  bool get _isChatTab {
+    return _selectedTabIndex == 3;
+  }
+
+  bool _shouldHideBottomPlayer({
+    required bool isPlayerExpanded,
+    required bool hasCurrentEpisode,
+  }) {
+    if (!hasCurrentEpisode) {
+      return false;
+    }
+
+    if (_isChatTab) {
+      return true;
+    }
+
+    if (!_isReadableContentTab) {
+      return false;
+    }
+
+    if (_deferReadablePlayerHideUntilNextScroll) {
+      return false;
+    }
+
+    return !isPlayerExpanded && !_isHeaderExpandedState;
+  }
+
   void _updateHeaderStateForTab(int tabIndex) {
     final nextOffset = tabIndex == 3 ? _headerScrollThreshold : 0.0;
     _scrollOffset.value = nextOffset;
     _isHeaderExpandedState = nextOffset < _headerScrollThreshold;
     _showScrollToTopButton.value = nextOffset > 0;
+    _deferReadablePlayerHideUntilNextScroll = false;
   }
 
   void _syncPlayerHostOverride(PodcastPlayerHostPageOverride override) {
@@ -322,9 +337,17 @@ class _PodcastEpisodeDetailPageState
 
     final playerState = ref.read(audioPlayerProvider);
     if (!playerState.isExpanded) {
+      if (_deferReadablePlayerHideUntilNextScroll) {
+        _updatePageState(() {
+          _deferReadablePlayerHideUntilNextScroll = false;
+        });
+      }
       return;
     }
 
+    _updatePageState(() {
+      _deferReadablePlayerHideUntilNextScroll = true;
+    });
     ref.read(audioPlayerProvider.notifier).setExpanded(false);
   }
 
@@ -333,18 +356,24 @@ class _PodcastEpisodeDetailPageState
       return;
     }
     final scrollPosition = metrics.pixels;
-    final maxScroll = metrics.maxScrollExtent;
-    final scrollPercent = maxScroll > 0 ? (scrollPosition / maxScroll) : 0.0;
-
-    _tabScrollPositions[_selectedTabIndex] = scrollPosition;
-    _tabScrollPercentages[_selectedTabIndex] = scrollPercent;
-    _scrollOffset.value = scrollPosition;
-    _showScrollToTopButton.value = scrollPosition > 0;
+    if (_scrollOffset.value != scrollPosition) {
+      _scrollOffset.value = scrollPosition;
+    }
+    final shouldShowScrollToTop = scrollPosition > 0;
+    if (_showScrollToTopButton.value != shouldShowScrollToTop) {
+      _showScrollToTopButton.value = shouldShowScrollToTop;
+    }
 
     final isExpanded = scrollPosition < _headerScrollThreshold;
     if (isExpanded != _isHeaderExpandedState && mounted) {
       setState(() {
         _isHeaderExpandedState = isExpanded;
+      });
+    }
+
+    if (isExpanded && _deferReadablePlayerHideUntilNextScroll && mounted) {
+      setState(() {
+        _deferReadablePlayerHideUntilNextScroll = false;
       });
     }
   }
@@ -354,9 +383,6 @@ class _PodcastEpisodeDetailPageState
     final episodeDetailAsync = ref.watch(
       episodeDetailProvider(widget.episodeId),
     );
-    final isChatTab = _selectedTabIndex == 3;
-    final isTranscriptOrSummaryTab =
-        _selectedTabIndex == 1 || _selectedTabIndex == 2;
     final isExpanded = ref.watch(
       audioPlayerProvider.select((state) => state.isExpanded),
     );
@@ -364,12 +390,10 @@ class _PodcastEpisodeDetailPageState
       audioCurrentEpisodeIdProvider.select((episodeId) => episodeId != null),
     );
     final hostLayout = ref.watch(podcastPlayerHostLayoutProvider);
-    final isPlayerCollapsed = !isExpanded;
-    final shouldHideOnTranscriptOrSummary =
-        isTranscriptOrSummaryTab &&
-        isPlayerCollapsed &&
-        !_isHeaderExpandedState;
-    final hideBottomPlayer = isChatTab || shouldHideOnTranscriptOrSummary;
+    final hideBottomPlayer = _shouldHideBottomPlayer(
+      isPlayerExpanded: isExpanded,
+      hasCurrentEpisode: hasCurrentEpisode,
+    );
     final playerBottomInset = hasCurrentEpisode && !hideBottomPlayer
         ? resolvePodcastPlayerTotalReservedSpace(context, hostLayout)
         : 0.0;
@@ -436,6 +460,7 @@ class _PodcastEpisodeDetailPageState
 
       // Reset tab selection
       _selectedTabIndex = 0;
+      _deferReadablePlayerHideUntilNextScroll = false;
 
       _bindTranscriptionNoticeListener();
 
@@ -510,12 +535,11 @@ class _PodcastEpisodeDetailPageState
   void _scrollToTop() {
     // Reset scroll offset to expand header.
     _scrollOffset.value = 0.0;
-    _tabScrollPositions[_selectedTabIndex] = 0.0;
-    _tabScrollPercentages[_selectedTabIndex] = 0.0;
     _showScrollToTopButton.value = false;
     if (!_isHeaderExpandedState && mounted) {
       setState(() {
         _isHeaderExpandedState = true;
+        _deferReadablePlayerHideUntilNextScroll = false;
       });
     }
 

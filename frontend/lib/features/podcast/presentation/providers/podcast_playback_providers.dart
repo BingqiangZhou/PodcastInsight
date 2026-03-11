@@ -59,10 +59,52 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     }
   }
 
+  void _cancelManagedSubscriptions() {
+    _playerStateSubscription?.cancel();
+    _playerStateSubscription = null;
+    _positionSubscription?.cancel();
+    _positionSubscription = null;
+    _durationSubscription?.cancel();
+    _durationSubscription = null;
+  }
+
+  void _cancelManagedTimers() {
+    _syncThrottleTimer?.cancel();
+    _syncThrottleTimer = null;
+    _sleepTimerTickTimer?.cancel();
+    _sleepTimerTickTimer = null;
+    _snapshotPersistTimer?.cancel();
+    _snapshotPersistTimer = null;
+  }
+
+  void _disposeManagedResources() {
+    _cancelManagedSubscriptions();
+    _cancelManagedTimers();
+  }
+
+  @visibleForTesting
+  void debugReplaceManagedResources({
+    StreamSubscription? playerStateSubscription,
+    StreamSubscription? positionSubscription,
+    StreamSubscription? durationSubscription,
+    Timer? syncThrottleTimer,
+    Timer? sleepTimerTickTimer,
+    Timer? snapshotPersistTimer,
+  }) {
+    _disposeManagedResources();
+    _playerStateSubscription = playerStateSubscription;
+    _positionSubscription = positionSubscription;
+    _durationSubscription = durationSubscription;
+    _syncThrottleTimer = syncThrottleTimer;
+    _sleepTimerTickTimer = sleepTimerTickTimer;
+    _snapshotPersistTimer = snapshotPersistTimer;
+  }
+
   @override
   AudioPlayerState build() {
     _repository = ref.read(podcastRepositoryProvider);
     _isDisposed = false;
+    _disposeManagedResources();
 
     final handler = _audioHandlerOrNull();
     if (handler != null) {
@@ -75,12 +117,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
     ref.onDispose(() {
       _isDisposed = true;
-      _playerStateSubscription?.cancel();
-      _positionSubscription?.cancel();
-      _durationSubscription?.cancel();
-      _syncThrottleTimer?.cancel();
-      _sleepTimerTickTimer?.cancel();
-      _snapshotPersistTimer?.cancel();
+      _disposeManagedResources();
     });
 
     return const AudioPlayerState();
@@ -243,6 +280,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
   void _setupListeners(PodcastAudioHandler audioHandler) {
     if (_isDisposed) return;
+    _cancelManagedSubscriptions();
 
     _playerStateSubscription = audioHandler.playbackState.listen((
       playbackState,
@@ -269,13 +307,15 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         _lastPlayingState = playbackState.playing;
       }
 
-      // Always update state regardless of _isPlayingEpisode
-      // This ensures UI stays in sync with actual playback state
-      state = state.copyWith(
-        isPlaying: playbackState.playing,
-        isLoading: false,
-        processingState: processingState,
-      );
+      if (state.isPlaying != playbackState.playing ||
+          state.isLoading ||
+          state.processingState != processingState) {
+        state = state.copyWith(
+          isPlaying: playbackState.playing,
+          isLoading: false,
+          processingState: processingState,
+        );
+      }
       _schedulePersistLastPlaybackSnapshot(immediate: !playbackState.playing);
 
       if (completedJustNow) {
@@ -289,7 +329,10 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     _positionSubscription = audioHandler.positionStream.listen((position) {
       if (_isDisposed || !ref.mounted) return;
 
-      state = state.copyWith(position: position.inMilliseconds);
+      final positionMs = position.inMilliseconds;
+      if (state.position != positionMs) {
+        state = state.copyWith(position: positionMs);
+      }
       if (state.currentEpisode != null) {
         _schedulePersistLastPlaybackSnapshot();
       }
@@ -419,6 +462,10 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     if (_isDisposed || !ref.mounted) {
       return;
     }
+    if (state.queue == queue &&
+        state.currentQueueEpisodeId == queue.currentEpisodeId) {
+      return;
+    }
     state = state.copyWith(
       queue: queue,
       currentQueueEpisodeId: queue.currentEpisodeId,
@@ -429,6 +476,9 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
   void setQueueSyncing(bool syncing) {
     if (_isDisposed || !ref.mounted) {
+      return;
+    }
+    if (state.queueSyncing == syncing) {
       return;
     }
     state = state.copyWith(queueSyncing: syncing);
@@ -1137,6 +1187,9 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
   void setExpanded(bool expanded) {
     if (ref.mounted && !_isDisposed) {
+      if (state.isExpanded == expanded) {
+        return;
+      }
       state = state.copyWith(isExpanded: expanded);
     }
   }
@@ -1145,8 +1198,13 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
   void setSleepTimer(Duration duration) {
     if (_isDisposed || !ref.mounted) return;
+    if (duration <= Duration.zero) {
+      cancelSleepTimer();
+      return;
+    }
 
     _sleepTimerTickTimer?.cancel();
+    _sleepTimerTickTimer = null;
 
     final endTime = DateTime.now().add(duration);
     state = state.copyWith(
@@ -1169,31 +1227,20 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     if (_isDisposed || !ref.mounted) return;
 
     _sleepTimerTickTimer?.cancel();
+    _sleepTimerTickTimer = null;
 
-    state = state.copyWith(
-      sleepTimerAfterEpisode: true,
-      sleepTimerRemainingLabel: 'After current episode',
-      clearSleepTimer: false,
-    );
-    // Explicitly clear the endTime by using copyWith then overriding
-    state = AudioPlayerState(
-      currentEpisode: state.currentEpisode,
-      queue: state.queue,
-      currentQueueEpisodeId: state.currentQueueEpisodeId,
-      playSource: state.playSource,
-      queueSyncing: state.queueSyncing,
-      isPlaying: state.isPlaying,
-      isLoading: state.isLoading,
-      isExpanded: state.isExpanded,
-      position: state.position,
-      duration: state.duration,
-      playbackRate: state.playbackRate,
-      processingState: state.processingState,
-      error: state.error,
-      sleepTimerEndTime: null,
-      sleepTimerAfterEpisode: true,
-      sleepTimerRemainingLabel: 'After current episode',
-    );
+    if (state.sleepTimerAfterEpisode &&
+        state.sleepTimerEndTime == null &&
+        state.sleepTimerRemainingLabel == 'After current episode') {
+      return;
+    }
+
+    state = state
+        .copyWith(clearSleepTimer: true)
+        .copyWith(
+          sleepTimerAfterEpisode: true,
+          sleepTimerRemainingLabel: 'After current episode',
+        );
 
     logger.AppLogger.debug(
       '[Sleep Timer] Sleep timer set: after current episode',
@@ -1202,6 +1249,9 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
   void cancelSleepTimer() {
     if (_isDisposed || !ref.mounted) return;
+    if (!state.isSleepTimerActive && _sleepTimerTickTimer == null) {
+      return;
+    }
 
     _sleepTimerTickTimer?.cancel();
     _sleepTimerTickTimer = null;
@@ -1230,13 +1280,14 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       _sleepTimerTickTimer?.cancel();
       _sleepTimerTickTimer = null;
       state = state.copyWith(clearSleepTimer: true);
-      pause();
+      unawaited(pause());
       return;
     }
 
-    state = state.copyWith(
-      sleepTimerRemainingLabel: _formatRemainingTime(remaining),
-    );
+    final remainingLabel = _formatRemainingTime(remaining);
+    if (state.sleepTimerRemainingLabel != remainingLabel) {
+      state = state.copyWith(sleepTimerRemainingLabel: remainingLabel);
+    }
   }
 
   String _formatRemainingTime(Duration d) {
@@ -1304,6 +1355,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
     final remaining = _syncInterval - now.difference(lastSync);
     _syncThrottleTimer = Timer(remaining, () {
+      _syncThrottleTimer = null;
       if (_isDisposed) return;
       final currentEpisode = state.currentEpisode;
       if (currentEpisode == null) return;

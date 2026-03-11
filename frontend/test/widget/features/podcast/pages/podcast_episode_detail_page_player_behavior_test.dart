@@ -46,7 +46,7 @@ void main() {
       final metrics = FixedScrollMetrics(
         minScrollExtent: 0,
         maxScrollExtent: 400,
-        pixels: 100,
+        pixels: 20,
         viewportDimension: 400,
         axisDirection: AxisDirection.down,
         devicePixelRatio: 1.0,
@@ -61,8 +61,8 @@ void main() {
 
       expect(notifier.state.isExpanded, isFalse);
       expect(
-        find.byKey(const Key('podcast_bottom_player_mini')),
-        findsOneWidget,
+        find.byKey(const Key('podcast_bottom_player_expanded')),
+        findsNothing,
       );
     });
 
@@ -100,8 +100,8 @@ void main() {
 
       expect(notifier.state.isExpanded, isFalse);
       expect(
-        find.byKey(const Key('podcast_bottom_player_mini')),
-        findsOneWidget,
+        find.byKey(const Key('podcast_bottom_player_expanded')),
+        findsNothing,
       );
     });
 
@@ -307,6 +307,111 @@ void main() {
     });
 
     testWidgets(
+      'keeps bottom player visible on mobile shownotes tab when header is expanded',
+      (tester) async {
+        addTearDown(() async {
+          await tester.binding.setSurfaceSize(null);
+        });
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+
+        final notifier = TestAudioPlayerNotifier(
+          AudioPlayerState(
+            currentEpisode: _episode(),
+            duration: 180000,
+            isExpanded: false,
+            isPlaying: true,
+          ),
+        );
+
+        await tester.pumpWidget(_createWidget(notifier));
+        await tester.pumpAndSettle();
+        notifier.setExpanded(false);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ShownotesDisplayWidget), findsOneWidget);
+        expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
+        expect(
+          find.byKey(const Key('podcast_bottom_player_mini')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'hides bottom player on mobile shownotes tab after header collapse',
+      (tester) async {
+        addTearDown(() async {
+          await tester.binding.setSurfaceSize(null);
+        });
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+
+        final notifier = TestAudioPlayerNotifier(
+          AudioPlayerState(
+            currentEpisode: _episode(),
+            duration: 180000,
+            isExpanded: false,
+            isPlaying: true,
+          ),
+        );
+
+        await tester.pumpWidget(_createWidget(notifier));
+        await tester.pumpAndSettle();
+        notifier.setExpanded(false);
+        await tester.pumpAndSettle();
+
+        _dispatchVerticalScrollUpdate(
+          tester,
+          context: tester.element(find.byType(PageView).first),
+          pixels: 120,
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PodcastBottomPlayerWidget), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'restores bottom player after leaving hidden shownotes reading state',
+      (tester) async {
+        addTearDown(() async {
+          await tester.binding.setSurfaceSize(null);
+        });
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+
+        final notifier = TestAudioPlayerNotifier(
+          AudioPlayerState(
+            currentEpisode: _episode(),
+            duration: 180000,
+            isExpanded: false,
+            isPlaying: true,
+          ),
+        );
+
+        await tester.pumpWidget(_createWidget(notifier));
+        await tester.pumpAndSettle();
+        notifier.setExpanded(false);
+        await tester.pumpAndSettle();
+
+        _dispatchVerticalScrollUpdate(
+          tester,
+          context: tester.element(find.byType(PageView).first),
+          pixels: 120,
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(PodcastBottomPlayerWidget), findsNothing);
+
+        await _setMobilePage(tester, 1);
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
+        expect(
+          find.byKey(const Key('podcast_bottom_player_mini')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
       'keeps bottom player visible on mobile transcript tab when header is expanded',
       (tester) async {
         addTearDown(() async {
@@ -417,6 +522,40 @@ void main() {
           find.byKey(const Key('podcast_bottom_player_expanded')),
           findsOneWidget,
         );
+      },
+    );
+
+    testWidgets(
+      'hides bottom player on wide layout when collapsed in shownotes tab after header collapse',
+      (tester) async {
+        addTearDown(() async {
+          await tester.binding.setSurfaceSize(null);
+        });
+        await tester.binding.setSurfaceSize(const Size(1200, 900));
+
+        final notifier = TestAudioPlayerNotifier(
+          AudioPlayerState(
+            currentEpisode: _episode(),
+            duration: 180000,
+            isExpanded: false,
+            isPlaying: true,
+          ),
+        );
+
+        await tester.pumpWidget(_createWidget(notifier));
+        await tester.pumpAndSettle();
+        notifier.setExpanded(false);
+        await tester.pumpAndSettle();
+
+        _dispatchVerticalScrollUpdate(
+          tester,
+          context: tester.element(find.byType(ShownotesDisplayWidget)),
+          pixels: 120,
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PageView), findsNothing);
+        expect(find.byType(PodcastBottomPlayerWidget), findsNothing);
       },
     );
 
@@ -550,7 +689,7 @@ void main() {
       final metrics = FixedScrollMetrics(
         minScrollExtent: 0,
         maxScrollExtent: 400,
-        pixels: 120,
+        pixels: 20,
         viewportDimension: 500,
         axisDirection: AxisDirection.down,
         devicePixelRatio: 1.0,
@@ -1104,4 +1243,27 @@ Future<void> _setMobilePage(WidgetTester tester, int pageIndex) async {
   final pageView = tester.widget<PageView>(pageViewFinder);
   pageView.onPageChanged?.call(pageIndex);
   await tester.pump();
+}
+
+void _dispatchVerticalScrollUpdate(
+  WidgetTester tester, {
+  required Element context,
+  required double pixels,
+  double maxScrollExtent = 400,
+  double viewportDimension = 500,
+  double scrollDelta = 12,
+}) {
+  final metrics = FixedScrollMetrics(
+    minScrollExtent: 0,
+    maxScrollExtent: maxScrollExtent,
+    pixels: pixels,
+    viewportDimension: viewportDimension,
+    axisDirection: AxisDirection.down,
+    devicePixelRatio: 1.0,
+  );
+  ScrollUpdateNotification(
+    metrics: metrics,
+    context: context,
+    scrollDelta: scrollDelta,
+  ).dispatch(context);
 }
