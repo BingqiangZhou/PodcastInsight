@@ -20,7 +20,6 @@ import '../widgets/transcription_status_widget.dart';
 import '../widgets/ai_summary_control_widget.dart';
 import '../widgets/conversation_chat_widget.dart';
 import '../widgets/podcast_image_widget.dart';
-import '../widgets/podcast_bottom_player_widget.dart';
 import '../widgets/scrollable_content_wrapper.dart';
 import '../services/content_image_share_service.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
@@ -49,6 +48,8 @@ class _PodcastEpisodeDetailPageState
   bool _hasTrackedEpisodeView = false;
   bool _isAddingToQueue = false;
   String _selectedSummaryText = '';
+  PodcastPlayerHostPageOverride? _lastPlayerHostOverride;
+  late final PodcastPlayerHostPageOverrideNotifier _playerHostOverrideNotifier;
 
   // Sticky header animation
   final PageController _pageController = PageController();
@@ -58,7 +59,6 @@ class _PodcastEpisodeDetailPageState
   static const double _headerScrollThreshold =
       50.0; // Header starts fading after 50px scroll
   static const double _autoCollapseScrollDeltaThreshold = 6.0;
-  static const double _mobileMenuBarHeight = 65.0;
   static const double _scrollToTopFixedLift = 72.0;
 
   // Scroll to top button
@@ -90,6 +90,9 @@ class _PodcastEpisodeDetailPageState
   @override
   void initState() {
     super.initState();
+    _playerHostOverrideNotifier = ref.read(
+      podcastPlayerHostPageOverrideProvider.notifier,
+    );
     // Don't auto-play episode when page loads - user must click play button
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _bindTranscriptionNoticeListener();
@@ -112,41 +115,41 @@ class _PodcastEpisodeDetailPageState
 
   void _bindTranscriptionNoticeListener() {
     _transcriptionNoticeSubscription?.close();
-    _transcriptionNoticeSubscription = ref.listenManual<
-        AsyncValue<PodcastTranscriptionResponse?>>(
-      getTranscriptionProvider(widget.episodeId),
-      (previous, next) {
-        if (!mounted) {
-          return;
-        }
+    _transcriptionNoticeSubscription = ref
+        .listenManual<AsyncValue<PodcastTranscriptionResponse?>>(
+          getTranscriptionProvider(widget.episodeId),
+          (previous, next) {
+            if (!mounted) {
+              return;
+            }
 
-        final prevData = previous?.value;
-        final nextData = next.value;
-        if (nextData == null) {
-          return;
-        }
+            final prevData = previous?.value;
+            final nextData = next.value;
+            if (nextData == null) {
+              return;
+            }
 
-        final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
-        if (prevData == null && nextData.isProcessing) {
-          showTopFloatingNotice(
-            context,
-            message: l10n.podcast_transcription_auto_starting,
-            extraTopOffset: 72,
-          );
-          return;
-        }
+            final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
+            if (prevData == null && nextData.isProcessing) {
+              showTopFloatingNotice(
+                context,
+                message: l10n.podcast_transcription_auto_starting,
+                extraTopOffset: 72,
+              );
+              return;
+            }
 
-        if (prevData != null &&
-            nextData.isProcessing &&
-            !prevData.isProcessing) {
-          showTopFloatingNotice(
-            context,
-            message: l10n.podcast_transcription_processing,
-            extraTopOffset: 72,
-          );
-        }
-      },
-    );
+            if (prevData != null &&
+                nextData.isProcessing &&
+                !prevData.isProcessing) {
+              showTopFloatingNotice(
+                context,
+                message: l10n.podcast_transcription_processing,
+                extraTopOffset: 72,
+              );
+            }
+          },
+        );
   }
 
   void _updatePageState(VoidCallback updater) {
@@ -180,6 +183,20 @@ class _PodcastEpisodeDetailPageState
     _scrollOffset.value = nextOffset;
     _isHeaderExpandedState = nextOffset < _headerScrollThreshold;
     _showScrollToTopButton.value = nextOffset > 0;
+  }
+
+  void _syncPlayerHostOverride(PodcastPlayerHostPageOverride override) {
+    if (_lastPlayerHostOverride == override) {
+      return;
+    }
+    _lastPlayerHostOverride = override;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _playerHostOverrideNotifier.setOverride(override);
+    });
   }
 
   Future<void> _loadAndPlayEpisode() async {
@@ -343,59 +360,51 @@ class _PodcastEpisodeDetailPageState
     final isExpanded = ref.watch(
       audioPlayerProvider.select((state) => state.isExpanded),
     );
+    final hasCurrentEpisode = ref.watch(
+      audioCurrentEpisodeIdProvider.select((episodeId) => episodeId != null),
+    );
+    final hostLayout = ref.watch(podcastPlayerHostLayoutProvider);
     final isPlayerCollapsed = !isExpanded;
     final shouldHideOnTranscriptOrSummary =
         isTranscriptOrSummaryTab &&
         isPlayerCollapsed &&
         !_isHeaderExpandedState;
     final hideBottomPlayer = isChatTab || shouldHideOnTranscriptOrSummary;
-    final isMobileLayout = MediaQuery.of(context).size.width < 600;
+    final playerBottomInset = hasCurrentEpisode && !hideBottomPlayer
+        ? resolvePodcastPlayerTotalReservedSpace(context, hostLayout)
+        : 0.0;
+
+    _syncPlayerHostOverride(
+      PodcastPlayerHostPageOverride(
+        routeOwner: PodcastPlayerHostRouteOwner.episodeDetail,
+        hiddenByPage: hideBottomPlayer,
+      ),
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWideLayout = constraints.maxWidth > 800;
-
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
-          extendBody: isMobileLayout && !hideBottomPlayer,
-          bottomNavigationBar: isWideLayout
-              ? null
-              : _buildBottomPlayerBar(
-                  hideBottomPlayer: hideBottomPlayer,
-                  isMobileLayout: isMobileLayout,
-                ),
-          body: Stack(
-            children: [
-              episodeDetailAsync.when(
-                data: (episodeDetail) {
-                  if (episodeDetail == null) {
-                    final l10n =
-                        (AppLocalizations.of(context) ?? AppLocalizationsEn());
-                    return _buildErrorState(
-                      context,
-                      l10n.podcast_episode_not_found,
-                    );
-                  }
-                  _trackEpisodeViewOnce(episodeDetail);
-                  return _buildNewLayout(
+          body: AnimatedPadding(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.only(bottom: playerBottomInset),
+            child: episodeDetailAsync.when(
+              data: (episodeDetail) {
+                if (episodeDetail == null) {
+                  final l10n =
+                      (AppLocalizations.of(context) ?? AppLocalizationsEn());
+                  return _buildErrorState(
                     context,
-                    episodeDetail,
-                    hideBottomPlayer: hideBottomPlayer,
+                    l10n.podcast_episode_not_found,
                   );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => _buildErrorState(context, error),
-              ),
-              Positioned.fill(
-                child: PodcastPlayerModalBarrier(
-                  visible: isExpanded && !hideBottomPlayer,
-                  interactive: false,
-                  onDismiss: () {
-                    ref.read(audioPlayerProvider.notifier).setExpanded(false);
-                  },
-                ),
-              ),
-            ],
+                }
+                _trackEpisodeViewOnce(episodeDetail);
+                return _buildNewLayout(context, episodeDetail);
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => _buildErrorState(context, error),
+            ),
           ),
         );
       },

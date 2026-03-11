@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/router/app_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 
 /// Represents the user's sleep timer selection.
@@ -19,14 +21,14 @@ class SleepTimerSelection {
   });
 
   const SleepTimerSelection.afterEpisode()
-      : duration = null,
-        afterEpisode = true,
-        cancel = false;
+    : duration = null,
+      afterEpisode = true,
+      cancel = false;
 
   const SleepTimerSelection.cancel()
-      : duration = null,
-        afterEpisode = false,
-        cancel = true;
+    : duration = null,
+      afterEpisode = false,
+      cancel = true;
 }
 
 /// Preset durations for the sleep timer.
@@ -45,7 +47,9 @@ String _formatPresetDuration(Duration d, BuildContext context) {
   if (d.inMinutes >= 60) {
     final hours = d.inHours;
     final mins = d.inMinutes.remainder(60);
-    return mins > 0 ? l10n.player_hours_minutes(hours, mins) : l10n.player_hours(hours);
+    return mins > 0
+        ? l10n.player_hours_minutes(hours, mins)
+        : l10n.player_hours(hours);
   }
   return l10n.player_minutes(d.inMinutes);
 }
@@ -55,9 +59,18 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
   required BuildContext context,
   required bool isTimerActive,
 }) {
+  final fallbackContext = appNavigatorKey.currentContext;
+  final resolvedContext = Navigator.maybeOf(context) != null
+      ? context
+      : fallbackContext;
+  if (resolvedContext == null) {
+    return Future<SleepTimerSelection?>.value(null);
+  }
+
   return showModalBottomSheet<SleepTimerSelection>(
-    context: context,
+    context: resolvedContext,
     showDragHandle: true,
+    useRootNavigator: true,
     builder: (context) {
       final theme = Theme.of(context);
       final l10n = AppLocalizations.of(context)!;
@@ -92,9 +105,9 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                     return ActionChip(
                       label: Text(_formatPresetDuration(preset, context)),
                       onPressed: () {
-                        Navigator.of(context).pop(
-                          SleepTimerSelection(duration: preset),
-                        );
+                        Navigator.of(
+                          context,
+                        ).pop(SleepTimerSelection(duration: preset));
                       },
                     );
                   }).toList(),
@@ -108,11 +121,13 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                     Icons.stop_circle_outlined,
                     color: theme.colorScheme.primary,
                   ),
-                  title: Text(AppLocalizations.of(context)!.player_stop_after_episode),
+                  title: Text(
+                    AppLocalizations.of(context)!.player_stop_after_episode,
+                  ),
                   onTap: () {
-                    Navigator.of(context).pop(
-                      const SleepTimerSelection.afterEpisode(),
-                    );
+                    Navigator.of(
+                      context,
+                    ).pop(const SleepTimerSelection.afterEpisode());
                   },
                 ),
                 // Cancel timer (only when active)
@@ -129,9 +144,9 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                       style: TextStyle(color: theme.colorScheme.error),
                     ),
                     onTap: () {
-                      Navigator.of(context).pop(
-                        const SleepTimerSelection.cancel(),
-                      );
+                      Navigator.of(
+                        context,
+                      ).pop(const SleepTimerSelection.cancel());
                     },
                   ),
                 ],

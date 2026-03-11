@@ -16,6 +16,7 @@ import '../widgets/app_shells.dart';
 import '../utils/app_logger.dart' as logger;
 import '../../shared/widgets/loading_widget.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/podcast/presentation/widgets/global_podcast_player_host.dart';
 import '../../features/settings/presentation/providers/app_update_provider.dart';
 import '../../features/settings/presentation/widgets/update_dialog.dart';
 
@@ -104,6 +105,19 @@ Widget _wrapAppChild(BuildContext context, Widget child) {
   );
 }
 
+class _RootPlayerOverlay extends StatelessWidget {
+  const _RootPlayerOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Overlay(
+      initialEntries: [
+        OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
+      ],
+    );
+  }
+}
+
 class PersonalAIAssistantApp extends ConsumerStatefulWidget {
   const PersonalAIAssistantApp({super.key});
 
@@ -115,6 +129,10 @@ class PersonalAIAssistantApp extends ConsumerStatefulWidget {
 class _PersonalAIAssistantAppState
     extends ConsumerState<PersonalAIAssistantApp> {
   bool _isInitialized = false;
+  GoRouter? _routeSyncRouter;
+  VoidCallback? _routeSyncListener;
+  bool _routeSyncScheduled = false;
+  String? _pendingRoute;
 
   @override
   void initState() {
@@ -125,6 +143,9 @@ class _PersonalAIAssistantAppState
 
   @override
   void dispose() {
+    if (_routeSyncRouter != null && _routeSyncListener != null) {
+      _routeSyncRouter!.routerDelegate.removeListener(_routeSyncListener!);
+    }
     // CRITICAL: Release audio resources when app is disposed
     // This ensures the audio player and (on mobile) the AudioService foreground service are properly cleaned up
     _cleanupAudioService();
@@ -162,7 +183,7 @@ class _PersonalAIAssistantAppState
           .read(authProvider.notifier)
           .checkAuthStatus()
           .timeout(
-            const Duration(seconds: 15),  // Extended from 5 to 15 seconds
+            const Duration(seconds: 15), // Extended from 5 to 15 seconds
             onTimeout: () {
               logger.AppLogger.debug(
                 '[AppInit] Auth check timed out after 15 seconds',
@@ -184,7 +205,9 @@ class _PersonalAIAssistantAppState
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           ref.read(authProvider.notifier).checkAuthStatus().catchError((e) {
-            logger.AppLogger.debug('[AppInit] Background auth retry failed: $e');
+            logger.AppLogger.debug(
+              '[AppInit] Background auth retry failed: $e',
+            );
           });
         }
       });
@@ -238,8 +261,7 @@ class _PersonalAIAssistantAppState
         // (the state's own context is above MaterialApp, so AppLocalizations
         // and ScaffoldMessenger would not be found from it).
         final router = ref.read(appRouterProvider);
-        final navContext =
-            router.routerDelegate.navigatorKey.currentContext;
+        final navContext = appNavigatorKey.currentContext;
         if (navContext != null && navContext.mounted) {
           AppUpdateDialog.show(
             context: navContext,
@@ -255,22 +277,55 @@ class _PersonalAIAssistantAppState
   }
 
   void _setupRouteListener() {
-    // Set initial route
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Update route after first frame is rendered
-      if (mounted) {
-        // Try to get current route from GoRouter
-        try {
-          final router = ref.read(appRouterProvider);
-          final RouteMatchList matchList =
-              router.routerDelegate.currentConfiguration;
-          final uri = matchList.uri;
-          ref.read(currentRouteProvider.notifier).setRoute(uri.toString());
-        } catch (_) {
-          // If getting route fails, just set to home
-          ref.read(currentRouteProvider.notifier).setRoute('/');
-        }
+    final router = ref.read(appRouterProvider);
+
+    void queueCurrentRouteUpdate(String route) {
+      _pendingRoute = route;
+      if (_routeSyncScheduled) {
+        return;
       }
+      _routeSyncScheduled = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _routeSyncScheduled = false;
+        if (!mounted) {
+          return;
+        }
+
+        final routeToApply = _pendingRoute;
+        _pendingRoute = null;
+        if (routeToApply == null) {
+          return;
+        }
+
+        final notifier = ref.read(currentRouteProvider.notifier);
+        final currentRoute = ref.read(currentRouteProvider);
+        if (currentRoute != routeToApply) {
+          notifier.setRoute(routeToApply);
+        }
+      });
+    }
+
+    void syncCurrentRoute() {
+      if (!mounted) {
+        return;
+      }
+
+      try {
+        final RouteMatchList matchList =
+            router.routerDelegate.currentConfiguration;
+        queueCurrentRouteUpdate(matchList.uri.toString());
+      } catch (_) {
+        queueCurrentRouteUpdate('/');
+      }
+    }
+
+    _routeSyncRouter = router;
+    _routeSyncListener = syncCurrentRoute;
+    router.routerDelegate.addListener(syncCurrentRoute);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      syncCurrentRoute();
     });
   }
 
@@ -279,6 +334,7 @@ class _PersonalAIAssistantAppState
     // Show splash screen while initializing
     if (!_isInitialized) {
       return MaterialApp(
+        key: const ValueKey('app_splash_shell'),
         title: 'Stella',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
@@ -299,6 +355,7 @@ class _PersonalAIAssistantAppState
 
     // Show main app after initialization
     return MaterialApp.router(
+      key: const ValueKey('app_router_shell'),
       title: 'Stella',
       debugShowCheckedModeBanner: false,
 
@@ -320,8 +377,16 @@ class _PersonalAIAssistantAppState
       ],
       supportedLocales: const [Locale('en'), Locale('zh')],
 
-      builder: (context, child) =>
-          _wrapAppChild(context, child ?? const SizedBox.shrink()),
+      builder: (context, child) => _wrapAppChild(
+        context,
+        Stack(
+          fit: StackFit.expand,
+          children: [
+            child ?? const SizedBox.shrink(),
+            const _RootPlayerOverlay(),
+          ],
+        ),
+      ),
     );
   }
 }

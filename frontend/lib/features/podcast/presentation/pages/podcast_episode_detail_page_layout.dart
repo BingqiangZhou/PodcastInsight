@@ -1,38 +1,7 @@
 part of 'podcast_episode_detail_page.dart';
 
 extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
-  Widget? _buildBottomPlayerBar({
-    required bool hideBottomPlayer,
-    required bool isMobileLayout,
-  }) {
-    if (hideBottomPlayer) {
-      return null;
-    }
-
-    if (!isMobileLayout) {
-      return const PodcastBottomPlayerWidget();
-    }
-
-    final spacerColor = Theme.of(context).colorScheme.surface;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const PodcastBottomPlayerWidget(applySafeArea: false),
-        Container(
-          key: const Key('podcast_episode_detail_mobile_bottom_spacer'),
-          height: _PodcastEpisodeDetailPageState._mobileMenuBarHeight,
-          width: double.infinity,
-          color: spacerColor,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNewLayout(
-    BuildContext context,
-    dynamic episode, {
-    required bool hideBottomPlayer,
-  }) {
+  Widget _buildNewLayout(BuildContext context, dynamic episode) {
     return LayoutBuilder(
       builder: (context, layoutConstraints) {
         // Use split-pane layout on desktop/tablet widths.
@@ -64,65 +33,42 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
                   Expanded(
                     child: Container(
                       key: const Key('podcast_episode_detail_wide_right_pane'),
-                      child: Column(
+                      child: Stack(
+                        fit: StackFit.expand,
                         children: [
-                          Expanded(
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                NotificationListener<ScrollNotification>(
-                                  onNotification: (scrollNotification) {
-                                    _handleAutoCollapseOnRead(
-                                      scrollNotification,
-                                    );
-                                    if (scrollNotification
-                                        is ScrollUpdateNotification) {
-                                      _recordScrollMetrics(
-                                        scrollNotification.metrics,
-                                      );
-                                    }
-                                    return false;
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.only(
-                                      top: _isHeaderExpanded ? 90 : 16,
-                                      right: 16,
-                                      bottom: 16,
-                                    ),
-                                    child: _buildTabContent(episode),
-                                  ),
-                                ),
-                                ValueListenableBuilder<bool>(
-                                  valueListenable: _showScrollToTopButton,
-                                  builder: (context, shouldShow, _) {
-                                    if (!shouldShow) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    return Positioned(
-                                      right: 16,
-                                      bottom: 16,
-                                      child: _buildScrollToTopButton(),
-                                    );
-                                  },
-                                ),
-                              ],
+                          NotificationListener<ScrollNotification>(
+                            onNotification: (scrollNotification) {
+                              _handleAutoCollapseOnRead(scrollNotification);
+                              if (scrollNotification
+                                  is ScrollUpdateNotification) {
+                                _recordScrollMetrics(
+                                  scrollNotification.metrics,
+                                );
+                              }
+                              return false;
+                            },
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                top: _isHeaderExpanded ? 90 : 16,
+                                right: 16,
+                                bottom: 16,
+                              ),
+                              child: _buildTabContent(episode),
                             ),
                           ),
-                          if (!hideBottomPlayer)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: SizedBox(
-                                key: const Key(
-                                  'podcast_episode_detail_desktop_player_region',
-                                ),
-                                width: double.infinity,
-                                child: const PodcastBottomPlayerWidget(
-                                  applySafeArea: false,
-                                ),
-                              ),
-                            ),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: _showScrollToTopButton,
+                            builder: (context, shouldShow, _) {
+                              if (!shouldShow) {
+                                return const SizedBox.shrink();
+                              }
+                              return Positioned(
+                                right: 16,
+                                bottom: 16,
+                                child: _buildScrollToTopButton(),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../data/models/podcast_subscription_model.dart';
 
 /// Navigation arguments for podcast episodes page
@@ -125,16 +126,29 @@ class PodcastPlayerPageArgs {
 class PodcastNavigation {
   const PodcastNavigation._();
 
+  static BuildContext? _resolveRoutingContext(BuildContext context) {
+    try {
+      GoRouter.of(context);
+      return context;
+    } catch (_) {
+      return appNavigatorKey.currentContext;
+    }
+  }
+
   /// Navigate to episodes page
   static void goToEpisodes(
     BuildContext context, {
     required int subscriptionId,
     String? podcastTitle,
   }) {
+    final routingContext = _resolveRoutingContext(context);
+    if (routingContext == null) {
+      return;
+    }
     final query = podcastTitle != null
         ? {'title': podcastTitle}
         : <String, dynamic>{};
-    context.pushNamed(
+    GoRouter.of(routingContext).pushNamed(
       'podcastEpisodes',
       pathParameters: {'subscriptionId': subscriptionId.toString()},
       queryParameters: query,
@@ -160,10 +174,14 @@ class PodcastNavigation {
     required int subscriptionId,
     String? episodeTitle,
   }) {
+    final routingContext = _resolveRoutingContext(context);
+    if (routingContext == null) {
+      return;
+    }
     final query = episodeTitle != null
         ? {'title': episodeTitle}
         : <String, dynamic>{};
-    context.pushNamed(
+    GoRouter.of(routingContext).pushNamed(
       'episodeDetail',
       pathParameters: {
         'subscriptionId': subscriptionId.toString(),
@@ -182,7 +200,11 @@ class PodcastNavigation {
     String? audioUrl,
     int? startPosition,
   }) {
-    context.pushNamed(
+    final routingContext = _resolveRoutingContext(context);
+    if (routingContext == null) {
+      return;
+    }
+    GoRouter.of(routingContext).pushNamed(
       'episodePlayer',
       pathParameters: {'episodeId': episodeId.toString()},
       queryParameters: {
@@ -200,7 +222,11 @@ class PodcastNavigation {
     DateTime? date,
     String? source,
   }) {
-    context.pushNamed(
+    final routingContext = _resolveRoutingContext(context);
+    if (routingContext == null) {
+      return;
+    }
+    GoRouter.of(routingContext).pushNamed(
       'dailyReport',
       queryParameters: {
         if (date != null) 'date': _formatDateOnly(date),

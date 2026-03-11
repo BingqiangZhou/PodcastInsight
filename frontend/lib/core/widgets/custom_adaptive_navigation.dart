@@ -18,6 +18,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     this.appBar,
     this.bottomAccessory,
     this.bottomAccessoryBodyPadding = 60,
+    this.globalOverlayBodyPadding = 0,
     this.desktopNavExpanded = true,
     this.onDesktopNavToggle,
   });
@@ -30,6 +31,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget? bottomAccessory;
   final double bottomAccessoryBodyPadding;
+  final double globalOverlayBodyPadding;
   final bool desktopNavExpanded;
   final VoidCallback? onDesktopNavToggle;
 
@@ -56,11 +58,11 @@ class CustomAdaptiveNavigation extends StatelessWidget {
         : 12.0;
     // NavigationBar custom height is 60. We add an extra 4 pixels gap between the player and the navigation bar dock.
     final double dockReserve = dockBottomPadding + 60.0 + 4.0;
-    
+    final accessoryBodyPadding = bottomAccessory != null
+        ? bottomAccessoryBodyPadding
+        : 0.0;
     final bottomBackdropHeight =
-        dockReserve +
-        (bottomAccessory != null ? bottomAccessoryBodyPadding : 0) +
-        36;
+        dockReserve + accessoryBodyPadding + globalOverlayBodyPadding + 36;
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
@@ -84,9 +86,8 @@ class CustomAdaptiveNavigation extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                   padding: EdgeInsets.only(
                     bottom:
-                        (bottomAccessory != null
-                            ? bottomAccessoryBodyPadding
-                            : 0) +
+                        accessoryBodyPadding +
+                        globalOverlayBodyPadding +
                         dockReserve,
                   ),
                   child: body ?? const SizedBox.shrink(),
@@ -95,11 +96,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
               if (floatingActionButton != null)
                 Positioned(
                   right: 20,
-                  bottom:
-                      (bottomAccessory != null
-                          ? bottomAccessoryBodyPadding
-                          : 0) +
-                      108,
+                  bottom: accessoryBodyPadding + globalOverlayBodyPadding + 108,
                   child: floatingActionButton!,
                 ),
               if (bottomAccessory != null)
@@ -159,10 +156,11 @@ class CustomAdaptiveNavigation extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _buildContentStack(
-              bottomPadding: bottomAccessory != null
-                  ? bottomAccessoryBodyPadding
-                  : 0,
+              bottomPadding:
+                  globalOverlayBodyPadding +
+                  (bottomAccessory != null ? bottomAccessoryBodyPadding : 0),
               fabBottom:
+                  globalOverlayBodyPadding +
                   (bottomAccessory != null ? bottomAccessoryBodyPadding : 0) +
                   28,
             ),
@@ -204,10 +202,11 @@ class CustomAdaptiveNavigation extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
               child: _buildContentStack(
-                bottomPadding: bottomAccessory != null
-                    ? bottomAccessoryBodyPadding
-                    : 0,
+                bottomPadding:
+                    globalOverlayBodyPadding +
+                    (bottomAccessory != null ? bottomAccessoryBodyPadding : 0),
                 fabBottom:
+                    globalOverlayBodyPadding +
                     (bottomAccessory != null ? bottomAccessoryBodyPadding : 0) +
                     28,
               ),
@@ -509,7 +508,10 @@ class CustomAdaptiveNavigation extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 3,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? scheme.primary.withValues(alpha: 0.14)
@@ -540,7 +542,6 @@ class CustomAdaptiveNavigation extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class ResponsiveContainer extends StatelessWidget {

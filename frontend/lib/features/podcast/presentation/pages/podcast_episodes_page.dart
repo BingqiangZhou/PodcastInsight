@@ -10,7 +10,6 @@ import '../../data/models/podcast_subscription_model.dart';
 import '../navigation/podcast_navigation.dart';
 import '../providers/podcast_providers.dart';
 import '../widgets/simplified_episode_card.dart';
-import '../widgets/podcast_bottom_player_widget.dart';
 import '../widgets/podcast_image_widget.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 
@@ -57,7 +56,6 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
   String _selectedFilter = 'all';
   bool _showOnlyWithSummary = false;
   bool _isReparsing = false; // Guard to avoid duplicate reparse requests.
-  static const double _mobileMenuBarHeight = 65.0;
   static const double _desktopEpisodeCardHeight = 160.0;
 
   String? get _statusFilter => _selectedFilter == 'played'
@@ -253,12 +251,10 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final hasPlayer =
-        ref.watch(
-          audioPlayerProvider.select((state) => state.currentEpisode),
-        ) !=
-        null;
-    final isMobileLayout = MediaQuery.of(context).size.width < 600;
+    final hostLayout = ref.watch(podcastPlayerHostLayoutProvider);
+    final playerBottomInset = hostLayout.visible
+        ? resolvePodcastPlayerTotalReservedSpace(context, hostLayout)
+        : 0.0;
 
     // Debug helper for first episode image fields.
     // if (episodesState.episodes.isNotEmpty) {
@@ -273,148 +269,149 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
     // }
 
     return Scaffold(
-      extendBody: isMobileLayout && hasPlayer,
-      bottomNavigationBar: _buildBottomPlayerBar(
-        hasPlayer: hasPlayer,
-        isMobileLayout: isMobileLayout,
-      ),
-      body: Column(
-        children: [
-          // Custom Header with top padding to align with Feed page
-          Padding(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 8,
-            ),
-            child: Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => context.pop(),
-                  ),
-                  const SizedBox(width: 8),
-                  // Icon
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
+      body: AnimatedPadding(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        padding: EdgeInsets.only(bottom: playerBottomInset),
+        child: Column(
+          children: [
+            // Custom Header with top padding to align with Feed page
+            Padding(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 8,
+              ),
+              child: Container(
+                height: 56,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => context.pop(),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Consumer(
-                        builder: (context, localRef, child) {
-                          final sub = widget.subscription;
-                          final fallbackSubscriptionImageUrl = localRef.watch(
-                            podcastEpisodesProvider.select(
-                              (state) => state.episodes.isNotEmpty
-                                  ? state.episodes.first.subscriptionImageUrl
-                                  : null,
-                            ),
-                          );
-
-                          if (sub?.imageUrl != null) {
-                            return PodcastImageWidget(
-                              imageUrl: sub!.imageUrl,
-                              width: 40,
-                              height: 40,
-                              iconSize: 24,
-                              iconColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer,
-                            );
-                          }
-
-                          if (fallbackSubscriptionImageUrl != null) {
-                            return PodcastImageWidget(
-                              imageUrl: fallbackSubscriptionImageUrl,
-                              width: 40,
-                              height: 40,
-                              iconSize: 24,
-                              iconColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer,
-                            );
-                          }
-
-                          return Icon(
-                            Icons.podcasts,
-                            size: 24,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                          );
-                        },
+                    const SizedBox(width: 8),
+                    // Icon
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      widget.podcastTitle ?? l10n.podcast_episodes,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  // Reparse action.
-                  IconButton(
-                    icon: _isReparsing
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Consumer(
+                          builder: (context, localRef, child) {
+                            final sub = widget.subscription;
+                            final fallbackSubscriptionImageUrl = localRef.watch(
+                              podcastEpisodesProvider.select(
+                                (state) => state.episodes.isNotEmpty
+                                    ? state.episodes.first.subscriptionImageUrl
+                                    : null,
+                              ),
+                            );
+
+                            if (sub?.imageUrl != null) {
+                              return PodcastImageWidget(
+                                imageUrl: sub!.imageUrl,
+                                width: 40,
+                                height: 40,
+                                iconSize: 24,
+                                iconColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              );
+                            }
+
+                            if (fallbackSubscriptionImageUrl != null) {
+                              return PodcastImageWidget(
+                                imageUrl: fallbackSubscriptionImageUrl,
+                                width: 40,
+                                height: 40,
+                                iconSize: 24,
+                                iconColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              );
+                            }
+
+                            return Icon(
+                              Icons.podcasts,
+                              size: 24,
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                          )
-                        : Icon(Icons.refresh),
-                    onPressed: _isReparsing ? null : _reparseSubscription,
-                    tooltip: l10n.podcast_reparse_tooltip,
-                  ),
-                  // Mobile shows filter button; desktop shows inline chips.
-                  if (MediaQuery.of(context).size.width < 700) ...[
-                    IconButton(
-                      icon: const Icon(Icons.filter_list),
-                      onPressed: _showFilterDialog,
-                      tooltip: l10n.filter,
+                              ).colorScheme.onPrimaryContainer,
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                    _buildMoreMenu(),
-                  ] else ...[
-                    _buildFilterChips(),
-                    const SizedBox(width: 8),
-                    _buildMoreMenu(),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        widget.podcastTitle ?? l10n.podcast_episodes,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    // Reparse action.
+                    IconButton(
+                      icon: _isReparsing
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            )
+                          : const Icon(Icons.refresh),
+                      onPressed: _isReparsing ? null : _reparseSubscription,
+                      tooltip: l10n.podcast_reparse_tooltip,
+                    ),
+                    // Mobile shows filter button; desktop shows inline chips.
+                    if (MediaQuery.of(context).size.width < 700) ...[
+                      IconButton(
+                        icon: const Icon(Icons.filter_list),
+                        onPressed: _showFilterDialog,
+                        tooltip: l10n.filter,
+                      ),
+                      _buildMoreMenu(),
+                    ] else ...[
+                      _buildFilterChips(),
+                      const SizedBox(width: 8),
+                      _buildMoreMenu(),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
-          ),
 
-          Expanded(
-            child: Consumer(
-              builder: (context, localRef, child) {
-                final episodesState = localRef.watch(podcastEpisodesProvider);
-                return episodesState.isLoading && episodesState.episodes.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : episodesState.error != null
-                    ? _buildErrorState(episodesState.error!)
-                    : episodesState.episodes.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: _refreshEpisodes,
-                        child: _buildEpisodesScrollable(episodesState),
-                      );
-              },
+            Expanded(
+              child: Consumer(
+                builder: (context, localRef, child) {
+                  final episodesState = localRef.watch(podcastEpisodesProvider);
+                  return episodesState.isLoading &&
+                          episodesState.episodes.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : episodesState.error != null
+                      ? _buildErrorState(episodesState.error!)
+                      : episodesState.episodes.isEmpty
+                      ? _buildEmptyState()
+                      : RefreshIndicator(
+                          onRefresh: _refreshEpisodes,
+                          child: _buildEpisodesScrollable(episodesState),
+                        );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -486,33 +483,6 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
     await ref.read(audioPlayerProvider.notifier).playManagedEpisode(episode);
     if (!mounted) return;
     context.push('/podcast/episode/detail/${episode.id}');
-  }
-
-  Widget? _buildBottomPlayerBar({
-    required bool hasPlayer,
-    required bool isMobileLayout,
-  }) {
-    if (!hasPlayer) {
-      return null;
-    }
-
-    if (!isMobileLayout) {
-      return const PodcastBottomPlayerWidget();
-    }
-
-    final spacerColor = Theme.of(context).colorScheme.surface;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const PodcastBottomPlayerWidget(applySafeArea: false),
-        Container(
-          key: const Key('podcast_episodes_mobile_bottom_spacer'),
-          height: _mobileMenuBarHeight,
-          width: double.infinity,
-          color: spacerColor,
-        ),
-      ],
-    );
   }
 
   Widget _buildEmptyState() {

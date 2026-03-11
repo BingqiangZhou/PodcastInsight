@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../router/app_router.dart';
+
 /// On desktop/tablet (width ≥ 600), shows a centered [Dialog] within the
 /// current navigator's content area.  On mobile shows a standard
 /// [showModalBottomSheet].
@@ -14,13 +16,21 @@ Future<T?> showAdaptiveSheet<T>({
   double desktopMaxWidth = 560,
   double desktopMaxHeightFraction = 0.85,
 }) {
-  final screenWidth = MediaQuery.of(context).size.width;
+  final fallbackContext = appNavigatorKey.currentContext;
+  final resolvedContext = Navigator.maybeOf(context) != null
+      ? context
+      : fallbackContext;
+  if (resolvedContext == null) {
+    return Future<T?>.value(null);
+  }
+
+  final screenWidth = MediaQuery.of(resolvedContext).size.width;
 
   if (screenWidth >= 600) {
     // Desktop / tablet → centred dialog scoped to the content area navigator.
     return showDialog<T>(
-      context: context,
-      useRootNavigator: false,
+      context: resolvedContext,
+      useRootNavigator: true,
       barrierColor: Colors.black54,
       builder: (dialogCtx) {
         final size = MediaQuery.of(dialogCtx).size;
@@ -45,12 +55,12 @@ Future<T?> showAdaptiveSheet<T>({
 
   // Mobile → bottom sheet.
   return showModalBottomSheet<T>(
-    context: context,
+    context: resolvedContext,
     isScrollControlled: isScrollControlled,
     showDragHandle: showDragHandle,
     useSafeArea: useSafeArea,
-    useRootNavigator: false,
-    backgroundColor: Theme.of(context).colorScheme.surface,
+    useRootNavigator: true,
+    backgroundColor: Theme.of(resolvedContext).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),

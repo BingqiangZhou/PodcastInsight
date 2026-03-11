@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/providers/route_provider.dart';
+import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
@@ -19,6 +22,7 @@ import 'package:personal_ai_assistant/features/podcast/data/services/apple_podca
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_feed_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/global_podcast_player_host.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_page.dart';
 
 void main() {
@@ -391,6 +395,68 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+
+    testWidgets('desktop mini player stays inside the content pane', (
+      tester,
+    ) async {
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _testEpisode(), isExpanded: false),
+      );
+
+      await _pumpHomePage(
+        tester,
+        audioNotifier: audioNotifier,
+        initialTab: 2,
+        size: const Size(1200, 900),
+      );
+
+      final sidebarRect = tester.getRect(
+        find.byKey(const ValueKey('desktop_navigation_sidebar')),
+      );
+      final miniPlayerRect = tester.getRect(
+        find.byKey(const Key('podcast_bottom_player_mini_wrapper')),
+      );
+
+      expect(miniPlayerRect.left, greaterThanOrEqualTo(sidebarRect.right));
+    });
+
+    testWidgets(
+      'desktop title navigation to detail and back keeps player out of the sidebar',
+      (tester) async {
+        final audioNotifier = TestAudioPlayerNotifier(
+          AudioPlayerState(
+            currentEpisode: _testEpisode(),
+            isExpanded: true,
+            duration: 180000,
+          ),
+        );
+
+        final router = await _pumpHomePageRouterFlow(
+          tester,
+          audioNotifier: audioNotifier,
+          size: const Size(1200, 900),
+        );
+
+        await tester.tap(
+          find.byKey(const Key('podcast_bottom_player_expanded_title')),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Episode Detail Route'), findsOneWidget);
+
+        router.go('/home');
+        await tester.pumpAndSettle();
+
+        final sidebarRect = tester.getRect(
+          find.byKey(const ValueKey('desktop_navigation_sidebar')),
+        );
+        final playerRect = tester.getRect(
+          find.byKey(const Key('global_podcast_player')),
+        );
+
+        expect(playerRect.left, greaterThanOrEqualTo(sidebarRect.right));
+      },
+    );
   });
 }
 
@@ -399,8 +465,9 @@ Future<void> _pumpHomePage(
   required TestAudioPlayerNotifier audioNotifier,
   TestPodcastFeedNotifier? feedNotifier,
   required int initialTab,
+  Size size = const Size(390, 640),
 }) async {
-  tester.view.physicalSize = const Size(390, 640);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -437,12 +504,92 @@ Future<void> _pumpHomePage(
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => Overlay(
+          initialEntries: [
+            OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
+            OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
+          ],
+        ),
         home: HomePage(initialTab: initialTab),
       ),
     ),
   );
 
   await tester.pumpAndSettle();
+}
+
+Future<GoRouter> _pumpHomePageRouterFlow(
+  WidgetTester tester, {
+  required TestAudioPlayerNotifier audioNotifier,
+  Size size = const Size(1200, 900),
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  final feedNotifier = TestPodcastFeedNotifier();
+  final router = GoRouter(
+    navigatorKey: appNavigatorKey,
+    initialLocation: '/home',
+    routes: [
+      GoRoute(
+        path: '/home',
+        name: 'home',
+        builder: (context, state) => const HomePage(initialTab: 2),
+      ),
+      GoRoute(
+        path: '/podcast/episodes/:subscriptionId/:episodeId',
+        name: 'episodeDetail',
+        builder: (context, state) => const _HomeRouteEpisodeDetailPage(),
+      ),
+    ],
+  );
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        localStorageServiceProvider.overrideWithValue(
+          _MockLocalStorageService(),
+        ),
+        authProvider.overrideWith(TestAuthNotifier.new),
+        audioPlayerProvider.overrideWith(() => audioNotifier),
+        podcastFeedProvider.overrideWith(() => feedNotifier),
+        podcastSubscriptionProvider.overrideWith(
+          TestPodcastSubscriptionNotifier.new,
+        ),
+        applePodcastRssServiceProvider.overrideWithValue(
+          _FakeApplePodcastRssService(),
+        ),
+        profileStatsProvider.overrideWith(
+          () => _FixedProfileStatsNotifier(
+            const ProfileStatsModel(
+              totalSubscriptions: 2,
+              totalEpisodes: 8,
+              summariesGenerated: 3,
+              pendingSummaries: 1,
+              playedEpisodes: 4,
+            ),
+          ),
+        ),
+      ],
+      child: MaterialApp.router(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+        builder: (context, child) => Overlay(
+          initialEntries: [
+            OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
+            OverlayEntry(builder: (_) => _RouteSyncBridge(router: router)),
+            OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  await tester.pumpAndSettle();
+  return router;
 }
 
 class TestAuthNotifier extends AuthNotifier {
@@ -457,6 +604,74 @@ class TestAuthNotifier extends AuthNotifier {
         fullName: 'Test User',
         isVerified: true,
         isActive: true,
+      ),
+    );
+  }
+}
+
+class _RouteSyncBridge extends ConsumerStatefulWidget {
+  const _RouteSyncBridge({required this.router});
+
+  final GoRouter router;
+
+  @override
+  ConsumerState<_RouteSyncBridge> createState() => _RouteSyncBridgeState();
+}
+
+class _RouteSyncBridgeState extends ConsumerState<_RouteSyncBridge> {
+  late final VoidCallback _listener = _syncRoute;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.router.routerDelegate.addListener(_listener);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncRoute();
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.router.routerDelegate.removeListener(_listener);
+    super.dispose();
+  }
+
+  void _syncRoute() {
+    if (!mounted) {
+      return;
+    }
+    ref
+        .read(currentRouteProvider.notifier)
+        .setRoute(
+          widget.router.routerDelegate.currentConfiguration.uri.toString(),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
+  }
+}
+
+class _HomeRouteEpisodeDetailPage extends StatelessWidget {
+  const _HomeRouteEpisodeDetailPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Episode Detail Route'),
+            const SizedBox(height: 12),
+            FilledButton(
+              key: const Key('back_to_home'),
+              onPressed: () => context.go('/home'),
+              child: const Text('Back Home'),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/providers/route_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
@@ -15,6 +16,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/co
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/global_podcast_player_host.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shownotes_display_widget.dart';
 
@@ -492,7 +494,7 @@ void main() {
       },
     );
 
-    testWidgets('shows mobile white spacer under player with menu-bar height', (
+    testWidgets('mobile renders player from global host without local spacer', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -514,19 +516,14 @@ void main() {
 
       final playerFinder = find.byType(PodcastBottomPlayerWidget);
       expect(playerFinder, findsOneWidget);
-      final playerWidget = tester.widget<PodcastBottomPlayerWidget>(
-        playerFinder,
+      expect(
+        find.byKey(const Key('podcast_episode_detail_mobile_bottom_spacer')),
+        findsNothing,
       );
-      expect(playerWidget.applySafeArea, isFalse);
-
-      final spacerFinder = find.byKey(
-        const Key('podcast_episode_detail_mobile_bottom_spacer'),
+      expect(
+        find.byKey(const Key('global_podcast_player_host')),
+        findsOneWidget,
       );
-      expect(spacerFinder, findsOneWidget);
-      final spacerContainer = tester.widget<Container>(spacerFinder);
-      final theme = Theme.of(tester.element(spacerFinder));
-      expect(spacerContainer.color, theme.colorScheme.surface);
-      expect(tester.getRect(spacerFinder).height, closeTo(65.0, 0.1));
     });
 
     testWidgets('scroll-to-top button is above mini player when visible', (
@@ -579,7 +576,7 @@ void main() {
       expect(scrollButtonBottom, lessThan(miniPlayerTop));
     });
 
-    testWidgets('mobile collapsed player uses surface spacer background', (
+    testWidgets('mobile collapsed player no longer uses a local spacer', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -601,14 +598,14 @@ void main() {
       notifier.setExpanded(false);
       await tester.pumpAndSettle();
 
-      final spacerFinder = find.byKey(
-        const Key('podcast_episode_detail_mobile_bottom_spacer'),
+      expect(
+        find.byKey(const Key('podcast_episode_detail_mobile_bottom_spacer')),
+        findsNothing,
       );
-      expect(spacerFinder, findsOneWidget);
-      final spacerContainer = tester.widget<Container>(spacerFinder);
-      final theme = Theme.of(tester.element(spacerFinder));
-      expect(spacerContainer.color, theme.colorScheme.surface);
-      expect(tester.getRect(spacerFinder).height, closeTo(65.0, 0.1));
+      expect(
+        find.byKey(const Key('podcast_bottom_player_mini')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('hides bottom player on wide screen after switching to chat', (
@@ -634,50 +631,43 @@ void main() {
       expect(find.byType(PageView), findsNothing);
       expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
 
-      await tester.tap(find.text('Chat').first);
-      await tester.pump(const Duration(milliseconds: 400));
+      notifier.setExpanded(false);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(GestureDetector, 'Chat').last);
+      await tester.pumpAndSettle();
 
       expect(find.byType(PodcastBottomPlayerWidget), findsNothing);
     });
 
-    testWidgets(
-      'desktop player is constrained to the right content area bottom',
-      (tester) async {
-        addTearDown(() async {
-          await tester.binding.setSurfaceSize(null);
-        });
-        await tester.binding.setSurfaceSize(const Size(1200, 900));
+    testWidgets('desktop player stays globally anchored near viewport bottom', (
+      tester,
+    ) async {
+      addTearDown(() async {
+        await tester.binding.setSurfaceSize(null);
+      });
+      await tester.binding.setSurfaceSize(const Size(1200, 900));
 
-        final notifier = TestAudioPlayerNotifier(
-          AudioPlayerState(
-            currentEpisode: _episode(),
-            duration: 180000,
-            isExpanded: true,
-            isPlaying: true,
-          ),
-        );
+      final notifier = TestAudioPlayerNotifier(
+        AudioPlayerState(
+          currentEpisode: _episode(),
+          duration: 180000,
+          isExpanded: true,
+          isPlaying: true,
+        ),
+      );
 
-        await tester.pumpWidget(_createWidget(notifier));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(_createWidget(notifier));
+      await tester.pumpAndSettle();
 
-        final rightPaneFinder = find.byKey(
-          const Key('podcast_episode_detail_wide_right_pane'),
-        );
-        final playerRegionFinder = find.byKey(
-          const Key('podcast_episode_detail_desktop_player_region'),
-        );
-        expect(rightPaneFinder, findsOneWidget);
-        expect(playerRegionFinder, findsOneWidget);
+      final hostFinder = find.byKey(const Key('global_podcast_player'));
+      expect(hostFinder, findsOneWidget);
 
-        final rightPaneRect = tester.getRect(rightPaneFinder);
-        final playerRegionRect = tester.getRect(playerRegionFinder);
-
-        expect(playerRegionRect.left, closeTo(rightPaneRect.left + 12, 0.5));
-        expect(playerRegionRect.right, closeTo(rightPaneRect.right - 12, 0.5));
-        expect(playerRegionRect.bottom, closeTo(rightPaneRect.bottom, 0.5));
-        expect(playerRegionRect.left, greaterThan(0));
-      },
-    );
+      final playerRect = tester.getRect(hostFinder);
+      expect(playerRect.left, closeTo(0, 0.5));
+      expect(playerRect.right, closeTo(1200, 0.5));
+      expect(playerRect.bottom, closeTo(888, 0.5));
+    });
 
     testWidgets(
       'keeps bottom player visible on wide transcript and summary tabs when expanded',
@@ -699,19 +689,21 @@ void main() {
         await tester.pumpWidget(_createWidget(notifier));
         await tester.pumpAndSettle();
 
+        notifier.setExpanded(false);
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Transcript').first);
         await tester.pump(const Duration(milliseconds: 400));
-        expect(
-          find.byKey(const Key('podcast_episode_detail_desktop_player_region')),
-          findsOneWidget,
-        );
+        notifier.setExpanded(true);
+        await tester.pumpAndSettle();
+        expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
 
+        notifier.setExpanded(false);
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Summary').first);
         await tester.pump(const Duration(milliseconds: 400));
-        expect(
-          find.byKey(const Key('podcast_episode_detail_desktop_player_region')),
-          findsOneWidget,
-        );
+        notifier.setExpanded(true);
+        await tester.pumpAndSettle();
+        expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
       },
     );
 
@@ -736,6 +728,9 @@ void main() {
       await tester.pumpWidget(
         _createWidget(notifier, queueController: queueController),
       );
+      await tester.pumpAndSettle();
+
+      notifier.setExpanded(false);
       await tester.pumpAndSettle();
 
       final addButtonFinder = find.byKey(
@@ -869,6 +864,7 @@ Widget _createWidget(
   return ProviderScope(
     overrides: [
       audioPlayerProvider.overrideWith(() => notifier),
+      currentRouteProvider.overrideWith(_TestCurrentRouteNotifier.new),
       podcastQueueControllerProvider.overrideWith(
         () => effectiveQueueController,
       ),
@@ -890,6 +886,12 @@ Widget _createWidget(
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      builder: (context, child) => Overlay(
+        initialEntries: [
+          OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
+          OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
+        ],
+      ),
       home: const PodcastEpisodeDetailPage(episodeId: 1),
     ),
   );
@@ -1007,6 +1009,13 @@ class TestAudioPlayerNotifier extends AudioPlayerNotifier {
   @override
   Future<void> stop() async {
     state = state.copyWith(clearCurrentEpisode: true);
+  }
+}
+
+class _TestCurrentRouteNotifier extends CurrentRouteNotifier {
+  @override
+  String build() {
+    return '/podcast/episodes/1/1';
   }
 }
 

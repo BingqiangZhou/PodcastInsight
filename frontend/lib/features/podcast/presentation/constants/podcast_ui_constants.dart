@@ -1,6 +1,10 @@
 const double kPodcastMiniCornerRadius = 12.0;
 const double kPodcastMiniPlayerHeight = 56.0;
 const double kPodcastMiniPlayerBodyReserve = 64.0;
+const double kPodcastGlobalPlayerMobileDockHeight = 60.0;
+const double kPodcastGlobalPlayerMobileDockGap = 4.0;
+const double kPodcastGlobalPlayerMobileViewportPadding = 12.0;
+const double kPodcastGlobalPlayerDesktopBottomOffset = 12.0;
 
 // Shared row-card style for subscription list and search results.
 const double kPodcastRowCardCornerRadius = 12.0;

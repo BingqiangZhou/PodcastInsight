@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../constants/playback_speed_options.dart';
 import '../../../../core/localization/app_localizations.dart';
 
@@ -18,9 +19,18 @@ Future<PlaybackSpeedSelection?> showPlaybackSpeedSelectorSheet({
   required double initialSpeed,
   bool initialApplyToSubscription = false,
 }) {
+  final fallbackContext = appNavigatorKey.currentContext;
+  final resolvedContext = Navigator.maybeOf(context) != null
+      ? context
+      : fallbackContext;
+  if (resolvedContext == null) {
+    return Future<PlaybackSpeedSelection?>.value(null);
+  }
+
   return showModalBottomSheet<PlaybackSpeedSelection>(
-    context: context,
+    context: resolvedContext,
     showDragHandle: true,
+    useRootNavigator: true,
     builder: (context) {
       var selectedSpeed = initialSpeed;
       var applyToSubscription = initialApplyToSubscription;

@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/providers/route_provider.dart';
 import '../../../../core/widgets/custom_adaptive_navigation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../podcast/presentation/pages/podcast_feed_page.dart';
 import '../../../podcast/presentation/pages/podcast_list_page.dart';
 import '../../../podcast/presentation/constants/podcast_ui_constants.dart';
 import '../../../podcast/presentation/providers/podcast_providers.dart';
-import '../../../podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -25,16 +25,24 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   static const int _tabCount = 3;
+  static const double _tabletSidebarWidth = 86;
+  static const double _tabletContentGap = 12;
+  static const double _desktopContentRightInset = 12;
 
   late int _currentIndex;
   bool _hasAttemptedPlaybackRestore = false;
   bool _desktopNavExpanded = true;
   bool _hasPrefetchedLibraryFeed = false;
   final Set<int> _visitedTabs = <int>{};
+  PodcastPlayerHostPageOverride? _lastPlayerHostOverride;
+  late final PodcastPlayerHostPageOverrideNotifier _playerHostOverrideNotifier;
 
   @override
   void initState() {
     super.initState();
+    _playerHostOverrideNotifier = ref.read(
+      podcastPlayerHostPageOverrideProvider.notifier,
+    );
     _currentIndex = (widget.initialTab ?? 0).clamp(0, _tabCount - 1);
     _visitedTabs.add(_currentIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -77,6 +85,42 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+  void _syncPlayerHostOverride(PodcastPlayerHostPageOverride override) {
+    if (_lastPlayerHostOverride == override) {
+      return;
+    }
+    _lastPlayerHostOverride = override;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _playerHostOverrideNotifier.setOverride(override);
+    });
+  }
+
+  PodcastPlayerHostPageOverride _buildPlayerHostOverride(double width) {
+    if (width < 600) {
+      return const PodcastPlayerHostPageOverride(
+        routeOwner: PodcastPlayerHostRouteOwner.homeShell,
+      );
+    }
+
+    if (width < 840) {
+      return const PodcastPlayerHostPageOverride(
+        routeOwner: PodcastPlayerHostRouteOwner.homeShell,
+        overlayLeftInset: _tabletSidebarWidth + _tabletContentGap,
+        overlayRightInset: _desktopContentRightInset,
+      );
+    }
+
+    return PodcastPlayerHostPageOverride(
+      routeOwner: PodcastPlayerHostRouteOwner.homeShell,
+      overlayLeftInset: _desktopNavExpanded ? 280 : 80,
+      overlayRightInset: _desktopContentRightInset,
+    );
+  }
+
   List<NavigationDestination> _buildDestinations(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return [
@@ -104,12 +148,21 @@ class _HomePageState extends ConsumerState<HomePage> {
       return Scaffold(body: widget.child!);
     }
 
+    final currentRoute = ref.watch(currentRouteProvider);
     final hasCurrentEpisode = ref.watch(
-      audioPlayerProvider.select((s) => s.currentEpisode != null),
+      audioCurrentEpisodeIdProvider.select((episodeId) => episodeId != null),
     );
-    final isExpanded = ref.watch(
-      audioPlayerProvider.select((s) => s.isExpanded),
-    );
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isHomeShellRoute =
+        currentRoute == '/' ||
+        currentRoute == '/home' ||
+        currentRoute.startsWith('/home?') ||
+        currentRoute == '/profile' ||
+        currentRoute.startsWith('/profile?');
+
+    if (isHomeShellRoute) {
+      _syncPlayerHostOverride(_buildPlayerHostOverride(screenWidth));
+    }
 
     return CustomAdaptiveNavigation(
       key: const ValueKey('home_custom_adaptive_navigation'),
@@ -118,38 +171,21 @@ class _HomePageState extends ConsumerState<HomePage> {
       onDestinationSelected: _handleNavigation,
       appBar: null,
       floatingActionButton: _buildFloatingActionButton(),
-      bottomAccessory: _buildBottomAccessory(hasCurrentEpisode),
-      bottomAccessoryBodyPadding: _bottomAccessoryBodyPadding(
-        hasCurrentEpisode: hasCurrentEpisode,
-      ),
+      globalOverlayBodyPadding: hasCurrentEpisode
+          ? kPodcastMiniPlayerBodyReserve
+          : 0,
       desktopNavExpanded: _desktopNavExpanded,
       onDesktopNavToggle: () {
         setState(() {
           _desktopNavExpanded = !_desktopNavExpanded;
         });
       },
-      body: _buildTabContent(isExpanded),
+      body: _buildTabContent(),
     );
   }
 
   Widget? _buildFloatingActionButton() {
     return null;
-  }
-
-  Widget? _buildBottomAccessory(bool hasCurrentEpisode) {
-    if (!hasCurrentEpisode) {
-      return null;
-    }
-
-    return const PodcastBottomPlayerWidget(applySafeArea: false);
-  }
-
-  double _bottomAccessoryBodyPadding({required bool hasCurrentEpisode}) {
-    if (!hasCurrentEpisode) {
-      return 0;
-    }
-
-    return kPodcastMiniPlayerBodyReserve;
   }
 
   void _handleNavigation(int index) {
@@ -164,22 +200,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
-  Widget _buildTabContent(bool isExpanded) {
-    final content = _buildIndexedTabContent();
-
-    return Stack(
-      children: [
-        content,
-        Positioned.fill(
-          child: PodcastPlayerModalBarrier(
-            visible: isExpanded,
-            onDismiss: () {
-              ref.read(audioPlayerProvider.notifier).setExpanded(false);
-            },
-          ),
-        ),
-      ],
-    );
+  Widget _buildTabContent() {
+    return _buildIndexedTabContent();
   }
 
   Widget _buildIndexedTabContent() {

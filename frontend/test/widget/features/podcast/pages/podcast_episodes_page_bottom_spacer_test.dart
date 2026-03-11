@@ -7,11 +7,12 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episo
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_episodes_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/global_podcast_player_host.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 
 void main() {
-  group('PodcastEpisodesPage bottom spacer', () {
-    testWidgets('mobile shows white spacer under player when player exists', (
+  group('PodcastEpisodesPage global player layout', () {
+    testWidgets('mobile keeps episode list above the fixed player', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -23,7 +24,7 @@ void main() {
         AudioPlayerState(currentEpisode: _episode(), duration: 180000),
       );
       final episodesNotifier = _TestPodcastEpisodesNotifier(
-        const PodcastEpisodesState(episodes: [], hasMore: false, total: 0),
+        PodcastEpisodesState(episodes: [_episode()], hasMore: false, total: 1),
       );
 
       await tester.pumpWidget(
@@ -36,22 +37,23 @@ void main() {
 
       final playerFinder = find.byType(PodcastBottomPlayerWidget);
       expect(playerFinder, findsOneWidget);
-      final playerWidget = tester.widget<PodcastBottomPlayerWidget>(
-        playerFinder,
+      final listFinder = find.byType(ListView);
+      final miniPlayerFinder = find.byKey(
+        const Key('podcast_bottom_player_mini_wrapper'),
       );
-      expect(playerWidget.applySafeArea, isFalse);
+      expect(listFinder, findsOneWidget);
+      expect(miniPlayerFinder, findsOneWidget);
+      expect(
+        find.byKey(const Key('podcast_episodes_mobile_bottom_spacer')),
+        findsNothing,
+      );
 
-      final spacerFinder = find.byKey(
-        const Key('podcast_episodes_mobile_bottom_spacer'),
-      );
-      expect(spacerFinder, findsOneWidget);
-      final spacerContainer = tester.widget<Container>(spacerFinder);
-      final theme = Theme.of(tester.element(spacerFinder));
-      expect(spacerContainer.color, theme.colorScheme.surface);
-      expect(tester.getRect(spacerFinder).height, closeTo(65.0, 0.1));
+      final listRect = tester.getRect(listFinder);
+      final miniPlayerRect = tester.getRect(miniPlayerFinder);
+      expect(listRect.bottom, lessThanOrEqualTo(miniPlayerRect.top + 0.1));
     });
 
-    testWidgets('mobile expanded player keeps white spacer background', (
+    testWidgets('mobile expanded player still renders from global host only', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -67,7 +69,7 @@ void main() {
         ),
       );
       final episodesNotifier = _TestPodcastEpisodesNotifier(
-        const PodcastEpisodesState(episodes: [], hasMore: false, total: 0),
+        PodcastEpisodesState(episodes: [_episode()], hasMore: false, total: 1),
       );
 
       await tester.pumpWidget(
@@ -78,43 +80,43 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final spacerFinder = find.byKey(
-        const Key('podcast_episodes_mobile_bottom_spacer'),
+      expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
+      expect(
+        find.byKey(const Key('podcast_bottom_player_expanded')),
+        findsOneWidget,
       );
-      expect(spacerFinder, findsOneWidget);
-      final spacerContainer = tester.widget<Container>(spacerFinder);
-      final theme = Theme.of(tester.element(spacerFinder));
-      expect(spacerContainer.color, theme.colorScheme.surface);
-      expect(tester.getRect(spacerFinder).height, closeTo(65.0, 0.1));
-    });
-
-    testWidgets('mobile does not show spacer when player does not exist', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final audioNotifier = _TestAudioPlayerNotifier(const AudioPlayerState());
-      final episodesNotifier = _TestPodcastEpisodesNotifier(
-        const PodcastEpisodesState(episodes: [], hasMore: false, total: 0),
-      );
-
-      await tester.pumpWidget(
-        _createWidget(
-          audioNotifier: audioNotifier,
-          episodesNotifier: episodesNotifier,
-        ),
-      );
-      await tester.pumpAndSettle();
-
       expect(
         find.byKey(const Key('podcast_episodes_mobile_bottom_spacer')),
         findsNothing,
       );
-      expect(find.byType(PodcastBottomPlayerWidget), findsNothing);
     });
+
+    testWidgets(
+      'mobile does not show player when there is no current episode',
+      (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final audioNotifier = _TestAudioPlayerNotifier(
+          const AudioPlayerState(),
+        );
+        final episodesNotifier = _TestPodcastEpisodesNotifier(
+          const PodcastEpisodesState(episodes: [], hasMore: false, total: 0),
+        );
+
+        await tester.pumpWidget(
+          _createWidget(
+            audioNotifier: audioNotifier,
+            episodesNotifier: episodesNotifier,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PodcastBottomPlayerWidget), findsNothing);
+      },
+    );
 
     testWidgets('switching subscription triggers forced reload once', (
       tester,
@@ -125,21 +127,14 @@ void main() {
       );
 
       await tester.pumpWidget(
-        _createWidget(
+        _createSwitchingWidget(
           audioNotifier: audioNotifier,
           episodesNotifier: episodesNotifier,
-          subscriptionId: 1,
         ),
       );
       await tester.pumpAndSettle();
 
-      await tester.pumpWidget(
-        _createWidget(
-          audioNotifier: audioNotifier,
-          episodesNotifier: episodesNotifier,
-          subscriptionId: 2,
-        ),
-      );
+      await tester.tap(find.byKey(const Key('switch_subscription')));
       await tester.pumpAndSettle();
 
       expect(episodesNotifier.loadCalls.length, 2);
@@ -149,6 +144,29 @@ void main() {
       expect(episodesNotifier.loadCalls.last.forceRefresh, isTrue);
     });
   });
+}
+
+Widget _createSwitchingWidget({
+  required _TestAudioPlayerNotifier audioNotifier,
+  required _TestPodcastEpisodesNotifier episodesNotifier,
+}) {
+  return ProviderScope(
+    overrides: [
+      audioPlayerProvider.overrideWith(() => audioNotifier),
+      podcastEpisodesProvider.overrideWith(() => episodesNotifier),
+    ],
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      builder: (context, child) => Overlay(
+        initialEntries: [
+          OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
+          OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
+        ],
+      ),
+      home: const _SubscriptionSwitchHarness(),
+    ),
+  );
 }
 
 Widget _createWidget({
@@ -164,12 +182,54 @@ Widget _createWidget({
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      builder: (context, child) => Overlay(
+        initialEntries: [
+          OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
+          OverlayEntry(builder: (_) => const GlobalPodcastPlayerHost()),
+        ],
+      ),
       home: PodcastEpisodesPage(
         subscriptionId: subscriptionId,
         podcastTitle: 'Demo',
       ),
     ),
   );
+}
+
+class _SubscriptionSwitchHarness extends StatefulWidget {
+  const _SubscriptionSwitchHarness();
+
+  @override
+  State<_SubscriptionSwitchHarness> createState() =>
+      _SubscriptionSwitchHarnessState();
+}
+
+class _SubscriptionSwitchHarnessState
+    extends State<_SubscriptionSwitchHarness> {
+  int _subscriptionId = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextButton(
+          key: const Key('switch_subscription'),
+          onPressed: () {
+            setState(() {
+              _subscriptionId = 2;
+            });
+          },
+          child: const Text('Switch'),
+        ),
+        Expanded(
+          child: PodcastEpisodesPage(
+            subscriptionId: _subscriptionId,
+            podcastTitle: 'Demo',
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _TestAudioPlayerNotifier extends AudioPlayerNotifier {

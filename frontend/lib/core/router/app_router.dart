@@ -24,8 +24,11 @@ import '../../core/localization/app_localizations.dart';
 import '../../core/widgets/app_shells.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: appNavigatorKey,
     initialLocation: '/splash', // Will be redirected by redirect logic
     debugLogDiagnostics: kDebugMode,
     refreshListenable: AuthStateListenable(

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/providers/route_provider.dart';
 import '../../data/models/podcast_episode_model.dart';
 import '../../data/models/podcast_queue_model.dart';
 import '../constants/playback_speed_options.dart';
@@ -427,19 +427,20 @@ class _ExpandedPlayerContentState
   }
 }
 
-class _EpisodeSummary extends StatelessWidget {
+class _EpisodeSummary extends ConsumerWidget {
   const _EpisodeSummary({required this.episode, required this.fullScreen});
 
   final PodcastEpisodeModel episode;
   final bool fullScreen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final textColor = theme.colorScheme.onSurfaceVariant.withValues(
       alpha: 0.72,
     );
     final imageSize = fullScreen ? 76.0 : 52.0;
+    final currentLocation = ref.watch(currentRouteProvider);
 
     return Row(
       children: [
@@ -453,10 +454,18 @@ class _EpisodeSummary extends StatelessWidget {
             key: const Key('podcast_bottom_player_expanded_title'),
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              final currentLocation = GoRouterState.of(context).uri.toString();
+              String resolvedCurrentLocation = currentLocation;
+              try {
+                resolvedCurrentLocation = GoRouterState.of(
+                  context,
+                ).uri.toString();
+              } catch (_) {
+                // Fall back to the globally tracked route when rendered from
+                // the player host overlay outside of the route subtree.
+              }
               final episodeDetailPath =
                   '/podcast/episodes/${episode.subscriptionId}/${episode.id}';
-              if (currentLocation.startsWith(episodeDetailPath)) {
+              if (resolvedCurrentLocation.startsWith(episodeDetailPath)) {
                 return;
               }
               PodcastNavigation.goToEpisodeDetail(
