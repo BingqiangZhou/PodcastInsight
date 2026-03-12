@@ -23,6 +23,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
   final Set<int> _addingEpisodeIds = <int>{};
   final ScrollController _scrollController = ScrollController();
   static const double _loadMoreThresholdPx = 320;
+  bool _awaitingInitialFeed = true;
 
   @override
   void initState() {
@@ -32,7 +33,14 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
       if (!mounted) {
         return;
       }
-      ref.read(podcastFeedProvider.notifier).loadInitialFeed();
+      ref.read(podcastFeedProvider.notifier).loadInitialFeed().whenComplete(() {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _awaitingInitialFeed = false;
+        });
+      });
     });
   }
 
@@ -270,8 +278,13 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     PodcastFeedState feedState,
   ) {
     final l10n = AppLocalizations.of(context)!;
+    final showInitialLoading =
+        _awaitingInitialFeed &&
+        feedState.episodes.isEmpty &&
+        feedState.error == null;
 
-    if (feedState.isLoading && feedState.episodes.isEmpty) {
+    if (showInitialLoading ||
+        (feedState.isLoading && feedState.episodes.isEmpty)) {
       return Center(
         child: CircularProgressIndicator(
           color: Theme.of(context).colorScheme.onSurfaceVariant,

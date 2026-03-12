@@ -21,20 +21,12 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
       children: [
         const AppPageBackdrop(),
         Center(
-          child: GlassPanel(
-            padding: const EdgeInsets.fromLTRB(28, 26, 28, 26),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(
-                  (AppLocalizations.of(context) ?? AppLocalizationsEn())
-                      .loading,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
+          child: LoadingStatusContent(
+            key: const Key('podcast_episode_detail_loading_content'),
+            title:
+                (AppLocalizations.of(context) ?? AppLocalizationsEn()).loading,
+            spinnerSize: 36,
+            gapAfterSpinner: 12,
           ),
         ),
       ],
@@ -273,7 +265,8 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     final episodeSummaryFailure = SummarySanitizer.detectFailureReason(
       episode.aiSummary,
     );
-    final sanitizedEpisodeSummary = episodeSummaryFailure == null
+    final sanitizedEpisodeSummary =
+        !summaryState.hidePersistedSummary && episodeSummaryFailure == null
         ? SummarySanitizer.clean(episode.aiSummary)
         : '';
 
@@ -313,7 +306,8 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
         else
           _buildAiSummaryEmptyState(context),
         if (summaryState.isLoading &&
-            (summaryState.hasSummary || sanitizedEpisodeSummary.isNotEmpty)) ...[
+            (summaryState.hasSummary ||
+                sanitizedEpisodeSummary.isNotEmpty)) ...[
           const SizedBox(height: 12),
           const LinearProgressIndicator(),
         ],

@@ -5,6 +5,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
+import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/playback_history_lite_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
@@ -159,9 +160,13 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                             title: l10n.profile_viewed_title,
                             subtitle:
                                 'Resume episodes and review recently played content.',
-                            child: const Center(
-                              child: CircularProgressIndicator(),
+                            child: LoadingStatusContent(
+                              key: const Key('profile_history_loading_content'),
+                              title: l10n.loading,
+                              spinnerSize: 28,
+                              gapAfterSpinner: 12,
                             ),
+                            bare: true,
                           ),
                           error: (error, _) => _buildPanelScaffold(
                             context,
@@ -228,7 +233,21 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
     required String title,
     required String subtitle,
     required Widget child,
+    bool bare = false,
   }) {
+    if (bare) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            child: AppSectionHeader(title: title, subtitle: subtitle),
+          ),
+          Expanded(child: Center(child: child)),
+        ],
+      );
+    }
+
     return GlassPanel(
       padding: EdgeInsets.zero,
       borderRadius: mindriverThemeOf(context).panelRadius,

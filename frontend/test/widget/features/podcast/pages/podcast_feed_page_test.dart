@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:async';
 
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_feed_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
@@ -85,6 +86,47 @@ void main() {
 
       await tester.pump();
       expect(feedNotifier.loadInitialFeedCallCount, 1);
+      testContainer.dispose();
+    });
+
+    testWidgets('shows loading before first empty result resolves', (
+      WidgetTester tester,
+    ) async {
+      final feedNotifier = DelayedLoadPodcastFeedNotifier(
+        const PodcastFeedState(
+          episodes: [],
+          isLoading: false,
+          hasMore: false,
+          total: 0,
+        ),
+      );
+      final testContainer = ProviderContainer(
+        overrides: [podcastFeedProvider.overrideWith(() => feedNotifier)],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: testContainer,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const PodcastFeedPage(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      feedNotifier.completeLoad();
+      await tester.pumpAndSettle();
+
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(PodcastFeedPage)),
+      )!;
+      expect(find.text(l10n.podcast_no_episodes_found), findsOneWidget);
+
       testContainer.dispose();
     });
 
@@ -395,5 +437,31 @@ class LoadTrackingPodcastFeedNotifier extends PodcastFeedNotifier {
     bool background = false,
   }) async {
     loadInitialFeedCallCount += 1;
+  }
+}
+
+class DelayedLoadPodcastFeedNotifier extends PodcastFeedNotifier {
+  DelayedLoadPodcastFeedNotifier(this._initialState);
+
+  final PodcastFeedState _initialState;
+  final Completer<void> _loadCompleter = Completer<void>();
+
+  @override
+  PodcastFeedState build() {
+    return _initialState;
+  }
+
+  @override
+  Future<void> loadInitialFeed({
+    bool forceRefresh = false,
+    bool background = false,
+  }) async {
+    await _loadCompleter.future;
+  }
+
+  void completeLoad() {
+    if (!_loadCompleter.isCompleted) {
+      _loadCompleter.complete();
+    }
   }
 }

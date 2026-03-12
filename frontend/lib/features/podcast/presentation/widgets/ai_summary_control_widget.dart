@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/widgets/top_floating_notice.dart';
 import '../../../podcast/data/models/podcast_playback_model.dart';
 import '../providers/summary_providers.dart';
 
@@ -60,9 +61,22 @@ class _AISummaryControlWidgetState
     ref.read(provider.notifier).generateSummary(model: _resolvedModelName());
   }
 
-  void _regenerateSummary() {
+  Future<void> _regenerateSummary() async {
     final provider = getSummaryProvider(widget.episodeId);
-    ref.read(provider.notifier).regenerateSummary(model: _resolvedModelName());
+    final response = await ref
+        .read(provider.notifier)
+        .regenerateSummary(model: _resolvedModelName());
+    if (!mounted || response == null) {
+      return;
+    }
+    final languageCode = Localizations.localeOf(context).languageCode;
+    showTopFloatingNotice(
+      context,
+      message: languageCode == 'zh'
+          ? '总结已进入任务列表'
+          : 'Summary task added to task list',
+      extraTopOffset: 72,
+    );
   }
 
   String? _resolvedModelName() {
@@ -160,8 +174,18 @@ class _AISummaryControlWidgetState
       children: [
         ElevatedButton.icon(
           onPressed: isLoading ? null : _generateSummary,
-          icon: Icon(Icons.auto_awesome, size: isCompact ? 16 : 18),
-          label: Text(AppLocalizations.of(context)!.podcast_summary_generate),
+          icon: isLoading
+              ? SizedBox(
+                  width: isCompact ? 16 : 18,
+                  height: isCompact ? 16 : 18,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(Icons.auto_awesome, size: isCompact ? 16 : 18),
+          label: Text(
+            isLoading
+                ? AppLocalizations.of(context)!.podcast_generating_summary
+                : AppLocalizations.of(context)!.podcast_summary_generate,
+          ),
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(
               horizontal: isCompact ? 16 : 24,
@@ -179,7 +203,9 @@ class _AISummaryControlWidgetState
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: TextButton.icon(
-              onPressed: () => setState(() => _showOptions = !_showOptions),
+              onPressed: isLoading
+                  ? null
+                  : () => setState(() => _showOptions = !_showOptions),
               icon: Icon(
                 _showOptions ? Icons.expand_less : Icons.expand_more,
                 size: isCompact ? 16 : 18,
@@ -203,7 +229,7 @@ class _AISummaryControlWidgetState
         if (_showOptions && hasModelOptions)
           Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: _buildAdvancedOptions(context, models),
+            child: _buildAdvancedOptions(context, models, enabled: !isLoading),
           ),
       ],
     );
@@ -260,8 +286,18 @@ class _AISummaryControlWidgetState
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: summaryState.isLoading ? null : _regenerateSummary,
-                icon: Icon(Icons.refresh, size: isCompact ? 16 : 18),
-                label: Text(AppLocalizations.of(context)!.podcast_regenerate),
+                icon: summaryState.isLoading
+                    ? SizedBox(
+                        width: isCompact ? 16 : 18,
+                        height: isCompact ? 16 : 18,
+                        child: const CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(Icons.refresh, size: isCompact ? 16 : 18),
+                label: Text(
+                  summaryState.isLoading
+                      ? AppLocalizations.of(context)!.podcast_generating_summary
+                      : AppLocalizations.of(context)!.podcast_regenerate,
+                ),
                 style: OutlinedButton.styleFrom(
                   padding: EdgeInsets.symmetric(
                     horizontal: isCompact ? 12 : 16,
@@ -278,7 +314,9 @@ class _AISummaryControlWidgetState
             if (hasModelOptions) ...[
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () => setState(() => _showOptions = !_showOptions),
+                onPressed: summaryState.isLoading
+                    ? null
+                    : () => setState(() => _showOptions = !_showOptions),
                 iconSize: isCompact ? 18 : 20,
                 visualDensity: isCompact
                     ? VisualDensity.compact
@@ -298,7 +336,11 @@ class _AISummaryControlWidgetState
         if (_showOptions && hasModelOptions)
           Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: _buildAdvancedOptions(context, models),
+            child: _buildAdvancedOptions(
+              context,
+              models,
+              enabled: !summaryState.isLoading,
+            ),
           ),
       ],
     );
@@ -327,8 +369,9 @@ class _AISummaryControlWidgetState
 
   Widget _buildAdvancedOptions(
     BuildContext context,
-    List<SummaryModelInfo> models,
-  ) {
+    List<SummaryModelInfo> models, {
+    required bool enabled,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -380,9 +423,11 @@ class _AISummaryControlWidgetState
             ),
           );
         }).toList(),
-        onChanged: (value) {
-          setState(() => _selectedModel = value);
-        },
+        onChanged: enabled
+            ? (value) {
+                setState(() => _selectedModel = value);
+              }
+            : null,
       ),
     );
   }

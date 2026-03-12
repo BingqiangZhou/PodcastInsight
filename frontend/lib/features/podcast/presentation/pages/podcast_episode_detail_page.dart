@@ -9,6 +9,7 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/app_localizations_en.dart';
 import '../../../../core/widgets/app_shells.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
+import '../../../../shared/widgets/loading_widget.dart';
 
 import '../providers/podcast_providers.dart';
 import '../providers/transcription_providers.dart';

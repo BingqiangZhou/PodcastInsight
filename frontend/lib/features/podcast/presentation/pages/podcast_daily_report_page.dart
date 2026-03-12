@@ -9,6 +9,7 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/app_shells.dart';
 import '../../../../core/widgets/custom_adaptive_navigation.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
+import '../../../../shared/widgets/loading_widget.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/podcast_daily_report_model.dart';
 import '../providers/podcast_providers.dart';
@@ -205,28 +206,16 @@ class _PodcastDailyReportPageState
         report?.reportDate ?? selectedDate ?? _focusedCalendarDay;
 
     if (reportAsync.isLoading && report == null) {
-      return _buildPanelScaffold(
+      return _buildBarePanelState(
         context,
         title: _formatDate(headerDate),
         subtitle: l10n.podcast_daily_report_loading,
-        child: Row(
-          children: [
-            SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.2,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                l10n.podcast_daily_report_loading,
-                style: theme.textTheme.bodyMedium,
-              ),
-            ),
-          ],
+        child: LoadingStatusContent(
+          key: const Key('daily_report_loading_content'),
+          title: l10n.podcast_daily_report_loading,
+          spinnerSize: 28,
+          spinnerColor: theme.colorScheme.primary,
+          gapAfterSpinner: 12,
         ),
       );
     }
@@ -383,6 +372,31 @@ class _PodcastDailyReportPageState
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBarePanelState(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+          child: AppSectionHeader(
+            title: title,
+            subtitle: subtitle,
+            trailing: _buildRegenerateButton(
+              ref.watch(selectedDailyReportDateProvider) ?? _focusedCalendarDay,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Expanded(child: Center(child: child)),
+      ],
     );
   }
 

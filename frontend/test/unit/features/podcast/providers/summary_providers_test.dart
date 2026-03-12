@@ -126,6 +126,36 @@ void main() {
       expect(container.read(provider).hasSummary, isFalse);
     });
   });
+
+  test(
+    'regenerate clears current summary and suppresses persisted fallback',
+    () {
+      fakeAsync((async) {
+        final repository = _FakeSummaryRepository(
+          episodeId: 1005,
+          summaryAvailableOnFetch: 3,
+        );
+        final container = ProviderContainer(
+          overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
+        );
+        addTearDown(container.dispose);
+
+        final provider = getSummaryProvider(1005);
+        container
+            .read(provider.notifier)
+            .updateSummary('Existing summary', modelUsed: 'model-a');
+
+        container.read(provider.notifier).regenerateSummary();
+        async.flushMicrotasks();
+
+        final state = container.read(provider);
+        expect(state.isLoading, isTrue);
+        expect(state.hasSummary, isFalse);
+        expect(state.summary, isNull);
+        expect(state.hidePersistedSummary, isTrue);
+      });
+    },
+  );
 }
 
 class _FakeSummaryRepository extends PodcastRepository {

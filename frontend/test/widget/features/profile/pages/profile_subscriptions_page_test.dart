@@ -35,6 +35,41 @@ class _TestPodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
 }
 
 void main() {
+  testWidgets('shows bare loading state without content GlassPanel', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          podcastSubscriptionProvider.overrideWith(
+            () => _TestPodcastSubscriptionNotifier(
+              const PodcastSubscriptionState(
+                subscriptions: [],
+                total: 0,
+                hasMore: false,
+                isLoading: true,
+              ),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: const ProfileSubscriptionsPage(),
+        ),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(
+      find.byKey(const Key('profile_subscriptions_loading_content')),
+      findsOneWidget,
+    );
+    expect(find.byType(GlassPanel), findsOneWidget);
+  });
+
   testWidgets('shows empty state when no subscriptions', (
     WidgetTester tester,
   ) async {

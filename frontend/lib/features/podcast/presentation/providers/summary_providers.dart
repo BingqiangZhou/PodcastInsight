@@ -44,6 +44,7 @@ class SummaryState {
   final int? wordCount;
   final DateTime? generatedAt;
   final bool isLoading;
+  final bool hidePersistedSummary;
   final String? errorMessage;
 
   const SummaryState({
@@ -53,6 +54,7 @@ class SummaryState {
     this.wordCount,
     this.generatedAt,
     this.isLoading = false,
+    this.hidePersistedSummary = false,
     this.errorMessage,
   });
 
@@ -67,6 +69,7 @@ class SummaryState {
     Object? wordCount = _unset,
     Object? generatedAt = _unset,
     bool? isLoading,
+    bool? hidePersistedSummary,
     Object? errorMessage = _unset,
   }) {
     return SummaryState(
@@ -84,6 +87,7 @@ class SummaryState {
           ? this.generatedAt
           : generatedAt as DateTime?,
       isLoading: isLoading ?? this.isLoading,
+      hidePersistedSummary: hidePersistedSummary ?? this.hidePersistedSummary,
       errorMessage: identical(errorMessage, _unset)
           ? this.errorMessage
           : errorMessage as String?,
@@ -111,29 +115,38 @@ class SummaryNotifier extends Notifier<SummaryState> {
   }
 
   /// Generate AI summary
-  Future<void> generateSummary({
+  Future<PodcastSummaryStartResponse?> generateSummary({
     String? model,
     bool forceRegenerate = true,
   }) async {
     _stopPolling();
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(
+      summary: null,
+      isLoading: true,
+      hidePersistedSummary: true,
+      errorMessage: null,
+    );
 
     try {
       final repository = ref.read(podcastRepositoryProvider);
-      await repository.generateSummary(
+      final response = await repository.generateSummary(
         episodeId: episodeId,
         forceRegenerate: forceRegenerate,
         summaryModel: model,
       );
       _pollEpisodeDetailUntilSummarySync();
+      return response;
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       _stopPolling();
+      return null;
     }
   }
 
   /// Regenerate summary
-  Future<void> regenerateSummary({String? model}) async {
+  Future<PodcastSummaryStartResponse?> regenerateSummary({
+    String? model,
+  }) async {
     return generateSummary(model: model, forceRegenerate: true);
   }
 
@@ -158,6 +171,7 @@ class SummaryNotifier extends Notifier<SummaryState> {
       wordCount: cleanedSummary.length,
       generatedAt: generatedAt ?? state.generatedAt,
       isLoading: false,
+      hidePersistedSummary: false,
       errorMessage: null,
     );
   }

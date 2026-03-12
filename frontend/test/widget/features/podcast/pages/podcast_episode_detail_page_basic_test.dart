@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -247,6 +249,28 @@ void main() {
       expect(find.text(l10n.podcast_go_back), findsOneWidget);
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
+
+    testWidgets('renders bare loading state without GlassPanel', (
+      tester,
+    ) async {
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+
+      final completer = Completer<PodcastEpisodeDetailResponse?>();
+      await tester.pumpWidget(
+        _createWidgetWithEpisodeLoader(() => completer.future),
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('podcast_episode_detail_loading_content')),
+        findsOneWidget,
+      );
+      expect(find.byType(GlassPanel), findsNothing);
+
+      completer.complete(_episode());
+      await tester.pumpAndSettle();
+    });
   });
 }
 
@@ -255,6 +279,35 @@ Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
     overrides: [
       audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
       episodeDetailProvider.overrideWith((ref, episodeId) async => episode),
+      getSummaryProvider(1).overrideWith(() => _SummaryWithContentNotifier()),
+      getTranscriptionProvider(
+        1,
+      ).overrideWith(() => _NoopTranscriptionNotifier(1)),
+      getConversationProvider(
+        1,
+      ).overrideWith(() => _ConversationWithoutMessagesNotifier()),
+      getSessionListProvider(1).overrideWith(() => _EmptySessionListNotifier()),
+      getCurrentSessionIdProvider(
+        1,
+      ).overrideWith(() => _NullSessionIdNotifier()),
+      availableModelsProvider.overrideWith((ref) async => <SummaryModelInfo>[]),
+    ],
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: const PodcastEpisodeDetailPage(episodeId: 1),
+    ),
+  );
+}
+
+Widget _createWidgetWithEpisodeLoader(
+  Future<PodcastEpisodeDetailResponse?> Function() loader,
+) {
+  return ProviderScope(
+    overrides: [
+      audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
+      episodeDetailProvider.overrideWith((ref, episodeId) => loader()),
       getSummaryProvider(1).overrideWith(() => _SummaryWithContentNotifier()),
       getTranscriptionProvider(
         1,

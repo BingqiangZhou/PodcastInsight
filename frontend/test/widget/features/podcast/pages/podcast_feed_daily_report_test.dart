@@ -161,7 +161,7 @@ void main() {
   });
 
   group('PodcastDailyReportPage', () {
-    testWidgets('renders glass loading state while initial report is pending', (
+    testWidgets('renders bare loading state while initial report is pending', (
       tester,
     ) async {
       final previousDay = _dateOnlyNowMinus(1);
@@ -177,8 +177,13 @@ void main() {
       await tester.pump();
 
       expect(find.text('Daily Report'), findsOneWidget);
+      expect(
+        find.byKey(const Key('daily_report_loading_content')),
+        findsOneWidget,
+      );
       expect(find.text('Loading daily report...'), findsWidgets);
       expect(find.byType(CircularProgressIndicator), findsWidgets);
+      expect(find.byType(GlassPanel), findsOneWidget);
     });
 
     testWidgets('renders retry action when initial report load fails', (

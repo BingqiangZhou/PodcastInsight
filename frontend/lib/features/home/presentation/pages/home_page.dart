@@ -83,7 +83,7 @@ class _HomePageState extends ConsumerState<HomePage> with RouteAware {
     _playerHostOverrideNotifier = ref.read(
       podcastPlayerHostPageOverrideProvider.notifier,
     );
-    _currentIndex = (widget.initialTab ?? 0).clamp(0, _tabCount - 1);
+    _currentIndex = (widget.initialTab ?? 1).clamp(0, _tabCount - 1);
     _visitedTabs.add(_currentIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -198,6 +198,7 @@ class _HomePageState extends ConsumerState<HomePage> with RouteAware {
       },
       body: PodcastPlayerLayoutFrame(
         includeMiniPlayer: true,
+        applyMiniPlayerSafeArea: false,
         child: _buildTabContent(),
       ),
     );

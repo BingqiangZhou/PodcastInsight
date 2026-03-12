@@ -8,6 +8,7 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playb
 import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/podcast_api_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/ai_summary_control_widget.dart';
 
 void main() {
@@ -44,14 +45,45 @@ void main() {
       expect(repository.summaryModelValues, ['default-model', 'default-model']);
     },
   );
+
+  testWidgets('regenerate shows task list notice after request is accepted', (
+    tester,
+  ) async {
+    final repository = _FakeSummaryRepository();
+
+    await tester.pumpWidget(
+      _buildTestApp(
+        repository,
+        summaryOverride: getSummaryProvider(
+          2001,
+        ).overrideWith(() => _SummaryWithContentNotifier()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final regenerateButton = find.byType(OutlinedButton);
+    expect(regenerateButton, findsOneWidget);
+    await tester.tap(regenerateButton);
+    await tester.pump();
+
+    expect(find.text('Summary task added to task list'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+  });
 }
 
-Widget _buildTestApp(_FakeSummaryRepository repository) {
+Widget _buildTestApp(
+  _FakeSummaryRepository repository, {
+  dynamic summaryOverride,
+}) {
   return ProviderScope(
-    overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      podcastRepositoryProvider.overrideWithValue(repository),
+      if (summaryOverride != null) summaryOverride,
+    ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
       home: const Scaffold(
         body: AISummaryControlWidget(episodeId: 2001, hasTranscript: true),
       ),
@@ -120,5 +152,14 @@ class _FakeSummaryRepository extends PodcastRepository {
       aiSummary: 'Persisted summary',
       summaryStatus: 'summarized',
     );
+  }
+}
+
+class _SummaryWithContentNotifier extends SummaryNotifier {
+  _SummaryWithContentNotifier() : super(2001);
+
+  @override
+  SummaryState build() {
+    return const SummaryState(summary: 'Persisted summary');
   }
 }

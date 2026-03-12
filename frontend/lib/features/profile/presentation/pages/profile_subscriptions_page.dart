@@ -11,6 +11,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/add_podcast_dialog.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/bulk_import_dialog.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
+import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 
 class ProfileSubscriptionsPage extends ConsumerStatefulWidget {
   const ProfileSubscriptionsPage({super.key});
@@ -205,7 +206,13 @@ class _ProfileSubscriptionsPageState
         context,
         title: l10n.profile_subscriptions,
         subtitle: 'Manage subscribed shows and browse your library.',
-        child: const Center(child: CircularProgressIndicator()),
+        child: LoadingStatusContent(
+          key: const Key('profile_subscriptions_loading_content'),
+          title: l10n.loading,
+          spinnerSize: 28,
+          gapAfterSpinner: 12,
+        ),
+        bare: true,
       );
     }
 
@@ -329,7 +336,21 @@ class _ProfileSubscriptionsPageState
     required String title,
     required String subtitle,
     required Widget child,
+    bool bare = false,
   }) {
+    if (bare) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            child: AppSectionHeader(title: title, subtitle: subtitle),
+          ),
+          Expanded(child: Center(child: child)),
+        ],
+      );
+    }
+
     return GlassPanel(
       padding: EdgeInsets.zero,
       borderRadius: mindriverThemeOf(context).panelRadius,

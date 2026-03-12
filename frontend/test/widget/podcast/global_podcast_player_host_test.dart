@@ -26,9 +26,7 @@ void main() {
       expect(dockFinder, findsOneWidget);
       final homeTop = tester.getRect(dockFinder).top;
       final expectedNonHomeTop =
-          homeTop -
-          (kPodcastGlobalPlayerMobileViewportPadding -
-              kPodcastGlobalPlayerMobileDockGap);
+          homeTop - kPodcastGlobalPlayerMobileViewportPadding;
 
       await tester.tap(find.byKey(const Key('route_to_episodes')));
       await tester.pumpAndSettle();
