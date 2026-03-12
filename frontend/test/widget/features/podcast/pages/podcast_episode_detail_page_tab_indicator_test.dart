@@ -16,9 +16,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/tr
 
 void main() {
   group('PodcastEpisodeDetailPage mobile tab selection', () {
-    testWidgets('selected tab uses filled pill styling without underline', (
-      tester,
-    ) async {
+    testWidgets('selected tab uses underline styling', (tester) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
@@ -27,7 +25,7 @@ void main() {
 
       expect(
         find.byKey(const Key('episode_detail_mobile_tab_indicator_0')),
-        findsNothing,
+        findsOneWidget,
       );
       expect(
         find.byKey(const Key('episode_detail_mobile_tab_indicator_1')),
@@ -37,12 +35,9 @@ void main() {
         find.byKey(const Key('episode_detail_mobile_tab_indicator_2')),
         findsNothing,
       );
-      expect(_tabColor(tester, 0), isNot(Colors.transparent));
-      expect(_tabColor(tester, 1), Colors.transparent);
-      expect(_tabColor(tester, 2), Colors.transparent);
     });
 
-    testWidgets('tap transcript tab updates selected pill styling', (
+    testWidgets('tap transcript tab updates selected underline', (
       tester,
     ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
@@ -58,14 +53,21 @@ void main() {
       await tester.tap(transcriptTabFinder);
       await tester.pumpAndSettle();
 
-      expect(_tabColor(tester, 0), Colors.transparent);
-      expect(_tabColor(tester, 1), isNot(Colors.transparent));
-      expect(_tabColor(tester, 2), Colors.transparent);
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_0')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_2')),
+        findsNothing,
+      );
     });
 
-    testWidgets('tap summary tab updates selected pill styling', (
-      tester,
-    ) async {
+    testWidgets('tap summary tab updates selected underline', (tester) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
@@ -79,9 +81,18 @@ void main() {
       await tester.tap(summaryTabFinder);
       await tester.pumpAndSettle();
 
-      expect(_tabColor(tester, 0), Colors.transparent);
-      expect(_tabColor(tester, 1), Colors.transparent);
-      expect(_tabColor(tester, 2), isNot(Colors.transparent));
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_0')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_1')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('episode_detail_mobile_tab_indicator_2')),
+        findsOneWidget,
+      );
     });
   });
 }
@@ -128,13 +139,6 @@ Widget _createWidget() {
       home: const PodcastEpisodeDetailPage(episodeId: 1),
     ),
   );
-}
-
-Color _tabColor(WidgetTester tester, int index) {
-  final material = tester.widget<Material>(
-    find.byKey(Key('episode_detail_mobile_tab_$index')),
-  );
-  return material.color ?? Colors.transparent;
 }
 
 class _MockAudioPlayerNotifier extends AudioPlayerNotifier {

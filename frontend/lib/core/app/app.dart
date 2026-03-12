@@ -99,7 +99,7 @@ Widget _wrapAppChild(BuildContext context, Widget child) {
     child: MediaQuery.withClampedTextScaling(
       minScaleFactor: 0.8,
       maxScaleFactor: 1.2,
-      child: child,
+      child: ColoredBox(color: theme.scaffoldBackgroundColor, child: child),
     ),
   );
 }

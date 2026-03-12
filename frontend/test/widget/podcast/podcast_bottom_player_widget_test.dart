@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/providers/route_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
@@ -294,6 +295,39 @@ void main() {
 
       expect(heroWidget, isA<Row>());
       expect(progressWidget, isA<Column>());
+    });
+
+    testWidgets('non-home embedded route paints reserved background', (
+      tester,
+    ) async {
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+      );
+      final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier();
+
+      await tester.pumpWidget(
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PodcastPlayerLayoutFrame)),
+        listen: false,
+      );
+      container.read(currentRouteProvider.notifier).setRoute('/detail');
+      await tester.pumpAndSettle();
+
+      final backgroundFinder = find.byKey(
+        const Key('podcast_player_reserved_background'),
+      );
+      expect(backgroundFinder, findsOneWidget);
+      expect(tester.widget<SizedBox>(backgroundFinder).height, greaterThan(0));
     });
 
     testWidgets('single-line expanded title block is vertically centered', (

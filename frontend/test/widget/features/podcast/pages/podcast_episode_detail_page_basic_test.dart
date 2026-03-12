@@ -50,6 +50,7 @@ void main() {
       expect(find.text(l10n.podcast_tab_shownotes), findsWidgets);
       expect(find.text(l10n.podcast_tab_transcript), findsOneWidget);
       expect(find.text(l10n.podcast_tab_summary), findsOneWidget);
+      expect(find.text(l10n.podcast_tab_chat), findsOneWidget);
       expect(
         find.byKey(const Key('podcast_episode_detail_owned_player')),
         findsNothing,
@@ -85,6 +86,46 @@ void main() {
         lessThanOrEqualTo(110),
       );
     });
+
+    testWidgets(
+      'keeps shownotes transcript summary and chat visible at 360px',
+      (tester) async {
+        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        await tester.binding.setSurfaceSize(const Size(360, 844));
+
+        await tester.pumpWidget(_createWidget(episode: _episode()));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+
+        final context = tester.element(find.byType(PodcastEpisodeDetailPage));
+        final l10n = AppLocalizations.of(context)!;
+
+        final shownotesFinder = find.text(l10n.podcast_tab_shownotes);
+        final transcriptFinder = find.text(l10n.podcast_tab_transcript);
+        final summaryFinder = find.text(l10n.podcast_tab_summary);
+        final chatFinder = find.text(l10n.podcast_tab_chat);
+
+        expect(shownotesFinder, findsWidgets);
+        expect(transcriptFinder, findsOneWidget);
+        expect(summaryFinder, findsOneWidget);
+        expect(chatFinder, findsOneWidget);
+
+        final viewportWidth = tester.view.physicalSize.width;
+        expect(
+          tester.getRect(transcriptFinder).right,
+          lessThanOrEqualTo(viewportWidth),
+        );
+        expect(
+          tester.getRect(summaryFinder).right,
+          lessThanOrEqualTo(viewportWidth),
+        );
+        expect(
+          tester.getRect(chatFinder).right,
+          lessThanOrEqualTo(viewportWidth),
+        );
+      },
+    );
 
     testWidgets('switches between transcript and summary tabs', (tester) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
@@ -143,32 +184,33 @@ void main() {
       );
     });
 
-    testWidgets(
-      'uses icon-only source and play actions on narrow mobile',
-      (tester) async {
-        addTearDown(() async => tester.binding.setSurfaceSize(null));
-        await tester.binding.setSurfaceSize(const Size(390, 844));
+    testWidgets('uses inline source link and icon-only play action on mobile', (
+      tester,
+    ) async {
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(390, 844));
 
-        await tester.pumpWidget(_createWidget(episode: _episode()));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpAndSettle();
 
-        final sourceButton = find.byKey(
-          const Key('podcast_episode_detail_source_button'),
-        );
-        final playButton = find.byKey(
-          const Key('podcast_episode_detail_play_button'),
-        );
-        final playWidget = tester.widget<HeaderCapsuleActionButton>(playButton);
-        final sourceWidget = tester.widget<Material>(sourceButton);
+      final sourceButton = find.byKey(
+        const Key('podcast_episode_detail_source_button'),
+      );
+      final playButton = find.byKey(
+        const Key('podcast_episode_detail_play_button'),
+      );
+      final playWidget = tester.widget<HeaderCapsuleActionButton>(playButton);
+      final sourceRect = tester.getRect(sourceButton);
+      final actionsRect = tester.getRect(
+        find.byKey(const Key('podcast_episode_detail_mobile_hero_actions')),
+      );
 
-        expect(sourceButton, findsOneWidget);
-        expect(sourceWidget.color, isNot(Colors.transparent));
-        expect(tester.getSize(sourceButton).width, lessThanOrEqualTo(30));
-        expect(tester.getSize(sourceButton).height, lessThanOrEqualTo(30));
-        expect(playWidget.density, HeaderCapsuleActionButtonDensity.iconOnly);
-        expect(tester.getSize(playButton).height, lessThanOrEqualTo(40));
-      },
-    );
+      expect(sourceButton, findsOneWidget);
+      expect(find.text('Source'), findsOneWidget);
+      expect(sourceRect.right, lessThan(actionsRect.left));
+      expect(playWidget.density, HeaderCapsuleActionButtonDensity.iconOnly);
+      expect(tester.getSize(playButton).height, lessThanOrEqualTo(40));
+    });
 
     testWidgets('uses icon-only play action on ultra narrow mobile', (
       tester,

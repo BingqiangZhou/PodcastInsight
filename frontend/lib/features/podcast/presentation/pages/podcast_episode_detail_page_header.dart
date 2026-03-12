@@ -151,7 +151,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                     key: const Key(
                       'podcast_episode_detail_mobile_hero_metadata',
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -162,7 +162,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                   if (episode.itemLink != null &&
                       episode.itemLink!.trim().isNotEmpty) ...[
                     const SizedBox(height: 6),
-                    _buildSourceLinkChip(episode, l10n, iconOnly: true),
+                    _buildMobileSourceLinkAction(episode, l10n),
                   ],
                 ],
               ),
@@ -830,6 +830,49 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       onTap: () {
         unawaited(_launchEpisodeSource(episode));
       },
+    );
+  }
+
+  Widget _buildMobileSourceLinkAction(
+    PodcastEpisodeDetailResponse episode,
+    AppLocalizations l10n,
+  ) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: const Key('podcast_episode_detail_source_button'),
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          unawaited(_launchEpisodeSource(episode));
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.link_rounded,
+                size: 13,
+                color: theme.colorScheme.secondary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                l10n.podcast_source,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.secondary,
+                  fontWeight: FontWeight.w700,
+                  decoration: TextDecoration.underline,
+                  decorationColor: theme.colorScheme.secondary.withValues(
+                    alpha: 0.8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

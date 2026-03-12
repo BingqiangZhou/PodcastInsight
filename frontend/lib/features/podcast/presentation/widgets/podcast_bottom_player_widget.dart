@@ -103,6 +103,17 @@ class PodcastPlayerLayoutFrame extends ConsumerWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
+        if (hasMiniPlayer &&
+            manageBottomPadding &&
+            bottomInset > 0 &&
+            spec.surfaceContext != PodcastPlayerSurfaceContext.homeShell)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: bottomInset,
+            child: _ReservedBottomBackground(height: bottomInset),
+          ),
         AnimatedPadding(
           duration: _kPlayerTransition,
           curve: Curves.easeOutCubic,
@@ -125,6 +136,55 @@ class PodcastPlayerLayoutFrame extends ConsumerWidget {
             applySafeArea: applyMiniPlayerSafeArea,
           ),
       ],
+    );
+  }
+}
+
+class _ReservedBottomBackground extends StatelessWidget {
+  const _ReservedBottomBackground({required this.height});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = mindriverThemeOf(context);
+    final baseColor = Color.alphaBlend(
+      theme.colorScheme.surface.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.20 : 0.28,
+      ),
+      theme.scaffoldBackgroundColor,
+    );
+
+    return IgnorePointer(
+      child: SizedBox(
+        key: const Key('podcast_player_reserved_background'),
+        height: height,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: baseColor,
+                gradient: tokens.shellGradient,
+              ),
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    baseColor.withValues(alpha: 0),
+                    baseColor.withValues(alpha: 0.52),
+                    baseColor,
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

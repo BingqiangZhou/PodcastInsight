@@ -11,13 +11,11 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildTopButtonBar({required bool isWide}) {
+    if (!isWide) {
+      return _buildMobileTopTextBar();
+    }
+
     final labels = _episodeDetailTabLabels();
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final chatDensity = screenWidth < 360
-        ? HeaderCapsuleActionButtonDensity.iconOnly
-        : screenWidth < 600
-        ? HeaderCapsuleActionButtonDensity.compact
-        : HeaderCapsuleActionButtonDensity.regular;
     final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
 
     return GlassPanel(
@@ -69,13 +67,148 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
             key: const Key('podcast_episode_detail_chat_button'),
             tooltip: l10n.podcast_tab_chat,
             icon: Icons.auto_awesome_outlined,
-            density: chatDensity,
-            label: chatDensity == HeaderCapsuleActionButtonDensity.iconOnly
-                ? null
-                : Text(l10n.podcast_tab_chat),
+            density: HeaderCapsuleActionButtonDensity.regular,
+            label: Text(l10n.podcast_tab_chat),
             onPressed: _openChatDrawer,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMobileTopTextBar() {
+    final labels = _episodeDetailTabLabels();
+    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+
+    return GlassPanel(
+      key: const Key('podcast_episode_detail_primary_tabs'),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      backgroundColor: Theme.of(
+        context,
+      ).colorScheme.surface.withValues(alpha: 0.18),
+      showHighlight: false,
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List<Widget>.generate(labels.length, (index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: index == labels.length - 1 ? 0 : 14,
+                    ),
+                    child: _buildTextTabButton(
+                      tabIndex: index,
+                      text: labels[index],
+                      isSelected: _selectedTabIndex == index,
+                      onTap: () {
+                        if (_selectedTabIndex == index) {
+                          return;
+                        }
+                        _updatePageState(() {
+                          _selectedTabIndex = index;
+                          _updateHeaderStateForTab(index);
+                        });
+                        _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 280),
+                          curve: Curves.easeInOutCubic,
+                        );
+                      },
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          _buildMobileChatAction(l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextTabButton({
+    required int tabIndex,
+    required String text,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+
+    return Material(
+      key: Key('episode_detail_mobile_tab_$tabIndex'),
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                text,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? theme.colorScheme.onSurface
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 6),
+              if (isSelected)
+                Container(
+                  key: Key('episode_detail_mobile_tab_indicator_$tabIndex'),
+                  width: 24,
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                )
+              else
+                const SizedBox(height: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileChatAction(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+
+    return Material(
+      key: const Key('podcast_episode_detail_chat_button'),
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: _openChatDrawer,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.auto_awesome_outlined,
+                size: 14,
+                color: theme.colorScheme.secondary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                l10n.podcast_tab_chat,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
