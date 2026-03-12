@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.20.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.19.1...v0.20.0) - 2026-03-12 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.20.0))
+
+### 🚀 Features
+
+- *(podcast)* Implement asynchronous AI summary generation with task queue ([5e2b998](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/5e2b998e499ea4ff07f01eaca3becd871022773d))
+
+### 🚜 Refactor
+
+- *(podcast)* Add glassmorphism gradient background and simplify expanded player layout ([01b15c9](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/01b15c960b44930d90008e01d796fe13340bc3dd))
+- *(podcast)* Improve playback rate selection UX with instant sheet and async correction ([3704ec3](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3704ec319f19ae66894041defbb7ab1a17f9d2e1))
+- *(podcast)* Remove custom prompt feature from AI summary generation ([b59dcae](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b59dcae7b3f4e38b055a398d94f6fd9332baf074))
+- *(podcast)* Redesign mobile episode detail tabs as text with underline ([f34c47b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f34c47b474da4c066c7408c71b68e282a57cd33d))
+- *(podcast)* Improve loading states and add widget tests for AI summary generation ([2b7f0c4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2b7f0c4cf37155731456e71125cc87a6702cbaff))
+- *(profile)* Redesign cache management page with compact header and capsule actions ([51c797c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/51c797c9e49acb4c937e40b5a5fead9f4db43047))
+
+
+
 ## [0.19.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.19.0...v0.19.1) - 2026-03-11 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.19.1))
 
 ### 🎨 Styling
