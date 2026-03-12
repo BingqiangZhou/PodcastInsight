@@ -29,6 +29,11 @@ final audioPlayerProvider =
       AudioPlayerNotifier.new,
     );
 
+typedef PlaybackRateSelectionSnapshot = ({
+  double speed,
+  bool applyToSubscription,
+});
+
 const String kLastPlaybackSnapshotStorageKeyPrefix =
     'podcast_last_playback_snapshot_v1';
 
@@ -49,6 +54,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   static const Duration _syncInterval = Duration(seconds: 2);
   static const Duration _lastPlaybackSnapshotDebounce = Duration(seconds: 2);
   Timer? _snapshotPersistTimer;
+  _PlaybackRateSelectionCache? _playbackRateSelectionCache;
 
   PodcastAudioHandler get _audioHandler => main_app.audioHandler;
 
@@ -149,6 +155,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   AudioPlayerState build() {
     _repository = ref.read(podcastRepositoryProvider);
     _isDisposed = false;
+    _playbackRateSelectionCache = null;
     _disposeManagedResources();
 
     final handler = _audioHandlerOrNull();
@@ -349,24 +356,74 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     final effective = await _fetchEffectivePlaybackRatePreference(
       subscriptionId: subscriptionId,
     );
-    return effective?.effectivePlaybackRate ?? fallbackRate;
+    final fallbackSelection = _fallbackPlaybackRateSelection(
+      subscriptionId: subscriptionId,
+      fallbackRate: fallbackRate,
+    );
+    final resolvedPlaybackRate =
+        effective?.effectivePlaybackRate ?? fallbackRate;
+    _cachePlaybackRateSelection(
+      speed: resolvedPlaybackRate,
+      applyToSubscription: subscriptionId != null
+          ? (effective?.source == 'subscription' ||
+                (effective == null && fallbackSelection.applyToSubscription))
+          : false,
+      subscriptionId: subscriptionId,
+    );
+    return resolvedPlaybackRate;
   }
 
-  Future<({double speed, bool applyToSubscription})>
+  PlaybackRateSelectionSnapshot getPlaybackRateSelectionSnapshot() {
+    final currentEpisode = state.currentEpisode;
+    final fallbackRate = _effectiveFallbackPlaybackRate(
+      currentValue: state.playbackRate,
+      episodePlaybackRate: currentEpisode?.playbackRate,
+    );
+    final fallbackSelection = _fallbackPlaybackRateSelection(
+      subscriptionId: currentEpisode?.subscriptionId,
+      fallbackRate: fallbackRate,
+    );
+    final cachedSelection = _playbackRateSelectionCache;
+    if (cachedSelection == null) {
+      return fallbackSelection;
+    }
+    if (!cachedSelection.applyToSubscription) {
+      return (speed: cachedSelection.speed, applyToSubscription: false);
+    }
+    if (currentEpisode != null &&
+        cachedSelection.subscriptionId == currentEpisode.subscriptionId) {
+      return (speed: cachedSelection.speed, applyToSubscription: true);
+    }
+    return fallbackSelection;
+  }
+
+  Future<PlaybackRateSelectionSnapshot>
   resolvePlaybackRateSelectionForCurrentContext() async {
     final currentEpisode = state.currentEpisode;
     final fallbackRate = _effectiveFallbackPlaybackRate(
       currentValue: state.playbackRate,
       episodePlaybackRate: currentEpisode?.playbackRate,
     );
+    final fallbackSelection = _fallbackPlaybackRateSelection(
+      subscriptionId: currentEpisode?.subscriptionId,
+      fallbackRate: fallbackRate,
+    );
     final effective = await _fetchEffectivePlaybackRatePreference(
       subscriptionId: currentEpisode?.subscriptionId,
     );
-    return (
-      speed: effective?.effectivePlaybackRate ?? fallbackRate,
-      applyToSubscription:
-          currentEpisode != null && effective?.source == 'subscription',
+    final resolvedSelection = (
+      speed: effective?.effectivePlaybackRate ?? fallbackSelection.speed,
+      applyToSubscription: currentEpisode != null
+          ? (effective?.source == 'subscription' ||
+                (effective == null && fallbackSelection.applyToSubscription))
+          : false,
     );
+    _cachePlaybackRateSelection(
+      speed: resolvedSelection.speed,
+      applyToSubscription: resolvedSelection.applyToSubscription,
+      subscriptionId: currentEpisode?.subscriptionId,
+    );
+    return resolvedSelection;
   }
 
   void _setupListeners(PodcastAudioHandler audioHandler) {
@@ -1164,7 +1221,12 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       if (ref.mounted &&
           !_isDisposed &&
           state.playbackRate != resolvedPlaybackRate) {
-        state = state.copyWith(playbackRate: resolvedPlaybackRate);
+        state = state.copyWith(
+          playbackRate: resolvedPlaybackRate,
+          currentEpisode: currentEpisode?.copyWith(
+            playbackRate: resolvedPlaybackRate,
+          ),
+        );
       }
 
       await playAudio();
@@ -1250,11 +1312,24 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       );
 
       if (ref.mounted && !_isDisposed) {
-        state = state.copyWith(playbackRate: applied.effectivePlaybackRate);
-        final episode = state.currentEpisode;
-        if (episode != null && shouldSyncPlaybackToServer(episode)) {
+        state = state.copyWith(
+          playbackRate: applied.effectivePlaybackRate,
+          currentEpisode: currentEpisode?.copyWith(
+            playbackRate: applied.effectivePlaybackRate,
+          ),
+        );
+        _cachePlaybackRateSelection(
+          speed: applied.effectivePlaybackRate,
+          applyToSubscription:
+              currentEpisode != null && applied.source == 'subscription',
+          subscriptionId: currentEpisode?.subscriptionId,
+        );
+        if (currentEpisode != null &&
+            shouldSyncPlaybackToServer(currentEpisode)) {
           await _syncImmediatePlaybackSnapshot(
-            episode: episode,
+            episode: currentEpisode.copyWith(
+              playbackRate: applied.effectivePlaybackRate,
+            ),
             positionMs: state.position,
             isPlaying: state.isPlaying,
           );
@@ -1524,4 +1599,46 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       return false;
     }
   }
+
+  PlaybackRateSelectionSnapshot _fallbackPlaybackRateSelection({
+    required int? subscriptionId,
+    required double fallbackRate,
+  }) {
+    final cachedSelection = _playbackRateSelectionCache;
+    if (cachedSelection == null) {
+      return (speed: fallbackRate, applyToSubscription: false);
+    }
+    if (!cachedSelection.applyToSubscription) {
+      return (speed: fallbackRate, applyToSubscription: false);
+    }
+    if (subscriptionId != null &&
+        cachedSelection.subscriptionId == subscriptionId) {
+      return (speed: fallbackRate, applyToSubscription: true);
+    }
+    return (speed: fallbackRate, applyToSubscription: false);
+  }
+
+  void _cachePlaybackRateSelection({
+    required double speed,
+    required bool applyToSubscription,
+    int? subscriptionId,
+  }) {
+    _playbackRateSelectionCache = _PlaybackRateSelectionCache(
+      speed: speed,
+      applyToSubscription: applyToSubscription && subscriptionId != null,
+      subscriptionId: applyToSubscription ? subscriptionId : null,
+    );
+  }
+}
+
+class _PlaybackRateSelectionCache {
+  const _PlaybackRateSelectionCache({
+    required this.speed,
+    required this.applyToSubscription,
+    required this.subscriptionId,
+  });
+
+  final double speed;
+  final bool applyToSubscription;
+  final int? subscriptionId;
 }

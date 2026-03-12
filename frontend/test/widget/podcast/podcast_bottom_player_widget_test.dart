@@ -296,6 +296,88 @@ void main() {
       expect(progressWidget, isA<Column>());
     });
 
+    testWidgets('single-line expanded title block is vertically centered', (
+      tester,
+    ) async {
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(
+          currentEpisode: _episode(
+            title: 'Short title',
+            subscriptionTitle: 'Test Podcast',
+          ),
+          duration: 180000,
+        ),
+      );
+      final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final heroRect = tester.getRect(
+        find.byKey(const Key('podcast_bottom_player_expanded_hero')),
+      );
+      final titleRect = tester.getRect(
+        find.byKey(const Key('podcast_bottom_player_expanded_title_text')),
+      );
+      final metaRect = tester.getRect(
+        find.byKey(const Key('podcast_bottom_player_expanded_meta')),
+      );
+      final contentCenterY = (titleRect.top + metaRect.bottom) / 2;
+
+      expect((contentCenterY - heroRect.center.dy).abs(), lessThan(8));
+    });
+
+    testWidgets('two-line expanded title remains top aligned', (tester) async {
+      _setMobileViewport(tester);
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(
+          currentEpisode: _episode(
+            title:
+                'This is a deliberately long podcast title that should wrap '
+                'onto a second line in the expanded player',
+            subscriptionTitle: 'Test Podcast',
+          ),
+          duration: 180000,
+        ),
+      );
+      final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final heroRect = tester.getRect(
+        find.byKey(const Key('podcast_bottom_player_expanded_hero')),
+      );
+      final titleRect = tester.getRect(
+        find.byKey(const Key('podcast_bottom_player_expanded_title_text')),
+      );
+
+      expect(titleRect.top - heroRect.top, lessThan(6));
+    });
+
     testWidgets('speed sheet uses server-backed initial selection state', (
       tester,
     ) async {
@@ -333,6 +415,127 @@ void main() {
       expect(subscriptionCheckbox.value, isTrue);
       expect(speedChip.selected, isTrue);
       expect(audioNotifier.resolvePlaybackRateSelectionCalls, 1);
+    });
+
+    testWidgets('speed sheet opens before remote selection finishes', (
+      tester,
+    ) async {
+      _setMobileViewport(tester);
+      final selectionCompleter = Completer<PlaybackRateSelectionSnapshot>();
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+        playbackRateSelectionFuture: selectionCompleter.future,
+      );
+      final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('podcast_bottom_player_speed')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Playback Speed'), findsOneWidget);
+      expect(audioNotifier.resolvePlaybackRateSelectionCalls, 1);
+
+      selectionCompleter.complete((speed: 1.5, applyToSubscription: true));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('speed sheet applies remote correction before interaction', (
+      tester,
+    ) async {
+      _setMobileViewport(tester);
+      final selectionCompleter = Completer<PlaybackRateSelectionSnapshot>();
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+        playbackRateSelectionFuture: selectionCompleter.future,
+      );
+      final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('podcast_bottom_player_speed')));
+      await tester.pumpAndSettle();
+
+      selectionCompleter.complete((speed: 1.5, applyToSubscription: true));
+      await tester.pumpAndSettle();
+
+      final subscriptionCheckbox = tester.widget<CheckboxListTile>(
+        find.byType(CheckboxListTile),
+      );
+      final speedChip = tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, '1.5x'),
+      );
+
+      expect(subscriptionCheckbox.value, isTrue);
+      expect(speedChip.selected, isTrue);
+    });
+
+    testWidgets('user speed choice is not overwritten by late correction', (
+      tester,
+    ) async {
+      _setMobileViewport(tester);
+      final selectionCompleter = Completer<PlaybackRateSelectionSnapshot>();
+      final audioNotifier = TestAudioPlayerNotifier(
+        AudioPlayerState(currentEpisode: _episode(), duration: 180000),
+        playbackRateSelectionFuture: selectionCompleter.future,
+      );
+      final queueController = TestPodcastQueueController();
+      final uiNotifier = TestPodcastPlayerUiNotifier(
+        const PodcastPlayerUiState(
+          presentation: PodcastPlayerPresentation.expanded,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _createWidget(
+          audioNotifier: audioNotifier,
+          queueController: queueController,
+          uiNotifier: uiNotifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('podcast_bottom_player_speed')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, '2x'));
+      await tester.pumpAndSettle();
+
+      selectionCompleter.complete((speed: 1.5, applyToSubscription: true));
+      await tester.pumpAndSettle();
+
+      final subscriptionCheckbox = tester.widget<CheckboxListTile>(
+        find.byType(CheckboxListTile),
+      );
+      final selectedSpeedChip = tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, '2x'),
+      );
+
+      expect(subscriptionCheckbox.value, isFalse);
+      expect(selectedSpeedChip.selected, isTrue);
     });
 
     testWidgets('expanded transport controls seek and toggle playback', (
@@ -575,15 +778,19 @@ Widget _createRouterWidget({
   );
 }
 
-PodcastEpisodeModel _episode() {
+PodcastEpisodeModel _episode({
+  String title = 'Test Episode',
+  String? subscriptionTitle = 'Test Podcast',
+}) {
   final now = DateTime.now();
   return PodcastEpisodeModel(
     id: 1,
     subscriptionId: 1,
-    title: 'Test Episode',
+    title: title,
     description: 'Description',
     audioUrl: 'https://example.com/audio.mp3',
     publishedAt: now,
+    subscriptionTitle: subscriptionTitle,
     createdAt: now,
   );
 }
@@ -592,10 +799,16 @@ class TestAudioPlayerNotifier extends AudioPlayerNotifier {
   TestAudioPlayerNotifier(
     this._initialState, {
     this.playbackRateSelection = const (speed: 1.0, applyToSubscription: false),
-  });
+    PlaybackRateSelectionSnapshot? playbackRateSelectionSnapshot,
+    this.playbackRateSelectionFuture,
+  }) : playbackRateSelectionSnapshot =
+           playbackRateSelectionSnapshot ??
+           (speed: _initialState.playbackRate, applyToSubscription: false);
 
   final AudioPlayerState _initialState;
-  final ({double speed, bool applyToSubscription}) playbackRateSelection;
+  final PlaybackRateSelectionSnapshot playbackRateSelection;
+  final PlaybackRateSelectionSnapshot playbackRateSelectionSnapshot;
+  final Future<PlaybackRateSelectionSnapshot>? playbackRateSelectionFuture;
   final List<int> seekToPositions = <int>[];
   int pauseCalls = 0;
   int resumeCalls = 0;
@@ -623,10 +836,15 @@ class TestAudioPlayerNotifier extends AudioPlayerNotifier {
   }
 
   @override
-  Future<({double speed, bool applyToSubscription})>
+  PlaybackRateSelectionSnapshot getPlaybackRateSelectionSnapshot() {
+    return playbackRateSelectionSnapshot;
+  }
+
+  @override
+  Future<PlaybackRateSelectionSnapshot>
   resolvePlaybackRateSelectionForCurrentContext() async {
     resolvePlaybackRateSelectionCalls += 1;
-    return playbackRateSelection;
+    return playbackRateSelectionFuture ?? playbackRateSelection;
   }
 }
 

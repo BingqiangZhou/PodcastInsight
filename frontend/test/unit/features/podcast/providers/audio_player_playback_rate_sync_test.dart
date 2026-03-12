@@ -43,6 +43,34 @@ void main() {
       expect(repository.effectivePlaybackRateRequests, <int?>[1]);
     });
 
+    test('sync speed sheet snapshot falls back to local playback state', () {
+      final repository = _TrackingPodcastRepository(
+        effectivePlaybackRateError: Exception('offline'),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          podcastRepositoryProvider.overrideWithValue(repository),
+          audioPlayerProvider.overrideWith(
+            () => _TestAudioPlayerNotifier(
+              AudioPlayerState(
+                currentEpisode: _episode(playbackRate: 1.25),
+                playbackRate: 1.25,
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final snapshot = container
+          .read(audioPlayerProvider.notifier)
+          .getPlaybackRateSelectionSnapshot();
+
+      expect(snapshot.speed, 1.25);
+      expect(snapshot.applyToSubscription, isFalse);
+      expect(repository.effectivePlaybackRateRequests, isEmpty);
+    });
+
     test(
       'falls back to current state when resolving effective rate fails',
       () async {
@@ -134,6 +162,36 @@ void main() {
         expect(container.read(audioPlayerProvider).playbackRate, 1.25);
       },
     );
+
+    test('setPlaybackRate refreshes cached speed selection snapshot', () async {
+      final repository = _TrackingPodcastRepository();
+      final notifier = _TestAudioPlayerNotifier(
+        AudioPlayerState(
+          currentEpisode: _episode(playbackRate: 1.0),
+          playbackRate: 1.0,
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          podcastRepositoryProvider.overrideWithValue(repository),
+          audioPlayerProvider.overrideWith(() => notifier),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(audioPlayerProvider.notifier)
+          .setPlaybackRate(1.75, applyToSubscription: true);
+
+      final snapshot = container
+          .read(audioPlayerProvider.notifier)
+          .getPlaybackRateSelectionSnapshot();
+
+      expect(repository.applyPlaybackRateCalls, 1);
+      expect(snapshot.speed, 1.75);
+      expect(snapshot.applyToSubscription, isTrue);
+      expect(container.read(audioPlayerProvider).playbackRate, 1.75);
+    });
 
     test(
       'sleep timer remains session-local and does not hit repository',

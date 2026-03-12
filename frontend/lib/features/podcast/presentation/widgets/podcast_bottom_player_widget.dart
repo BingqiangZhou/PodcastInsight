@@ -518,9 +518,12 @@ class _ExpandedHero extends ConsumerWidget {
       key: const Key('podcast_bottom_player_expanded_hero'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _CoverImage(
-          imageUrl: episode.subscriptionImageUrl ?? episode.imageUrl,
-          size: imageSize,
+        KeyedSubtree(
+          key: const Key('podcast_bottom_player_expanded_cover'),
+          child: _CoverImage(
+            imageUrl: episode.subscriptionImageUrl ?? episode.imageUrl,
+            size: imageSize,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -546,33 +549,76 @@ class _ExpandedHero extends ConsumerWidget {
                 episodeTitle: episode.title,
               );
             },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  episode.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
+            child: SizedBox(
+              key: const Key('podcast_bottom_player_expanded_text_block'),
+              height: imageSize,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final titleStyle = theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _buildEpisodeMetaLine(episode),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+                  );
+                  final isSingleLineTitle = _isSingleLineTitle(
+                    context,
+                    titleStyle,
+                    constraints.maxWidth,
+                  );
+                  return Column(
+                    key: const Key(
+                      'podcast_bottom_player_expanded_text_column',
+                    ),
+                    mainAxisAlignment: isSingleLineTitle
+                        ? MainAxisAlignment.center
+                        : MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Text(
+                        key: const Key(
+                          'podcast_bottom_player_expanded_title_text',
+                        ),
+                        episode.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: titleStyle,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        key: const Key('podcast_bottom_player_expanded_meta'),
+                        _buildEpisodeMetaLine(episode),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: textColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  bool _isSingleLineTitle(
+    BuildContext context,
+    TextStyle? titleStyle,
+    double maxWidth,
+  ) {
+    if (!maxWidth.isFinite || maxWidth <= 0) {
+      return false;
+    }
+    final painter = TextPainter(
+      text: TextSpan(text: episode.title, style: titleStyle),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      locale: Localizations.maybeLocaleOf(context),
+      maxLines: 2,
+    )..layout(maxWidth: maxWidth);
+    return painter.computeLineMetrics().length <= 1;
   }
 
   String _buildEpisodeMetaLine(PodcastEpisodeModel episode) {
@@ -1001,12 +1047,14 @@ void _openExpandedPlayer(WidgetRef ref) {
 
 Future<void> _showSpeedSelector(BuildContext context, WidgetRef ref) async {
   final notifier = ref.read(audioPlayerProvider.notifier);
-  final selectionState = await notifier
-      .resolvePlaybackRateSelectionForCurrentContext();
+  final selectionState = notifier.getPlaybackRateSelectionSnapshot();
   final selection = await showPlaybackSpeedSelectorSheet(
     context: _resolveNavigatorContext(context),
     initialSpeed: selectionState.speed,
     initialApplyToSubscription: selectionState.applyToSubscription,
+    correctedInitialSelection: notifier
+        .resolvePlaybackRateSelectionForCurrentContext(),
+    allowApplyToSubscription: ref.read(audioCurrentEpisodeProvider) != null,
   );
   if (selection == null) {
     return;
