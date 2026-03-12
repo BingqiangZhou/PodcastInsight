@@ -70,6 +70,75 @@ class SummaryWorkflowService:
             "generated_at": datetime.now(UTC),
         }
 
+    async def accept_episode_summary_generation(
+        self,
+        episode_id: int,
+    ) -> dict[str, Any]:
+        """Validate and mark one episode as queued for async summary generation."""
+        episode = await self.repo.get_episode_by_id(episode_id)
+        if not episode:
+            raise ValueError(f"Episode {episode_id} not found")
+        if not episode.transcript_content:
+            raise ValidationError(f"No transcript content available for episode {episode_id}")
+
+        accepted_at = datetime.now(UTC)
+        if episode.status == "summary_generating":
+            return {
+                "episode_id": episode_id,
+                "summary_status": "summary_generating",
+                "accepted_at": accepted_at,
+                "already_queued": True,
+            }
+
+        await self.db.execute(
+            update(PodcastEpisode)
+            .where(PodcastEpisode.id == episode_id)
+            .values(
+                status="summary_generating",
+                updated_at=accepted_at,
+            )
+        )
+        await self.db.execute(
+            update(TranscriptionTask)
+            .where(TranscriptionTask.episode_id == episode_id)
+            .values(
+                summary_error_message=None,
+                updated_at=accepted_at,
+            )
+        )
+        await self.db.commit()
+        return {
+            "episode_id": episode_id,
+            "summary_status": "summary_generating",
+            "accepted_at": accepted_at,
+            "already_queued": False,
+        }
+
+    async def execute_episode_summary_generation(
+        self,
+        episode_id: int,
+        *,
+        summary_model: str | None = None,
+        custom_prompt: str | None = None,
+    ) -> dict[str, Any]:
+        """Run one episode summary generation inside a worker context."""
+        try:
+            result = await self.generate_episode_summary(
+                episode_id,
+                summary_model=summary_model,
+                custom_prompt=custom_prompt,
+            )
+            logger.info(
+                "Episode summary generation completed: episode_id=%s model=%s",
+                episode_id,
+                result.get("model_used"),
+            )
+            return result
+        except Exception as exc:
+            logger.exception("Episode summary generation failed: episode_id=%s", episode_id)
+            await self._mark_episode_summary_failed(episode_id, str(exc))
+            raise
+
     async def list_pending_summaries_for_user(
         self,
         user_id: int,
@@ -217,6 +286,26 @@ class SummaryWorkflowService:
             .values(
                 status="pending_summary",
                 updated_at=datetime.now(UTC),
+            )
+        )
+        await self.db.commit()
+
+    async def _mark_episode_summary_failed(self, episode_id: int, error: str) -> None:
+        failed_at = datetime.now(UTC)
+        await self.db.execute(
+            update(PodcastEpisode)
+            .where(PodcastEpisode.id == episode_id)
+            .values(
+                status="summary_failed",
+                updated_at=failed_at,
+            )
+        )
+        await self.db.execute(
+            update(TranscriptionTask)
+            .where(TranscriptionTask.episode_id == episode_id)
+            .values(
+                summary_error_message=error,
+                updated_at=failed_at,
             )
         )
         await self.db.commit()

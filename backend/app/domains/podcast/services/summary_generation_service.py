@@ -3,6 +3,7 @@ Database-backed AI summary generation services.
 """
 
 import asyncio
+import json
 import logging
 import time
 from datetime import UTC, datetime
@@ -22,6 +23,19 @@ from app.domains.subscription.parsers.feed_parser import strip_html_tags
 
 
 logger = logging.getLogger(__name__)
+
+
+def _looks_like_html_error_page(text: str) -> bool:
+    lowered = text.lower()
+    markers = (
+        "<!doctype html",
+        "<html",
+        "<head",
+        "cloudflare",
+        "524: a timeout occurred",
+        "/cdn-cgi/",
+    )
+    return any(marker in lowered for marker in markers)
 
 
 class SummaryModelManager:
@@ -183,8 +197,23 @@ class SummaryModelManager:
             aiohttp.ClientSession(timeout=timeout) as session,
             session.post(api_url, headers=headers, json=data) as response,
         ):
+            response_text = await response.text()
+            content_type = response.headers.get("Content-Type", "")
+
+            if "text/html" in content_type.lower() or (
+                _looks_like_html_error_page(response_text)
+                and "application/json" not in content_type.lower()
+            ):
+                raise HTTPException(
+                    status_code=500,
+                    detail=(
+                        "AI summary provider returned an HTML error page "
+                        "instead of JSON response"
+                    ),
+                )
+
             if response.status != 200:
-                error_text = await response.text()
+                error_text = response_text
                 if response.status == 400:
                     raise HTTPException(
                         status_code=500,
@@ -203,7 +232,14 @@ class SummaryModelManager:
                     detail=f"AI summary API error: {response.status} - {error_text[:200]}",
                 )
 
-            result = await response.json()
+            try:
+                result = json.loads(response_text)
+            except json.JSONDecodeError as exc:
+                raise HTTPException(
+                    status_code=500,
+                    detail="AI summary provider returned non-JSON response",
+                ) from exc
+
             if "choices" not in result or not result["choices"]:
                 raise HTTPException(
                     status_code=500, detail="Invalid response from AI API"
@@ -213,6 +249,15 @@ class SummaryModelManager:
             if not content or not isinstance(content, str):
                 raise HTTPException(
                     status_code=500, detail="AI API returned empty or invalid content"
+                )
+
+            if _looks_like_html_error_page(content):
+                raise HTTPException(
+                    status_code=500,
+                    detail=(
+                        "AI summary provider returned HTML error content "
+                        "inside the completion payload"
+                    ),
                 )
 
             return filter_thinking_content(content).strip()

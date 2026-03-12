@@ -48,6 +48,7 @@ from app.domains.podcast.schemas import (
     PodcastStatsResponse,
     PodcastSummaryPendingResponse,
     PodcastSummaryResponse,
+    PodcastSummaryStartResponse,
     PodcastTranscriptionCancelResponse,
     PodcastTranscriptionScheduleResponse,
     PodcastTranscriptionScheduleStatusResponse,
@@ -249,6 +250,24 @@ def build_summary_response(
         word_count=len(summary_text.split()),
         model_used=model_used,
         processing_time=summary_result["processing_time"],
+    )
+
+
+def build_summary_start_response(
+    *,
+    episode_id: int,
+    summary_status: str,
+    accepted_at,
+    message_en: str,
+    message_zh: str,
+) -> PodcastSummaryStartResponse:
+    """Build the async summary queue acknowledgement response."""
+    return PodcastSummaryStartResponse(
+        episode_id=episode_id,
+        summary_status=summary_status,
+        accepted_at=accepted_at,
+        message_en=message_en,
+        message_zh=message_zh,
     )
 
 

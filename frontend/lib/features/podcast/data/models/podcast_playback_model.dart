@@ -181,6 +181,42 @@ class PodcastSummaryResponse extends Equatable {
 }
 
 @JsonSerializable()
+class PodcastSummaryStartResponse extends Equatable {
+  @JsonKey(name: 'episode_id')
+  final int episodeId;
+  @JsonKey(name: 'summary_status')
+  final String summaryStatus;
+  @JsonKey(name: 'accepted_at')
+  final DateTime acceptedAt;
+  @JsonKey(name: 'message_en')
+  final String messageEn;
+  @JsonKey(name: 'message_zh')
+  final String messageZh;
+
+  const PodcastSummaryStartResponse({
+    required this.episodeId,
+    required this.summaryStatus,
+    required this.acceptedAt,
+    required this.messageEn,
+    required this.messageZh,
+  });
+
+  factory PodcastSummaryStartResponse.fromJson(Map<String, dynamic> json) =>
+      _$PodcastSummaryStartResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PodcastSummaryStartResponseToJson(this);
+
+  @override
+  List<Object?> get props => [
+    episodeId,
+    summaryStatus,
+    acceptedAt,
+    messageEn,
+    messageZh,
+  ];
+}
+
+@JsonSerializable()
 class PodcastSummaryRequest extends Equatable {
   @JsonKey(name: 'force_regenerate')
   final bool forceRegenerate;

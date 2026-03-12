@@ -205,6 +205,10 @@ class PodcastPlaybackHistoryListResponse(PodcastBaseSchema):
 class PodcastEpisodeDetailResponse(PodcastEpisodeResponse):
     """播客单集详情响应（包含更多信息）"""
 
+    summary_status: str | None = None
+    summary_error_message: str | None = None
+    summary_model_used: str | None = None
+    summary_processing_time: float | None = None
     subscription: dict[str, Any] | None = None
     related_episodes: list[dict[str, Any]] | None = []
 
@@ -381,6 +385,16 @@ class PodcastSummaryRequest(PodcastBaseSchema):
     use_transcript: bool | None = Field(None, description="是否使用转录文本（如果有）")
     summary_model: str | None = Field(None, description="AI总结模型名称")
     custom_prompt: str | None = Field(None, description="自定义提示词")
+
+
+class PodcastSummaryStartResponse(PodcastBaseSchema):
+    """AI鎬荤粨浠诲姟鍙楃悊鍝嶅簲"""
+
+    episode_id: int
+    summary_status: str
+    accepted_at: datetime
+    message_en: str
+    message_zh: str
 
 
 class PodcastSummaryResponse(PodcastBaseSchema):

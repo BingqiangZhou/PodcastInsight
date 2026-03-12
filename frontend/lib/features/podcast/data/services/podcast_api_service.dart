@@ -183,7 +183,7 @@ abstract class PodcastApiService {
   // === Summary Management ===
 
   @POST('/podcasts/episodes/{episodeId}/summary')
-  Future<PodcastSummaryResponse> generateSummary(
+  Future<PodcastSummaryStartResponse> generateSummary(
     @Path('episodeId') int episodeId,
     @Body() PodcastSummaryRequest request,
   );

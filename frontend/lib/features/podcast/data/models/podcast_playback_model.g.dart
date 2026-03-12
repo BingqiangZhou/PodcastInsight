@@ -111,6 +111,26 @@ Map<String, dynamic> _$PodcastSummaryResponseToJson(
   'processing_time': instance.processingTime,
 };
 
+PodcastSummaryStartResponse _$PodcastSummaryStartResponseFromJson(
+  Map<String, dynamic> json,
+) => PodcastSummaryStartResponse(
+  episodeId: (json['episode_id'] as num).toInt(),
+  summaryStatus: json['summary_status'] as String,
+  acceptedAt: DateTime.parse(json['accepted_at'] as String),
+  messageEn: json['message_en'] as String,
+  messageZh: json['message_zh'] as String,
+);
+
+Map<String, dynamic> _$PodcastSummaryStartResponseToJson(
+  PodcastSummaryStartResponse instance,
+) => <String, dynamic>{
+  'episode_id': instance.episodeId,
+  'summary_status': instance.summaryStatus,
+  'accepted_at': instance.acceptedAt.toIso8601String(),
+  'message_en': instance.messageEn,
+  'message_zh': instance.messageZh,
+};
+
 PodcastSummaryRequest _$PodcastSummaryRequestFromJson(
   Map<String, dynamic> json,
 ) => PodcastSummaryRequest(

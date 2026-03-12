@@ -14,7 +14,10 @@ from app.domains.podcast.tasks.pending_transcription import (
 )
 from app.domains.podcast.tasks.recommendation import generate_podcast_recommendations
 from app.domains.podcast.tasks.subscription_sync import refresh_all_podcast_feeds
-from app.domains.podcast.tasks.summary_generation import generate_pending_summaries
+from app.domains.podcast.tasks.summary_generation import (
+    generate_episode_summary,
+    generate_pending_summaries,
+)
 from app.domains.podcast.tasks.transcription import (
     process_audio_transcription,
     process_podcast_episode_with_transcription,
@@ -25,6 +28,7 @@ __all__ = [
     "celery_app",
     "refresh_all_podcast_feeds",
     "process_opml_subscription_episodes",
+    "generate_episode_summary",
     "generate_pending_summaries",
     "process_audio_transcription",
     "cleanup_old_playback_states",

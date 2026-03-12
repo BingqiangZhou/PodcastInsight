@@ -42,6 +42,11 @@ PodcastEpisodeModel _$PodcastEpisodeModelFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updated_at'] == null
           ? null
           : DateTime.parse(json['updated_at'] as String),
+      summaryStatus: json['summary_status'] as String?,
+      summaryErrorMessage: json['summary_error_message'] as String?,
+      summaryModelUsed: json['summary_model_used'] as String?,
+      summaryProcessingTime: (json['summary_processing_time'] as num?)
+          ?.toDouble(),
     );
 
 Map<String, dynamic> _$PodcastEpisodeModelToJson(
@@ -77,6 +82,10 @@ Map<String, dynamic> _$PodcastEpisodeModelToJson(
   'is_played': instance.isPlayed,
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),
+  'summary_status': instance.summaryStatus,
+  'summary_error_message': instance.summaryErrorMessage,
+  'summary_model_used': instance.summaryModelUsed,
+  'summary_processing_time': instance.summaryProcessingTime,
 };
 
 PodcastEpisodeListResponse _$PodcastEpisodeListResponseFromJson(
@@ -141,6 +150,10 @@ PodcastEpisodeDetailResponse _$PodcastEpisodeDetailResponseFromJson(
   updatedAt: json['updated_at'] == null
       ? null
       : DateTime.parse(json['updated_at'] as String),
+  summaryStatus: json['summary_status'] as String?,
+  summaryErrorMessage: json['summary_error_message'] as String?,
+  summaryModelUsed: json['summary_model_used'] as String?,
+  summaryProcessingTime: (json['summary_processing_time'] as num?)?.toDouble(),
   subscription: json['subscription'] as Map<String, dynamic>?,
   relatedEpisodes: json['related_episodes'] as List<dynamic>?,
 );
@@ -177,6 +190,10 @@ Map<String, dynamic> _$PodcastEpisodeDetailResponseToJson(
   'is_played': instance.isPlayed,
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),
+  'summary_status': instance.summaryStatus,
+  'summary_error_message': instance.summaryErrorMessage,
+  'summary_model_used': instance.summaryModelUsed,
+  'summary_processing_time': instance.summaryProcessingTime,
   'subscription': instance.subscription,
   'related_episodes': instance.relatedEpisodes,
 };

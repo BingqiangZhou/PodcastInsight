@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -13,6 +13,7 @@ from app.domains.podcast.services.episode_service import PodcastEpisodeService
 from app.domains.podcast.services.search_service import PodcastSearchService
 from app.domains.podcast.services.summary_generation_service import (
     PodcastSummaryGenerationService,
+    _looks_like_html_error_page,
 )
 from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
 
@@ -71,24 +72,31 @@ async def test_generate_summary_response_uses_persisted_episode_summary() -> Non
     service = AsyncMock()
     service.get_episode_by_id.return_value = SimpleNamespace(id=1)
     summary_workflow = AsyncMock(spec=SummaryWorkflowService)
-    summary_workflow.generate_episode_summary.return_value = {
-        "summary": "final summary from db",
-        "version": "1.0",
-        "generated_at": datetime.now(UTC),
-        "model_used": "test-model",
-        "processing_time": 1.23,
+    accepted_at = datetime.now(UTC)
+    summary_workflow.accept_episode_summary_generation.return_value = {
+        "summary_status": "summary_generating",
+        "accepted_at": accepted_at,
+        "already_queued": False,
     }
+    import app.domains.podcast.api.routes_episodes as routes_module
 
-    response = await generate_summary(
-        episode_id=1,
-        request=PodcastSummaryRequest(),
-        service=service,
-        summary_workflow=summary_workflow,
-    )
+    delay_mock = Mock()
+    original_delay = routes_module.generate_episode_summary_task.delay
+    routes_module.generate_episode_summary_task.delay = delay_mock
 
-    assert response.summary == "final summary from db"
-    assert response.word_count == 4
-    assert response.model_used == "test-model"
+    try:
+        response = await generate_summary(
+            episode_id=1,
+            request=PodcastSummaryRequest(summary_model="test-model"),
+            service=service,
+            summary_workflow=summary_workflow,
+        )
+    finally:
+        routes_module.generate_episode_summary_task.delay = original_delay
+
+    assert response.summary_status == "summary_generating"
+    assert response.accepted_at == accepted_at
+    delay_mock.assert_called_once_with(1, "test-model", None)
 
 
 @pytest.mark.asyncio
@@ -148,6 +156,7 @@ async def test_episode_service_filters_summary_on_detail_response() -> None:
     service.repo = AsyncMock()
     service.repo.get_episode_by_id.return_value = episode
     service.repo.get_playback_state.return_value = None
+    service._get_transcription_task = AsyncMock(return_value=None)
 
     result = await service.get_episode_with_summary(episode_id=episode.id)
 
@@ -171,3 +180,8 @@ def test_rule_based_summary_fallback_not_truncated() -> None:
     result = service._rule_based_summary("Episode title", long_content)
 
     assert long_content in result
+
+
+def test_html_timeout_page_is_detected_as_invalid_summary_content() -> None:
+    html_error = "<!DOCTYPE html><html><head><title>524: A timeout occurred</title></head></html>"
+    assert _looks_like_html_error_page(html_error) is True

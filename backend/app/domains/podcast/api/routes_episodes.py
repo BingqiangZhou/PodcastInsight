@@ -1,10 +1,12 @@
 """Podcast episode, playback, summary, and search routes."""
 
 import logging
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.core.config import settings
+from app.core.exceptions import ValidationError
 from app.core.providers import (
     get_podcast_episode_service,
     get_podcast_playback_service,
@@ -26,7 +28,7 @@ from app.domains.podcast.api.response_assemblers import (
     build_playback_history_list_response,
     build_playback_state_response,
     build_summary_models_response,
-    build_summary_response,
+    build_summary_start_response,
 )
 from app.domains.podcast.schemas import (
     PlaybackRateApplyRequest,
@@ -40,13 +42,16 @@ from app.domains.podcast.schemas import (
     PodcastPlaybackUpdate,
     PodcastSummaryPendingResponse,
     PodcastSummaryRequest,
-    PodcastSummaryResponse,
+    PodcastSummaryStartResponse,
     SummaryModelsResponse,
 )
 from app.domains.podcast.services.episode_service import PodcastEpisodeService
 from app.domains.podcast.services.playback_service import PodcastPlaybackService
 from app.domains.podcast.services.search_service import PodcastSearchService
 from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
+from app.domains.podcast.tasks.summary_generation import (
+    generate_episode_summary as generate_episode_summary_task,
+)
 from app.http.errors import bilingual_http_exception
 from app.http.responses import build_etag_response
 
@@ -265,8 +270,9 @@ async def get_episode(
 
 @router.post(
     "/episodes/{episode_id}/summary",
-    response_model=PodcastSummaryResponse,
-    summary="Generate or regenerate AI summary",
+    response_model=PodcastSummaryStartResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Queue AI summary generation",
 )
 async def generate_summary(
     episode_id: int,
@@ -277,25 +283,57 @@ async def generate_summary(
     try:
         episode = await service.get_episode_by_id(episode_id)
         if not episode:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Episode {episode_id} not found",
+            raise bilingual_http_exception(
+                "Episode not found",
+                "鏈壘鍒拌鍗曢泦",
+                status.HTTP_404_NOT_FOUND,
             )
 
-        summary_result = await summary_workflow.generate_episode_summary(
-            episode_id,
-            summary_model=request.summary_model,
-            custom_prompt=request.custom_prompt,
+        accepted = await summary_workflow.accept_episode_summary_generation(
+            episode_id
         )
-        return build_summary_response(
+
+        if not accepted["already_queued"]:
+            generate_episode_summary_task.delay(
+                episode_id,
+                request.summary_model,
+                request.custom_prompt,
+            )
+
+        return build_summary_start_response(
             episode_id=episode_id,
-            summary_result=summary_result,
+            summary_status=accepted["summary_status"],
+            accepted_at=accepted.get("accepted_at", datetime.now(UTC)),
+            message_en=(
+                "Summary generation already in progress"
+                if accepted["already_queued"]
+                else "Summary generation accepted"
+            ),
+            message_zh=(
+                "鎬荤粨鐢熸垚姝ｅ湪杩涜涓?"
+                if accepted["already_queued"]
+                else "宸叉帴鏀舵€荤粨鐢熸垚璇锋眰"
+            ),
         )
+    except ValidationError as exc:
+        raise bilingual_http_exception(
+            "Transcript is required before generating summary",
+            "鐢熸垚鎬荤粨鍓嶉渶瑕佸厛瀹屾垚杞綍",
+            status.HTTP_400_BAD_REQUEST,
+        ) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise bilingual_http_exception(
+            "Episode not found",
+            "鏈壘鍒拌鍗曢泦",
+            status.HTTP_404_NOT_FOUND,
+        ) from exc
     except Exception as exc:
-        logger.error("Failed to generate summary for episode %s: %s", episode_id, exc)
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        logger.error("Failed to queue summary for episode %s: %s", episode_id, exc)
+        raise bilingual_http_exception(
+            "Failed to queue summary generation",
+            "鎻愪氦鎬荤粨鐢熸垚浠诲姟澶辫触",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ) from exc
 
 
 @router.put(

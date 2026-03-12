@@ -223,3 +223,46 @@ def test_generate_pending_summaries_retries_on_failure(monkeypatch):
 
     assert logs
     assert logs[-1]["status"] == "failed"
+
+
+def test_generate_episode_summary_task_delegates_to_workflow(monkeypatch):
+    logs = []
+
+    def _log_task_run(**kwargs):
+        logs.append(kwargs)
+
+    monkeypatch.setattr(summary_generation, "log_task_run", _log_task_run)
+    monkeypatch.setattr(
+        summary_generation,
+        "worker_session",
+        lambda *_args, **_kwargs: _worker_session_factory(object()),
+    )
+
+    class _FakeWorkflow:
+        def __init__(self, session):
+            self.session = session
+
+        async def execute_episode_summary_generation(
+            self,
+            episode_id,
+            *,
+            summary_model=None,
+            custom_prompt=None,
+        ):
+            return {
+                "episode_id": episode_id,
+                "summary_model": summary_model,
+                "custom_prompt": custom_prompt,
+            }
+
+    monkeypatch.setattr(summary_generation, "SummaryWorkflowService", _FakeWorkflow)
+
+    result = summary_generation.generate_episode_summary.run(
+        episode_id=15,
+        summary_model="model-a",
+        custom_prompt="prompt",
+    )
+
+    assert result["episode_id"] == 15
+    assert logs
+    assert logs[-1]["status"] == "success"

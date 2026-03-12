@@ -261,10 +261,21 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
         !summaryState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          summaryNotifier.updateSummary(episode.aiSummary!);
+          summaryNotifier.updateSummary(
+            episode.aiSummary!,
+            modelUsed: episode.summaryModelUsed,
+            processingTime: episode.summaryProcessingTime,
+          );
         }
       });
     }
+
+    final episodeSummaryFailure = SummarySanitizer.detectFailureReason(
+      episode.aiSummary,
+    );
+    final sanitizedEpisodeSummary = episodeSummaryFailure == null
+        ? SummarySanitizer.clean(episode.aiSummary)
+        : '';
 
     return Column(
       key: const Key('podcast_episode_detail_summary_section'),
@@ -276,7 +287,9 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
           compact: compact,
         ),
         const SizedBox(height: 16),
-        if (summaryState.isLoading)
+        if (summaryState.isLoading &&
+            !summaryState.hasSummary &&
+            sanitizedEpisodeSummary.isEmpty)
           _buildCenteredLoadingState(
             (AppLocalizations.of(context) ?? AppLocalizationsEn())
                 .podcast_generating_summary,
@@ -288,16 +301,32 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
             summary: summaryState.summary!,
             compact: compact,
           )
-        else if (episode.aiSummary != null && episode.aiSummary!.isNotEmpty)
+        else if (episodeSummaryFailure != null)
+          _buildAiSummaryErrorState(context, episodeSummaryFailure)
+        else if (sanitizedEpisodeSummary.isNotEmpty)
           _buildSummaryCard(
             context,
             episodeTitle: episode.title,
-            summary: episode.aiSummary!,
+            summary: sanitizedEpisodeSummary,
             compact: compact,
           )
         else
           _buildAiSummaryEmptyState(context),
+        if (summaryState.isLoading &&
+            (summaryState.hasSummary || sanitizedEpisodeSummary.isNotEmpty)) ...[
+          const SizedBox(height: 12),
+          const LinearProgressIndicator(),
+        ],
       ],
+    );
+  }
+
+  Widget _buildAiSummaryErrorState(BuildContext context, String message) {
+    return AppEmptyState(
+      icon: Icons.error_outline,
+      title: (AppLocalizations.of(context) ?? AppLocalizationsEn())
+          .podcast_transcription_failed,
+      subtitle: message,
     );
   }
 

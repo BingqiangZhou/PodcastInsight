@@ -26,7 +26,7 @@ void main() {
       async.flushMicrotasks();
 
       expect(repository.generateSummaryCalls, 1);
-      expect(container.read(provider).hasSummary, isTrue);
+      expect(container.read(provider).isLoading, isTrue);
 
       async.elapse(const Duration(seconds: 5));
       async.flushMicrotasks();
@@ -66,6 +66,8 @@ void main() {
 
         container.read(provider.notifier).generateSummary();
         async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 5));
+        async.flushMicrotasks();
 
         expect(repository.generateSummaryCalls, 2);
         expect(container.read(provider).hasError, isFalse);
@@ -89,12 +91,39 @@ void main() {
 
       container.read(provider.notifier).generateSummary(model: 'model-a');
       async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 5));
+      async.flushMicrotasks();
 
       container.read(provider.notifier).regenerateSummary(model: 'model-b');
       async.flushMicrotasks();
 
       expect(repository.customPromptValues, [null, null]);
       expect(repository.summaryModelValues, ['model-a', 'model-b']);
+    });
+  });
+
+  test('html error page in persisted summary becomes error state', () {
+    fakeAsync((async) {
+      final repository = _FakeSummaryRepository(
+        episodeId: 1004,
+        summaryAvailableOnFetch: 1,
+        persistedSummary:
+            '<!DOCTYPE html><html><head><title>524: A timeout occurred</title></head></html>',
+      );
+      final container = ProviderContainer(
+        overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+
+      final provider = getSummaryProvider(1004);
+
+      container.read(provider.notifier).generateSummary();
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 5));
+      async.flushMicrotasks();
+
+      expect(container.read(provider).hasError, isTrue);
+      expect(container.read(provider).hasSummary, isFalse);
     });
   });
 }
@@ -104,18 +133,20 @@ class _FakeSummaryRepository extends PodcastRepository {
     required this.episodeId,
     required this.summaryAvailableOnFetch,
     this.failGenerateCalls = const {},
+    this.persistedSummary = 'Persisted summary',
   }) : super(PodcastApiService(Dio()));
 
   final int episodeId;
   final int summaryAvailableOnFetch;
   final Set<int> failGenerateCalls;
+  final String persistedSummary;
   int generateSummaryCalls = 0;
   int getEpisodeCalls = 0;
   final List<String?> customPromptValues = [];
   final List<String?> summaryModelValues = [];
 
   @override
-  Future<PodcastSummaryResponse> generateSummary({
+  Future<PodcastSummaryStartResponse> generateSummary({
     required int episodeId,
     bool forceRegenerate = false,
     bool? useTranscript,
@@ -128,15 +159,12 @@ class _FakeSummaryRepository extends PodcastRepository {
     if (failGenerateCalls.contains(generateSummaryCalls)) {
       throw StateError('summary generation failed');
     }
-    return PodcastSummaryResponse(
+    return PodcastSummaryStartResponse(
       episodeId: episodeId,
-      summary: 'Fresh summary',
-      version: 'v1',
-      transcriptUsed: false,
-      generatedAt: DateTime.utc(2026, 3, 10),
-      wordCount: 2,
-      modelUsed: summaryModel,
-      processingTime: 1.2,
+      summaryStatus: 'summary_generating',
+      acceptedAt: DateTime.utc(2026, 3, 10),
+      messageEn: 'accepted',
+      messageZh: 'accepted',
     );
   }
 
@@ -152,8 +180,11 @@ class _FakeSummaryRepository extends PodcastRepository {
       publishedAt: DateTime.utc(2026, 3, 10),
       createdAt: DateTime.utc(2026, 3, 10),
       aiSummary: getEpisodeCalls >= summaryAvailableOnFetch
-          ? 'Persisted summary'
+          ? persistedSummary
           : null,
+      summaryStatus: getEpisodeCalls >= summaryAvailableOnFetch
+          ? 'summarized'
+          : 'summary_generating',
     );
   }
 }

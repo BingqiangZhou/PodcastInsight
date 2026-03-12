@@ -61,6 +61,14 @@ class PodcastEpisodeModel extends Equatable {
   final DateTime createdAt;
   @JsonKey(name: 'updated_at')
   final DateTime? updatedAt;
+  @JsonKey(name: 'summary_status')
+  final String? summaryStatus;
+  @JsonKey(name: 'summary_error_message')
+  final String? summaryErrorMessage;
+  @JsonKey(name: 'summary_model_used')
+  final String? summaryModelUsed;
+  @JsonKey(name: 'summary_processing_time')
+  final double? summaryProcessingTime;
 
   const PodcastEpisodeModel({
     required this.id,
@@ -93,6 +101,10 @@ class PodcastEpisodeModel extends Equatable {
     this.isPlayed = false,
     required this.createdAt,
     this.updatedAt,
+    this.summaryStatus,
+    this.summaryErrorMessage,
+    this.summaryModelUsed,
+    this.summaryProcessingTime,
   });
 
   factory PodcastEpisodeModel.fromJson(Map<String, dynamic> json) =>
@@ -131,6 +143,10 @@ class PodcastEpisodeModel extends Equatable {
     bool? isPlayed,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? summaryStatus,
+    String? summaryErrorMessage,
+    String? summaryModelUsed,
+    double? summaryProcessingTime,
   }) {
     return PodcastEpisodeModel(
       id: id ?? this.id,
@@ -163,6 +179,11 @@ class PodcastEpisodeModel extends Equatable {
       isPlayed: isPlayed ?? this.isPlayed,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      summaryStatus: summaryStatus ?? this.summaryStatus,
+      summaryErrorMessage: summaryErrorMessage ?? this.summaryErrorMessage,
+      summaryModelUsed: summaryModelUsed ?? this.summaryModelUsed,
+      summaryProcessingTime:
+          summaryProcessingTime ?? this.summaryProcessingTime,
     );
   }
 
@@ -239,6 +260,10 @@ class PodcastEpisodeModel extends Equatable {
     isPlayed,
     createdAt,
     updatedAt,
+    summaryStatus,
+    summaryErrorMessage,
+    summaryModelUsed,
+    summaryProcessingTime,
   ];
 }
 
@@ -338,6 +363,14 @@ class PodcastEpisodeDetailResponse extends Equatable {
   final DateTime createdAt;
   @JsonKey(name: 'updated_at')
   final DateTime? updatedAt;
+  @JsonKey(name: 'summary_status')
+  final String? summaryStatus;
+  @JsonKey(name: 'summary_error_message')
+  final String? summaryErrorMessage;
+  @JsonKey(name: 'summary_model_used')
+  final String? summaryModelUsed;
+  @JsonKey(name: 'summary_processing_time')
+  final double? summaryProcessingTime;
 
   // Additional fields
   final Map<String, dynamic>? subscription;
@@ -374,6 +407,10 @@ class PodcastEpisodeDetailResponse extends Equatable {
     this.isPlayed,
     required this.createdAt,
     this.updatedAt,
+    this.summaryStatus,
+    this.summaryErrorMessage,
+    this.summaryModelUsed,
+    this.summaryProcessingTime,
     this.subscription,
     this.relatedEpisodes,
   });
@@ -415,6 +452,10 @@ class PodcastEpisodeDetailResponse extends Equatable {
       isPlayed: isPlayed ?? false,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      summaryStatus: summaryStatus,
+      summaryErrorMessage: summaryErrorMessage,
+      summaryModelUsed: summaryModelUsed,
+      summaryProcessingTime: summaryProcessingTime,
     );
   }
 
@@ -490,6 +531,10 @@ class PodcastEpisodeDetailResponse extends Equatable {
     isPlayed,
     createdAt,
     updatedAt,
+    summaryStatus,
+    summaryErrorMessage,
+    summaryModelUsed,
+    summaryProcessingTime,
     subscription,
     relatedEpisodes,
   ];

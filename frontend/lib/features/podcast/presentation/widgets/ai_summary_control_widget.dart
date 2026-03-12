@@ -96,7 +96,11 @@ class _AISummaryControlWidgetState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (!summaryState.hasSummary && !summaryState.isLoading)
-              _buildGenerateControls(context, availableModels)
+              _buildGenerateControls(
+                context,
+                availableModels,
+                isLoading: summaryState.isLoading,
+              )
             else if (summaryState.hasSummary)
               _buildRegenerateControls(context, availableModels, summaryState)
             else
@@ -145,8 +149,9 @@ class _AISummaryControlWidgetState
 
   Widget _buildGenerateControls(
     BuildContext context,
-    List<SummaryModelInfo> models,
-  ) {
+    List<SummaryModelInfo> models, {
+    required bool isLoading,
+  }) {
     final isCompact = widget.compact;
     final hasModelOptions = models.length > 1;
 
@@ -154,7 +159,7 @@ class _AISummaryControlWidgetState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ElevatedButton.icon(
-          onPressed: _generateSummary,
+          onPressed: isLoading ? null : _generateSummary,
           icon: Icon(Icons.auto_awesome, size: isCompact ? 16 : 18),
           label: Text(AppLocalizations.of(context)!.podcast_summary_generate),
           style: ElevatedButton.styleFrom(
@@ -254,7 +259,7 @@ class _AISummaryControlWidgetState
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: _regenerateSummary,
+                onPressed: summaryState.isLoading ? null : _regenerateSummary,
                 icon: Icon(Icons.refresh, size: isCompact ? 16 : 18),
                 label: Text(AppLocalizations.of(context)!.podcast_regenerate),
                 style: OutlinedButton.styleFrom(

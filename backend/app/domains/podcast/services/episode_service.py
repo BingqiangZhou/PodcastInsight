@@ -8,6 +8,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -17,7 +18,7 @@ from app.domains.podcast.episode_projections import (
     PodcastEpisodeDetailProjection,
     PodcastEpisodeProjection,
 )
-from app.domains.podcast.models import PodcastEpisode
+from app.domains.podcast.models import PodcastEpisode, TranscriptionTask
 from app.domains.podcast.repositories import PodcastEpisodeRepository
 from app.domains.podcast.services.daily_report_summary_extractor import (
     extract_one_line_summary,
@@ -26,6 +27,21 @@ from app.domains.podcast.services.episode_mapper import build_episode_responses
 
 
 logger = logging.getLogger(__name__)
+
+
+def _derive_summary_status(
+    episode_status: str | None,
+    *,
+    has_summary: bool,
+) -> str:
+    if episode_status in {
+        "pending_summary",
+        "summary_generating",
+        "summary_failed",
+        "summarized",
+    }:
+        return str(episode_status)
+    return "summarized" if has_summary else "pending_summary"
 
 
 class PodcastEpisodeService:
@@ -298,6 +314,11 @@ class PodcastEpisodeService:
 
         playback = await self.repo.get_playback_state(self.user_id, episode_id)
         cleaned_summary = filter_thinking_content(episode.ai_summary)
+        transcription_task = await self._get_transcription_task(episode_id)
+        summary_status = _derive_summary_status(
+            episode.status,
+            has_summary=bool(cleaned_summary),
+        )
 
         # Extract subscription metadata
         subscription_image_url = None
@@ -342,6 +363,16 @@ class PodcastEpisodeService:
             is_playing=playback.is_playing if playback else False,
             playback_rate=playback.playback_rate if playback else 1.0,
             is_played=None,
+            summary_status=summary_status,
+            summary_error_message=transcription_task.summary_error_message
+            if transcription_task
+            else None,
+            summary_model_used=transcription_task.summary_model_used
+            if transcription_task
+            else None,
+            summary_processing_time=transcription_task.summary_processing_time
+            if transcription_task
+            else None,
             subscription={
                 "id": episode.subscription.id,
                 "title": episode.subscription.title,
@@ -354,6 +385,14 @@ class PodcastEpisodeService:
             else None,
             related_episodes=[],
         )
+
+    async def _get_transcription_task(
+        self,
+        episode_id: int,
+    ) -> TranscriptionTask | None:
+        stmt = select(TranscriptionTask).where(TranscriptionTask.episode_id == episode_id)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def get_recently_played(
         self, user_id: int, limit: int = 5

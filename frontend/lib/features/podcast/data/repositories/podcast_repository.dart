@@ -386,7 +386,7 @@ class PodcastRepository {
 
   // === Summary Management ===
 
-  Future<PodcastSummaryResponse> generateSummary({
+  Future<PodcastSummaryStartResponse> generateSummary({
     required int episodeId,
     bool forceRegenerate = false,
     bool? useTranscript,

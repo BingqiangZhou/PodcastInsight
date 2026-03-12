@@ -27,6 +27,8 @@ void main() {
       expect(find.byType(TextField), findsNothing);
 
       await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
 
       expect(repository.customPromptValues, [null]);
@@ -34,6 +36,8 @@ void main() {
       expect(find.byType(OutlinedButton), findsOneWidget);
 
       await tester.tap(find.byType(OutlinedButton));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
 
       expect(repository.customPromptValues, [null, null]);
@@ -84,7 +88,7 @@ class _FakeSummaryRepository extends PodcastRepository {
   }
 
   @override
-  Future<PodcastSummaryResponse> generateSummary({
+  Future<PodcastSummaryStartResponse> generateSummary({
     required int episodeId,
     bool forceRegenerate = false,
     bool? useTranscript,
@@ -94,15 +98,12 @@ class _FakeSummaryRepository extends PodcastRepository {
     customPromptValues.add(customPrompt);
     summaryModelValues.add(summaryModel);
 
-    return PodcastSummaryResponse(
+    return PodcastSummaryStartResponse(
       episodeId: episodeId,
-      summary: 'Fresh summary',
-      version: 'v1',
-      transcriptUsed: false,
-      generatedAt: DateTime.utc(2026, 3, 12),
-      wordCount: 2,
-      modelUsed: summaryModel,
-      processingTime: 1.2,
+      summaryStatus: 'summary_generating',
+      acceptedAt: DateTime.utc(2026, 3, 12),
+      messageEn: 'accepted',
+      messageZh: 'accepted',
     );
   }
 
@@ -117,6 +118,7 @@ class _FakeSummaryRepository extends PodcastRepository {
       publishedAt: DateTime.utc(2026, 3, 12),
       createdAt: DateTime.utc(2026, 3, 12),
       aiSummary: 'Persisted summary',
+      summaryStatus: 'summarized',
     );
   }
 }

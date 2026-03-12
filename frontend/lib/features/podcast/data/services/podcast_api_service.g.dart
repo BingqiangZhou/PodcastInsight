@@ -881,7 +881,7 @@ class _PodcastApiService implements PodcastApiService {
   }
 
   @override
-  Future<PodcastSummaryResponse> generateSummary(
+  Future<PodcastSummaryStartResponse> generateSummary(
     int episodeId,
     PodcastSummaryRequest request,
   ) async {
@@ -890,7 +890,7 @@ class _PodcastApiService implements PodcastApiService {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(request.toJson());
-    final _options = _setStreamType<PodcastSummaryResponse>(
+    final _options = _setStreamType<PodcastSummaryStartResponse>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -901,9 +901,9 @@ class _PodcastApiService implements PodcastApiService {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late PodcastSummaryResponse _value;
+    late PodcastSummaryStartResponse _value;
     try {
-      _value = PodcastSummaryResponse.fromJson(_result.data!);
+      _value = PodcastSummaryStartResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

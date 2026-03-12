@@ -94,7 +94,7 @@ class SummaryState {
 /// Notifier for managing summary state
 class SummaryNotifier extends Notifier<SummaryState> {
   static const Duration _pollInterval = Duration(seconds: 5);
-  static const int _maxPollAttempts = 12;
+  static const int _maxPollAttempts = 90;
 
   final int episodeId;
   Timer? _pollTimer;
@@ -120,20 +120,10 @@ class SummaryNotifier extends Notifier<SummaryState> {
 
     try {
       final repository = ref.read(podcastRepositoryProvider);
-      final response = await repository.generateSummary(
+      await repository.generateSummary(
         episodeId: episodeId,
         forceRegenerate: forceRegenerate,
         summaryModel: model,
-      );
-      final cleanedSummary = SummarySanitizer.clean(response.summary);
-
-      state = SummaryState(
-        summary: cleanedSummary,
-        modelUsed: response.modelUsed,
-        processingTime: response.processingTime,
-        wordCount: response.wordCount,
-        generatedAt: response.generatedAt,
-        isLoading: false,
       );
       _pollEpisodeDetailUntilSummarySync();
     } catch (e) {
@@ -148,15 +138,25 @@ class SummaryNotifier extends Notifier<SummaryState> {
   }
 
   /// Update summary from existing data (used when loading episode detail)
-  void updateSummary(String summary) {
+  void updateSummary(
+    String summary, {
+    String? modelUsed,
+    double? processingTime,
+    DateTime? generatedAt,
+  }) {
     _stopPolling();
+    final failureReason = SummarySanitizer.detectFailureReason(summary);
+    if (failureReason != null) {
+      state = state.copyWith(isLoading: false, errorMessage: failureReason);
+      return;
+    }
     final cleanedSummary = SummarySanitizer.clean(summary);
     state = SummaryState(
       summary: cleanedSummary,
-      modelUsed: state.modelUsed,
-      processingTime: state.processingTime,
-      wordCount: state.wordCount,
-      generatedAt: state.generatedAt,
+      modelUsed: modelUsed ?? state.modelUsed,
+      processingTime: processingTime ?? state.processingTime,
+      wordCount: cleanedSummary.length,
+      generatedAt: generatedAt ?? state.generatedAt,
       isLoading: false,
       errorMessage: null,
     );
@@ -189,13 +189,34 @@ class SummaryNotifier extends Notifier<SummaryState> {
       ref.invalidate(episodeDetailProvider(episodeId));
       final episode = await ref.read(episodeDetailProvider(episodeId).future);
       final summary = episode?.aiSummary;
-      if (summary != null && summary.isNotEmpty) {
-        updateSummary(summary);
+      final summaryStatus = episode?.summaryStatus;
+      if (summaryStatus == 'summary_failed') {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage:
+              episode?.summaryErrorMessage ?? 'Summary generation failed',
+        );
+        _stopPolling();
+        return;
+      }
+
+      if (summaryStatus == 'summarized' &&
+          summary != null &&
+          summary.isNotEmpty) {
+        updateSummary(
+          summary,
+          modelUsed: episode?.summaryModelUsed,
+          processingTime: episode?.summaryProcessingTime,
+        );
         return;
       }
 
       _pollAttempts += 1;
       if (_pollAttempts >= _maxPollAttempts) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Summary generation is taking longer than expected.',
+        );
         _stopPolling();
       }
     } finally {

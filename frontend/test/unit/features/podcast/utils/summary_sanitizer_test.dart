@@ -40,5 +40,11 @@ After
       expect(output.length, longText.length);
       expect(output, longText);
     });
+
+    test('detects HTML timeout pages as invalid summary content', () {
+      const input =
+          '<!DOCTYPE html><html><head><title>524: A timeout occurred</title></head></html>';
+      expect(SummarySanitizer.detectFailureReason(input), isNotNull);
+    });
   });
 }

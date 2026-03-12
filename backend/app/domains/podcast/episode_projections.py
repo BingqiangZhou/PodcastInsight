@@ -57,6 +57,10 @@ class PodcastEpisodeProjection(BaseModel):
 class PodcastEpisodeDetailProjection(PodcastEpisodeProjection):
     """Internal DTO for the detailed episode endpoint."""
 
+    summary_status: str | None = None
+    summary_error_message: str | None = None
+    summary_model_used: str | None = None
+    summary_processing_time: float | None = None
     subscription: dict[str, Any] | None = None
     related_episodes: list[dict[str, Any]] = Field(default_factory=list)
 
@@ -66,6 +70,6 @@ EpisodeProjectionLike = PodcastEpisodeProjection | PodcastEpisodeDetailProjectio
 
 def episode_projection_to_payload(projection: EpisodeProjectionLike) -> dict[str, Any]:
     """Normalize projection-like inputs for response model construction."""
-    if isinstance(projection, (PodcastEpisodeProjection, PodcastEpisodeDetailProjection)):
+    if isinstance(projection, PodcastEpisodeProjection | PodcastEpisodeDetailProjection):
         return projection.to_response_payload()
     return dict(projection)

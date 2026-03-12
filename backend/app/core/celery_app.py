@@ -84,6 +84,9 @@ def create_celery_app() -> Celery:
             "app.domains.podcast.tasks.summary_generation.generate_pending_summaries": {
                 "queue": "ai_generation"
             },
+            "app.domains.podcast.tasks.summary_generation.generate_episode_summary": {
+                "queue": "ai_generation"
+            },
             "app.domains.podcast.tasks.transcription.process_audio_transcription": {
                 "queue": "transcription"
             },
