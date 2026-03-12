@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
-import '../providers/summary_providers.dart';
 import '../../../podcast/data/models/podcast_playback_model.dart';
+import '../providers/summary_providers.dart';
 
-/// AI总结控制widget - 提供生成、重新生成、模型选择等功能
+/// AI summary controls for generating and regenerating summaries.
 class AISummaryControlWidget extends ConsumerStatefulWidget {
   final int episodeId;
   final bool hasTranscript;
@@ -29,24 +29,24 @@ class _AISummaryControlWidgetState
     extends ConsumerState<AISummaryControlWidget> {
   SummaryModelInfo? _selectedModel;
   bool _showOptions = false;
-  final TextEditingController _promptController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // 监听可用模型列表，自动选择默认模型
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final modelsAsync = ref.read(availableModelsProvider);
       modelsAsync.when(
         data: (models) {
-          if (models.isNotEmpty) {
-            final defaultModel = models.firstWhere(
-              (m) => m.isDefault,
-              orElse: () => models.first,
-            );
-            if (mounted) {
-              setState(() => _selectedModel = defaultModel);
-            }
+          if (models.isEmpty) {
+            return;
+          }
+
+          final defaultModel = models.firstWhere(
+            (model) => model.isDefault,
+            orElse: () => models.first,
+          );
+          if (mounted) {
+            setState(() => _selectedModel = defaultModel);
           }
         },
         loading: () {},
@@ -55,34 +55,29 @@ class _AISummaryControlWidgetState
     });
   }
 
-  @override
-  void dispose() {
-    _promptController.dispose();
-    super.dispose();
-  }
-
   void _generateSummary() {
     final provider = getSummaryProvider(widget.episodeId);
-    ref
-        .read(provider.notifier)
-        .generateSummary(
-          model: _selectedModel?.name,
-          customPrompt: _promptController.text.isNotEmpty
-              ? _promptController.text
-              : null,
-        );
+    ref.read(provider.notifier).generateSummary(model: _resolvedModelName());
   }
 
   void _regenerateSummary() {
     final provider = getSummaryProvider(widget.episodeId);
-    ref
-        .read(provider.notifier)
-        .regenerateSummary(
-          model: _selectedModel?.name,
-          customPrompt: _promptController.text.isNotEmpty
-              ? _promptController.text
-              : null,
-        );
+    ref.read(provider.notifier).regenerateSummary(model: _resolvedModelName());
+  }
+
+  String? _resolvedModelName() {
+    if (_selectedModel != null) {
+      return _selectedModel!.name;
+    }
+
+    final models = ref.read(availableModelsProvider).asData?.value;
+    if (models == null || models.isEmpty) {
+      return null;
+    }
+
+    return models
+        .firstWhere((model) => model.isDefault, orElse: () => models.first)
+        .name;
   }
 
   @override
@@ -91,7 +86,6 @@ class _AISummaryControlWidgetState
     final summaryState = ref.watch(provider);
     final availableModelsAsync = ref.watch(availableModelsProvider);
 
-    // 如果没有转录内容，显示提示
     if (!widget.hasTranscript) {
       return _buildNoTranscriptMessage(context);
     }
@@ -101,15 +95,12 @@ class _AISummaryControlWidgetState
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 主操作区域
             if (!summaryState.hasSummary && !summaryState.isLoading)
               _buildGenerateControls(context, availableModels)
             else if (summaryState.hasSummary)
               _buildRegenerateControls(context, availableModels, summaryState)
             else
               _buildLoadingState(context),
-
-            // 错误显示
             if (summaryState.hasError)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
@@ -157,10 +148,11 @@ class _AISummaryControlWidgetState
     List<SummaryModelInfo> models,
   ) {
     final isCompact = widget.compact;
+    final hasModelOptions = models.length > 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 生成按钮
         ElevatedButton.icon(
           onPressed: _generateSummary,
           icon: Icon(Icons.auto_awesome, size: isCompact ? 16 : 18),
@@ -178,9 +170,7 @@ class _AISummaryControlWidgetState
             ),
           ),
         ),
-
-        // 选项展开按钮
-        if (models.isNotEmpty)
+        if (hasModelOptions)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: TextButton.icon(
@@ -205,9 +195,7 @@ class _AISummaryControlWidgetState
               ),
             ),
           ),
-
-        // 高级选项
-        if (_showOptions && models.isNotEmpty)
+        if (_showOptions && hasModelOptions)
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: _buildAdvancedOptions(context, models),
@@ -222,10 +210,11 @@ class _AISummaryControlWidgetState
     SummaryState summaryState,
   ) {
     final isCompact = widget.compact;
+    final hasModelOptions = models.length > 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 总结元数据
         if (summaryState.modelUsed != null ||
             summaryState.processingTime != null)
           Container(
@@ -260,10 +249,7 @@ class _AISummaryControlWidgetState
               ],
             ),
           ),
-
         const SizedBox(height: 12),
-
-        // 重新生成按钮和选项
         Row(
           children: [
             Expanded(
@@ -284,25 +270,27 @@ class _AISummaryControlWidgetState
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: () => setState(() => _showOptions = !_showOptions),
-              iconSize: isCompact ? 18 : 20,
-              visualDensity: isCompact
-                  ? VisualDensity.compact
-                  : VisualDensity.standard,
-              constraints: BoxConstraints.tightFor(
-                width: isCompact ? 36 : 40,
-                height: isCompact ? 36 : 40,
+            if (hasModelOptions) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () => setState(() => _showOptions = !_showOptions),
+                iconSize: isCompact ? 18 : 20,
+                visualDensity: isCompact
+                    ? VisualDensity.compact
+                    : VisualDensity.standard,
+                constraints: BoxConstraints.tightFor(
+                  width: isCompact ? 36 : 40,
+                  height: isCompact ? 36 : 40,
+                ),
+                icon: Icon(
+                  _showOptions ? Icons.expand_less : Icons.expand_more,
+                ),
+                tooltip: AppLocalizations.of(context)!.podcast_advanced_options,
               ),
-              icon: Icon(_showOptions ? Icons.expand_less : Icons.expand_more),
-              tooltip: AppLocalizations.of(context)!.podcast_advanced_options,
-            ),
+            ],
           ],
         ),
-
-        // 高级选项
-        if (_showOptions && models.isNotEmpty)
+        if (_showOptions && hasModelOptions)
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: _buildAdvancedOptions(context, models),
@@ -344,91 +332,57 @@ class _AISummaryControlWidgetState
         ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 模型选择器
-          if (models.length > 1)
-            DropdownButtonFormField<SummaryModelInfo>(
-              initialValue: _selectedModel,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.podcast_ai_model,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-              ),
-              items: models.map((model) {
-                return DropdownMenuItem<SummaryModelInfo>(
-                  value: model,
-                  child: Row(
-                    children: [
-                      Text(model.displayName),
-                      if (model.isDefault)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              AppLocalizations.of(
-                                context,
-                              )!.podcast_default_model,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() => _selectedModel = value);
-              },
-            ),
-
-          const SizedBox(height: 12),
-
-          // 自定义提示词输入
-          TextField(
-            controller: _promptController,
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.podcast_custom_prompt,
-              hintText: AppLocalizations.of(
-                context,
-              )!.podcast_custom_prompt_hint,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-            ),
-            maxLines: 3,
-            maxLength: 500,
+      child: DropdownButtonFormField<SummaryModelInfo>(
+        initialValue: _selectedModel,
+        decoration: InputDecoration(
+          labelText: AppLocalizations.of(context)!.podcast_ai_model,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
           ),
-        ],
+        ),
+        items: models.map((model) {
+          return DropdownMenuItem<SummaryModelInfo>(
+            value: model,
+            child: Row(
+              children: [
+                Text(model.displayName),
+                if (model.isDefault)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.podcast_default_model,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() => _selectedModel = value);
+        },
       ),
     );
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    // 移除转圈，只显示文字提示
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(

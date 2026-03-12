@@ -73,6 +73,30 @@ void main() {
       });
     },
   );
+
+  test('summary actions never forward custom prompt from provider layer', () {
+    fakeAsync((async) {
+      final repository = _FakeSummaryRepository(
+        episodeId: 1003,
+        summaryAvailableOnFetch: 1,
+      );
+      final container = ProviderContainer(
+        overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+
+      final provider = getSummaryProvider(1003);
+
+      container.read(provider.notifier).generateSummary(model: 'model-a');
+      async.flushMicrotasks();
+
+      container.read(provider.notifier).regenerateSummary(model: 'model-b');
+      async.flushMicrotasks();
+
+      expect(repository.customPromptValues, [null, null]);
+      expect(repository.summaryModelValues, ['model-a', 'model-b']);
+    });
+  });
 }
 
 class _FakeSummaryRepository extends PodcastRepository {
@@ -87,6 +111,8 @@ class _FakeSummaryRepository extends PodcastRepository {
   final Set<int> failGenerateCalls;
   int generateSummaryCalls = 0;
   int getEpisodeCalls = 0;
+  final List<String?> customPromptValues = [];
+  final List<String?> summaryModelValues = [];
 
   @override
   Future<PodcastSummaryResponse> generateSummary({
@@ -97,6 +123,8 @@ class _FakeSummaryRepository extends PodcastRepository {
     String? customPrompt,
   }) async {
     generateSummaryCalls += 1;
+    customPromptValues.add(customPrompt);
+    summaryModelValues.add(summaryModel);
     if (failGenerateCalls.contains(generateSummaryCalls)) {
       throw StateError('summary generation failed');
     }

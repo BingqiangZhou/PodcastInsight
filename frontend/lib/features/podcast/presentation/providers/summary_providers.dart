@@ -113,7 +113,6 @@ class SummaryNotifier extends Notifier<SummaryState> {
   /// Generate AI summary
   Future<void> generateSummary({
     String? model,
-    String? customPrompt,
     bool forceRegenerate = true,
   }) async {
     _stopPolling();
@@ -125,7 +124,6 @@ class SummaryNotifier extends Notifier<SummaryState> {
         episodeId: episodeId,
         forceRegenerate: forceRegenerate,
         summaryModel: model,
-        customPrompt: customPrompt,
       );
       final cleanedSummary = SummarySanitizer.clean(response.summary);
 
@@ -145,12 +143,8 @@ class SummaryNotifier extends Notifier<SummaryState> {
   }
 
   /// Regenerate summary
-  Future<void> regenerateSummary({String? model, String? customPrompt}) async {
-    return generateSummary(
-      model: model,
-      customPrompt: customPrompt,
-      forceRegenerate: true,
-    );
+  Future<void> regenerateSummary({String? model}) async {
+    return generateSummary(model: model, forceRegenerate: true);
   }
 
   /// Update summary from existing data (used when loading episode detail)
