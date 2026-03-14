@@ -4,6 +4,7 @@ import '../../data/models/itunes_episode_lookup_model.dart';
 import '../../../../core/utils/time_formatter.dart';
 import '../constants/podcast_ui_constants.dart';
 import 'podcast_image_widget.dart';
+import 'shared/episode_card_utils.dart';
 
 class PodcastEpisodeSearchResultCard extends StatelessWidget {
   const PodcastEpisodeSearchResultCard({
@@ -122,7 +123,7 @@ class PodcastEpisodeSearchResultCard extends StatelessWidget {
   String _buildMetaText(ITunesPodcastEpisodeResult episode) {
     final parts = <String>[];
     if (episode.releaseDate != null) {
-      parts.add(_formatDate(episode.releaseDate!));
+      parts.add(EpisodeCardUtils.formatDate(episode.releaseDate!));
     }
     if (episode.trackTimeMillis != null && episode.trackTimeMillis! > 0) {
       parts.add(
@@ -132,12 +133,5 @@ class PodcastEpisodeSearchResultCard extends StatelessWidget {
       );
     }
     return parts.join(' · ');
-  }
-
-  String _formatDate(DateTime dateTime) {
-    final date = dateTime.toLocal();
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '${date.year}-$month-$day';
   }
 }

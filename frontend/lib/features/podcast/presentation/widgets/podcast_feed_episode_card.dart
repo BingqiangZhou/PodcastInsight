@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../data/models/podcast_episode_model.dart';
 import 'podcast_image_widget.dart';
+import 'shared/episode_card_utils.dart';
 
 class PodcastFeedEpisodeCard extends StatelessWidget {
   const PodcastFeedEpisodeCard({
@@ -256,42 +257,16 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 13,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      SizedBox(width: compact ? 3 : 2),
-                      Text(
-                        _formatDate(episode.publishedAt),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
+                  EpisodeCardUtils.buildDateMetadata(
+                    date: episode.publishedAt,
+                    theme: theme,
+                    spacing: compact ? 3 : 2,
                   ),
                   const SizedBox(width: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.schedule,
-                        size: 13,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      SizedBox(width: compact ? 3 : 2),
-                      Text(
-                        episode.formattedDuration,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
+                  EpisodeCardUtils.buildDurationMetadata(
+                    formattedDuration: episode.formattedDuration,
+                    theme: theme,
+                    spacing: compact ? 3 : 2,
                   ),
                 ],
               ),
@@ -324,9 +299,4 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
       ],
     );
   }
-}
-
-String _formatDate(DateTime date) {
-  final localDate = date.isUtc ? date.toLocal() : date;
-  return '${localDate.year}-${localDate.month.toString().padLeft(2, '0')}-${localDate.day.toString().padLeft(2, '0')}';
 }
