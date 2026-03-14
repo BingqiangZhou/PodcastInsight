@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../../../shared/widgets/loading_widget.dart';
-import '../../../../shared/widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/password_text_field.dart';
 import '../widgets/password_requirement_item.dart';
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
@@ -238,23 +238,15 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                   const SizedBox(height: 32),
 
                   // Password field
-                  CustomTextField(
+                  PasswordTextField(
                     controller: _passwordController,
                     label: l10n.auth_new_password,
                     obscureText: _obscurePassword,
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
+                    onToggleVisibility: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return l10n.auth_enter_password;
@@ -269,23 +261,15 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                   const SizedBox(height: 16),
 
                   // Confirm Password field
-                  CustomTextField(
+                  PasswordTextField(
                     controller: _confirmPasswordController,
                     label: l10n.auth_confirm_password,
                     obscureText: _obscureConfirmPassword,
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
+                    onToggleVisibility: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return l10n.auth_enter_password;

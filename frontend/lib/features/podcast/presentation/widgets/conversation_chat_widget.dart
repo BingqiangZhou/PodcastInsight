@@ -790,6 +790,9 @@ class ConversationChatWidgetState
   }
 
   Widget _buildMessagesList(BuildContext context, ConversationState state) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -802,18 +805,18 @@ class ConversationChatWidgetState
             Icon(
               Icons.error_outline,
               size: 64,
-              color: Theme.of(context).colorScheme.error,
+              color: scheme.error,
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.podcast_conversation_loading_failed,
-              style: Theme.of(context).textTheme.titleMedium,
+              l10n.podcast_conversation_loading_failed,
+              style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
               state.errorMessage ?? '',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -839,6 +842,8 @@ class ConversationChatWidgetState
 
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
@@ -848,18 +853,18 @@ class ConversationChatWidgetState
             Icon(
               Icons.chat_outlined,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: scheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
             Text(
               l10n.podcast_conversation_empty_title,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
               l10n.podcast_conversation_empty_hint,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -868,10 +873,10 @@ class ConversationChatWidgetState
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  color: scheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant,
+                    color: scheme.outlineVariant,
                   ),
                 ),
                 child: Column(
@@ -882,18 +887,15 @@ class ConversationChatWidgetState
                         Icon(
                           Icons.summarize_outlined,
                           size: 16,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: scheme.primary,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.podcast_filter_with_summary,
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          l10n.podcast_filter_with_summary,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
@@ -902,8 +904,8 @@ class ConversationChatWidgetState
                       widget.aiSummary!.length > 200
                           ? '${widget.aiSummary!.substring(0, 200)}...'
                           : widget.aiSummary!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
                         height: 1.5,
                       ),
                     ),
@@ -920,8 +922,10 @@ class ConversationChatWidgetState
     BuildContext context,
     PodcastConversationMessage message,
   ) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final isUser = message.isUser;
-    final userTextColor = Theme.of(context).colorScheme.onSurface;
+    final userTextColor = scheme.onSurface;
     final isSelected = _isMessageSelected(message);
     final roleLabel = _messageRoleLabel(message);
 
@@ -939,23 +943,17 @@ class ConversationChatWidgetState
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: isUser
-                ? Theme.of(context).colorScheme.primaryContainer
-                : Theme.of(context).colorScheme.surfaceContainerHighest,
+                ? scheme.primaryContainer
+                : scheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _isMessageSelectMode
                   ? (isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(
-                            context,
-                          ).colorScheme.outlineVariant.withValues(alpha: 0.35))
+                        ? scheme.primary
+                        : scheme.outlineVariant.withValues(alpha: 0.35))
                   : (isUser
-                        ? Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.3)
-                        : Theme.of(
-                            context,
-                          ).colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                        ? scheme.primary.withValues(alpha: 0.3)
+                        : scheme.outlineVariant.withValues(alpha: 0.3)),
               width: _isMessageSelectMode && isSelected ? 1.6 : 1,
             ),
           ),
@@ -971,15 +969,15 @@ class ConversationChatWidgetState
                     size: 14,
                     color: isUser
                         ? userTextColor
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                        : scheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     roleLabel,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       color: isUser
                           ? userTextColor
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                          : scheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -991,8 +989,8 @@ class ConversationChatWidgetState
                           : Icons.radio_button_unchecked,
                       size: 16,
                       color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
                     ),
                   ],
                 ],
@@ -1001,10 +999,10 @@ class ConversationChatWidgetState
               _isMessageSelectMode
                   ? Text(
                       message.content,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: isUser
                             ? userTextColor
-                            : Theme.of(context).colorScheme.onSurface,
+                            : scheme.onSurface,
                         height: 1.5,
                       ),
                     )
@@ -1042,10 +1040,10 @@ class ConversationChatWidgetState
                           ],
                         );
                       },
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: isUser
                             ? userTextColor
-                            : Theme.of(context).colorScheme.onSurface,
+                            : scheme.onSurface,
                         height: 1.5,
                       ),
                     ),
@@ -1058,13 +1056,15 @@ class ConversationChatWidgetState
 
   Widget _buildInputArea(BuildContext context, ConversationState state) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: scheme.surface,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
+            color: scheme.outlineVariant,
             width: 1,
           ),
         ),
@@ -1078,10 +1078,10 @@ class ConversationChatWidgetState
                 controller: _messageController,
                 focusNode: _focusNode,
                 enabled: state.isReady && widget.aiSummary != null,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurface,
                 ),
-                cursorColor: Theme.of(context).colorScheme.primary,
+                cursorColor: scheme.primary,
                 maxLines: null,
                 minLines: 1,
                 textInputAction: TextInputAction.send,
@@ -1093,19 +1093,19 @@ class ConversationChatWidgetState
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.outline,
+                      color: scheme.outline,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.outline,
+                      color: scheme.outline,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: scheme.primary,
                       width: 2,
                     ),
                   ),
@@ -1130,7 +1130,7 @@ class ConversationChatWidgetState
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: scheme.onSurfaceVariant,
                       ),
                     )
                   : const Icon(Icons.send),

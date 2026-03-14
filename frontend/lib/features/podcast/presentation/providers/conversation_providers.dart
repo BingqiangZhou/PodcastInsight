@@ -74,14 +74,6 @@ class ConversationState {
   bool get isEmpty => messages.isEmpty;
   bool get isReady => !isLoading && !isSending;
 
-  /// Get user messages
-  List<PodcastConversationMessage> get userMessages =>
-      messages.where((m) => m.isUser).toList();
-
-  /// Get assistant messages
-  List<PodcastConversationMessage> get assistantMessages =>
-      messages.where((m) => m.isAssistant).toList();
-
   ConversationState copyWith({
     List<PodcastConversationMessage>? messages,
     bool? isLoading,

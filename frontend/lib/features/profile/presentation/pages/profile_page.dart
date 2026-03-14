@@ -9,11 +9,13 @@ import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
+import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/widgets/update_dialog.dart';
 
 import '../widgets/profile_activity_cards.dart';
 import '../../../../shared/widgets/server_config_dialog.dart';
+import '../../../../shared/widgets/settings_section_card.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../podcast/presentation/providers/podcast_providers.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
@@ -68,35 +70,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
   }
 
-  bool _isMobile(BuildContext context) =>
-      MediaQuery.of(context).size.width < AppBreakpoints.medium;
-
   double _dialogMaxWidth(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    return screenWidth < AppBreakpoints.medium ? screenWidth - 32 : 560.0;
+    return ResponsiveDialogHelper.maxWidth(context);
   }
 
-  EdgeInsets _dialogInsetPadding(BuildContext context) =>
-      const EdgeInsets.all(16);
-
-  Color _dialogIconColor(BuildContext context) =>
-      Theme.of(context).colorScheme.onSurfaceVariant;
-
-  ButtonStyle _dialogActionButtonStyle(BuildContext context) =>
-      TextButton.styleFrom(foregroundColor: _dialogIconColor(context));
-
-  ButtonStyle _dialogSegmentedButtonStyle(BuildContext context) =>
-      SegmentedButton.styleFrom(
-        selectedForegroundColor: _dialogIconColor(context),
-      );
-
   EdgeInsetsGeometry _profileCardMargin(BuildContext context) =>
-      _isMobile(context)
+      context.isMobile
       ? const EdgeInsets.symmetric(horizontal: 4)
       : EdgeInsets.zero;
 
   ShapeBorder? _profileCardShape(BuildContext context) {
-    if (!_isMobile(context)) {
+    if (!context.isMobile) {
       return null;
     }
     return RoundedRectangleBorder(
@@ -227,7 +211,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   Widget _buildSettingsContent(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isMobile = _isMobile(context);
+    final isMobile = context.isMobile;
     final theme = Theme.of(context);
 
     final accountItems = <_SettingsItemConfig>[
@@ -293,10 +277,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       ),
     ];
 
-    final preferencesSection = _buildSettingsSection(
-      context,
-      l10n.preferences,
-      [_buildLanguageSettingsItem(context), _buildThemeSettingsItem(context)],
+    final preferencesSection = SettingsSectionCard(
+      title: l10n.preferences,
+      cardMargin: _profileCardMargin(context),
+      cardShape: _profileCardShape(context),
+      children: [
+        _buildLanguageSettingsItem(context),
+        _buildThemeSettingsItem(context),
+      ],
     );
 
     if (isMobile) {
@@ -353,10 +341,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     String title,
     List<_SettingsItemConfig> items,
   ) {
-    return _buildSettingsSection(
-      context,
-      title,
-      items.map((item) => _buildSettingsItemFromConfig(context, item)).toList(),
+    return SettingsSectionCard(
+      title: title,
+      cardMargin: _profileCardMargin(context),
+      cardShape: _profileCardShape(context),
+      children: items
+          .map((item) => _buildSettingsItemFromConfig(context, item))
+          .toList(),
     );
   }
 
@@ -422,32 +413,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   // ignore: unused_element
   Widget _buildCard(Widget child) =>
       Card(margin: EdgeInsets.zero, child: child);
-  Widget _buildSettingsSection(
-    BuildContext context,
-    String title,
-    List<Widget> children,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 8),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-        ),
-        Card(
-          margin: _profileCardMargin(context),
-          shape: _profileCardShape(context),
-          child: Column(children: children),
-        ),
-      ],
-    );
-  }
 
   Widget _buildSettingsItem(
     BuildContext context, {
@@ -495,7 +460,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       context,
       builder: (dialogContext) {
         return AlertDialog(
-          insetPadding: _dialogInsetPadding(dialogContext),
+          insetPadding: ResponsiveDialogHelper.insetPadding(),
           title: Text(l10n.profile_edit_profile),
           content: SizedBox(
             width: double.maxFinite,
@@ -552,9 +517,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     _showConstrainedDialog<void>(
       context,
       builder: (dialogContext) {
-        final iconColor = _dialogIconColor(dialogContext);
+        final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
         return AlertDialog(
-          insetPadding: _dialogInsetPadding(dialogContext),
+          insetPadding: ResponsiveDialogHelper.insetPadding(),
           title: Text(l10n.profile_security),
           content: SizedBox(
             width: double.maxFinite,
@@ -581,7 +546,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
           actions: [
             TextButton(
-              style: _dialogActionButtonStyle(dialogContext),
+              style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.close),
             ),
@@ -599,17 +564,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           builder: (dialogContext, ref, _) {
             final currentCode = ref.watch(localeCodeProvider);
             final l10n = AppLocalizations.of(dialogContext)!;
-            final iconColor = _dialogIconColor(dialogContext);
+            final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
 
             return AlertDialog(
-              insetPadding: _dialogInsetPadding(dialogContext),
+              insetPadding: ResponsiveDialogHelper.insetPadding(),
               title: Text(l10n.language),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SegmentedButton<String>(
                     key: const Key('profile_language_segmented_button'),
-                    style: _dialogSegmentedButtonStyle(dialogContext),
+                    style: ResponsiveDialogHelper.segmentedButtonStyle(
+                      dialogContext,
+                    ),
                     segments: [
                       ButtonSegment(
                         value: kLanguageSystem,
@@ -649,7 +616,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               ),
               actions: [
                 TextButton(
-                  style: _dialogActionButtonStyle(dialogContext),
+                  style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: Text(l10n.close),
                 ),
@@ -669,17 +636,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           builder: (dialogContext, ref, _) {
             final currentCode = ref.watch(themeModeCodeProvider);
             final l10n = AppLocalizations.of(dialogContext)!;
-            final iconColor = _dialogIconColor(dialogContext);
+            final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
 
             return AlertDialog(
-              insetPadding: _dialogInsetPadding(dialogContext),
+              insetPadding: ResponsiveDialogHelper.insetPadding(),
               title: Text(l10n.theme_mode_select_title),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SegmentedButton<String>(
                     key: const Key('profile_theme_segmented_button'),
-                    style: _dialogSegmentedButtonStyle(dialogContext),
+                    style: ResponsiveDialogHelper.segmentedButtonStyle(
+                      dialogContext,
+                    ),
                     segments: [
                       ButtonSegment(
                         value: kThemeModeSystem,
@@ -737,7 +706,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               ),
               actions: [
                 TextButton(
-                  style: _dialogActionButtonStyle(dialogContext),
+                  style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: Text(l10n.close),
                 ),
@@ -754,9 +723,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     _showConstrainedDialog<void>(
       context,
       builder: (dialogContext) {
-        final iconColor = _dialogIconColor(dialogContext);
+        final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
         return AlertDialog(
-          insetPadding: _dialogInsetPadding(dialogContext),
+          insetPadding: ResponsiveDialogHelper.insetPadding(),
           title: Text(l10n.profile_help_center),
           content: SizedBox(
             width: double.maxFinite,
@@ -783,7 +752,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
           actions: [
             TextButton(
-              style: _dialogActionButtonStyle(dialogContext),
+              style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.close),
             ),
@@ -801,9 +770,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     _showConstrainedDialog<void>(
       context,
       builder: (dialogContext) {
-        final iconColor = _dialogIconColor(dialogContext);
+        final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
         return AlertDialog(
-          insetPadding: _dialogInsetPadding(dialogContext),
+          insetPadding: ResponsiveDialogHelper.insetPadding(),
           title: Row(
             children: [
               Icon(Icons.psychology, size: 48, color: iconColor),
@@ -842,7 +811,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
           actions: [
             TextButton(
-              style: _dialogActionButtonStyle(dialogContext),
+              style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.ok),
             ),
@@ -912,7 +881,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       context,
       builder: (dialogContext) {
         return AlertDialog(
-          insetPadding: _dialogInsetPadding(dialogContext),
+          insetPadding: ResponsiveDialogHelper.insetPadding(),
           title: Text(l10n.profile_logout_title),
           content: Text(l10n.profile_logout_message),
           actions: [

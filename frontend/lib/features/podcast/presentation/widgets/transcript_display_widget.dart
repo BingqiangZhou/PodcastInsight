@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
+import 'podcast_empty_state.dart';
 import '../providers/transcription_providers.dart';
 import '../../data/models/podcast_transcription_model.dart';
 import '../services/content_image_share_service.dart';
@@ -225,19 +226,19 @@ class TranscriptDisplayWidgetState
 
   Widget _buildSelectionToolbar(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final selectedCount = _selectedTranscriptSegments.length;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Theme.of(
-        context,
-      ).colorScheme.primaryContainer.withValues(alpha: 0.35),
+      color: scheme.primaryContainer.withValues(alpha: 0.35),
       child: Row(
         children: [
           Text(
             l10n.podcast_selected_count(selectedCount),
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: scheme.onPrimaryContainer,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -259,13 +260,14 @@ class TranscriptDisplayWidgetState
 
   Widget _buildSearchBar(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: scheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
+            color: scheme.outlineVariant,
             width: 1,
           ),
         ),
@@ -286,20 +288,16 @@ class TranscriptDisplayWidgetState
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(28),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                  borderSide: BorderSide(color: scheme.outline),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(28),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                  borderSide: BorderSide(color: scheme.outline),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(28),
                   borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: scheme.primary,
                     width: 2,
                   ),
                 ),
@@ -367,19 +365,19 @@ class TranscriptDisplayWidgetState
     int index,
   ) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final selectionKey = 'full_$index';
     final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+              ? scheme.primary
+              : scheme.outline.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -390,8 +388,8 @@ class TranscriptDisplayWidgetState
             children: [
               Text(
                 '#${index + 1}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
               const Spacer(),
@@ -439,7 +437,7 @@ class TranscriptDisplayWidgetState
             style: TextStyle(
               fontSize: 15,
               height: 1.6,
-              color: Theme.of(context).colorScheme.onSurface,
+              color: scheme.onSurface,
             ),
           ),
         ],
@@ -449,6 +447,7 @@ class TranscriptDisplayWidgetState
 
   Widget _buildSearchResults(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     if (_searchResults.isEmpty) {
       return Center(
         child: Column(
@@ -457,14 +456,14 @@ class TranscriptDisplayWidgetState
             Icon(
               Icons.search_off,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: scheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
             Text(
               l10n.podcast_transcript_no_match,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: scheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -491,6 +490,7 @@ class TranscriptDisplayWidgetState
     int index,
   ) {
     final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     final selectionKey = 'search_$index';
     final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
     final query = _searchController.text;
@@ -500,12 +500,12 @@ class TranscriptDisplayWidgetState
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+              ? scheme.primary
+              : scheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -517,7 +517,7 @@ class TranscriptDisplayWidgetState
                 l10n.podcast_transcript_match(index + 1),
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: scheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -572,13 +572,14 @@ class TranscriptDisplayWidgetState
   }
 
   TextSpan _highlightSearchText(String text, String query) {
+    final scheme = Theme.of(context).colorScheme;
     if (query.isEmpty) {
       return TextSpan(
         text: text,
         style: TextStyle(
           fontSize: 15,
           height: 1.6,
-          color: Theme.of(context).colorScheme.onSurface,
+          color: scheme.onSurface,
         ),
       );
     }
@@ -600,7 +601,7 @@ class TranscriptDisplayWidgetState
             style: TextStyle(
               fontSize: 15,
               height: 1.6,
-              color: Theme.of(context).colorScheme.onSurface,
+              color: scheme.onSurface,
             ),
           ),
         );
@@ -613,11 +614,9 @@ class TranscriptDisplayWidgetState
           style: TextStyle(
             fontSize: 15,
             height: 1.6,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
             fontWeight: FontWeight.bold,
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.2),
+            backgroundColor: scheme.primary.withValues(alpha: 0.2),
           ),
         ),
       );
@@ -633,7 +632,7 @@ class TranscriptDisplayWidgetState
           style: TextStyle(
             fontSize: 15,
             height: 1.6,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: scheme.onSurface,
           ),
         ),
       );
@@ -644,35 +643,10 @@ class TranscriptDisplayWidgetState
 
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.article_outlined,
-            size: 64,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.podcast_no_transcript,
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.podcast_click_to_transcribe,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
-      ),
+    return PodcastEmptyState(
+      icon: Icons.article_outlined,
+      title: l10n.podcast_no_transcript,
+      subtitle: l10n.podcast_click_to_transcribe,
     );
   }
 }

@@ -214,8 +214,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
   }
 
   Widget _buildHeaderPanel(BuildContext context, AppLocalizations l10n) {
-    final isMobile =
-        MediaQuery.of(context).size.width < AppBreakpoints.medium;
+    final isMobile = context.isMobile;
     return CompactHeaderPanel(
       title: l10n.profile_viewed_title,
       leading: isMobile

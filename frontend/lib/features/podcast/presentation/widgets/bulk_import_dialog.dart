@@ -42,6 +42,18 @@ class UrlWithTitle {
   UrlWithTitle({required this.url, this.title});
 }
 
+class _ValidationStats {
+  const _ValidationStats({
+    required this.importableValidCount,
+    required this.validTabCount,
+    required this.invalidCount,
+  });
+
+  final int importableValidCount;
+  final int validTabCount;
+  final int invalidCount;
+}
+
 class BulkImportDialog extends StatefulWidget {
   final Future<void> Function(List<String> urls) onImport;
 
@@ -55,7 +67,6 @@ class _BulkImportDialogState extends State<BulkImportDialog>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _textController = TextEditingController();
-  List<String> _previewUrls = [];
   List<UrlValidationItem> _validationItems = [];
   bool _isImporting = false;
   bool _isDragging = false;
@@ -123,12 +134,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
         // Switch to Valid tab if we found items, or Invalid if only invalid
         _selectedFilterIndex = 0;
       });
-
-      final validCount = _validationItems.where((item) => item.isValid).length;
-      showTopFloatingNotice(
-        context,
-        message: l10n.podcast_bulk_import_links_found(urls.length, validCount),
-      );
+      _showLinksFoundNotice(l10n, urls.length);
     }
   }
 
@@ -139,6 +145,66 @@ class _BulkImportDialogState extends State<BulkImportDialog>
         .toSet()
         .toList();
     return urls;
+  }
+
+  int get _validItemCount =>
+      _computeValidationStats().importableValidCount;
+
+  _ValidationStats _computeValidationStats() {
+    var importableValidCount = 0;
+    var validTabCount = 0;
+    var invalidCount = 0;
+
+    for (final item in _validationItems) {
+      if (item.isValid) {
+        importableValidCount += 1;
+        validTabCount += 1;
+      } else if (item.isChecking) {
+        validTabCount += 1;
+      } else {
+        invalidCount += 1;
+      }
+    }
+
+    return _ValidationStats(
+      importableValidCount: importableValidCount,
+      validTabCount: validTabCount,
+      invalidCount: invalidCount,
+    );
+  }
+
+  void _showLinksFoundNotice(AppLocalizations l10n, int foundCount) {
+    showTopFloatingNotice(
+      context,
+      message: l10n.podcast_bulk_import_links_found(foundCount, _validItemCount),
+    );
+  }
+
+  List<String> _collectNewUrls(Iterable<String> urls) {
+    final existingUrls = _validationItems.map((item) => item.url.trim()).toSet();
+    return urls
+        .map((url) => url.trim())
+        .where((url) => url.isNotEmpty && !existingUrls.contains(url))
+        .toSet()
+        .toList();
+  }
+
+  List<UrlWithTitle> _collectNewUrlsWithTitles(Iterable<UrlWithTitle> items) {
+    final existingUrls = _validationItems.map((item) => item.url.trim()).toSet();
+    final uniqueNewItems = <String, UrlWithTitle>{};
+
+    for (final item in items) {
+      final normalizedUrl = item.url.trim();
+      if (normalizedUrl.isEmpty || existingUrls.contains(normalizedUrl)) {
+        continue;
+      }
+      uniqueNewItems[normalizedUrl] = UrlWithTitle(
+        url: normalizedUrl,
+        title: item.title,
+      );
+    }
+
+    return uniqueNewItems.values.toList();
   }
 
   /// Extract RSS feed URLs from OPML file content
@@ -230,15 +296,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   /// Validate all URLs and update the validation items
   Future<void> _validateUrls(List<String> urls, {bool append = false}) async {
     final l10n = AppLocalizations.of(context)!;
-    // Remove duplicates from new URLs
-    final existingUrls = _validationItems
-        .map((item) => item.url.trim())
-        .toSet();
-    final newUrls = urls
-        .map((u) => u.trim())
-        .where((url) => !existingUrls.contains(url))
-        .toSet() // Dedupe within new list
-        .toList();
+    final newUrls = _collectNewUrls(urls);
 
     if (newUrls.isEmpty) {
       if (mounted && append) {
@@ -257,13 +315,8 @@ class _BulkImportDialogState extends State<BulkImportDialog>
     setState(() {
       if (append) {
         _validationItems.addAll(items);
-        // We probably don't need _previewUrls as separate list if we use _validationItems
-        // but keeping it for consistency if used elsewhere, though it seems redundant now.
-        // Actually _previewUrls is updated in original code, so let's update it.
-        _previewUrls.addAll(newUrls);
       } else {
         _validationItems = items;
-        _previewUrls = newUrls;
       }
     });
 
@@ -276,20 +329,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
     bool append = false,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    // Remove duplicates from new URLs
-    final existingUrls = _validationItems
-        .map((item) => item.url.trim())
-        .toSet();
-    final newUrlsWithTitles = urlsWithTitles
-        .where((item) => !existingUrls.contains(item.url.trim()))
-        .toList(); // Should also dedupe within itself
-
-    // Dedupe within input
-    final uniqueNewItems = <String, UrlWithTitle>{};
-    for (var item in newUrlsWithTitles) {
-      uniqueNewItems[item.url.trim()] = item;
-    }
-    final finalizedNewItems = uniqueNewItems.values.toList();
+    final finalizedNewItems = _collectNewUrlsWithTitles(urlsWithTitles);
 
     if (finalizedNewItems.isEmpty) {
       if (mounted && append) {
@@ -308,15 +348,12 @@ class _BulkImportDialogState extends State<BulkImportDialog>
           (item) => UrlValidationItem(url: item.url.trim(), title: item.title),
         )
         .toList();
-    final newUrls = finalizedNewItems.map((item) => item.url.trim()).toList();
 
     setState(() {
       if (append) {
         _validationItems.addAll(items);
-        _previewUrls.addAll(newUrls);
       } else {
         _validationItems = items;
-        _previewUrls = newUrls;
       }
     });
 
@@ -446,16 +483,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
           setState(() {
             _isInputExpanded = false;
           });
-          final validCount = _validationItems
-              .where((item) => item.isValid)
-              .length;
-          showTopFloatingNotice(
-            context,
-            message: l10n.podcast_bulk_import_links_found(
-              urlsWithTitles.length,
-              validCount,
-            ),
-          );
+          _showLinksFoundNotice(l10n, urlsWithTitles.length);
         }
       } else {
         logger.AppLogger.debug('== Detected text file, using regex parser ==');
@@ -479,16 +507,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
           setState(() {
             _isInputExpanded = false;
           });
-          final validCount = _validationItems
-              .where((item) => item.isValid)
-              .length;
-          showTopFloatingNotice(
-            context,
-            message: l10n.podcast_bulk_import_links_found(
-              urls.length,
-              validCount,
-            ),
-          );
+          _showLinksFoundNotice(l10n, urls.length);
         }
       }
     } catch (e) {
@@ -578,12 +597,12 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   bool _hasValidUrls() {
-    return _validationItems.any((item) => item.isValid);
+    return _computeValidationStats().importableValidCount > 0;
   }
 
   String _getImportButtonText() {
     final l10n = AppLocalizations.of(context)!;
-    final validCount = _validationItems.where((item) => item.isValid).length;
+    final validCount = _computeValidationStats().importableValidCount;
     if (validCount > 0) {
       return l10n.podcast_bulk_import_imported_count(validCount);
     }
@@ -592,12 +611,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
 
   Widget _buildFilterTabs() {
     final l10n = AppLocalizations.of(context)!;
-    final validCount = _validationItems
-        .where((item) => item.isValid || item.isChecking)
-        .length;
-    final invalidCount = _validationItems
-        .where((item) => !item.isValid && !item.isChecking)
-        .length;
+    final stats = _computeValidationStats();
 
     return Container(
       decoration: BoxDecoration(
@@ -612,7 +626,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
           Expanded(
             child: _buildFilterTab(
               index: 0,
-              label: l10n.podcast_bulk_import_valid_count(validCount),
+              label: l10n.podcast_bulk_import_valid_count(stats.validTabCount),
               color: Colors.blue,
               isSelected: _selectedFilterIndex == 0,
             ),
@@ -620,7 +634,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
           Expanded(
             child: _buildFilterTab(
               index: 1,
-              label: l10n.podcast_bulk_import_invalid_count(invalidCount),
+              label: l10n.podcast_bulk_import_invalid_count(stats.invalidCount),
               color: Colors.red,
               isSelected: _selectedFilterIndex == 1,
             ),
@@ -661,6 +675,8 @@ class _BulkImportDialogState extends State<BulkImportDialog>
 
   Widget _buildCompressedInput() {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -673,18 +689,16 @@ class _BulkImportDialogState extends State<BulkImportDialog>
         height: 60,
         decoration: BoxDecoration(
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+            color: scheme.outline.withValues(alpha: 0.3),
             style: BorderStyle
                 .none, // We'll rely on the background color mostly or use dashed border if we could
           ),
-          color: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12),
         ),
         // Dashed border effect can be achieved with CustomPainter, but for simplicity we use simple border or look
         child: DottedBorderWidget(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+          color: scheme.outline.withValues(alpha: 0.5),
           radius: 12,
           child: Center(
             child: Row(
@@ -692,20 +706,18 @@ class _BulkImportDialogState extends State<BulkImportDialog>
               children: [
                 Icon(
                   Icons.upload_file,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: scheme.primary,
                 ),
                 const SizedBox(width: 8),
                 RichText(
                   text: TextSpan(
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                    style: TextStyle(color: scheme.onSurface),
                     children: [
                       TextSpan(text: l10n.podcast_bulk_import_drag_drop),
                       TextSpan(
                         text: l10n.podcast_bulk_import_select_file,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: scheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -831,10 +843,6 @@ class _BulkImportDialogState extends State<BulkImportDialog>
                     final originalIndex = _validationItems.indexOf(item);
                     if (originalIndex != -1) {
                       _validationItems.removeAt(originalIndex);
-                      // Update _previewUrls as well
-                      if (_previewUrls.contains(item.url)) {
-                        _previewUrls.remove(item.url);
-                      }
 
                       if (_validationItems.isEmpty && !_isInputExpanded) {
                         _isInputExpanded = true;

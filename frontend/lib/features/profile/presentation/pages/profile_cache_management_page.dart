@@ -93,11 +93,8 @@ class _ProfileCacheManagementPageState
 
   late Future<_MediaCacheStats> _statsFuture;
 
-  bool _isMobile(BuildContext context) =>
-      MediaQuery.of(context).size.width < AppBreakpoints.medium;
-
   double _contentHorizontalInset(BuildContext context) =>
-      _isMobile(context) ? kPodcastRowCardHorizontalMargin : 0;
+      context.isMobile ? kPodcastRowCardHorizontalMargin : 0;
 
   EdgeInsets _contentHorizontalPadding(BuildContext context) =>
       EdgeInsets.symmetric(horizontal: _contentHorizontalInset(context));
@@ -448,7 +445,7 @@ class _ProfileCacheManagementPageState
 
   Widget _buildHeaderPanel(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isMobile = _isMobile(context);
+    final isMobile = context.isMobile;
 
     return CompactHeaderPanel(
       key: const Key('cache_manage_header_panel'),

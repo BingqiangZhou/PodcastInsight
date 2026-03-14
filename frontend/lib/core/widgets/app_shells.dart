@@ -681,8 +681,7 @@ class ProfileShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile =
-        MediaQuery.of(context).size.width < AppBreakpoints.medium;
+    final isMobile = context.isMobile;
     final showSummary = summary is! SizedBox;
     final topSectionSpacing = isMobile ? 20.0 : 12.0;
     final tokens = mindriverThemeOf(context);

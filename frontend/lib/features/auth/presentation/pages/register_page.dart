@@ -10,6 +10,7 @@ import '../../../../core/widgets/top_floating_notice.dart';
 import '../../../../shared/widgets/loading_widget.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/password_text_field.dart';
 import '../widgets/password_requirement_item.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
@@ -212,24 +213,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomTextField(
+                      PasswordTextField(
                         controller: _passwordController,
                         label: l10n.auth_password,
                         obscureText: _obscurePassword,
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          key: const Key('password_visibility_toggle'),
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
+                        toggleButtonKey: const Key('password_visibility_toggle'),
+                        onToggleVisibility: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
                         onChanged: (value) => _clearFieldErrors(),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -310,23 +303,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   const SizedBox(height: 12),
 
                   // Confirm password field
-                  CustomTextField(
+                  PasswordTextField(
                     controller: _confirmPasswordController,
                     label: l10n.auth_confirm_password,
                     obscureText: _obscureConfirmPassword,
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
+                    onToggleVisibility: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return l10n.auth_enter_password;

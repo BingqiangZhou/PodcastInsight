@@ -11,11 +11,8 @@ import '../../../podcast/presentation/providers/podcast_providers.dart';
 class ProfileActivityCards extends ConsumerWidget {
   const ProfileActivityCards({super.key});
 
-  bool _isMobile(BuildContext context) =>
-      MediaQuery.of(context).size.width < AppBreakpoints.medium;
-
   EdgeInsetsGeometry _cardMargin(BuildContext context) {
-    if (_isMobile(context)) {
+    if (context.isMobile) {
       return const EdgeInsets.symmetric(horizontal: 4);
     }
     return EdgeInsets.zero;
@@ -24,43 +21,31 @@ class ProfileActivityCards extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final isMobile = _isMobile(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isMobile = context.isMobile;
     final statsAsync = ref.watch(profileStatsProvider);
+    final stats = statsAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => null,
+    );
+    final isLoading = statsAsync.isLoading;
 
-    final episodeCount = statsAsync.when(
-      data: (stats) => stats?.totalEpisodes.toString() ?? '0',
-      loading: () => '...',
-      error: (error, stackTrace) => '0',
-    );
-    final summaryCount = statsAsync.when(
-      data: (stats) => stats?.summariesGenerated.toString() ?? '0',
-      loading: () => '...',
-      error: (error, stackTrace) => '0',
-    );
-    final historyCount = statsAsync.when(
-      data: (stats) => stats?.playedEpisodes.toString() ?? '0',
-      loading: () => '...',
-      error: (error, stackTrace) => '0',
-    );
-    final subscriptionCount = statsAsync.when(
-      data: (stats) => stats?.totalSubscriptions.toString() ?? '0',
-      loading: () => '...',
-      error: (error, stackTrace) => '0',
-    );
-    final latestDailyReportDateText = statsAsync.when(
-      data: (stats) {
-        if (stats?.latestDailyReportDate == null) {
-          return '--';
-        }
-        try {
-          final date = DateTime.parse(stats!.latestDailyReportDate!);
-          return _formatDateOnly(date);
-        } catch (_) {
-          return '--';
-        }
-      },
-      loading: () => '--',
-      error: (error, stackTrace) => '--',
+    final episodeCount = isLoading
+        ? '...'
+        : (stats?.totalEpisodes.toString() ?? '0');
+    final summaryCount = isLoading
+        ? '...'
+        : (stats?.summariesGenerated.toString() ?? '0');
+    final historyCount = isLoading
+        ? '...'
+        : (stats?.playedEpisodes.toString() ?? '0');
+    final subscriptionCount = isLoading
+        ? '...'
+        : (stats?.totalSubscriptions.toString() ?? '0');
+    final latestDailyReportDateText = _resolveLatestDailyReportDateText(
+      stats?.latestDailyReportDate,
+      isLoading: isLoading,
     );
 
     if (isMobile) {
@@ -71,7 +56,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.subscriptions_outlined,
             label: l10n.profile_subscriptions,
             value: subscriptionCount,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
             onTap: () => context.push('/profile/subscriptions'),
             showChevron: true,
             cardKey: const Key('profile_subscriptions_card'),
@@ -82,7 +67,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.podcasts,
             label: l10n.podcast_episodes,
             value: episodeCount,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
           ),
           const SizedBox(height: 12),
           _buildActivityCard(
@@ -90,7 +75,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.auto_awesome,
             label: l10n.profile_ai_summary,
             value: summaryCount,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
           ),
           const SizedBox(height: 12),
           _buildActivityCard(
@@ -98,7 +83,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.history,
             label: l10n.profile_viewed_title,
             value: historyCount,
-            color: Theme.of(context).colorScheme.secondary,
+            color: scheme.secondary,
             onTap: () => context.push('/profile/history'),
             showChevron: true,
             chevronKey: const Key('profile_viewed_card_chevron'),
@@ -109,7 +94,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.summarize_outlined,
             label: l10n.podcast_daily_report_title,
             value: latestDailyReportDateText,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
             onTap: () =>
                 PodcastNavigation.goToDailyReport(context, source: 'profile'),
             showChevron: true,
@@ -131,7 +116,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.subscriptions_outlined,
             label: l10n.profile_subscriptions,
             value: subscriptionCount,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
             onTap: () => context.push('/profile/subscriptions'),
             showChevron: true,
             cardKey: const Key('profile_subscriptions_card'),
@@ -141,21 +126,21 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.podcasts,
             label: l10n.podcast_episodes,
             value: episodeCount,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
           ),
           _buildActivityCard(
             context,
             icon: Icons.auto_awesome,
             label: l10n.profile_ai_summary,
             value: summaryCount,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
           ),
           _buildActivityCard(
             context,
             icon: Icons.history,
             label: l10n.profile_viewed_title,
             value: historyCount,
-            color: Theme.of(context).colorScheme.secondary,
+            color: scheme.secondary,
             onTap: () => context.push('/profile/history'),
             showChevron: true,
             chevronKey: const Key('profile_viewed_card_chevron'),
@@ -165,7 +150,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.summarize_outlined,
             label: l10n.podcast_daily_report_title,
             value: latestDailyReportDateText,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
             onTap: () =>
                 PodcastNavigation.goToDailyReport(context, source: 'profile'),
             showChevron: true,
@@ -195,6 +180,8 @@ class ProfileActivityCards extends ConsumerWidget {
     Key? chevronKey,
     Key? cardKey,
   }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final effectiveIconColor = _resolveActivityIconColor(context);
     return Padding(
       key: cardKey,
@@ -215,14 +202,14 @@ class ProfileActivityCards extends ConsumerWidget {
                   children: [
                     Text(
                       label,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       value,
-                      style: Theme.of(context).textTheme.headlineSmall
+                      style: theme.textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -232,7 +219,7 @@ class ProfileActivityCards extends ConsumerWidget {
                 Icon(
                   Icons.chevron_right,
                   key: chevronKey,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: scheme.onSurfaceVariant,
                   size: 22,
                 ),
             ],
@@ -240,6 +227,23 @@ class ProfileActivityCards extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _resolveLatestDailyReportDateText(
+    String? latestDailyReportDate, {
+    required bool isLoading,
+  }) {
+    if (isLoading) {
+      return '--';
+    }
+    if (latestDailyReportDate == null || latestDailyReportDate.isEmpty) {
+      return '--';
+    }
+    try {
+      return _formatDateOnly(DateTime.parse(latestDailyReportDate));
+    } catch (_) {
+      return '--';
+    }
   }
 
   Color _resolveActivityIconColor(BuildContext context) {

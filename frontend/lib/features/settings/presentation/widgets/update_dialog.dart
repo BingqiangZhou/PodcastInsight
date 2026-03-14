@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/services/app_update_service.dart';
+import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/shared/models/github_release.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
+import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'dart:io';
 
 class _UpdateDialogPalette {
@@ -105,13 +106,14 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final palette = _UpdateDialogPalette.of(theme);
-    final isMobile = MediaQuery.of(context).size.width < AppBreakpoints.medium;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final dialogWidth =
-      screenWidth < AppBreakpoints.medium ? screenWidth - 32 : 500.0;
+    final isMobile = context.isMobile;
+    final dialogWidth = ResponsiveDialogHelper.maxWidth(
+      context,
+      desktopMaxWidth: 500,
+    );
 
     return AlertDialog(
-      insetPadding: isMobile ? const EdgeInsets.all(16) : null,
+      insetPadding: isMobile ? ResponsiveDialogHelper.insetPadding() : null,
       title: Row(
         children: [
           Icon(Icons.system_update_alt, color: palette.accent, size: 28),
@@ -286,7 +288,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final palette = _UpdateDialogPalette.of(theme);
-    final isMobile = MediaQuery.of(context).size.width < AppBreakpoints.medium;
+    final isMobile = context.isMobile;
     final asset = _platformAsset;
 
     return Container(
@@ -673,13 +675,14 @@ class _ManualUpdateCheckDialogState
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(manualUpdateCheckProvider);
     _maybeRedirectToDetailedDialog(context, state);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final dialogWidth =
-      screenWidth < AppBreakpoints.medium ? screenWidth - 32 : 400.0;
-    final isMobile = screenWidth < AppBreakpoints.medium;
+    final dialogWidth = ResponsiveDialogHelper.maxWidth(
+      context,
+      desktopMaxWidth: 400,
+    );
+    final isMobile = context.isMobile;
 
     return AlertDialog(
-      insetPadding: isMobile ? const EdgeInsets.all(16) : null,
+      insetPadding: isMobile ? ResponsiveDialogHelper.insetPadding() : null,
       title: Text(l10n.update_check_updates),
       content: SizedBox(
         width: dialogWidth,

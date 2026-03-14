@@ -41,6 +41,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
   }
 
   Widget _buildNotStartedState(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final accentColor = theme.brightness == Brightness.dark
@@ -73,11 +74,11 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
             // Title
             Text(
-              AppLocalizations.of(context)!.transcription_start_title,
+              l10n.transcription_start_title,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: scheme.onSurface,
               ),
             ),
 
@@ -85,11 +86,11 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
             // Description
             Text(
-              AppLocalizations.of(context)!.transcription_start_desc,
+              l10n.transcription_start_desc,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: scheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -102,9 +103,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
               child: ElevatedButton.icon(
                 onPressed: () => _startTranscriptionWithFeedback(ref, context),
                 icon: const Icon(Icons.play_arrow),
-                label: Text(
-                  AppLocalizations.of(context)!.transcription_start_button,
-                ),
+                label: Text(l10n.transcription_start_button),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -134,7 +133,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      AppLocalizations.of(context)!.transcription_auto_hint,
+                      l10n.transcription_auto_hint,
                       style: TextStyle(
                         fontSize: 12,
                         color: scheme.onSurfaceVariant,
@@ -185,6 +184,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
   }
 
   Widget _buildPendingState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
         // 根据可用宽度确定组件尺寸
@@ -202,7 +203,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
         return Container(
           width: double.infinity,
           height: double.infinity,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          color: scheme.surfaceContainerHighest,
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -233,11 +234,11 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
                     // Title - 响应式字体大小
                     Text(
-                      AppLocalizations.of(context)!.transcription_pending_title,
+                      l10n.transcription_pending_title,
                       style: TextStyle(
                         fontSize: titleFontSize,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: scheme.onSurface,
                       ),
                     ),
 
@@ -245,11 +246,11 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
                     // Description - 响应式字体大小
                     Text(
-                      AppLocalizations.of(context)!.transcription_pending_desc,
+                      l10n.transcription_pending_desc,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: descriptionFontSize,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: scheme.onSurfaceVariant,
                         height: 1.5,
                       ),
                     ),
@@ -267,6 +268,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     BuildContext context,
     PodcastTranscriptionResponse transcription,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     final progress = transcription.progressPercentage;
     final statusText = transcription.getLocalizedStatusDescription(context);
     final currentStep = transcriptionCurrentStepNumber(progress);
@@ -292,7 +295,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
         return Container(
           width: double.infinity,
           height: double.infinity,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          color: scheme.surfaceContainerHighest,
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -345,9 +348,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                                 ),
                               ),
                               Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.transcription_progress_complete,
+                                l10n.transcription_progress_complete,
                                 style: TextStyle(
                                   fontSize: labelFontSize,
                                   color: Colors.blue.withValues(alpha: 0.8),
@@ -368,9 +369,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                         vertical: isSmallScreen ? 8 : 10,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        color: scheme.primaryContainer.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -384,7 +383,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: statusFontSize,
                                 fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.primary,
+                                color: scheme.primary,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -401,33 +400,23 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                       steps: [
                         TranscriptionStepDescriptor(
                           icon: Icons.download,
-                          label: AppLocalizations.of(
-                            context,
-                          )!.transcription_step_download,
+                          label: l10n.transcription_step_download,
                         ),
                         TranscriptionStepDescriptor(
                           icon: Icons.transform,
-                          label: AppLocalizations.of(
-                            context,
-                          )!.transcription_step_convert,
+                          label: l10n.transcription_step_convert,
                         ),
                         TranscriptionStepDescriptor(
                           icon: Icons.content_cut,
-                          label: AppLocalizations.of(
-                            context,
-                          )!.transcription_step_split,
+                          label: l10n.transcription_step_split,
                         ),
                         TranscriptionStepDescriptor(
                           icon: Icons.transcribe,
-                          label: AppLocalizations.of(
-                            context,
-                          )!.transcription_step_transcribe,
+                          label: l10n.transcription_step_transcribe,
                         ),
                         TranscriptionStepDescriptor(
                           icon: Icons.merge_type,
-                          label: AppLocalizations.of(
-                            context,
-                          )!.transcription_step_merge,
+                          label: l10n.transcription_step_merge,
                         ),
                       ],
                     ),
@@ -439,12 +428,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(6),
                       child: LinearProgressIndicator(
                         value: progress / 100,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.outline.withValues(alpha: 0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Theme.of(context).colorScheme.primary,
-                        ),
+                        backgroundColor: scheme.outline.withValues(alpha: 0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
                         minHeight: isSmallScreen ? 4 : 6,
                       ),
                     ),
@@ -455,12 +440,10 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                       Container(
                         padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
+                          color: scheme.surface,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.outline.withValues(alpha: 0.1),
+                            color: scheme.outline.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Row(
@@ -468,7 +451,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                             Icon(
                               Icons.info_outline,
                               size: isSmallScreen ? 12 : 14,
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: scheme.secondary,
                             ),
                             SizedBox(width: isSmallScreen ? 6 : 8),
                             Expanded(
@@ -477,9 +460,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                                 style: TextStyle(
                                   fontSize: isSmallScreen ? 10 : 11,
                                   fontFamily: 'monospace',
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.secondary,
+                                  color: scheme.secondary,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -501,22 +482,16 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                             Icon(
                               Icons.schedule,
                               size: isSmallScreen ? 12 : 14,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
+                              color: scheme.onSurfaceVariant,
                             ),
                             SizedBox(width: isSmallScreen ? 3 : 4),
                             Text(
-                              AppLocalizations.of(
-                                context,
-                              )!.transcription_duration_label(
+                              l10n.transcription_duration_label(
                                 _formatDuration(transcription.durationSeconds!),
                               ),
                               style: TextStyle(
                                 fontSize: isSmallScreen ? 11 : 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: scheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -527,23 +502,17 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                             Icon(
                               Icons.text_fields,
                               size: isSmallScreen ? 12 : 14,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
+                              color: scheme.onSurfaceVariant,
                             ),
                             SizedBox(width: isSmallScreen ? 3 : 4),
                             Text(
-                              AppLocalizations.of(
-                                context,
-                              )!.transcription_words_label(
+                              l10n.transcription_words_label(
                                 (transcription.wordCount! / 1000)
                                     .toStringAsFixed(1),
                               ),
                               style: TextStyle(
                                 fontSize: isSmallScreen ? 11 : 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: scheme.onSurfaceVariant,
                               ),
                             ),
                           ],

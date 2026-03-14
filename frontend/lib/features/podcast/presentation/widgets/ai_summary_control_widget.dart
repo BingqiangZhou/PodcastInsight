@@ -133,27 +133,25 @@ class _AISummaryControlWidgetState
   }
 
   Widget _buildNoTranscriptMessage(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.errorContainer.withValues(alpha: 0.1),
+        color: scheme.errorContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
+          color: scheme.error.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+          Icon(Icons.error_outline, color: scheme.error),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              AppLocalizations.of(
-                context,
-              )!.podcast_summary_transcription_required,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              l10n.podcast_summary_transcription_required,
+              style: TextStyle(color: scheme.onSurface),
             ),
           ),
         ],
@@ -166,6 +164,9 @@ class _AISummaryControlWidgetState
     List<SummaryModelInfo> models, {
     required bool isLoading,
   }) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final isCompact = widget.compact;
     final hasModelOptions = models.length > 1;
 
@@ -182,18 +183,16 @@ class _AISummaryControlWidgetState
                 )
               : Icon(Icons.auto_awesome, size: isCompact ? 16 : 18),
           label: Text(
-            isLoading
-                ? AppLocalizations.of(context)!.podcast_generating_summary
-                : AppLocalizations.of(context)!.podcast_summary_generate,
+            isLoading ? l10n.podcast_generating_summary : l10n.podcast_summary_generate,
           ),
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(
               horizontal: isCompact ? 16 : 24,
               vertical: isCompact ? 10 : 12,
             ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+            backgroundColor: scheme.primary,
+            foregroundColor: scheme.onPrimary,
+            textStyle: theme.textTheme.labelLarge?.copyWith(
               fontSize: isCompact ? 13 : null,
               fontWeight: FontWeight.w700,
             ),
@@ -210,16 +209,14 @@ class _AISummaryControlWidgetState
                 _showOptions ? Icons.expand_less : Icons.expand_more,
                 size: isCompact ? 16 : 18,
               ),
-              label: Text(
-                AppLocalizations.of(context)!.podcast_advanced_options,
-              ),
+              label: Text(l10n.podcast_advanced_options),
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                foregroundColor: scheme.onSurfaceVariant,
                 padding: EdgeInsets.symmetric(
                   horizontal: isCompact ? 8 : 12,
                   vertical: isCompact ? 6 : 8,
                 ),
-                textStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+                textStyle: theme.textTheme.labelMedium?.copyWith(
                   fontSize: isCompact ? 12 : null,
                   fontWeight: FontWeight.w600,
                 ),
@@ -240,6 +237,9 @@ class _AISummaryControlWidgetState
     List<SummaryModelInfo> models,
     SummaryState summaryState,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final isCompact = widget.compact;
     final hasModelOptions = models.length > 1;
 
@@ -251,9 +251,7 @@ class _AISummaryControlWidgetState
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
+              color: scheme.secondaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Wrap(
@@ -275,7 +273,7 @@ class _AISummaryControlWidgetState
                   _buildMetadataItem(
                     context,
                     Icons.text_fields,
-                    '${summaryState.wordCount} ${AppLocalizations.of(context)!.podcast_summary_chars}',
+                    '${summaryState.wordCount} ${l10n.podcast_summary_chars}',
                   ),
               ],
             ),
@@ -295,16 +293,16 @@ class _AISummaryControlWidgetState
                     : Icon(Icons.refresh, size: isCompact ? 16 : 18),
                 label: Text(
                   summaryState.isLoading
-                      ? AppLocalizations.of(context)!.podcast_generating_summary
-                      : AppLocalizations.of(context)!.podcast_regenerate,
+                      ? l10n.podcast_generating_summary
+                      : l10n.podcast_regenerate,
                 ),
                 style: OutlinedButton.styleFrom(
                   padding: EdgeInsets.symmetric(
                     horizontal: isCompact ? 12 : 16,
                     vertical: isCompact ? 8 : 10,
                   ),
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                  textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  foregroundColor: scheme.primary,
+                  textStyle: theme.textTheme.labelLarge?.copyWith(
                     fontSize: isCompact ? 13 : null,
                     fontWeight: FontWeight.w700,
                   ),
@@ -328,7 +326,7 @@ class _AISummaryControlWidgetState
                 icon: Icon(
                   _showOptions ? Icons.expand_less : Icons.expand_more,
                 ),
-                tooltip: AppLocalizations.of(context)!.podcast_advanced_options,
+                tooltip: l10n.podcast_advanced_options,
               ),
             ],
           ],
@@ -347,21 +345,15 @@ class _AISummaryControlWidgetState
   }
 
   Widget _buildMetadataItem(BuildContext context, IconData icon, String text) {
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 14,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+        Icon(icon, size: 14, color: scheme.onSurfaceVariant),
         const SizedBox(width: 4),
         Text(
           text,
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
       ],
     );
@@ -372,18 +364,18 @@ class _AISummaryControlWidgetState
     List<SummaryModelInfo> models, {
     required bool enabled,
   }) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
       ),
       child: DropdownButtonFormField<SummaryModelInfo>(
         initialValue: _selectedModel,
         decoration: InputDecoration(
-          labelText: AppLocalizations.of(context)!.podcast_ai_model,
+          labelText: l10n.podcast_ai_model,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
@@ -405,16 +397,14 @@ class _AISummaryControlWidgetState
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.1),
+                        color: scheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        AppLocalizations.of(context)!.podcast_default_model,
+                        l10n.podcast_default_model,
                         style: TextStyle(
                           fontSize: 10,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: scheme.primary,
                         ),
                       ),
                     ),
@@ -433,47 +423,38 @@ class _AISummaryControlWidgetState
   }
 
   Widget _buildLoadingState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child: Text(
-          AppLocalizations.of(context)!.podcast_generating_summary,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontSize: 14,
-          ),
+          l10n.podcast_generating_summary,
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14),
         ),
       ),
     );
   }
 
   Widget _buildErrorMessage(BuildContext context, String message) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.errorContainer.withValues(alpha: 0.1),
+        color: scheme.errorContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
+          color: scheme.error.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 18,
-            color: Theme.of(context).colorScheme.error,
-          ),
+          Icon(Icons.error_outline, size: 18, color: scheme.error),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: scheme.error, fontSize: 13),
             ),
           ),
           IconButton(
