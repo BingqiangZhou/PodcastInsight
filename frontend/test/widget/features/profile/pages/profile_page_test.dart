@@ -882,11 +882,15 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           authProvider.overrideWith(_TestAuthNotifier.new),
+          localStorageServiceProvider.overrideWithValue(
+            LocalStorageServiceImpl(prefs),
+          ),
           profileStatsProvider.overrideWith(
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
@@ -919,6 +923,10 @@ void main() {
     );
 
     expect((securityTile.leading as Icon).icon, Icons.shield);
+    final serverConfigSupportTile = tester.widget<ListTile>(
+      find.widgetWithText(ListTile, l10n.backend_api_server_config),
+    );
+    expect((serverConfigSupportTile.leading as Icon).icon, Icons.dns);
 
     await tester.tap(find.byKey(const Key('profile_user_menu_button')));
     await tester.pumpAndSettle();
@@ -1013,28 +1021,33 @@ void main() {
     await tester.tap(find.text(l10n.close));
     await tester.pumpAndSettle();
 
-    final helpTile = find.widgetWithText(ListTile, l10n.profile_help_center);
-    await tester.ensureVisible(helpTile);
-    await tester.tap(helpTile);
+    final serverConfigTile = find.widgetWithText(
+      ListTile,
+      l10n.backend_api_server_config,
+    );
+    await tester.ensureVisible(serverConfigTile);
+    await tester.tap(serverConfigTile);
     await tester.pumpAndSettle();
-    final helpDialogWidth = tester.getSize(find.byType(AlertDialog)).width;
-    final helpCloseButton = tester.widget<TextButton>(
+    expect(
       find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.widgetWithText(TextButton, l10n.close),
+        matching: find.text(l10n.backend_api_server_config),
+      ),
+      findsOneWidget,
+    );
+    final serverConfigCancelButton = tester.widget<TextButton>(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(TextButton, l10n.cancel),
       ),
     );
-    final helpCloseColor = helpCloseButton.style?.foregroundColor?.resolve(
-      <WidgetState>{},
-    );
-    expect(helpCloseColor, expectedDialogActionColor);
-    await tester.tap(find.text(l10n.close));
+    expect(serverConfigCancelButton.onPressed, isNotNull);
+    await tester.tap(find.text(l10n.cancel));
     await tester.pumpAndSettle();
 
     final versionTile = find.byKey(const Key('profile_version_item'));
     await tester.ensureVisible(versionTile);
     await tester.tap(versionTile);
-    await tester.pump(const Duration(milliseconds: 1300));
     await tester.pumpAndSettle();
     final aboutDialogWidth = tester.getSize(find.byType(AlertDialog)).width;
     final aboutOkButton = tester.widget<TextButton>(
@@ -1053,11 +1066,10 @@ void main() {
     expect(editDialogWidth, closeTo(languageDialogWidth, 0.01));
     expect(themeDialogWidth, closeTo(languageDialogWidth, 0.01));
     expect(securityDialogWidth, closeTo(languageDialogWidth, 0.01));
-    expect(helpDialogWidth, closeTo(languageDialogWidth, 0.01));
     expect(aboutDialogWidth, closeTo(languageDialogWidth, 0.01));
   });
 
-  testWidgets('single tap version opens about and 5 taps opens server config', (
+  testWidgets('single tap version opens about dialog', (
     WidgetTester tester,
   ) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1095,63 +1107,11 @@ void main() {
 
     await tester.ensureVisible(versionFinder);
     await tester.tap(versionFinder);
-    await tester.pump(const Duration(milliseconds: 1300));
     await tester.pumpAndSettle();
     expect(find.text(l10n.appTitle), findsOneWidget);
 
     await tester.tap(find.text(l10n.ok));
     await tester.pumpAndSettle();
-
-    await tester.ensureVisible(versionFinder);
-    for (var i = 0; i < 5; i++) {
-      await tester.tap(versionFinder);
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-    await tester.pumpAndSettle();
-    expect(find.text(l10n.backend_api_server_config), findsOneWidget);
-  });
-
-  testWidgets('two taps on version does not trigger dialogs', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          authProvider.overrideWith(_TestAuthNotifier.new),
-          profileStatsProvider.overrideWith(
-            () => _FixedProfileStatsNotifier(_defaultProfileStats),
-          ),
-          podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
-          ),
-          dailyReportDatesProvider.overrideWith(
-            () => _FixedDailyReportDatesNotifier(
-              _buildDailyReportDatesResponse(const []),
-            ),
-          ),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
-        ),
-      ),
-    );
-
-    await tester.pumpAndSettle();
-    final context = tester.element(find.byType(ProfilePage));
-    final l10n = AppLocalizations.of(context)!;
-    final versionFinder = find.byKey(const Key('profile_version_item'));
-
-    await tester.ensureVisible(versionFinder);
-    await tester.tap(versionFinder);
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.tap(versionFinder);
-    await tester.pump(const Duration(milliseconds: 1300));
-    await tester.pumpAndSettle();
-
-    expect(find.text(l10n.appTitle), findsNothing);
-    expect(find.text(l10n.backend_api_server_config), findsNothing);
   });
 
   testWidgets('uses feed-style card shape and width on mobile profile cards', (

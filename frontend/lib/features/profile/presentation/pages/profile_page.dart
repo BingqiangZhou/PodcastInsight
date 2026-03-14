@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,11 +29,6 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   bool _notificationsEnabled = true;
   String _appVersion = 'Loading...';
-  int _versionTapCount = 0;
-  DateTime? _lastVersionTapAt;
-  Timer? _versionTapTimer;
-
-  static const Duration _versionTapWindow = Duration(milliseconds: 1200);
 
   @override
   void initState() {
@@ -44,12 +37,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(profileStatsProvider.notifier).load(forceRefresh: false);
     });
-  }
-
-  @override
-  void dispose() {
-    _versionTapTimer?.cancel();
-    super.dispose();
   }
 
   Future<void> _loadVersion() async {
@@ -245,10 +232,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     final supportItems = <_SettingsItemConfig>[
       _SettingsItemConfig(
-        icon: Icons.help,
-        title: l10n.profile_help_center,
-        subtitle: l10n.profile_help_center_subtitle,
-        onTap: () => _showHelpDialog(context),
+        icon: Icons.dns,
+        title: l10n.backend_api_server_config,
+        subtitle: l10n.backend_api_url_label,
+        onTap: () => _showServerConfigDialog(context),
       ),
       _SettingsItemConfig(
         icon: Icons.cleaning_services,
@@ -273,7 +260,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         subtitle: _getVersionSubtitle(),
         trailing: const Icon(Icons.chevron_right),
         tileKey: const Key('profile_version_item'),
-        onTap: () => _handleVersionTap(context),
+        onTap: () => _showAboutDialog(context),
       ),
     ];
 
@@ -718,50 +705,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  void _showHelpDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    _showConstrainedDialog<void>(
-      context,
-      builder: (dialogContext) {
-        final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
-        return AlertDialog(
-          insetPadding: ResponsiveDialogHelper.insetPadding(),
-          title: Text(l10n.profile_help_center),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: Icon(Icons.book, color: iconColor),
-                  title: Text(l10n.profile_user_guide),
-                  subtitle: Text(l10n.profile_user_guide_subtitle),
-                ),
-                ListTile(
-                  leading: Icon(Icons.video_library, color: iconColor),
-                  title: Text(l10n.profile_video_tutorials),
-                  subtitle: Text(l10n.profile_video_tutorials_subtitle),
-                ),
-                ListTile(
-                  leading: Icon(Icons.contact_support, color: iconColor),
-                  title: Text(l10n.profile_contact_support),
-                  subtitle: Text(l10n.profile_contact_support_subtitle),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(l10n.close),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _showAboutDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     final packageInfo = await PackageInfo.fromPlatform();
@@ -824,43 +767,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   /// Get version subtitle for display
   String _getVersionSubtitle() {
     return _appVersion;
-  }
-
-  void _handleVersionTap(BuildContext context) {
-    final now = DateTime.now();
-    final isWithinWindow =
-        _lastVersionTapAt != null &&
-        now.difference(_lastVersionTapAt!) <= _versionTapWindow;
-
-    if (!isWithinWindow) {
-      _versionTapCount = 0;
-    }
-
-    _lastVersionTapAt = now;
-    _versionTapCount += 1;
-    _versionTapTimer?.cancel();
-
-    if (_versionTapCount >= 5) {
-      _resetVersionTapState();
-      _showServerConfigDialog(context);
-      return;
-    }
-
-    _versionTapTimer = Timer(_versionTapWindow, () {
-      if (!mounted) return;
-      final shouldShowAbout = _versionTapCount == 1;
-      _resetVersionTapState();
-      if (shouldShowAbout) {
-        _showAboutDialog(context);
-      }
-    });
-  }
-
-  void _resetVersionTapState() {
-    _versionTapTimer?.cancel();
-    _versionTapTimer = null;
-    _versionTapCount = 0;
-    _lastVersionTapAt = null;
   }
 
   void _showServerConfigDialog(BuildContext context) {
