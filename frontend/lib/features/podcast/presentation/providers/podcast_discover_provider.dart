@@ -2,16 +2,13 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/cache_constants.dart';
 import '../../data/models/podcast_discover_chart_model.dart';
 import '../../data/models/podcast_search_model.dart';
 import '../../data/services/apple_podcast_rss_service.dart';
 import 'country_selector_provider.dart';
 
 enum PodcastDiscoverTab { podcasts, episodes }
-
-const int _kDiscoverInitialFetchLimit = 25;
-const int _kDiscoverTopChartMaxLimit = 100;
-const int _kDiscoverHydrationStep = 25;
 
 class PodcastDiscoverPaginationState {
   final int loadedCount;
@@ -95,7 +92,9 @@ class PodcastDiscoverState {
     );
   }
 
-  bool isDataFresh({Duration cacheDuration = const Duration(minutes: 5)}) {
+  bool isDataFresh({
+    Duration cacheDuration = CacheConstants.discoverCacheDuration,
+  }) {
     if (lastRefreshTime == null) return false;
     return DateTime.now().difference(lastRefreshTime!) < cacheDuration;
   }
@@ -282,12 +281,12 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
       try {
         final showsFuture = _rssService.fetchTopShows(
           country: country,
-          limit: _kDiscoverInitialFetchLimit,
+          limit: CacheConstants.discoverInitialFetchLimit,
           format: ApplePodcastRssFormat.json,
         );
         final episodesFuture = _rssService.fetchTopEpisodes(
           country: country,
-          limit: _kDiscoverInitialFetchLimit,
+          limit: CacheConstants.discoverInitialFetchLimit,
           format: ApplePodcastRssFormat.json,
         );
 
@@ -306,7 +305,7 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
               isRefreshing: false,
               topShows: shows,
               showsPagination: _paginationStateFor(
-                requestedLimit: _kDiscoverInitialFetchLimit,
+                requestedLimit: CacheConstants.discoverInitialFetchLimit,
                 loadedCount: shows.length,
               ),
               selectedCategory: PodcastDiscoverState.allCategoryValue,
@@ -330,7 +329,7 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
               isRefreshing: false,
               topEpisodes: episodes,
               episodesPagination: _paginationStateFor(
-                requestedLimit: _kDiscoverInitialFetchLimit,
+                requestedLimit: CacheConstants.discoverInitialFetchLimit,
                 loadedCount: episodes.length,
               ),
               selectedCategory: PodcastDiscoverState.allCategoryValue,
@@ -355,11 +354,11 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
           topShows: shows,
           topEpisodes: episodes,
           showsPagination: _paginationStateFor(
-            requestedLimit: _kDiscoverInitialFetchLimit,
+            requestedLimit: CacheConstants.discoverInitialFetchLimit,
             loadedCount: shows.length,
           ),
           episodesPagination: _paginationStateFor(
-            requestedLimit: _kDiscoverInitialFetchLimit,
+            requestedLimit: CacheConstants.discoverInitialFetchLimit,
             loadedCount: episodes.length,
           ),
           selectedCategory: PodcastDiscoverState.allCategoryValue,
@@ -551,7 +550,7 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
     required int loadedCount,
   }) {
     final hasMore =
-        requestedLimit < _kDiscoverTopChartMaxLimit &&
+        requestedLimit < CacheConstants.discoverTopChartMaxLimit &&
         loadedCount >= requestedLimit;
     return PodcastDiscoverPaginationState(
       loadedCount: loadedCount,
@@ -561,16 +560,16 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
   }
 
   int? _nextHydrationTarget(int currentCount) {
-    if (currentCount >= _kDiscoverTopChartMaxLimit) {
+    if (currentCount >= CacheConstants.discoverTopChartMaxLimit) {
       return null;
     }
 
-    final normalized = currentCount < _kDiscoverInitialFetchLimit
-        ? _kDiscoverInitialFetchLimit
+    final normalized = currentCount < CacheConstants.discoverInitialFetchLimit
+        ? CacheConstants.discoverInitialFetchLimit
         : currentCount;
-    final nextLimit = normalized + _kDiscoverHydrationStep;
-    return nextLimit > _kDiscoverTopChartMaxLimit
-        ? _kDiscoverTopChartMaxLimit
+    final nextLimit = normalized + CacheConstants.discoverHydrationStep;
+    return nextLimit > CacheConstants.discoverTopChartMaxLimit
+        ? CacheConstants.discoverTopChartMaxLimit
         : nextLimit;
   }
 

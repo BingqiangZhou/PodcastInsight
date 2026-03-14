@@ -15,7 +15,7 @@ import '../../../../shared/widgets/loading_widget.dart';
 import '../providers/podcast_providers.dart';
 import '../providers/transcription_providers.dart';
 import '../providers/summary_providers.dart';
-import '../../core/utils/summary_sanitizer.dart';
+import '../../core/utils/html_sanitizer.dart';
 import '../../data/models/podcast_episode_model.dart';
 import '../../data/models/audio_player_state_model.dart';
 import '../../data/models/podcast_transcription_model.dart';

@@ -1,6 +1,5 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import '../../../../core/app/config/app_config.dart';
 import '../../../../core/localization/app_localizations.dart';
@@ -18,7 +17,25 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
   String _status = 'Ready to test...';
   Color _statusColor = Colors.grey;
 
+  late final Dio _dio;
+
   String get baseUrl => '${AppConfig.serverBaseUrl}/api/v1/auth';
+
+  @override
+  void initState() {
+    super.initState();
+    _dio = Dio(BaseOptions(
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      sendTimeout: const Duration(seconds: 10),
+    ));
+  }
+
+  @override
+  void dispose() {
+    _dio.close();
+    super.dispose();
+  }
 
   Future<void> _testBackendHealth() async {
     setState(() {
@@ -27,7 +44,8 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
     });
 
     try {
-      final response = await http.get(Uri.parse('$baseUrl/health'))
+      final response = await _dio
+          .get('$baseUrl/health')
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
@@ -41,6 +59,11 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
           _statusColor = Colors.orange;
         });
       }
+    } on DioException catch (e) {
+      setState(() {
+        _status = '❌ Failed to connect: ${e.message ?? e.type.toString()}\n\nMake sure backend Docker is running on port 8000';
+        _statusColor = Colors.red;
+      });
     } catch (e) {
       setState(() {
         _status = '❌ Failed to connect: $e\n\nMake sure backend Docker is running on port 8000';
@@ -56,18 +79,20 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
     });
 
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final response = await _dio.post(
+        '$baseUrl/register',
+        data: {
           'email': 'flutter_verify@example.com',
           'password': 'Verify1234',
           'username': 'flutter_verify',
-          'full_name': 'Flutter Verify User'
-        }),
-      ).timeout(const Duration(seconds: 10));
+          'full_name': 'Flutter Verify User',
+        },
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
 
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = response.data;
 
       if (response.statusCode == 200) {
         setState(() {
@@ -81,7 +106,20 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
         });
       } else {
         setState(() {
-          _status = '❌ Registration failed: ${data['detail'] ?? response.body}';
+          _status = '❌ Registration failed: ${data['detail'] ?? response.data}';
+          _statusColor = Colors.red;
+        });
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 409) {
+        setState(() {
+          _status = 'ℹ️ Email already exists (this is OK for repeat tests)';
+          _statusColor = Colors.orange;
+        });
+      } else {
+        final data = e.response?.data;
+        setState(() {
+          _status = '❌ Registration failed: ${data is Map ? (data['detail'] ?? data) : e.message}';
           _statusColor = Colors.red;
         });
       }
@@ -100,17 +138,19 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
     });
 
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final response = await _dio.post(
+        '$baseUrl/login',
+        data: {
           'email_or_username': 'flutter_verify@example.com',
-          'password': 'Verify1234'
-        }),
-      ).timeout(const Duration(seconds: 10));
+          'password': 'Verify1234',
+        },
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = response.data;
         final accessToken = data['access_token'] as String;
         final refreshToken = data['refresh_token'] as String;
 
@@ -119,12 +159,18 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
           _statusColor = Colors.green;
         });
       } else {
-        final data = tryJsonDecode(response.body);
+        final data = response.data;
         setState(() {
           _status = '❌ Login failed: $data';
           _statusColor = Colors.red;
         });
       }
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      setState(() {
+        _status = '❌ Login failed: ${data is Map ? (data['detail'] ?? data) : e.message}';
+        _statusColor = Colors.red;
+      });
     } catch (e) {
       setState(() {
         _status = '❌ Error: $e';
@@ -141,14 +187,16 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
 
     // First get a token
     try {
-      final loginResp = await http.post(
-        Uri.parse('$baseUrl/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final loginResp = await _dio.post(
+        '$baseUrl/login',
+        data: {
           'email_or_username': 'flutter_verify@example.com',
-          'password': 'Verify1234'
-        }),
-      ).timeout(const Duration(seconds: 10));
+          'password': 'Verify1234',
+        },
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
 
       if (loginResp.statusCode != 200) {
         setState(() {
@@ -158,17 +206,19 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
         return;
       }
 
-      final loginData = jsonDecode(utf8.decode(loginResp.bodyBytes));
+      final loginData = loginResp.data;
       final accessToken = loginData['access_token'];
 
       // Now get user info
-      final userResp = await http.get(
-        Uri.parse('$baseUrl/me'),
-        headers: {'Authorization': 'Bearer $accessToken'},
-      ).timeout(const Duration(seconds: 10));
+      final userResp = await _dio.get(
+        '$baseUrl/me',
+        options: Options(
+          headers: {'Authorization': 'Bearer $accessToken'},
+        ),
+      );
 
       if (userResp.statusCode == 200) {
-        final userData = jsonDecode(utf8.decode(userResp.bodyBytes));
+        final userData = userResp.data;
         setState(() {
           _status = '✅ User Info Retrieval SUCCESS!\n\n'
               'Email: ${userData['email']}\n'
@@ -183,19 +233,16 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
           _statusColor = Colors.red;
         });
       }
+    } on DioException catch (e) {
+      setState(() {
+        _status = '❌ Error: ${e.message ?? e.type.toString()}';
+        _statusColor = Colors.red;
+      });
     } catch (e) {
       setState(() {
         _status = '❌ Error: $e';
         _statusColor = Colors.red;
       });
-    }
-  }
-
-  String tryJsonDecode(String body) {
-    try {
-      return jsonDecode(body).toString();
-    } catch (e) {
-      return body;
     }
   }
 

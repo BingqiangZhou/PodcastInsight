@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/podcast_playback_model.dart';
-import '../../core/utils/summary_sanitizer.dart';
+import '../../core/utils/html_sanitizer.dart';
 import 'episode_provider_cache.dart';
 import 'podcast_providers.dart';
 
@@ -168,12 +168,12 @@ class SummaryNotifier extends Notifier<SummaryState> {
     DateTime? generatedAt,
   }) {
     _stopPolling();
-    final failureReason = SummarySanitizer.detectFailureReason(summary);
+    final failureReason = HtmlSanitizer.detectFailureReason(summary);
     if (failureReason != null) {
       state = state.copyWith(isLoading: false, errorMessage: failureReason);
       return;
     }
-    final cleanedSummary = SummarySanitizer.clean(summary);
+    final cleanedSummary = HtmlSanitizer.cleanModelReasoning(summary);
     state = SummaryState(
       summary: cleanedSummary,
       modelUsed: modelUsed ?? state.modelUsed,

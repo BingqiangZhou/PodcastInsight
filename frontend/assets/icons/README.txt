@@ -5,4 +5,3 @@ How to use (Xcode):
 
 Included:
 - AppIcon.appiconset (all required iPhone + iPad + App Store sizes)
-- MindriverIcon-1024.png (master)

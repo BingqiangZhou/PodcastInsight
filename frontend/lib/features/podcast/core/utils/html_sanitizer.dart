@@ -280,4 +280,69 @@ class HtmlSanitizer {
       return [];
     }
   }
+
+  // ============================================================
+  // Model Reasoning Sanitization (merged from SummarySanitizer)
+  // ============================================================
+
+  static const String _htmlErrorMessage =
+      'Summary generation failed because the server returned an HTML error page.';
+
+  /// Remove model reasoning tags while preserving normal markdown content.
+  ///
+  /// This is used to clean AI-generated summaries that may contain
+  /// internal reasoning tags like `<thinking>` or similar markers.
+  ///
+  /// [input] - The text to clean
+  ///
+  /// Returns cleaned text with reasoning tags removed
+  static String cleanModelReasoning(String? input) {
+    if (input == null || input.isEmpty) {
+      return '';
+    }
+
+    var cleaned = input;
+    final patterns = <RegExp>[
+      RegExp(r'<thinking>.*?</thinking>', caseSensitive: false, dotAll: true),
+      RegExp(r'<think\b[^>]*>.*?</think\b[^>]*>', caseSensitive: false, dotAll: true),
+    ];
+
+    for (final pattern in patterns) {
+      cleaned = cleaned.replaceAll(pattern, '');
+    }
+
+    return cleaned.trim();
+  }
+
+  /// Detects if the input contains HTML error page content
+  ///
+  /// This helps identify when the AI summary endpoint returned an error
+  /// page (e.g., Cloudflare timeout) instead of actual summary content.
+  ///
+  /// [input] - The text to check
+  ///
+  /// Returns an error message if failure detected, null otherwise
+  static String? detectFailureReason(String? input) {
+    if (input == null || input.isEmpty) {
+      return null;
+    }
+
+    final lowered = input.toLowerCase();
+    const markers = <String>[
+      '<!doctype html',
+      '<html',
+      '<head',
+      'cloudflare',
+      '524: a timeout occurred',
+      '/cdn-cgi/',
+    ];
+
+    for (final marker in markers) {
+      if (lowered.contains(marker)) {
+        return _htmlErrorMessage;
+      }
+    }
+
+    return null;
+  }
 }

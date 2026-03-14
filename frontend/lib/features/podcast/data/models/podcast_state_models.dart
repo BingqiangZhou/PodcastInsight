@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+
+import '../../../../core/constants/cache_constants.dart';
 import 'podcast_episode_model.dart';
 import 'podcast_subscription_model.dart';
 
@@ -59,7 +61,9 @@ class PodcastFeedState extends Equatable {
   }
 
   /// Check if data is fresh (within cache duration)
-  bool isDataFresh({Duration cacheDuration = const Duration(seconds: 30)}) {
+  bool isDataFresh({
+    Duration cacheDuration = CacheConstants.feedCacheDuration,
+  }) {
     if (lastRefreshTime == null) return false;
     return DateTime.now().difference(lastRefreshTime!) < cacheDuration;
   }
@@ -140,7 +144,9 @@ class PodcastEpisodesState extends Equatable {
   }
 
   /// Check if data is fresh (within cache duration)
-  bool isDataFresh({Duration cacheDuration = const Duration(minutes: 5)}) {
+  bool isDataFresh({
+    Duration cacheDuration = CacheConstants.defaultListCacheDuration,
+  }) {
     if (lastRefreshTime == null) return false;
     return DateTime.now().difference(lastRefreshTime!) < cacheDuration;
   }
@@ -218,7 +224,9 @@ class PodcastSubscriptionState extends Equatable {
   }
 
   /// Check if data is fresh (within cache duration)
-  bool isDataFresh({Duration cacheDuration = const Duration(minutes: 5)}) {
+  bool isDataFresh({
+    Duration cacheDuration = CacheConstants.defaultListCacheDuration,
+  }) {
     if (lastRefreshTime == null) return false;
     return DateTime.now().difference(lastRefreshTime!) < cacheDuration;
   }

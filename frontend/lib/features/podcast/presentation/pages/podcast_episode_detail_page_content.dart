@@ -240,12 +240,12 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
       });
     }
 
-    final episodeSummaryFailure = SummarySanitizer.detectFailureReason(
+    final episodeSummaryFailure = HtmlSanitizer.detectFailureReason(
       episode.aiSummary,
     );
     final sanitizedEpisodeSummary =
         !summaryState.hidePersistedSummary && episodeSummaryFailure == null
-        ? SummarySanitizer.clean(episode.aiSummary)
+        ? HtmlSanitizer.cleanModelReasoning(episode.aiSummary)
         : '';
 
     return Column(
