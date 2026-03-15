@@ -42,54 +42,25 @@ class AdminSubscriptionsCommandService:
         update_time: str | None,
         update_day: int | None,
     ) -> dict:
-        if update_frequency not in {
-            UpdateFrequency.HOURLY.value,
-            UpdateFrequency.DAILY.value,
-            UpdateFrequency.WEEKLY.value,
-        }:
-            raise HTTPException(status_code=400, detail="Invalid update frequency")
+        # Use shared validation from AdminSettingsService
+        from app.admin.services.settings_service import AdminSettingsService
 
-        if update_frequency in {
-            UpdateFrequency.DAILY.value,
-            UpdateFrequency.WEEKLY.value,
-        }:
-            if not update_time:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Update time is required for DAILY and WEEKLY frequency",
-                )
-            try:
-                hour, minute = map(int, update_time.split(":"))
-                if not (0 <= hour <= 23 and 0 <= minute <= 59):
-                    raise ValueError
-            except (ValueError, AttributeError) as err:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid time format. Use HH:MM",
-                ) from err
+        AdminSettingsService.validate_frequency_settings(
+            update_frequency=update_frequency,
+            update_time=update_time,
+            update_day=update_day,
+        )
 
-        day_of_week = None
-        if update_frequency == UpdateFrequency.WEEKLY.value:
-            if not update_day or not (1 <= update_day <= 7):
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid day of week. Must be 1-7",
-                )
-            day_of_week = update_day
+        day_of_week = (
+            update_day if update_frequency == UpdateFrequency.WEEKLY.value else None
+        )
 
         settings_data = {
             "update_frequency": update_frequency,
-            "update_time": (
-                update_time
-                if update_frequency
-                in {UpdateFrequency.DAILY.value, UpdateFrequency.WEEKLY.value}
-                else None
-            ),
-            "update_day_of_week": (
-                day_of_week
-                if update_frequency == UpdateFrequency.WEEKLY.value
-                else None
-            ),
+            "update_time": update_time
+            if update_frequency in {"DAILY", "WEEKLY"}
+            else None,
+            "update_day_of_week": day_of_week,
         }
 
         setting_result = await self.db.execute(

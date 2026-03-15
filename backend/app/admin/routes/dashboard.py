@@ -4,11 +4,11 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.auth import admin_required
 from app.admin.routes._shared import get_templates
-from app.admin.services.dashboard_service import AdminDashboardService
-from app.core.providers import get_admin_dashboard_service
+from app.core.database import get_db_session
 from app.domains.user.models import User
 
 
@@ -22,11 +22,13 @@ templates = get_templates()
 async def dashboard(
     request: Request,
     user: User = Depends(admin_required),
-    service: AdminDashboardService = Depends(get_admin_dashboard_service),
+    db: AsyncSession = Depends(get_db_session),
 ):
     """Display admin dashboard."""
+    from app.admin.services.dashboard_service import get_dashboard_context
+
     try:
-        context = await service.get_dashboard_context()
+        context = await get_dashboard_context(db)
 
         return templates.TemplateResponse(
             "dashboard.html",

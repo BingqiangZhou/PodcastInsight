@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import random
 import time
 from typing import Any
 
@@ -18,6 +17,7 @@ from app.domains.ai.model_testing import (
 from app.domains.ai.models import AIModelConfig, ModelType
 from app.domains.ai.repositories import AIModelConfigRepository
 from app.domains.ai.schemas import APIKeyValidationResponse, ModelTestResponse
+from app.shared.retry_utils import calculate_backoff
 
 from .model_security_service import AIModelSecurityService
 
@@ -270,8 +270,7 @@ class AIModelRuntimeService:
                         type(exc).__name__,
                     )
                     raise
-                backoff = base_delay * (2**attempt)
-                await asyncio.sleep(backoff + random.uniform(0, 0.5 * backoff))
+                await asyncio.sleep(calculate_backoff(attempt, base_delay))
                 logger.warning(
                     "Transcription transient error model=%s provider=%s attempt=%s/%s retryable=true error_type=%s error=%s",
                     model.name,
@@ -358,8 +357,7 @@ class AIModelRuntimeService:
                         exc,
                     )
                     raise
-                backoff = base_delay * (2**attempt)
-                await asyncio.sleep(backoff + random.uniform(0, 0.5 * backoff))
+                await asyncio.sleep(calculate_backoff(attempt, base_delay))
                 logger.warning(
                     "Text generation transient error model=%s provider=%s attempt=%s/%s retryable=true error_type=%s error=%s",
                     model.name,

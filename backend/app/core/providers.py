@@ -175,13 +175,13 @@ def get_subscription_repository(
     return SubscriptionRepository(db)
 
 
-def get_admin_dashboard_service(
+async def get_admin_dashboard_context(
     db: AsyncSession = Depends(get_db_session_dependency),
-) -> object:
-    """Provide request-scoped admin dashboard service."""
-    from app.admin.services.dashboard_service import AdminDashboardService
+) -> dict[str, int]:
+    """Provide admin dashboard context directly."""
+    from app.admin.services.dashboard_service import get_dashboard_context
 
-    return AdminDashboardService(db)
+    return await get_dashboard_context(db)
 
 
 def get_admin_apikeys_service(
@@ -406,7 +406,7 @@ def get_conversation_service(
 
 __all__ = [
     "get_admin_apikeys_service",
-    "get_admin_dashboard_service",
+    "get_admin_dashboard_context",
     "get_admin_settings_service",
     "get_admin_setup_auth_service",
     "get_admin_subscriptions_service",

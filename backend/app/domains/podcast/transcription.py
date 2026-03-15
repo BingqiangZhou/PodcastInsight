@@ -31,6 +31,7 @@ from app.domains.podcast.models import (
     TranscriptionTask,
 )
 from app.domains.podcast.transcription_state import _progress_throttle
+from app.shared.retry_utils import calculate_backoff
 
 
 logger = logging.getLogger(__name__)
@@ -760,7 +761,7 @@ class SiliconFlowTranscriber:
                             error_text,
                         )
                         if attempt < max_retries - 1:
-                            await asyncio.sleep(base_delay * (2**attempt))
+                            await asyncio.sleep(calculate_backoff(attempt, base_delay))
                             continue
                         chunk.transcript = None
                         return chunk
@@ -799,7 +800,7 @@ class SiliconFlowTranscriber:
                         exc,
                     )
                     if attempt < max_retries - 1:
-                        await asyncio.sleep(base_delay * (2**attempt))
+                        await asyncio.sleep(calculate_backoff(attempt, base_delay))
                     else:
                         chunk.transcript = None
                         return chunk

@@ -1,7 +1,7 @@
 """Admin service layer."""
 
 from .apikeys_service import AdminApiKeysService
-from .dashboard_service import AdminDashboardService
+from .dashboard_service import get_dashboard_context
 from .settings_service import AdminSettingsService
 from .setup_auth_service import AdminSetupAuthService
 from .subscriptions_command_service import AdminSubscriptionsCommandService
@@ -13,7 +13,6 @@ from .users_audit_service import AdminUsersAuditService
 
 __all__ = [
     "AdminApiKeysService",
-    "AdminDashboardService",
     "AdminSettingsService",
     "AdminSetupAuthService",
     "AdminSubscriptionsCommandService",
@@ -21,4 +20,5 @@ __all__ = [
     "AdminSubscriptionsQueryService",
     "AdminSubscriptionsService",
     "AdminUsersAuditService",
+    "get_dashboard_context",
 ]

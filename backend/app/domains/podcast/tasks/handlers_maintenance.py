@@ -7,11 +7,6 @@ from app.domains.podcast.services.task_orchestration_service import (
 )
 
 
-async def get_task_statistics_handler(session) -> dict:
-    """Collect transcription task queue statistics."""
-    return await PodcastTaskOrchestrationService(session).get_task_statistics()
-
-
 async def log_periodic_task_statistics_handler(session) -> dict:
     """Log current task statistics and return snapshot."""
     return await PodcastTaskOrchestrationService(session).log_periodic_task_statistics()
