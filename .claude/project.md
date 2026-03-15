@@ -1,24 +1,18 @@
 # Personal AI Assistant Project
 
-This is a personal AI assistant tool that provides:
-- Information stream subscription management (RSS, APIs, social media)
-- Knowledge base management (document storage, retrieval, organization)
-- AI assistant features (conversation, Q&A, task processing)
-- Multimedia output (voice, image, video processing)
+A personal AI assistant tool with information stream management, knowledge base, and multimedia capabilities.
 
 ## Tech Stack
-- Backend: FastAPI (Python async framework)
-- Frontend: Flutter (cross-platform mobile app)
-- Database: PostgreSQL + Redis
-- AI: OpenAI API / local model integration
-- Design Patterns: DDD, Repository, Factory, Strategy, Observer
+- **Backend**: FastAPI (Python async) - managed with `uv`
+- **Frontend**: Flutter (cross-platform)
+- **Database**: PostgreSQL + Redis
+- **AI**: OpenAI API / local model integration
 
 ## Key Directories
 - `backend/`: FastAPI backend API
-- `frontend/`: Flutter mobile application
-- `docs/`: Project documentation and plans
+- `frontend/`: Flutter application
+- `docs/`: Project documentation
+- `specs/`: Requirements and specifications
 
 ## Development Commands
-- Backend: `cd backend && uvicorn app.main:app --reload`
-- Frontend: `cd frontend && flutter run`
-- Docker: `docker-compose up -d`
+See `CLAUDE.md` for detailed commands and project rules.
