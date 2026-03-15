@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../constants/app_spacing.dart';
-import '../constants/breakpoints.dart';
+
 import 'mindriver_theme.dart';
+import 'responsive_helpers.dart';
 
 /// AppTheme - Main theme accessor
 /// AppTheme - 主主题访问器
@@ -12,62 +12,25 @@ class AppTheme {
   AppTheme._();
 
   // ============================================================
-  // RESPONSIVE HELPERS / 响应式助手
+  // RESPONSIVE HELPERS (re-exported from ResponsiveHelpers)
+  // 响应式助手（从 ResponsiveHelpers 重新导出）
   // ============================================================
 
   /// 响应式边距助手
-  static EdgeInsetsGeometry getResponsivePadding(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    if (screenWidth < AppBreakpoints.medium) {
-      return const EdgeInsets.all(AppSpacing.lg); // 移动端
-    } else if (screenWidth < AppBreakpoints.mediumLarge) {
-      return const EdgeInsets.all(AppSpacing.xl); // 平板端
-    } else {
-      return const EdgeInsets.all(AppSpacing.xxl); // 桌面端
-    }
-  }
+  static EdgeInsetsGeometry getResponsivePadding(BuildContext context) =>
+      ResponsiveHelpers.getResponsivePadding(context);
 
   /// 响应式水平边距助手
-  static EdgeInsetsGeometry getResponsiveHorizontalPadding(
-    BuildContext context,
-  ) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    if (screenWidth < AppBreakpoints.medium) {
-      return const EdgeInsets.symmetric(horizontal: AppSpacing.lg); // 移动端
-    } else if (screenWidth < AppBreakpoints.mediumLarge) {
-      return const EdgeInsets.symmetric(horizontal: AppSpacing.xl); // 平板端
-    } else {
-      return const EdgeInsets.symmetric(horizontal: AppSpacing.xxl); // 桌面端
-    }
-  }
+  static EdgeInsetsGeometry getResponsiveHorizontalPadding(BuildContext context) =>
+      ResponsiveHelpers.getResponsiveHorizontalPadding(context);
 
   /// 响应式垂直边距助手
-  static EdgeInsetsGeometry getResponsiveVerticalPadding(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    if (screenWidth < AppBreakpoints.medium) {
-      return const EdgeInsets.symmetric(vertical: AppSpacing.sm); // 移动端
-    } else if (screenWidth < AppBreakpoints.mediumLarge) {
-      return const EdgeInsets.symmetric(vertical: AppSpacing.md); // 平板端
-    } else {
-      return const EdgeInsets.symmetric(vertical: AppSpacing.lg); // 桌面端
-    }
-  }
+  static EdgeInsetsGeometry getResponsiveVerticalPadding(BuildContext context) =>
+      ResponsiveHelpers.getResponsiveVerticalPadding(context);
 
   /// 获取响应式最大宽度
-  static double getResponsiveMaxWidth(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    if (screenWidth < AppBreakpoints.medium) {
-      return screenWidth; // 移动端全宽
-    } else if (screenWidth < AppBreakpoints.mediumLarge) {
-      return AppBreakpoints.mediumLarge; // 平板端限制宽度
-    } else {
-      return AppBreakpoints.large; // 桌面端限制宽度
-    }
-  }
+  static double getResponsiveMaxWidth(BuildContext context) =>
+      ResponsiveHelpers.getResponsiveMaxWidth(context);
 
   // ============================================================
   // THEME ACCESSORS / 主题访问器

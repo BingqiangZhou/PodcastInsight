@@ -9,7 +9,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../../../core/auth/auth_event.dart';
-import '../../../../core/network/dio_client.dart';
+import '../../../../core/network/token_refresh_service.dart';
 import '../../../../core/network/exceptions/network_exceptions.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/secure_storage_service.dart';

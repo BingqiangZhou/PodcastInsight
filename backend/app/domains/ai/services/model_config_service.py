@@ -14,7 +14,6 @@ from app.domains.ai.schemas import (
     APIKeyValidationResponse,
     ModelTestResponse,
     ModelUsageStats,
-    PresetModelConfig,
 )
 
 from .model_management_service import AIModelManagementService
@@ -122,19 +121,6 @@ class AIModelConfigService:
 
     async def get_decrypted_api_key(self, model: AIModelConfig) -> str:
         return await self.security_service.get_decrypted_api_key(model)
-
-    async def _get_decrypted_api_key(self, model: AIModelConfig) -> str:
-        return await self.get_decrypted_api_key(model)
-
-    async def _clear_default_models(self, model_type: ModelType):
-        await self.security_service.clear_default_models(model_type)
-        return []
-
-    def _get_preset_api_key(self, preset: PresetModelConfig) -> str | None:
-        return self.security_service.get_preset_api_key(preset)
-
-    def _get_preset_api_key_from_env(self, model_name: str) -> str | None:
-        return self.security_service.get_preset_api_key_from_env(model_name)
 
     async def validate_api_key(
         self,

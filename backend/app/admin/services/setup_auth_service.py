@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.admin.auth import create_admin_session
 from app.admin.csrf import generate_csrf_token, validate_csrf_token
 from app.admin.first_run import check_admin_exists
+from app.admin.security_settings import get_admin_2fa_enabled
 from app.admin.twofa import generate_qr_code, generate_totp_secret
 from app.core.security import get_password_hash, verify_password
 from app.domains.user.models import User, UserStatus
@@ -90,8 +91,6 @@ class AdminSetupAuthService:
         return user
 
     async def get_admin_2fa_state(self) -> tuple[bool, str]:
-        from app.admin.security_settings import get_admin_2fa_enabled
-
         return await get_admin_2fa_enabled(self.db)
 
     async def disable_2fa(self, *, user: User) -> None:

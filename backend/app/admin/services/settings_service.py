@@ -6,12 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.audit import log_admin_action
 from app.admin.models import SystemSettings
+from app.admin.security_settings import get_admin_2fa_enabled, set_admin_2fa_enabled
 from app.admin.storage_service import StorageCleanupService
 from app.domains.subscription.models import (
     Subscription,
     UpdateFrequency,
     UserSubscription,
 )
+from app.shared.settings_helpers import persist_setting
 
 
 class AdminSettingsService:
@@ -106,36 +108,20 @@ class AdminSettingsService:
         max_concurrent_threads: int,
     ) -> None:
         """Persist audio-processing settings."""
-        chunk_size_setting = await self._get_setting("audio.chunk_size_mb")
-        if chunk_size_setting:
-            chunk_size_setting.value = {"value": chunk_size_mb, "min": 5, "max": 25}
-        else:
-            self.db.add(
-                SystemSettings(
-                    key="audio.chunk_size_mb",
-                    value={"value": chunk_size_mb, "min": 5, "max": 25},
-                    description="Audio chunk size in MB / 音频切块大小(MB)",
-                    category="audio",
-                ),
-            )
-
-        threads_setting = await self._get_setting("audio.max_concurrent_threads")
-        if threads_setting:
-            threads_setting.value = {
-                "value": max_concurrent_threads,
-                "min": 1,
-                "max": 16,
-            }
-        else:
-            self.db.add(
-                SystemSettings(
-                    key="audio.max_concurrent_threads",
-                    value={"value": max_concurrent_threads, "min": 1, "max": 16},
-                    description="Maximum concurrent processing threads / 最大并发处理线程数",
-                    category="audio",
-                ),
-            )
-
+        await persist_setting(
+            self.db,
+            "audio.chunk_size_mb",
+            {"value": chunk_size_mb, "min": 5, "max": 25},
+            description="Audio chunk size in MB / 音频切块大小(MB)",
+            category="audio",
+        )
+        await persist_setting(
+            self.db,
+            "audio.max_concurrent_threads",
+            {"value": max_concurrent_threads, "min": 1, "max": 16},
+            description="Maximum concurrent processing threads / 最大并发处理线程数",
+            category="audio",
+        )
         await self.db.commit()
 
     async def save_audio_settings(
@@ -232,18 +218,13 @@ class AdminSettingsService:
             "update_day_of_week": update_day if update_frequency == "WEEKLY" else None,
         }
 
-        setting = await self._get_setting("rss.frequency_settings")
-        if setting:
-            setting.value = settings_data
-        else:
-            self.db.add(
-                SystemSettings(
-                    key="rss.frequency_settings",
-                    value=settings_data,
-                    description="RSS subscription update frequency settings",
-                    category="subscription",
-                ),
-            )
+        await persist_setting(
+            self.db,
+            "rss.frequency_settings",
+            settings_data,
+            description="RSS subscription update frequency settings",
+            category="subscription",
+        )
 
         user_subscriptions = (
             (
@@ -307,8 +288,6 @@ class AdminSettingsService:
 
     async def get_security_settings(self) -> dict[str, object]:
         """Return current admin 2FA setting and source."""
-        from app.admin.security_settings import get_admin_2fa_enabled
-
         admin_2fa_enabled, source = await get_admin_2fa_enabled(self.db)
         return {
             "admin_2fa_enabled": admin_2fa_enabled,
@@ -317,8 +296,6 @@ class AdminSettingsService:
 
     async def update_security_settings(self, *, admin_2fa_enabled: bool) -> None:
         """Persist admin 2FA setting."""
-        from app.admin.security_settings import set_admin_2fa_enabled
-
         await set_admin_2fa_enabled(self.db, admin_2fa_enabled)
 
     async def save_security_settings(

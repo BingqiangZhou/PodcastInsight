@@ -13,13 +13,13 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.audit import log_admin_action
-from app.admin.models import SystemSettings
 from app.domains.subscription.models import (
     Subscription,
     SubscriptionStatus,
     UpdateFrequency,
     UserSubscription,
 )
+from app.shared.settings_helpers import persist_setting
 
 
 logger = logging.getLogger(__name__)
@@ -63,23 +63,13 @@ class AdminSubscriptionsCommandService:
             "update_day_of_week": day_of_week,
         }
 
-        setting_result = await self.db.execute(
-            select(SystemSettings).where(
-                SystemSettings.key == "rss.frequency_settings"
-            ),
+        await persist_setting(
+            self.db,
+            "rss.frequency_settings",
+            settings_data,
+            description="RSS subscription update frequency settings",
+            category="subscription",
         )
-        setting = setting_result.scalar_one_or_none()
-        if setting:
-            setting.value = settings_data
-        else:
-            self.db.add(
-                SystemSettings(
-                    key="rss.frequency_settings",
-                    value=settings_data,
-                    description="RSS subscription update frequency settings",
-                    category="subscription",
-                ),
-            )
 
         update_stmt = (
             update(UserSubscription)
