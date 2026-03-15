@@ -143,7 +143,6 @@ backend/
 - 认证: `/api/v1/auth/*`
 - 播客订阅: `/api/v1/subscriptions/*`
 - 播客单集: `/api/v1/podcasts/episodes/*`
-- AI 模型: `/api/v1/ai/*`
 
 ## 相关文档
 
