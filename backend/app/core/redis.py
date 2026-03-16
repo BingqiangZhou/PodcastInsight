@@ -216,6 +216,10 @@ class PodcastRedis:
             socket_connect_timeout=5,
             retry_on_timeout=True,
             max_connections=settings.REDIS_MAX_CONNECTIONS,
+            retry=aioredis.Retry(
+                aioredis.ExponentialBackoff(base=1, cap=10),
+                3,
+            ),
         )
 
     async def _delete_keys_nonblocking(self, *keys: str) -> int:
@@ -439,23 +443,25 @@ class PodcastRedis:
         data: dict,
         filters: dict[str, Any] | None = None,
     ) -> bool:
-        """Cache subscription list (15 minutes TTL)"""
+        """Cache subscription list (15 minutes TTL) using pipeline for efficiency."""
         client = await self._get_client()
         key = self._subscription_list_key(user_id, page, size, filters=filters)
-        cached = await self.cache_set_json(key, data, ttl=900)
-        if cached:
-            index_key = self._subscription_index_key(user_id)
-            started = perf_counter()
-            await client.sadd(index_key, key)
-            self._record_command_timing("SADD", (perf_counter() - started) * 1000)
+        index_key = self._subscription_index_key(user_id)
 
-            expire_started = perf_counter()
-            await client.expire(index_key, 1800)
-            self._record_command_timing(
-                "EXPIRE",
-                (perf_counter() - expire_started) * 1000,
-            )
-        return cached
+        try:
+            json_str = json.dumps(data, cls=RedisJSONEncoder)
+        except (TypeError, ValueError):
+            return False
+
+        started = perf_counter()
+        # Use pipeline for atomic batch operations
+        async with client.pipeline() as pipe:
+            pipe.setex(key, 900, json_str)
+            pipe.sadd(index_key, key)
+            pipe.expire(index_key, 1800)
+            await pipe.execute()
+        self._record_command_timing("PIPELINE_SETEX_SADD_EXPIRE", (perf_counter() - started) * 1000)
+        return True
 
     async def invalidate_subscription_list(self, user_id: int) -> None:
         """Invalidate all subscription list caches for a user"""
@@ -521,23 +527,25 @@ class PodcastRedis:
         size: int,
         data: dict,
     ) -> bool:
-        """Cache episode list (10 minutes TTL)"""
+        """Cache episode list (10 minutes TTL) using pipeline for efficiency."""
         client = await self._get_client()
         key = f"podcast:episodes:{subscription_id}:{page}:{size}"
-        cached = await self.cache_set_json(key, data, ttl=600)
-        if cached:
-            index_key = self._episode_index_key(subscription_id)
-            started = perf_counter()
-            await client.sadd(index_key, key)
-            self._record_command_timing("SADD", (perf_counter() - started) * 1000)
+        index_key = self._episode_index_key(subscription_id)
 
-            expire_started = perf_counter()
-            await client.expire(index_key, 1800)
-            self._record_command_timing(
-                "EXPIRE",
-                (perf_counter() - expire_started) * 1000,
-            )
-        return cached
+        try:
+            json_str = json.dumps(data, cls=RedisJSONEncoder)
+        except (TypeError, ValueError):
+            return False
+
+        started = perf_counter()
+        # Use pipeline for atomic batch operations
+        async with client.pipeline() as pipe:
+            pipe.setex(key, 600, json_str)
+            pipe.sadd(index_key, key)
+            pipe.expire(index_key, 1800)
+            await pipe.execute()
+        self._record_command_timing("PIPELINE_SETEX_SADD_EXPIRE", (perf_counter() - started) * 1000)
+        return True
 
     async def invalidate_episode_list(self, subscription_id: int) -> None:
         """Invalidate all episode list caches for a subscription"""

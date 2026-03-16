@@ -57,7 +57,12 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: >
+        sh -c 'if [ -z "$REDIS_PASSWORD" ]; then
+                 redis-cli ping;
+               else
+                 redis-cli -a "$REDIS_PASSWORD" ping;
+               fi'
       interval: 10s
       timeout: 3s
       retries: 5

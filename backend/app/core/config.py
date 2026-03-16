@@ -99,8 +99,8 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
     REDIS_MAX_CONNECTIONS: int = 50
 
-    # CORS
-    ALLOWED_HOSTS: list[str] = ["*"]
+    # CORS - Default to empty for security, set ALLOWED_HOSTS=* for development
+    ALLOWED_HOSTS: list[str] = []
 
     # JWT
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
@@ -210,11 +210,33 @@ class Settings(BaseSettings):
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v):
+        """Parse CORS allowed hosts from environment variable.
+
+        Supports:
+        - Empty string or empty list -> empty list (secure default)
+        - "*" -> ["*"] (development mode, allows all origins)
+        - Comma-separated string -> list of origins
+        - JSON array string -> parsed list
+        """
+        if v is None or v == "" or v == []:
+            return []
         if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        if isinstance(v, (list, str)):
+            # Handle comma-separated string
+            origins = [i.strip() for i in v.split(",") if i.strip()]
+            return origins
+        if isinstance(v, list):
             return v
-        raise ValueError(v)
+        if isinstance(v, str) and v.startswith("["):
+            # Try to parse as JSON array
+            import json
+
+            try:
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return parsed
+            except json.JSONDecodeError:
+                pass
+        raise ValueError(f"Invalid ALLOWED_HOSTS format: {v}")
 
     @field_validator("ADMIN_2FA_ENABLED", mode="before")
     @classmethod
@@ -278,6 +300,37 @@ class Settings(BaseSettings):
             return self.SECRET_KEY
         self.SECRET_KEY = get_or_generate_secret_key()
         return self.SECRET_KEY
+
+    def validate_production_config(self) -> list[str]:
+        """Validate configuration for production environment.
+
+        Returns a list of warnings/errors. Empty list means all checks passed.
+        """
+        issues = []
+
+        if self.ENVIRONMENT == "production":
+            # Check SECRET_KEY is set (not auto-generated)
+            if not self.SECRET_KEY:
+                issues.append(
+                    "SECRET_KEY should be explicitly set via environment variable "
+                    "in production (currently using auto-generated key)"
+                )
+
+            # Check CORS is not open
+            if "*" in self.ALLOWED_HOSTS:
+                issues.append(
+                    "ALLOWED_HOSTS contains '*' which allows all origins. "
+                    "Specify exact domains in production."
+                )
+
+            # Check database password is not default
+            if self.DATABASE_URL and "MySecurePass2024" in self.DATABASE_URL:
+                issues.append(
+                    "Database password appears to be the default value. "
+                    "Change POSTGRES_PASSWORD in production."
+                )
+
+        return issues
 
 
 @lru_cache

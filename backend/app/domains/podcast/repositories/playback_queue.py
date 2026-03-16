@@ -254,19 +254,15 @@ class PodcastPlaybackQueueRepositoryMixin:
         start: int = 0,
         step: int | None = None,
     ) -> None:
+        """Rewrite queue positions with a single flush for better performance."""
         if not items:
             return
 
         position_step = step or self._queue_position_step
-        temp_base = self._queue_position_compaction_threshold + (
-            len(items) * position_step
-        )
-        for idx, item in enumerate(items):
-            item.position = temp_base + idx
-        await self.db.flush()
-
+        # Directly assign final positions without intermediate flush
         for idx, item in enumerate(items):
             item.position = start + (idx * position_step)
+        # Single flush at the end for batch efficiency
         await self.db.flush()
 
     @staticmethod

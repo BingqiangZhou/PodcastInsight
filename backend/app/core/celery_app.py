@@ -74,6 +74,13 @@ def create_celery_app() -> Celery:
         task_soft_time_limit=25 * 60,
         worker_prefetch_multiplier=settings.CELERY_WORKER_PREFETCH_MULTIPLIER,
         worker_max_tasks_per_child=settings.CELERY_WORKER_MAX_TASKS_PER_CHILD,
+        # Task retry configuration
+        task_default_retry_delay=60,  # Retry after 60 seconds
+        task_max_retries=3,  # Maximum 3 retries
+        task_autoretry_for=(Exception,),  # Auto-retry on all exceptions
+        task_retry_backoff=True,  # Enable exponential backoff
+        task_retry_backoff_max=600,  # Max backoff delay of 10 minutes
+        task_retry_jitter=True,  # Add jitter to prevent thundering herd
         task_routes={
             "app.domains.podcast.tasks.subscription_sync.refresh_all_podcast_feeds": {
                 "queue": "subscription_sync",

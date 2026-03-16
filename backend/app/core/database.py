@@ -7,6 +7,7 @@ engine with dialect-specific settings.
 
 import asyncio
 import logging
+import threading
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from importlib import import_module
@@ -33,6 +34,7 @@ _orm_models_registered = False
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
 _engine_url: str | None = None
+_engine_lock = threading.Lock()  # Protect global engine state for concurrent access
 _worker_runtime_lock = asyncio.Lock()
 _worker_runtimes: dict[
     str,
@@ -98,16 +100,24 @@ def is_database_configured() -> bool:
 
 
 def get_engine() -> AsyncEngine:
-    """Get or create the async SQLAlchemy engine lazily."""
+    """Get or create the async SQLAlchemy engine lazily with thread-safe protection."""
     global _engine, _engine_url
 
     database_url = get_settings().require_database_url()
+
+    # Fast path: check without lock
     if _engine is not None and _engine_url == database_url:
         return _engine
 
-    _engine = create_async_engine(database_url, **_build_engine_kwargs(database_url))
-    _engine_url = database_url
-    return _engine
+    # Slow path: acquire lock and create engine
+    with _engine_lock:
+        # Double-check after acquiring lock
+        if _engine is not None and _engine_url == database_url:
+            return _engine
+
+        _engine = create_async_engine(database_url, **_build_engine_kwargs(database_url))
+        _engine_url = database_url
+        return _engine
 
 
 def get_async_session_factory() -> async_sessionmaker[AsyncSession]:
@@ -368,6 +378,7 @@ def get_db_pool_snapshot() -> dict[str, Any]:
             "status": "not_configured",
         }
 
+    settings = get_settings()
     engine = get_engine()
     pool = engine.pool
     pool_size = _pool_metric(pool, "size")
@@ -382,12 +393,23 @@ def get_db_pool_snapshot() -> dict[str, Any]:
     else:
         capacity = max(pool_size + max(overflow, 0), pool_size, 1)
 
+    occupancy_ratio = checked_out / capacity if capacity > 0 else 0.0
+
+    # Log warning if pool occupancy is high
+    if occupancy_ratio > settings.OBS_ALERT_DB_POOL_OCCUPANCY_RATIO:
+        logger.warning(
+            "DB pool occupancy high: %.2f%% (%d/%d connections)",
+            occupancy_ratio * 100,
+            checked_out,
+            capacity,
+        )
+
     return {
         "pool_size": pool_size,
         "checked_out": checked_out,
         "overflow": overflow,
         "max_overflow_limit": max_overflow_limit,
         "capacity": capacity,
-        "occupancy_ratio": checked_out / capacity,
+        "occupancy_ratio": occupancy_ratio,
         "status": "configured",
     }

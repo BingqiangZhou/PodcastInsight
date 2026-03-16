@@ -31,6 +31,13 @@ async def application_lifespan(app: FastAPI):
         settings.VERSION,
         settings.ENVIRONMENT,
     )
+
+    # Validate production configuration
+    config_issues = settings.validate_production_config()
+    if config_issues:
+        for issue in config_issues:
+            logger.warning("Configuration warning: %s", issue)
+
     await init_db()
 
     startup_lock_token: str | None = None
