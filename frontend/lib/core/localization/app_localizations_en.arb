@@ -2163,5 +2163,11 @@
     "@podcast_highlights_dates":  {
                                           "description":  "Highlights date selector title"
                                       },
-    "podcast_highlights_generated_prefix":  "Generated at"
+    "podcast_highlights_generated_prefix":  "Generated at",
+    "podcast_highlights_original_quote":  "Original Quote",
+    "podcast_highlights_load_failed":  "Failed to load",
+    "podcast_highlights_cannot_load":  "Cannot load highlights",
+    "podcast_highlights_retry":  "Retry",
+    "podcast_highlights_no_highs":  "No highlights",
+    "podcast_highlights_loading_highlights":  "Loading highlights..."
 }

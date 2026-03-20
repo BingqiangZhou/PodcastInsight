@@ -2164,5 +2164,11 @@
     "@podcast_highlights_dates":  {
                                           "description":  "高光观点日期选择器标题"
                                       },
-    "podcast_highlights_generated_prefix":  "生成于"
+    "podcast_highlights_generated_prefix":  "生成于",
+    "podcast_highlights_original_quote":  "原文引用",
+    "podcast_highlights_load_failed":  "加载失败",
+    "podcast_highlights_cannot_load":  "无法加载高光观点",
+    "podcast_highlights_retry":  "重试",
+    "podcast_highlights_no_highs":  "暂无高光",
+    "podcast_highlights_loading_highlights":  "正在加载高光观点"
 }

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../core/constants/breakpoints.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/app_shells.dart';
 import '../../../../core/widgets/custom_adaptive_navigation.dart';
 import '../../../../shared/widgets/loading_widget.dart';
@@ -146,9 +147,10 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   Widget _buildHeaderPanel(BuildContext context) {
     final isMobile =
         MediaQuery.of(context).size.width < AppBreakpoints.medium;
+    final l10n = AppLocalizations.of(context)!;
 
     return CompactHeaderPanel(
-      title: '高光观点',
+      title: l10n.podcast_highlights_title,
       leading: isMobile ? null : _buildBackButton(context),
       trailing: _buildCalendarButton(context),
     );
@@ -170,9 +172,10 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   }
 
   Widget _buildCalendarButton(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return HeaderCapsuleActionButton(
       key: const Key('highlights_calendar_menu_button'),
-      tooltip: '选择日期',
+      tooltip: l10n.podcast_highlights_dates,
       onPressed: () {
         unawaited(_showCalendarPanel());
       },
@@ -184,6 +187,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   Widget _buildHighlightsPanel(BuildContext context) {
     final theme = Theme.of(context);
     final tokens = mindriverThemeOf(context);
+    final l10n = AppLocalizations.of(context)!;
     final highlightsAsync = ref.watch(highlightsProvider);
     final selectedDate = ref.watch(selectedHighlightDateProvider);
     final headerDate = selectedDate ?? _focusedCalendarDay;
@@ -213,7 +217,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
-              subtitle: '共 ${highlightsResponse?.total ?? 0} 条高光',
+              subtitle: l10n.podcast_highlights_items(highlightsResponse?.total ?? 0),
             ),
           ),
           Divider(
@@ -282,6 +286,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   Widget _buildLoadingState(BuildContext context, DateTime headerDate) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +295,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
           child: AppSectionHeader(
             title: EpisodeCardUtils.formatDate(headerDate),
-            subtitle: '加载中...',
+            subtitle: l10n.podcast_highlights_loading,
           ),
         ),
         const SizedBox(height: 20),
@@ -298,7 +303,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
           child: Center(
             child: LoadingStatusContent(
               key: const Key('highlights_loading_content'),
-              title: '正在加载高光观点',
+              title: l10n.podcast_highlights_loading_highlights,
               spinnerSize: 28,
               spinnerColor: theme.colorScheme.primary,
               gapAfterSpinner: 12,
@@ -311,6 +316,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   Widget _buildErrorState(BuildContext context, DateTime headerDate) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return GlassPanel(
       padding: EdgeInsets.zero,
@@ -322,7 +328,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
-              subtitle: '加载失败',
+              subtitle: l10n.podcast_highlights_load_failed,
             ),
           ),
           Divider(
@@ -337,7 +343,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '无法加载高光观点',
+                    l10n.podcast_highlights_cannot_load,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.error,
                     ),
@@ -354,7 +360,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
                           .read(highlightDatesProvider.notifier)
                           .load(forceRefresh: true);
                     },
-                    child: const Text('重试'),
+                    child: Text(l10n.podcast_highlights_retry),
                   ),
                 ],
               ),
@@ -368,6 +374,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   Widget _buildEmptyState(BuildContext context, DateTime headerDate) {
     final theme = Theme.of(context);
     final tokens = mindriverThemeOf(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return GlassPanel(
       padding: EdgeInsets.zero,
@@ -379,7 +386,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
-              subtitle: '暂无高光',
+              subtitle: l10n.podcast_highlights_no_highs,
             ),
           ),
           Divider(
@@ -401,7 +408,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
                 ),
                 padding: const EdgeInsets.all(18),
                 child: Text(
-                  '暂无高光观点',
+                  l10n.podcast_highlights_empty,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -480,6 +487,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   Widget _buildCalendarPanelContent(BuildContext context, WidgetRef panelRef) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final datesAsync = panelRef.watch(highlightDatesProvider);
     final selectedDate = panelRef.watch(selectedHighlightDateProvider);
     final highlightDateKeys = <String>{
@@ -496,7 +504,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '选择日期',
+          l10n.podcast_highlights_dates,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -641,7 +649,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '加载中...',
+                  l10n.podcast_highlights_loading,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall,

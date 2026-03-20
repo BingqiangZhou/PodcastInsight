@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/podcast_highlight_model.dart';
 import 'highlight_score_indicator.dart';
@@ -133,9 +134,10 @@ class HighlightCard extends ConsumerWidget {
 
   Widget _buildFavoriteButton(BuildContext context, ThemeData theme) {
     final isFavorited = highlight.isUserFavorited;
+    final l10n = AppLocalizations.of(context)!;
 
     return Tooltip(
-      message: isFavorited ? '取消收藏' : '收藏',
+      message: isFavorited ? l10n.podcast_highlights_unfavorite : l10n.podcast_highlights_favorite,
       child: IconButton(
         onPressed: _canFavorite() ? onFavoriteToggle : null,
         icon: Icon(
@@ -156,6 +158,7 @@ class HighlightCard extends ConsumerWidget {
   }
 
   Widget _buildOriginalQuote(BuildContext context, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -177,7 +180,7 @@ class HighlightCard extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '原文引用',
+                l10n.podcast_highlights_original_quote,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.primary,
                   fontWeight: FontWeight.w600,

@@ -1606,4 +1606,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get podcast_highlights_generated_prefix => 'Generated at';
+
+  @override
+  String get podcast_highlights_original_quote => 'Original Quote';
+
+  @override
+  String get podcast_highlights_load_failed => 'Failed to load';
+
+  @override
+  String get podcast_highlights_cannot_load => 'Cannot load highlights';
+
+  @override
+  String get podcast_highlights_retry => 'Retry';
+
+  @override
+  String get podcast_highlights_no_highs => 'No highlights';
+
+  @override
+  String get podcast_highlights_loading_highlights => 'Loading highlights...';
 }

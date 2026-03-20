@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// Widget for displaying the three-dimensional score of a highlight.
@@ -42,6 +43,7 @@ class HighlightScoreIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final barHeight = isDense ? _denseBarHeight : _defaultBarHeight;
     final labelWidth = isDense ? _denseLabelWidth : _defaultLabelWidth;
     final scoreWidth = isDense ? _denseScoreWidth : _defaultScoreWidth;
@@ -51,7 +53,7 @@ class HighlightScoreIndicator extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _ScoreRow(
-          label: '洞察力',
+          label: l10n.podcast_highlights_insight,
           score: insightScore,
           color: _getInsightColor(context),
           barHeight: barHeight,
@@ -61,7 +63,7 @@ class HighlightScoreIndicator extends StatelessWidget {
         ),
         SizedBox(height: isDense ? 4 : 6),
         _ScoreRow(
-          label: '新颖性',
+          label: l10n.podcast_highlights_novelty,
           score: noveltyScore,
           color: _getNoveltyColor(context),
           barHeight: barHeight,
@@ -71,7 +73,7 @@ class HighlightScoreIndicator extends StatelessWidget {
         ),
         SizedBox(height: isDense ? 4 : 6),
         _ScoreRow(
-          label: '可操作性',
+          label: l10n.podcast_highlights_actionability,
           score: actionabilityScore,
           color: _getActionabilityColor(context),
           barHeight: barHeight,

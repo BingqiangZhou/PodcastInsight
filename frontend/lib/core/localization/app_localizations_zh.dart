@@ -1551,4 +1551,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get podcast_highlights_generated_prefix => '生成于';
+
+  @override
+  String get podcast_highlights_original_quote => '原文引用';
+
+  @override
+  String get podcast_highlights_load_failed => '加载失败';
+
+  @override
+  String get podcast_highlights_cannot_load => '无法加载高光观点';
+
+  @override
+  String get podcast_highlights_retry => '重试';
+
+  @override
+  String get podcast_highlights_no_highs => '暂无高光';
+
+  @override
+  String get podcast_highlights_loading_highlights => '正在加载高光观点';
 }

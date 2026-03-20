@@ -3013,6 +3013,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Generated at'**
   String get podcast_highlights_generated_prefix;
+
+  /// No description provided for @podcast_highlights_original_quote.
+  ///
+  /// In en, this message translates to:
+  /// **'Original Quote'**
+  String get podcast_highlights_original_quote;
+
+  /// No description provided for @podcast_highlights_load_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load'**
+  String get podcast_highlights_load_failed;
+
+  /// No description provided for @podcast_highlights_cannot_load.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot load highlights'**
+  String get podcast_highlights_cannot_load;
+
+  /// No description provided for @podcast_highlights_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get podcast_highlights_retry;
+
+  /// No description provided for @podcast_highlights_no_highs.
+  ///
+  /// In en, this message translates to:
+  /// **'No highlights'**
+  String get podcast_highlights_no_highs;
+
+  /// No description provided for @podcast_highlights_loading_highlights.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading highlights...'**
+  String get podcast_highlights_loading_highlights;
 }
 
 class _AppLocalizationsDelegate
