@@ -4,6 +4,48 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.22.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.21.0...v0.22.0) - 2026-03-20 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.22.0))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(agents)* Simplify configuration by removing redundant inline definitions ([f4346bb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f4346bb07d7dd03f8a4084fb0105cd1fa3b12221))
+- *(frontend)* Remove outdated network layer tests ([215260c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/215260c32f48bca317a413cbffec2edfa6d79e09))
+
+### ⚡ Performance
+
+- *(podcast)* Optimize polling intervals and add position debounce ([26c8d81](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/26c8d81be30ee914d2fd38695debb70cdc518ce9))
+
+### 🐛 Bug Fixes
+
+- *(backend)* Improve security, stability and performance ([31da14c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/31da14c20b4b24ddea353d86c9f7993e395afb77))
+- *(frontend)* Improve stability and performance ([7023116](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/702311617ac151170ebb83090b56962dc57680bb))
+- *(i18n)* Replace hardcoded Chinese strings in highlights page ([c1b9b5d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c1b9b5dc28df792f427668275a7ea7eb7cd278a4))
+
+### 🚀 Features
+
+- *(podcast)* Add episode highlights feature with AI extraction ([7ecdcc6](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7ecdcc6b54b8f21cf73f781bfb49dc17d545517e))
+
+### 🚜 Refactor
+
+- *(frontend)* Simplify architecture and extract shared utilities ([cf39e36](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/cf39e3695449bc999a06fac824215843249620fb))
+- *(frontend)* Simplify architecture and extract shared utilities ([e197952](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e197952b5d99cf9372a7eb48ceefba0a6214d7a0))
+- *(podcast)* Extract shared status_value helper and remove unused functions ([7aa6a7d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7aa6a7d9e7e0658619007c233d3338195f0f5116))
+- Apply ruff formatting and extract shared time utilities ([428117c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/428117ce892a0d749e530511bff16d12c69ded11))
+- *(pdd)* Optimize skill with progressive disclosure and flexible modes ([9374068](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9374068193655385c08e2b9e58cb14bc40dc5ec4))
+- *(ai)* Remove unused AI model REST API endpoints ([ebd96fd](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ebd96fdb1ec912c51c0c8e526a8949b5afeb7252))
+- *(backend)* Centralize test fixtures and remove redundant TOTP wrapper ([d12c9d8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d12c9d856232b4af8b8f9d947ea17c430e282e55))
+- *(backend)* Consolidate shared utilities and add error helpers (Phase 3) ([292454b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/292454bc88ee1cc5f09cec522e38124f2f9912c8))
+- *(backend)* Simplify services and consolidate shared utilities (Phase 4) ([561a7a7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/561a7a77bc2eeecd6ed17e6d7779db9d545a88e1))
+- Simplify frontend architecture and fix provider mixins (Phase 2) ([0cc2b8c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0cc2b8c912860ce3023c06c700e5c16c20d3b723))
+- *(backend)* Simplify architecture and unify exception handling (Phase 5) ([349caba](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/349caba75f94038d0dc5d6904e88e93ac9855e37))
+
+### 🧪 Testing
+
+- *(skills)* Add PDD skill benchmark iteration 1 results ([36e7699](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/36e76993f537124b096b0d0449b575b81aca620f))
+- Fix failing integration tests and add unified test helpers ([f26adf4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f26adf44468b37c42444d3d5ae4e7d1044efd87f))
+
+
+
 ## [0.21.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.20.1...v0.21.0) - 2026-03-14 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.21.0))
 
 ### 🚜 Refactor
