@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.24.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.23.0...v0.24.0) - 2026-03-21 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.24.0))
+
+### 🎨 Styling
+
+- *(ui)* Implement minimalist design system with refined colors and typography ([c003d24](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c003d243f999d00705501f60aa5e2962a6cab7f8))
+- *(ui)* Update Arctic Garden design system with refined typography and subtle effects ([a711ec1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a711ec198c2cb9efbc1e6013963aeba43789254d))
+
+### 🚜 Refactor
+
+- *(ui)* Redesign from Arctic Garden to Refined Minimal design system ([6b23301](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6b23301833b1b31c7dbb9fb98363cdee2cdb4043))
+
+
+
 ## [0.23.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.22.2...v0.23.0) - 2026-03-21 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.23.0))
 
 ### 🐛 Bug Fixes
