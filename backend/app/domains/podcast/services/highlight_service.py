@@ -13,7 +13,7 @@ from app.domains.podcast.models import (
     EpisodeHighlight,
     PodcastEpisode,
 )
-from app.domains.subscription.models import Subscription
+from app.domains.subscription.models import Subscription, UserSubscription
 
 
 logger = logging.getLogger(__name__)
@@ -46,9 +46,10 @@ class HighlightService:
             select(EpisodeHighlight)
             .join(PodcastEpisode, EpisodeHighlight.episode_id == PodcastEpisode.id)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
+            .join(UserSubscription, Subscription.id == UserSubscription.subscription_id)
             .where(
                 and_(
-                    Subscription.user_id == self.user_id,
+                    UserSubscription.user_id == self.user_id,
                     EpisodeHighlight.status == "active",
                 )
             )
@@ -137,9 +138,10 @@ class HighlightService:
             select(func.date(EpisodeHighlight.created_at).label("highlight_date"))
             .join(PodcastEpisode, EpisodeHighlight.episode_id == PodcastEpisode.id)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
+            .join(UserSubscription, Subscription.id == UserSubscription.subscription_id)
             .where(
                 and_(
-                    Subscription.user_id == self.user_id,
+                    UserSubscription.user_id == self.user_id,
                     EpisodeHighlight.status == "active",
                 )
             )
@@ -159,9 +161,10 @@ class HighlightService:
             select(func.count(EpisodeHighlight.id))
             .join(PodcastEpisode, EpisodeHighlight.episode_id == PodcastEpisode.id)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
+            .join(UserSubscription, Subscription.id == UserSubscription.subscription_id)
             .where(
                 and_(
-                    Subscription.user_id == self.user_id,
+                    UserSubscription.user_id == self.user_id,
                     EpisodeHighlight.status == "active",
                 )
             )
@@ -174,9 +177,10 @@ class HighlightService:
             select(func.avg(EpisodeHighlight.overall_score))
             .join(PodcastEpisode, EpisodeHighlight.episode_id == PodcastEpisode.id)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
+            .join(UserSubscription, Subscription.id == UserSubscription.subscription_id)
             .where(
                 and_(
-                    Subscription.user_id == self.user_id,
+                    UserSubscription.user_id == self.user_id,
                     EpisodeHighlight.status == "active",
                 )
             )
@@ -189,9 +193,10 @@ class HighlightService:
             select(func.max(EpisodeHighlight.created_at))
             .join(PodcastEpisode, EpisodeHighlight.episode_id == PodcastEpisode.id)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
+            .join(UserSubscription, Subscription.id == UserSubscription.subscription_id)
             .where(
                 and_(
-                    Subscription.user_id == self.user_id,
+                    UserSubscription.user_id == self.user_id,
                     EpisodeHighlight.status == "active",
                 )
             )
@@ -220,10 +225,11 @@ class HighlightService:
             select(EpisodeHighlight)
             .join(PodcastEpisode, EpisodeHighlight.episode_id == PodcastEpisode.id)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
+            .join(UserSubscription, Subscription.id == UserSubscription.subscription_id)
             .where(
                 and_(
                     EpisodeHighlight.id == highlight_id,
-                    Subscription.user_id == self.user_id,
+                    UserSubscription.user_id == self.user_id,
                     EpisodeHighlight.status == "active",
                 )
             )
