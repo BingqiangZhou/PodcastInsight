@@ -33,6 +33,7 @@ dependencies:
   shared_preferences: ^2.5.4
 
   # UI Components
+  google_fonts: ^6.2.1
   shimmer: ^3.0.0
   flutter_markdown_plus: ^1.0.7
   flutter_widget_from_html: ^0.17.1

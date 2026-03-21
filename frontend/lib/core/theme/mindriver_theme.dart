@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
@@ -22,6 +23,9 @@ class MindriverTheme {
         ? MindriverThemeExtension.dark
         : MindriverThemeExtension.light;
 
+    // Use Outfit as the primary font for a modern, distinctive look
+    final googleTextTheme = GoogleFonts.outfitTextTheme(textTheme);
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -29,8 +33,8 @@ class MindriverTheme {
       scaffoldBackgroundColor: isDark
           ? AppColors.darkBackground
           : AppColors.lightBackground,
-      textTheme: textTheme,
-      fontFamily: null,
+      textTheme: googleTextTheme,
+      fontFamily: GoogleFonts.outfit().fontFamily,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: scheme.onSurface,

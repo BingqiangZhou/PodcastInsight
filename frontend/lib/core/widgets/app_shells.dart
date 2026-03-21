@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/breakpoints.dart';
 import '../theme/app_colors.dart';
+import '../utils/performance_utils.dart';
 import 'custom_adaptive_navigation.dart';
 
 MindriverThemeExtension mindriverThemeOf(BuildContext context) {
@@ -22,37 +23,44 @@ class AppPageBackdrop extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tokens = mindriverThemeOf(context);
+    final enableOrbs = DevicePerformance.enableComplexAnimations;
 
     return DecoratedBox(
       decoration: BoxDecoration(gradient: tokens.shellGradient),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            top: paddingTop - 80,
-            left: -40,
-            child: _Orb(
-              size: 220,
-              color: tokens.heroGlow.withValues(alpha: 0.28),
+      child: RepaintBoundary(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Primary orb - always shown for brand identity
+            Positioned(
+              top: paddingTop - 80,
+              left: -40,
+              child: _Orb(
+                size: 220,
+                color: tokens.heroGlow.withValues(alpha: 0.28),
+              ),
             ),
-          ),
-          Positioned(
-            top: paddingTop + 80,
-            right: -60,
-            child: _Orb(
-              size: 200,
-              color: theme.colorScheme.tertiary.withValues(alpha: 0.12),
-            ),
-          ),
-          Positioned(
-            bottom: -100,
-            left: 40,
-            child: _Orb(
-              size: 240,
-              color: theme.colorScheme.secondary.withValues(alpha: 0.08),
-            ),
-          ),
-        ],
+            // Secondary orbs - only on high/medium performance devices
+            if (enableOrbs) ...[
+              Positioned(
+                top: paddingTop + 80,
+                right: -60,
+                child: _Orb(
+                  size: 200,
+                  color: theme.colorScheme.tertiary.withValues(alpha: 0.12),
+                ),
+              ),
+              Positioned(
+                bottom: -100,
+                left: 40,
+                child: _Orb(
+                  size: 240,
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.08),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -95,6 +103,7 @@ class GlassPanel extends StatelessWidget {
     this.borderRadius,
     this.backgroundColor,
     this.showHighlight = true,
+    this.enableBlur,
   });
 
   final Widget child;
@@ -104,48 +113,60 @@ class GlassPanel extends StatelessWidget {
   final Color? backgroundColor;
   final bool showHighlight;
 
+  /// Override for blur effect. If null, uses device performance detection.
+  final bool? enableBlur;
+
   @override
   Widget build(BuildContext context) {
     final tokens = mindriverThemeOf(context);
     final radius = borderRadius ?? tokens.cardRadius;
+    final shouldEnableBlur = enableBlur ?? DevicePerformance.enableGlassmorphism;
 
-    return Container(
-      margin: margin,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        boxShadow: [
-          BoxShadow(
-            color: tokens.glassShadow,
-            blurRadius: 32,
-            offset: const Offset(0, 18),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            decoration: BoxDecoration(
-              color: backgroundColor ?? tokens.glassSurface,
-              borderRadius: BorderRadius.circular(radius),
-              border: Border.all(color: tokens.glassBorder),
-              gradient: showHighlight
-                  ? LinearGradient(
-                      colors: [
-                        tokens.glassHighlight.withValues(alpha: 0.14),
-                        Colors.transparent,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
+    return RepaintBoundary(
+      child: Container(
+        margin: margin,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: [
+            BoxShadow(
+              color: tokens.glassShadow,
+              blurRadius: 32,
+              offset: const Offset(0, 18),
             ),
-            padding: padding,
-            child: child,
-          ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: shouldEnableBlur
+              ? BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  child: _buildGlassContent(tokens, radius),
+                )
+              : _buildGlassContent(tokens, radius),
         ),
       ),
+    );
+  }
+
+  Widget _buildGlassContent(MindriverThemeExtension tokens, double radius) {
+    return Container(
+      decoration: BoxDecoration(
+        color: backgroundColor ?? tokens.glassSurface,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: tokens.glassBorder),
+        gradient: showHighlight
+            ? LinearGradient(
+                colors: [
+                  tokens.glassHighlight.withValues(alpha: 0.14),
+                  Colors.transparent,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+      ),
+      padding: padding,
+      child: child,
     );
   }
 }
@@ -162,28 +183,32 @@ class StatusBadge extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final resolvedColor = color ?? scheme.primary;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: resolvedColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: resolvedColor.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 13, color: resolvedColor),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: resolvedColor,
-              fontWeight: FontWeight.w700,
+    return Semantics(
+      label: label,
+      container: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(
+          color: resolvedColor.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: resolvedColor.withValues(alpha: 0.18)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 13, color: resolvedColor),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: resolvedColor,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

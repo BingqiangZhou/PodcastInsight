@@ -22,11 +22,113 @@ import '../../features/profile/presentation/pages/profile_subscriptions_page.dar
 import '../../features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/widgets/app_shells.dart';
+import '../../core/widgets/page_transitions.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<ModalRoute<dynamic>> appRouteObserver =
     RouteObserver<ModalRoute<dynamic>>();
+
+/// Helper to create a custom transition page with fade-slide animation.
+CustomTransitionPage<T> _buildPageWithTransition<T>({
+  required GoRouterState state,
+  required Widget child,
+  AppPageTransitionType transitionType = AppPageTransitionType.fadeSlide,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 250),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curve = CurveTween(curve: Curves.easeOutCubic);
+      final curvedAnimation = animation.drive(curve);
+
+      switch (transitionType) {
+        case AppPageTransitionType.fade:
+          return FadeTransition(
+            opacity: curvedAnimation,
+            child: child,
+          );
+
+        case AppPageTransitionType.fadeSlide:
+          return SlideTransition(
+            position: curvedAnimation.drive(
+              Tween<Offset>(
+                begin: const Offset(0.02, 0.0),
+                end: Offset.zero,
+              ),
+            ),
+            child: FadeTransition(
+              opacity: curvedAnimation,
+              child: child,
+            ),
+          );
+
+        case AppPageTransitionType.slideUp:
+          return SlideTransition(
+            position: curvedAnimation.drive(
+              Tween<Offset>(
+                begin: const Offset(0.0, 0.03),
+                end: Offset.zero,
+              ),
+            ),
+            child: FadeTransition(
+              opacity: curvedAnimation,
+              child: child,
+            ),
+          );
+
+        case AppPageTransitionType.scale:
+          return ScaleTransition(
+            scale: curvedAnimation.drive(
+              Tween<double>(begin: 0.97, end: 1.0),
+            ),
+            child: FadeTransition(
+              opacity: curvedAnimation,
+              child: child,
+            ),
+          );
+
+        default:
+          return FadeTransition(
+            opacity: curvedAnimation,
+            child: child,
+          );
+      }
+    },
+  );
+}
+
+/// Helper for modal-style transitions (bottom sheets, dialogs).
+CustomTransitionPage<T> _buildModalPage<T>({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 300),
+    reverseTransitionDuration: const Duration(milliseconds: 250),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curve = CurveTween(curve: Curves.easeOutCubic);
+      final curvedAnimation = animation.drive(curve);
+
+      return SlideTransition(
+        position: curvedAnimation.drive(
+          Tween<Offset>(
+            begin: const Offset(0.0, 0.05),
+            end: Offset.zero,
+          ),
+        ),
+        child: FadeTransition(
+          opacity: curvedAnimation,
+          child: child,
+        ),
+      );
+    },
+  );
+}
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -42,36 +144,55 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         name: 'splash',
-        builder: (context, state) => const SplashPage(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          state: state,
+          child: const SplashPage(),
+          transitionType: AppPageTransitionType.fade,
+        ),
       ),
 
       // Auth
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (context, state) => const LoginPage(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          state: state,
+          child: const LoginPage(),
+        ),
       ),
       GoRoute(
         path: '/register',
         name: 'register',
-        builder: (context, state) => const RegisterPage(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          state: state,
+          child: const RegisterPage(),
+        ),
       ),
       GoRoute(
         path: '/auth-verify',
         name: 'auth-verify',
-        builder: (context, state) => const AuthVerifyPage(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          state: state,
+          child: const AuthVerifyPage(),
+        ),
       ),
       GoRoute(
         path: '/forgot-password',
         name: 'forgot-password',
-        builder: (context, state) => const ForgotPasswordPage(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          state: state,
+          child: const ForgotPasswordPage(),
+        ),
       ),
       GoRoute(
         path: '/reset-password',
         name: 'reset-password',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final token = state.uri.queryParameters['token'];
-          return ResetPasswordPage(token: token);
+          return _buildPageWithTransition(
+            state: state,
+            child: ResetPasswordPage(token: token),
+          );
         },
       ),
 
@@ -79,20 +200,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         name: 'home',
-        builder: (context, state) => const HomePage(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          state: state,
+          child: const HomePage(),
+        ),
       ),
 
       // Daily report route (no bottom nav)
       GoRoute(
         path: '/reports/daily',
         name: 'dailyReport',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final dateParam = state.uri.queryParameters['date'];
           final parsedDate = _parseDateOnlyQuery(dateParam);
-          return _PlayerAwareRouteFrame(
-            child: PodcastDailyReportPage(
-              initialDate: parsedDate,
-              source: state.uri.queryParameters['source'],
+          return _buildModalPage(
+            state: state,
+            child: _PlayerAwareRouteFrame(
+              child: PodcastDailyReportPage(
+                initialDate: parsedDate,
+                source: state.uri.queryParameters['source'],
+              ),
             ),
           );
         },
@@ -102,13 +229,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/highlights',
         name: 'highlights',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final dateParam = state.uri.queryParameters['date'];
           final parsedDate = _parseDateOnlyQuery(dateParam);
-          return _PlayerAwareRouteFrame(
-            child: PodcastHighlightsPage(
-              initialDate: parsedDate,
-              source: state.uri.queryParameters['source'],
+          return _buildModalPage(
+            state: state,
+            child: _PlayerAwareRouteFrame(
+              child: PodcastHighlightsPage(
+                initialDate: parsedDate,
+                source: state.uri.queryParameters['source'],
+              ),
             ),
           );
         },
@@ -118,26 +248,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/podcast',
         name: 'podcast',
-        builder: (context, state) =>
-            const _PlayerAwareRouteFrame(child: PodcastListPage()),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          state: state,
+          child: const _PlayerAwareRouteFrame(child: PodcastListPage()),
+        ),
         routes: [
           // 1. 订阅的单集列表: /podcast/episodes/1
           GoRoute(
             path: 'episodes/:subscriptionId',
             name: 'podcastEpisodes',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final args = PodcastEpisodesPageArgs.extractFromState(state);
               if (args == null) {
                 final l10n = AppLocalizations.of(context)!;
-                return Scaffold(
-                  body: Center(child: Text(l10n.invalid_navigation_arguments)),
+                return _buildPageWithTransition(
+                  state: state,
+                  child: Scaffold(
+                    body: Center(child: Text(l10n.invalid_navigation_arguments)),
+                  ),
                 );
               }
-              return _PlayerAwareRouteFrame(
-                child: PodcastEpisodesPage(
-                  subscriptionId: args.subscriptionId,
-                  podcastTitle: args.podcastTitle,
-                  subscription: args.subscription,
+              return _buildPageWithTransition(
+                state: state,
+                child: _PlayerAwareRouteFrame(
+                  child: PodcastEpisodesPage(
+                    subscriptionId: args.subscriptionId,
+                    podcastTitle: args.podcastTitle,
+                    subscription: args.subscription,
+                  ),
                 ),
               );
             },
@@ -146,16 +284,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'episodes/:subscriptionId/:episodeId',
             name: 'episodeDetail',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final args = PodcastEpisodeDetailPageArgs.extractFromState(state);
               if (args == null) {
                 final l10n = AppLocalizations.of(context)!;
-                return Scaffold(
-                  body: Center(child: Text(l10n.invalid_navigation_arguments)),
+                return _buildPageWithTransition(
+                  state: state,
+                  child: Scaffold(
+                    body: Center(child: Text(l10n.invalid_navigation_arguments)),
+                  ),
                 );
               }
-              return _PlayerAwareRouteFrame(
-                child: PodcastEpisodeDetailPage(episodeId: args.episodeId),
+              return _buildPageWithTransition(
+                state: state,
+                child: _PlayerAwareRouteFrame(
+                  child: PodcastEpisodeDetailPage(episodeId: args.episodeId),
+                ),
               );
             },
           ),
@@ -163,18 +307,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'episode/detail/:episodeId',
             name: 'episodeDetailDirect',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final episodeId = int.tryParse(
                 state.pathParameters['episodeId'] ?? '',
               );
               if (episodeId == null) {
                 final l10n = AppLocalizations.of(context)!;
-                return Scaffold(
-                  body: Center(child: Text(l10n.invalid_episode_id)),
+                return _buildPageWithTransition(
+                  state: state,
+                  child: Scaffold(
+                    body: Center(child: Text(l10n.invalid_episode_id)),
+                  ),
                 );
               }
-              return _PlayerAwareRouteFrame(
-                child: PodcastEpisodeDetailPage(episodeId: episodeId),
+              return _buildPageWithTransition(
+                state: state,
+                child: _PlayerAwareRouteFrame(
+                  child: PodcastEpisodeDetailPage(episodeId: episodeId),
+                ),
               );
             },
           ),
@@ -185,26 +335,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         name: 'profile',
-        builder: (context, state) => const HomePage(initialTab: 2),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          state: state,
+          child: const HomePage(initialTab: 2),
+        ),
         routes: [
           GoRoute(
             path: 'cache',
             name: 'profile-cache',
-            builder: (context, state) => const _PlayerAwareRouteFrame(
-              child: ProfileCacheManagementPage(),
+            pageBuilder: (context, state) => _buildModalPage(
+              state: state,
+              child: const _PlayerAwareRouteFrame(
+                child: ProfileCacheManagementPage(),
+              ),
             ),
           ),
           GoRoute(
             path: 'history',
             name: 'profile-history',
-            builder: (context, state) =>
-                const _PlayerAwareRouteFrame(child: ProfileHistoryPage()),
+            pageBuilder: (context, state) => _buildModalPage(
+              state: state,
+              child: const _PlayerAwareRouteFrame(child: ProfileHistoryPage()),
+            ),
           ),
           GoRoute(
             path: 'subscriptions',
             name: 'profile-subscriptions',
-            builder: (context, state) =>
-                const _PlayerAwareRouteFrame(child: ProfileSubscriptionsPage()),
+            pageBuilder: (context, state) => _buildModalPage(
+              state: state,
+              child: const _PlayerAwareRouteFrame(child: ProfileSubscriptionsPage()),
+            ),
           ),
         ],
       ),

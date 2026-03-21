@@ -36,6 +36,52 @@ class AppColors {
   static const Color warning = Color(0xFFFFB84D);
   static const Color info = primary;
 
+  // ============================================================
+  // Semantic Colors - 功能语义色彩
+  // ============================================================
+
+  // AI & Intelligence - AI功能专属色
+  static const Color aiPrimary = Color(0xFF8B7CF6);
+  static const Color aiSecondary = Color(0xFFB794F6);
+  static const Color aiGlow = Color(0x448B7CF6);
+  static const Color aiGradientStart = Color(0xFF9F7AEA);
+  static const Color aiGradientEnd = Color(0xFF7C3AED);
+
+  // Achievement & Rewards - 成就/奖励色
+  static const Color achievement = Color(0xFFFFB020);
+  static const Color achievementGold = Color(0xFFFFD700);
+  static const Color achievementBronze = Color(0xFFCD7F32);
+  static const Color achievementSilver = Color(0xFFC0C0C0);
+
+  // Notifications - 通知色
+  static const Color notification = Color(0xFFFF6B6B);
+  static const Color notificationSoft = Color(0xFFFFE5E5);
+
+  // ============================================================
+  // Data Visualization - 数据可视化色彩
+  // ============================================================
+
+  static const Color chart1 = Color(0xFF5CB8FF); // Primary blue
+  static const Color chart2 = Color(0xFF8B7CF6); // AI purple
+  static const Color chart3 = Color(0xFF59D49A); // Success green
+  static const Color chart4 = Color(0xFFFFB84D); // Warning amber
+  static const Color chart5 = Color(0xFFFF8A6B); // Sun ray coral
+  static const Color chart6 = Color(0xFF7A8DFF); // Indigo
+  static const Color chart7 = Color(0xFF6EE7B7); // Leaf green
+  static const Color chart8 = Color(0xFFFFD8A8); // Sun glow
+
+  // Chart color list for easy access
+  static const List<Color> chartColors = [
+    chart1,
+    chart2,
+    chart3,
+    chart4,
+    chart5,
+    chart6,
+    chart7,
+    chart8,
+  ];
+
   static const LinearGradient mindriverGradient = LinearGradient(
     colors: [Color(0xFFF6FBFF), Color(0xFFE5F3FF), Color(0xFFD7EDFF)],
     begin: Alignment.topLeft,
@@ -96,6 +142,15 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
     required this.sunRay,
     required this.leaf,
     required this.mint,
+    required this.aiPrimary,
+    required this.aiSecondary,
+    required this.achievement,
+    required this.achievementGold,
+    required this.chart1,
+    required this.chart2,
+    required this.chart3,
+    required this.chart4,
+    required this.chartColors,
     required this.contentMaxWidth,
     required this.sectionGap,
     required this.cardRadius,
@@ -117,6 +172,20 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
   final Color sunRay;
   final Color leaf;
   final Color mint;
+
+  // Semantic colors
+  final Color aiPrimary;
+  final Color aiSecondary;
+  final Color achievement;
+  final Color achievementGold;
+
+  // Data visualization colors
+  final Color chart1;
+  final Color chart2;
+  final Color chart3;
+  final Color chart4;
+  final List<Color> chartColors;
+
   final double contentMaxWidth;
   final double sectionGap;
   final double cardRadius;
@@ -139,6 +208,15 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
     Color? sunRay,
     Color? leaf,
     Color? mint,
+    Color? aiPrimary,
+    Color? aiSecondary,
+    Color? achievement,
+    Color? achievementGold,
+    Color? chart1,
+    Color? chart2,
+    Color? chart3,
+    Color? chart4,
+    List<Color>? chartColors,
     double? contentMaxWidth,
     double? sectionGap,
     double? cardRadius,
@@ -160,6 +238,15 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
       sunRay: sunRay ?? this.sunRay,
       leaf: leaf ?? this.leaf,
       mint: mint ?? this.mint,
+      aiPrimary: aiPrimary ?? this.aiPrimary,
+      aiSecondary: aiSecondary ?? this.aiSecondary,
+      achievement: achievement ?? this.achievement,
+      achievementGold: achievementGold ?? this.achievementGold,
+      chart1: chart1 ?? this.chart1,
+      chart2: chart2 ?? this.chart2,
+      chart3: chart3 ?? this.chart3,
+      chart4: chart4 ?? this.chart4,
+      chartColors: chartColors ?? this.chartColors,
       contentMaxWidth: contentMaxWidth ?? this.contentMaxWidth,
       sectionGap: sectionGap ?? this.sectionGap,
       cardRadius: cardRadius ?? this.cardRadius,
@@ -196,6 +283,15 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
       sunRay: Color.lerp(sunRay, other.sunRay, t)!,
       leaf: Color.lerp(leaf, other.leaf, t)!,
       mint: Color.lerp(mint, other.mint, t)!,
+      aiPrimary: Color.lerp(aiPrimary, other.aiPrimary, t)!,
+      aiSecondary: Color.lerp(aiSecondary, other.aiSecondary, t)!,
+      achievement: Color.lerp(achievement, other.achievement, t)!,
+      achievementGold: Color.lerp(achievementGold, other.achievementGold, t)!,
+      chart1: Color.lerp(chart1, other.chart1, t)!,
+      chart2: Color.lerp(chart2, other.chart2, t)!,
+      chart3: Color.lerp(chart3, other.chart3, t)!,
+      chart4: Color.lerp(chart4, other.chart4, t)!,
+      chartColors: other.chartColors,
       contentMaxWidth: lerpDouble(contentMaxWidth, other.contentMaxWidth, t)!,
       sectionGap: lerpDouble(sectionGap, other.sectionGap, t)!,
       cardRadius: lerpDouble(cardRadius, other.cardRadius, t)!,
@@ -227,6 +323,15 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
     sunRay: AppColors.sunRay,
     leaf: AppColors.leaf,
     mint: AppColors.mint,
+    aiPrimary: AppColors.aiPrimary,
+    aiSecondary: AppColors.aiSecondary,
+    achievement: AppColors.achievement,
+    achievementGold: AppColors.achievementGold,
+    chart1: AppColors.chart1,
+    chart2: AppColors.chart2,
+    chart3: AppColors.chart3,
+    chart4: AppColors.chart4,
+    chartColors: AppColors.chartColors,
     contentMaxWidth: 1240,
     sectionGap: 20,
     cardRadius: 24,
@@ -253,6 +358,15 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
     sunRay: AppColors.sunRay,
     leaf: AppColors.leaf,
     mint: AppColors.mint,
+    aiPrimary: AppColors.aiPrimary,
+    aiSecondary: AppColors.aiSecondary,
+    achievement: AppColors.achievement,
+    achievementGold: AppColors.achievementGold,
+    chart1: AppColors.chart1,
+    chart2: AppColors.chart2,
+    chart3: AppColors.chart3,
+    chart4: AppColors.chart4,
+    chartColors: AppColors.chartColors,
     contentMaxWidth: 1240,
     sectionGap: 20,
     cardRadius: 24,
