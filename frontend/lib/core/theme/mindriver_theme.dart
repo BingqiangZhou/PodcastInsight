@@ -23,8 +23,29 @@ class MindriverTheme {
         ? MindriverThemeExtension.dark
         : MindriverThemeExtension.light;
 
-    // Use Outfit as the primary font for a modern, distinctive look
-    final googleTextTheme = GoogleFonts.outfitTextTheme(textTheme);
+    // Use Sora for headings + Plus Jakarta Sans for body (minimal, refined)
+    final googleTextTheme = GoogleFonts.soraTextTheme(textTheme).copyWith(
+      // Body text uses Plus Jakarta Sans for better readability
+      bodyLarge: GoogleFonts.plusJakartaSans(
+        textStyle: textTheme.bodyLarge,
+      ),
+      bodyMedium: GoogleFonts.plusJakartaSans(
+        textStyle: textTheme.bodyMedium,
+      ),
+      bodySmall: GoogleFonts.plusJakartaSans(
+        textStyle: textTheme.bodySmall,
+      ),
+      // Labels also use Plus Jakarta Sans for consistency
+      labelLarge: GoogleFonts.plusJakartaSans(
+        textStyle: textTheme.labelLarge,
+      ),
+      labelMedium: GoogleFonts.plusJakartaSans(
+        textStyle: textTheme.labelMedium,
+      ),
+      labelSmall: GoogleFonts.plusJakartaSans(
+        textStyle: textTheme.labelSmall,
+      ),
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -34,7 +55,7 @@ class MindriverTheme {
           ? AppColors.darkBackground
           : AppColors.lightBackground,
       textTheme: googleTextTheme,
-      fontFamily: GoogleFonts.outfit().fontFamily,
+      fontFamily: GoogleFonts.sora().fontFamily,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: scheme.onSurface,

@@ -16,8 +16,8 @@ class AppPageRoute<T> extends PageRouteBuilder<T> {
   AppPageRoute({
     required this.page,
     this.transitionType = AppPageTransitionType.fadeSlide,
-    super.transitionDuration = const Duration(milliseconds: 250),
-    super.reverseTransitionDuration = const Duration(milliseconds: 200),
+    super.transitionDuration = const Duration(milliseconds: 350), // 极简风格：稍长，更流畅
+    super.reverseTransitionDuration = const Duration(milliseconds: 280),
     super.settings,
     super.maintainState = true,
     super.fullscreenDialog = false,
@@ -54,7 +54,8 @@ class AppPageRoute<T> extends PageRouteBuilder<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    final curve = CurveTween(curve: Curves.easeOutCubic);
+    // 极简风格：使用更自然的缓动曲线
+    final curve = CurveTween(curve: Curves.easeOutExpo);
     final curvedAnimation = animation.drive(curve);
 
     switch (transitionType) {
@@ -161,14 +162,15 @@ class AnimatedPageRoute<T> extends PageRouteBuilder<T> {
   AnimatedPageRoute({
     required Widget Function(BuildContext) builder,
     AppPageTransitionType transitionType = AppPageTransitionType.fadeSlide,
-    Duration duration = const Duration(milliseconds: 300),
+    Duration duration = const Duration(milliseconds: 350), // 极简风格：稍长，更流畅
     super.settings,
   }) : super(
           pageBuilder: (context, animation, secondaryAnimation) => builder(context),
           transitionDuration: duration,
           reverseTransitionDuration: Duration(milliseconds: duration.inMilliseconds ~/ 2),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final curve = CurveTween(curve: Curves.easeOutCubic);
+            // 极简风格：使用更自然的缓动曲线
+            final curve = CurveTween(curve: Curves.easeOutExpo);
             final curvedAnimation = animation.drive(curve);
 
             switch (transitionType) {

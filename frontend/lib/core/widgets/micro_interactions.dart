@@ -12,8 +12,8 @@ class TactileScale extends StatefulWidget {
     this.onLongPress,
     this.hoverScale = 1.02,
     this.pressScale = 0.98,
-    this.duration = const Duration(milliseconds: 150),
-    this.curve = Curves.easeOutCubic,
+    this.duration = const Duration(milliseconds: 180),
+    this.curve = Curves.easeOutExpo, // 极简风格：更自然的缓动
     this.enabled = true,
   });
 
@@ -153,9 +153,9 @@ class AnimatedIn extends StatefulWidget {
     super.key,
     required this.child,
     this.delay = Duration.zero,
-    this.duration = const Duration(milliseconds: 350),
-    this.offset = const Offset(0, 20),
-    this.curve = Curves.easeOutCubic,
+    this.duration = const Duration(milliseconds: 400), // 极简风格：稍长，更流畅
+    this.offset = const Offset(0, 24), // 极简风格：稍微增加偏移
+    this.curve = Curves.easeOutExpo, // 极简风格：更自然的缓动
   });
 
   final Widget child;
@@ -225,10 +225,10 @@ class StaggeredAnimatedList extends StatelessWidget {
   const StaggeredAnimatedList({
     super.key,
     required this.children,
-    this.itemDelay = const Duration(milliseconds: 50),
-    this.itemDuration = const Duration(milliseconds: 350),
-    this.offset = const Offset(0, 16),
-    this.curve = Curves.easeOutCubic,
+    this.itemDelay = const Duration(milliseconds: 60), // 极简风格：稍长，更优雅
+    this.itemDuration = const Duration(milliseconds: 400),
+    this.offset = const Offset(0, 20),
+    this.curve = Curves.easeOutExpo, // 极简风格：更自然的缓动
   });
 
   final List<Widget> children;
@@ -499,9 +499,9 @@ extension AnimationExtensions on Widget {
   /// Wraps the widget with AnimatedIn for entrance animation.
   Widget withEntranceAnimation({
     Duration delay = Duration.zero,
-    Duration duration = const Duration(milliseconds: 350),
-    Offset offset = const Offset(0, 20),
-    Curve curve = Curves.easeOutCubic,
+    Duration duration = const Duration(milliseconds: 400),
+    Offset offset = const Offset(0, 24),
+    Curve curve = Curves.easeOutExpo,
   }) {
     return AnimatedIn(
       delay: delay,

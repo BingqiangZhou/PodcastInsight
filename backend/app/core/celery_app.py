@@ -43,7 +43,7 @@ def _build_beat_schedule() -> dict[str, Any]:
         },
         "extract-pending-highlights": {
             "task": "app.domains.podcast.tasks.highlight_extraction.extract_pending_highlights",
-            "schedule": crontab(minute=15),  # 每小时15分执行
+            "schedule": crontab(minute=30),  # 每小时30分执行
             "options": {"queue": "ai_generation"},
         },
     }

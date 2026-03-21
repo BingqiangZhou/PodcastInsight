@@ -5,7 +5,12 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static const Color primary = Color(0xFF5CB8FF);
+  // ============================================================
+  // Brand Colors - 品牌色（极简风格，更深的蓝）
+  // ============================================================
+  static const Color primary = Color(0xFF4DA8FF);
+  static const Color primaryDark = Color(0xFF2B8FD9);
+  static const Color brandDeep = Color(0xFF0F172A); // 深墨蓝，用于强调
   static const Color riverAccent = Color(0xFF86F0FF);
   static const Color aqua = Color(0xFF8EE6FF);
   static const Color indigo = Color(0xFF7A8DFF);
@@ -15,21 +20,27 @@ class AppColors {
   static const Color leaf = Color(0xFF6EE7B7);
   static const Color mint = Color(0xFFB6F5D8);
 
-  static const Color lightBackground = Color(0xFFF2F6FB);
+  // ============================================================
+  // Light Theme - 亮色主题（更浅的背景，增加留白感）
+  // ============================================================
+  static const Color lightBackground = Color(0xFFF8FAFC);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceVariant = Color(0xFFF8FBFF);
-  static const Color lightOutline = Color(0xFFD6E3F2);
-  static const Color lightTextPrimary = Color(0xFF0C1726);
-  static const Color lightTextSecondary = Color(0xFF4B5C70);
-  static const Color lightTextTertiary = Color(0xFF75859A);
+  static const Color lightSurfaceVariant = Color(0xFFF1F5F9);
+  static const Color lightOutline = Color(0xFFE2E8F0);
+  static const Color lightTextPrimary = Color(0xFF0F172A);
+  static const Color lightTextSecondary = Color(0xFF475569);
+  static const Color lightTextTertiary = Color(0xFF94A3B8);
 
-  static const Color darkBackground = Color(0xFF06111D);
-  static const Color darkSurface = Color(0xFF0D1927);
-  static const Color darkSurfaceVariant = Color(0xFF132233);
-  static const Color darkOutline = Color(0xFF2A3D54);
-  static const Color darkTextPrimary = Color(0xFFF3F8FF);
-  static const Color darkTextSecondary = Color(0xFFB8C8DA);
-  static const Color darkTextTertiary = Color(0xFF8195AB);
+  // ============================================================
+  // Dark Theme - 暗色主题
+  // ============================================================
+  static const Color darkBackground = Color(0xFF0F172A);
+  static const Color darkSurface = Color(0xFF1E293B);
+  static const Color darkSurfaceVariant = Color(0xFF334155);
+  static const Color darkOutline = Color(0xFF475569);
+  static const Color darkTextPrimary = Color(0xFFF8FAFC);
+  static const Color darkTextSecondary = Color(0xFFCBD5E1);
+  static const Color darkTextTertiary = Color(0xFF94A3B8);
 
   static const Color error = Color(0xFFFF6B72);
   static const Color success = Color(0xFF59D49A);
@@ -37,15 +48,15 @@ class AppColors {
   static const Color info = primary;
 
   // ============================================================
-  // Semantic Colors - 功能语义色彩
+  // Semantic Colors - 功能语义色彩（极简风格，更克制）
   // ============================================================
 
-  // AI & Intelligence - AI功能专属色
-  static const Color aiPrimary = Color(0xFF8B7CF6);
-  static const Color aiSecondary = Color(0xFFB794F6);
-  static const Color aiGlow = Color(0x448B7CF6);
-  static const Color aiGradientStart = Color(0xFF9F7AEA);
-  static const Color aiGradientEnd = Color(0xFF7C3AED);
+  // AI & Intelligence - AI功能专属色（靛蓝紫，更克制）
+  static const Color aiPrimary = Color(0xFF6366F1);
+  static const Color aiSecondary = Color(0xFF818CF8);
+  static const Color aiGlow = Color(0x336366F1);
+  static const Color aiGradientStart = Color(0xFF818CF8);
+  static const Color aiGradientEnd = Color(0xFF6366F1);
 
   // Achievement & Rewards - 成就/奖励色
   static const Color achievement = Color(0xFFFFB020);
@@ -82,20 +93,24 @@ class AppColors {
     chart8,
   ];
 
+  // ============================================================
+  // Gradients - 渐变（极简风格，更简洁）
+  // ============================================================
+
   static const LinearGradient mindriverGradient = LinearGradient(
-    colors: [Color(0xFFF6FBFF), Color(0xFFE5F3FF), Color(0xFFD7EDFF)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
   );
 
   static const LinearGradient softBackgroundGradient = LinearGradient(
-    colors: [Color(0xFFF7FBFF), Color(0xFFEEF4FB), Color(0xFFE7EFF8)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    colors: [Color(0xFFFAFBFC), Color(0xFFF4F6F8)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
   );
 
   static const LinearGradient riverGradient = LinearGradient(
-    colors: [Color(0xFF9BE8FF), Color(0xFF5CB8FF), Color(0xFF7A8DFF)],
+    colors: [Color(0xFF4DA8FF), Color(0xFF6366F1)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -113,15 +128,15 @@ class AppColors {
   );
 
   static const LinearGradient darkSubtleGradient = LinearGradient(
-    colors: [Color(0xFF08111C), Color(0xFF0A1523), Color(0xFF102033)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
   );
 
   static const LinearGradient darkBrandGradient = LinearGradient(
-    colors: [Color(0xFF0D1927), Color(0xFF10253A), Color(0xFF15314E)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    colors: [Color(0xFF1E293B), Color(0xFF334155)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
   );
 }
 
@@ -308,17 +323,17 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
     brandGradient: AppColors.mindriverGradient,
     riverGradient: AppColors.riverGradient,
     heroGradient: LinearGradient(
-      colors: [Color(0xFFEFF8FF), Color(0xFFE5F3FF), Color(0xFFF8FBFF)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+      colors: [Color(0xFFFAFBFC), Color(0xFFF1F5F9)],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
     ),
     shellGradient: AppColors.softBackgroundGradient,
     glassSurface: Color(0xCCFFFFFF),
     glassSurfaceStrong: Color(0xE6FFFFFF),
-    glassBorder: Color(0x80D5E4F5),
+    glassBorder: Color(0x40E2E8F0), // 更含蓄的边框
     glassHighlight: Color(0xFFFFFFFF),
-    glassShadow: Color(0x140C1726),
-    heroGlow: Color(0x665CB8FF),
+    glassShadow: Color(0x080F172A), // 更柔和的阴影
+    heroGlow: Color(0x334DA8FF), // 更克制的光晕
     sunGlow: AppColors.sunGlow,
     sunRay: AppColors.sunRay,
     leaf: AppColors.leaf,
@@ -333,7 +348,7 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
     chart4: AppColors.chart4,
     chartColors: AppColors.chartColors,
     contentMaxWidth: 1240,
-    sectionGap: 20,
+    sectionGap: 24, // 增加留白
     cardRadius: 24,
     panelRadius: 28,
     navBackdropOpacity: 0.74,
@@ -343,17 +358,17 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
     brandGradient: AppColors.darkBrandGradient,
     riverGradient: AppColors.riverGradient,
     heroGradient: LinearGradient(
-      colors: [Color(0xFF10253A), Color(0xFF0B1B2E), Color(0xFF12283F)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+      colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
     ),
     shellGradient: AppColors.darkSubtleGradient,
-    glassSurface: Color(0xAA132233),
-    glassSurfaceStrong: Color(0xCC102033),
-    glassBorder: Color(0x66345068),
-    glassHighlight: Color(0x33FFFFFF),
-    glassShadow: Color(0x52000000),
-    heroGlow: Color(0x445CB8FF),
+    glassSurface: Color(0xAA1E293B),
+    glassSurfaceStrong: Color(0xCC1E293B),
+    glassBorder: Color(0x33475569), // 更含蓄的边框
+    glassHighlight: Color(0x1AFFFFFF),
+    glassShadow: Color(0x40000000),
+    heroGlow: Color(0x224DA8FF), // 更克制的光晕
     sunGlow: AppColors.sunGlow,
     sunRay: AppColors.sunRay,
     leaf: AppColors.leaf,
@@ -368,7 +383,7 @@ class MindriverThemeExtension extends ThemeExtension<MindriverThemeExtension> {
     chart4: AppColors.chart4,
     chartColors: AppColors.chartColors,
     contentMaxWidth: 1240,
-    sectionGap: 20,
+    sectionGap: 24, // 增加留白
     cardRadius: 24,
     panelRadius: 28,
     navBackdropOpacity: 0.68,

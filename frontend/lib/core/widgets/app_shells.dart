@@ -21,9 +21,9 @@ class AppPageBackdrop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final tokens = mindriverThemeOf(context);
-    final enableOrbs = DevicePerformance.enableComplexAnimations;
+    // 极简风格：只在高端设备显示单一光晕
+    final showMinimalOrb = DevicePerformance.enableComplexAnimations;
 
     return DecoratedBox(
       decoration: BoxDecoration(gradient: tokens.shellGradient),
@@ -31,34 +31,16 @@ class AppPageBackdrop extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Primary orb - always shown for brand identity
-            Positioned(
-              top: paddingTop - 80,
-              left: -40,
-              child: _Orb(
-                size: 220,
-                color: tokens.heroGlow.withValues(alpha: 0.28),
-              ),
-            ),
-            // Secondary orbs - only on high/medium performance devices
-            if (enableOrbs) ...[
+            // 极简风格：只保留一个微妙的光晕
+            if (showMinimalOrb)
               Positioned(
-                top: paddingTop + 80,
-                right: -60,
+                top: paddingTop - 60,
+                left: -30,
                 child: _Orb(
-                  size: 200,
-                  color: theme.colorScheme.tertiary.withValues(alpha: 0.12),
+                  size: 180,
+                  color: tokens.heroGlow.withValues(alpha: 0.15), // 更含蓄
                 ),
               ),
-              Positioned(
-                bottom: -100,
-                left: 40,
-                child: _Orb(
-                  size: 240,
-                  color: theme.colorScheme.secondary.withValues(alpha: 0.08),
-                ),
-              ),
-            ],
           ],
         ),
       ),
@@ -130,8 +112,8 @@ class GlassPanel extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: tokens.glassShadow,
-              blurRadius: 32,
-              offset: const Offset(0, 18),
+              blurRadius: 24, // 极简风格：降低阴影
+              offset: const Offset(0, 12),
             ),
           ],
         ),
@@ -139,7 +121,7 @@ class GlassPanel extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius),
           child: shouldEnableBlur
               ? BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12), // 极简风格：降低模糊
                   child: _buildGlassContent(tokens, radius),
                 )
               : _buildGlassContent(tokens, radius),
