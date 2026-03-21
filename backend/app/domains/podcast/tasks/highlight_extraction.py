@@ -6,6 +6,9 @@ from app.core.celery_app import celery_app
 from app.domains.podcast.services.highlight_extraction_service import (
     HighlightExtractionService,
 )
+from app.domains.podcast.tasks.handlers_highlight import (
+    extract_pending_highlights_handler,
+)
 from app.domains.podcast.tasks.runtime import log_task_run, run_async, worker_session
 
 
@@ -99,5 +102,4 @@ def extract_pending_highlights(self):
 
 async def _extract_pending_highlights():
     async with worker_session("celery-highlight-worker") as session:
-        workflow = HighlightExtractionService(session)
-        return await workflow.extract_pending_highlights()
+        return await extract_pending_highlights_handler(session)

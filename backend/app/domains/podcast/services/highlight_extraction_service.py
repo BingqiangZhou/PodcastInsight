@@ -756,20 +756,20 @@ class HighlightExtractionService:
                         episode_id,
                         exc,
                     )
-                    await self._reset_claimed_highlight_status(episode_id)
+                    await self._reset_claimed_highlight_status_safe(episode_id)
                     continue
 
                 failed_count += 1
                 logger.exception(
                     "Failed to extract highlights for episode %s", episode_id
                 )
-                await self._mark_highlight_extraction_failed(episode_id, str(exc))
+                await self._mark_highlight_extraction_failed_safe(episode_id, str(exc))
             except Exception as exc:
                 failed_count += 1
                 logger.exception(
                     "Failed to extract highlights for episode %s", episode_id
                 )
-                await self._mark_highlight_extraction_failed(episode_id, str(exc))
+                await self._mark_highlight_extraction_failed_safe(episode_id, str(exc))
 
         logger.info(
             "Pending highlight extraction run completed: processed=%s failed=%s skipped=%s claimed=%s",
@@ -861,7 +861,12 @@ class HighlightExtractionService:
                     started_at=datetime.now(UTC),
                 )
                 self.db.add(task)
+            elif existing_task.status == "in_progress":
+                # Already in progress, skip - will be handled by stale task reset
+                # or is currently being processed by another worker
+                continue
             else:
+                # Failed or pending, reset to in_progress
                 existing_task.status = "in_progress"
                 existing_task.started_at = datetime.now(UTC)
                 existing_task.error_message = None
@@ -897,3 +902,42 @@ class HighlightExtractionService:
         )
         await self.db.execute(stmt)
         await self.db.commit()
+
+    async def _reset_claimed_highlight_status_safe(self, episode_id: int) -> None:
+        """Reset claimed status using a fresh session.
+
+        This method creates a new database session to avoid transaction isolation
+        issues when called from within a different session context.
+        """
+        async with worker_db_session("celery-highlight-reset") as session:
+            stmt = (
+                update(HighlightExtractionTask)
+                .where(HighlightExtractionTask.episode_id == episode_id)
+                .values(status="pending")
+            )
+            await session.execute(stmt)
+            await session.commit()
+
+    async def _mark_highlight_extraction_failed_safe(
+        self,
+        episode_id: int,
+        error: str,
+    ) -> None:
+        """Mark extraction as failed using a fresh session.
+
+        This method creates a new database session to avoid transaction isolation
+        issues when called from within a different session context.
+        """
+        failed_at = datetime.now(UTC)
+        async with worker_db_session("celery-highlight-fail") as session:
+            stmt = (
+                update(HighlightExtractionTask)
+                .where(HighlightExtractionTask.episode_id == episode_id)
+                .values(
+                    status="failed",
+                    error_message=error,
+                    completed_at=failed_at,
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
