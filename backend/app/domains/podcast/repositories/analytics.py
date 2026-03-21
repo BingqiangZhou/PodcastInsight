@@ -13,6 +13,7 @@ from app.core.datetime_utils import (
     ensure_timezone_aware_fetch_time,
 )
 from app.domains.podcast.models import (
+    EpisodeHighlight,
     PodcastDailyReport,
     PodcastEpisode,
     PodcastPlaybackState,
@@ -384,6 +385,22 @@ class PodcastAnalyticsRepositoryMixin:
         latest_report_result = await self.db.execute(latest_report_stmt)
         latest_report_date = latest_report_result.scalar_one_or_none()
 
+        # Count highlights from user's subscriptions
+        highlight_count_stmt = (
+            select(func.count(EpisodeHighlight.id))
+            .join(PodcastEpisode, EpisodeHighlight.episode_id == PodcastEpisode.id)
+            .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
+            .join(UserSubscription, Subscription.id == UserSubscription.subscription_id)
+            .where(
+                and_(
+                    UserSubscription.user_id == user_id,
+                    EpisodeHighlight.status == "active",
+                )
+            )
+        )
+        highlight_count_result = await self.db.execute(highlight_count_stmt)
+        total_highlights = highlight_count_result.scalar() or 0
+
         return {
             "total_subscriptions": total_subscriptions,
             "total_episodes": episode_stats.total_episodes or 0,
@@ -393,6 +410,7 @@ class PodcastAnalyticsRepositoryMixin:
             "latest_daily_report_date": latest_report_date.isoformat()
             if latest_report_date
             else None,
+            "total_highlights": total_highlights,
         }
 
     async def get_user_stats_aggregated(self, user_id: int) -> dict[str, Any]:

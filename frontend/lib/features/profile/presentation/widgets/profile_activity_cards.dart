@@ -48,13 +48,9 @@ class ProfileActivityCards extends ConsumerWidget {
       stats?.latestDailyReportDate,
       isLoading: isLoading,
     );
-
-    // Highlights stats
-    final highlightStatsAsync = ref.watch(highlightStatsProvider);
-    final highlightsCount = highlightStatsAsync.maybeWhen(
-      data: (value) => value?.totalHighlights.toString() ?? '0',
-      orElse: () => '...',
-    );
+    final highlightsCount = isLoading
+        ? '...'
+        : (stats?.totalHighlights.toString() ?? '0');
 
     if (isMobile) {
       return Column(
