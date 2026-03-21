@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.23.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.22.2...v0.23.0) - 2026-03-21 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.23.0))
+
+### 🐛 Bug Fixes
+
+- *(podcast)* Add distributed lock and fix session management in highlight extraction ([b000e9a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b000e9a595eeb310b076763a15fbd2a08986828c))
+- *(podcast)* Resolve highlight extraction infinite loop caused by self-checking in_progress status ([3fbda43](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3fbda433d276505f43f5eca79252895dc13a2a63))
+
+### 🚀 Features
+
+- *(ui)* Add comprehensive design system with typography, animations and accessibility ([336a86c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/336a86cb2bbbe711236e644e9206dfd4d841f114))
+
+
+
 ## [0.22.2](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.22.1...v0.22.2) - 2026-03-21 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.22.2))
 
 ### ⚡ Performance
