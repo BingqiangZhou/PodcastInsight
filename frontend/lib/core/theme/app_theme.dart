@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'mindriver_theme.dart';
+import 'arctic_theme.dart';
 import 'responsive_helpers.dart';
 
 /// AppTheme - Main theme accessor
 /// AppTheme - 主主题访问器
 ///
-/// This class wraps the MindriverTheme for backward compatibility
-/// 此类包装 MindriverTheme 以保持向后兼容性
+/// This class wraps the ArcticTheme (Arctic Garden Design System)
+/// 此类包装 ArcticTheme（北极花园设计系统）
 class AppTheme {
   AppTheme._();
 
@@ -38,13 +38,13 @@ class AppTheme {
 
   /// Light theme / 亮色主题
   ///
-  /// Returns the Mindriver light theme with Material 3 design
-  /// 返回 Mindriver 亮色主题，使用 Material 3 设计
-  static ThemeData get lightTheme => MindriverTheme.lightTheme;
+  /// Returns the Arctic Garden light theme with Material 3 design
+  /// 返回北极花园亮色主题，使用 Material 3 设计
+  static ThemeData get lightTheme => ArcticTheme.lightTheme;
 
   /// Dark theme / 暗色主题
   ///
-  /// Returns the Mindriver dark theme with Material 3 design
-  /// 返回 Mindriver 暗色主题，使用 Material 3 设计
-  static ThemeData get darkTheme => MindriverTheme.darkTheme;
+  /// Returns the Arctic Garden dark theme with Material 3 design
+  /// 返回北极花园暗色主题，使用 Material 3 设计
+  static ThemeData get darkTheme => ArcticTheme.darkTheme;
 }

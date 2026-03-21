@@ -1,9 +1,54 @@
 import 'package:flutter/material.dart';
 
-/// A widget that provides scale animation on hover and press.
+/// ============================================================
+/// Arctic Garden Design System - 微交互系统
 ///
-/// Useful for cards, buttons, and interactive elements that need
-/// tactile feedback.
+/// 动画原则：
+/// - 有机缓动：模拟自然运动的曲线
+/// - 柔和过渡：避免突兀的状态变化
+/// - 适度反馈：提供清晰的交互反馈
+/// ============================================================
+
+/// Arctic Garden Animation Curves - 有机缓动曲线
+class ArcticCurves {
+  ArcticCurves._();
+
+  /// 有机缓动 - 模拟自然运动
+  static const Curve organic = Curves.easeOutQuart;
+
+  /// 极光缓动 - 用于渐变和光效动画
+  static const Curve aurora = Curves.easeInOutCubic;
+
+  /// 弹性缓动 - 用于微交互
+  static const Curve elastic = Curves.easeOutBack;
+
+  /// 柔和缓动 - 用于状态变化
+  static const Curve soft = Curves.easeOutCubic;
+
+  /// 快速缓动 - 用于即时反馈
+  static const Curve quick = Curves.easeOutExpo;
+}
+
+/// Arctic Garden Animation Durations - 动画时长
+class ArcticDurations {
+  ArcticDurations._();
+
+  /// 快速 - 微交互（按钮点击、图标变化）
+  static const Duration quick = Duration(milliseconds: 180);
+
+  /// 标准 - 状态变化（展开/折叠、显示/隐藏）
+  static const Duration standard = Duration(milliseconds: 350);
+
+  /// 慢速 - 页面转场、大型动画
+  static const Duration slow = Duration(milliseconds: 500);
+
+  /// 极光 - 渐变和光效动画
+  static const Duration aurora = Duration(milliseconds: 800);
+}
+
+/// TactileScale - 触觉缩放动画
+///
+/// 提供悬停和按下时的缩放反馈
 class TactileScale extends StatefulWidget {
   const TactileScale({
     super.key,
@@ -12,8 +57,8 @@ class TactileScale extends StatefulWidget {
     this.onLongPress,
     this.hoverScale = 1.02,
     this.pressScale = 0.98,
-    this.duration = const Duration(milliseconds: 180),
-    this.curve = Curves.easeOutExpo, // 极简风格：更自然的缓动
+    this.duration = ArcticDurations.quick,
+    this.curve = ArcticCurves.organic,
     this.enabled = true,
   });
 
@@ -63,16 +108,14 @@ class _TactileScaleState extends State<TactileScale> {
   }
 }
 
-/// A widget that applies a shimmer loading effect.
-///
-/// Use this for skeleton loading states.
+/// ShimmerLoading - 骨架屏加载效果
 class ShimmerLoading extends StatefulWidget {
   const ShimmerLoading({
     super.key,
     required this.child,
     this.baseColor,
     this.highlightColor,
-    this.duration = const Duration(milliseconds: 1500),
+    this.duration = const Duration(milliseconds: 1800),
   });
 
   final Widget child;
@@ -95,7 +138,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
     _controller = AnimationController(vsync: this, duration: widget.duration)
       ..repeat();
     _animation = Tween<double>(begin: -2, end: 2).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+      CurvedAnimation(parent: _controller, curve: ArcticCurves.aurora),
     );
   }
 
@@ -145,17 +188,17 @@ class _SlidingGradientTransform extends GradientTransform {
   }
 }
 
-/// A widget that animates its child in with a fade and slide effect.
+/// AnimatedIn - 入场动画
 ///
-/// Useful for list items, cards, or content that appears dynamically.
+/// 淡入 + 滑动效果，用于列表项、卡片等
 class AnimatedIn extends StatefulWidget {
   const AnimatedIn({
     super.key,
     required this.child,
     this.delay = Duration.zero,
-    this.duration = const Duration(milliseconds: 400), // 极简风格：稍长，更流畅
-    this.offset = const Offset(0, 24), // 极简风格：稍微增加偏移
-    this.curve = Curves.easeOutExpo, // 极简风格：更自然的缓动
+    this.duration = ArcticDurations.standard,
+    this.offset = const Offset(0, 24),
+    this.curve = ArcticCurves.organic,
   });
 
   final Widget child;
@@ -218,17 +261,15 @@ class _AnimatedInState extends State<AnimatedIn>
   }
 }
 
-/// A widget that creates staggered animations for a list of children.
-///
-/// Each child animates in sequence with a configurable delay.
+/// StaggeredAnimatedList - 交错动画列表
 class StaggeredAnimatedList extends StatelessWidget {
   const StaggeredAnimatedList({
     super.key,
     required this.children,
-    this.itemDelay = const Duration(milliseconds: 60), // 极简风格：稍长，更优雅
-    this.itemDuration = const Duration(milliseconds: 400),
+    this.itemDelay = const Duration(milliseconds: 60),
+    this.itemDuration = ArcticDurations.standard,
     this.offset = const Offset(0, 20),
-    this.curve = Curves.easeOutExpo, // 极简风格：更自然的缓动
+    this.curve = ArcticCurves.organic,
   });
 
   final List<Widget> children;
@@ -256,13 +297,13 @@ class StaggeredAnimatedList extends StatelessWidget {
   }
 }
 
-/// A widget that shows a pulse animation, useful for notifications or alerts.
+/// PulseIndicator - 脉冲指示器
 class PulseIndicator extends StatefulWidget {
   const PulseIndicator({
     super.key,
     required this.child,
     this.color,
-    this.duration = const Duration(milliseconds: 1500),
+    this.duration = const Duration(milliseconds: 1800),
     this.minOpacity = 0.4,
     this.maxOpacity = 1.0,
     this.enabled = true,
@@ -294,7 +335,7 @@ class _PulseIndicatorState extends State<PulseIndicator>
       end: widget.maxOpacity,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,
+      curve: ArcticCurves.aurora,
     ));
   }
 
@@ -342,14 +383,14 @@ class _PulseIndicatorState extends State<PulseIndicator>
   }
 }
 
-/// A success animation that shows a checkmark with scale and fade.
+/// SuccessAnimation - 成功动画
 class SuccessAnimation extends StatefulWidget {
   const SuccessAnimation({
     super.key,
     this.size = 48,
     this.color,
     this.onComplete,
-    this.duration = const Duration(milliseconds: 600),
+    this.duration = const Duration(milliseconds: 700),
   });
 
   final double size;
@@ -375,14 +416,14 @@ class _SuccessAnimationState extends State<SuccessAnimation>
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.5, curve: Curves.elasticOut),
+        curve: const Interval(0.0, 0.5, curve: ArcticCurves.elastic),
       ),
     );
 
     _checkAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
+        curve: const Interval(0.3, 1.0, curve: ArcticCurves.organic),
       ),
     );
 
@@ -455,12 +496,10 @@ class _CheckPainter extends CustomPainter {
     final width = size.width;
     final height = size.height;
 
-    // Checkmark path
     path.moveTo(0, height * 0.5);
     path.lineTo(width * 0.35, height * 0.85);
     path.lineTo(width, height * 0.15);
 
-    // Animate the path
     final pathMetric = path.computeMetrics().first;
     final animatedPath = pathMetric.extractPath(
       0,
@@ -476,9 +515,9 @@ class _CheckPainter extends CustomPainter {
   }
 }
 
-/// Extension to easily add animations to widgets.
+/// AnimationExtensions - 动画扩展
 extension AnimationExtensions on Widget {
-  /// Wraps the widget with TactileScale for hover/press feedback.
+  /// 添加触觉反馈
   Widget withTactileFeedback({
     VoidCallback? onTap,
     VoidCallback? onLongPress,
@@ -496,12 +535,12 @@ extension AnimationExtensions on Widget {
     );
   }
 
-  /// Wraps the widget with AnimatedIn for entrance animation.
+  /// 添加入场动画
   Widget withEntranceAnimation({
     Duration delay = Duration.zero,
-    Duration duration = const Duration(milliseconds: 400),
+    Duration duration = ArcticDurations.standard,
     Offset offset = const Offset(0, 24),
-    Curve curve = Curves.easeOutExpo,
+    Curve curve = ArcticCurves.organic,
   }) {
     return AnimatedIn(
       delay: delay,

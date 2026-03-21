@@ -7,23 +7,26 @@ import '../theme/app_colors.dart';
 import '../utils/performance_utils.dart';
 import 'custom_adaptive_navigation.dart';
 
-MindriverThemeExtension mindriverThemeOf(BuildContext context) {
+/// Get the Arctic Garden theme extension from context
+MindriverThemeExtension arcticThemeOf(BuildContext context) {
   return Theme.of(context).extension<MindriverThemeExtension>() ??
       (Theme.of(context).brightness == Brightness.dark
           ? MindriverThemeExtension.dark
           : MindriverThemeExtension.light);
 }
 
-class AppPageBackdrop extends StatelessWidget {
-  const AppPageBackdrop({super.key, this.paddingTop = 0});
+/// ArcticPageBackdrop - 北极花园页面背景
+///
+/// 提供渐变背景和极光光晕效果
+class ArcticPageBackdrop extends StatelessWidget {
+  const ArcticPageBackdrop({super.key, this.paddingTop = 0});
 
   final double paddingTop;
 
   @override
   Widget build(BuildContext context) {
-    final tokens = mindriverThemeOf(context);
-    // 极简风格：只在高端设备显示单一光晕
-    final showMinimalOrb = DevicePerformance.enableComplexAnimations;
+    final tokens = arcticThemeOf(context);
+    final enableOrbs = DevicePerformance.enableComplexAnimations;
 
     return DecoratedBox(
       decoration: BoxDecoration(gradient: tokens.shellGradient),
@@ -31,16 +34,34 @@ class AppPageBackdrop extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 极简风格：只保留一个微妙的光晕
-            if (showMinimalOrb)
+            // Primary aurora glow - 始终显示
+            Positioned(
+              top: paddingTop - 60,
+              left: -20,
+              child: _Orb(
+                size: 200,
+                color: tokens.auroraGlow.withValues(alpha: 0.2),
+              ),
+            ),
+            // Secondary orbs - 仅在高端设备
+            if (enableOrbs) ...[
               Positioned(
-                top: paddingTop - 60,
-                left: -30,
+                top: paddingTop + 60,
+                right: -40,
                 child: _Orb(
                   size: 180,
-                  color: tokens.heroGlow.withValues(alpha: 0.15), // 更含蓄
+                  color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.1),
                 ),
               ),
+              Positioned(
+                bottom: -80,
+                left: 30,
+                child: _Orb(
+                  size: 220,
+                  color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.08),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -59,7 +80,7 @@ class _Orb extends StatelessWidget {
     return IgnorePointer(
       child: ClipOval(
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             width: size,
             height: size,
@@ -76,6 +97,9 @@ class _Orb extends StatelessWidget {
   }
 }
 
+/// GlassPanel - 玻璃面板组件
+///
+/// 提供毛玻璃效果的容器
 class GlassPanel extends StatelessWidget {
   const GlassPanel({
     super.key,
@@ -94,13 +118,11 @@ class GlassPanel extends StatelessWidget {
   final double? borderRadius;
   final Color? backgroundColor;
   final bool showHighlight;
-
-  /// Override for blur effect. If null, uses device performance detection.
   final bool? enableBlur;
 
   @override
   Widget build(BuildContext context) {
-    final tokens = mindriverThemeOf(context);
+    final tokens = arcticThemeOf(context);
     final radius = borderRadius ?? tokens.cardRadius;
     final shouldEnableBlur = enableBlur ?? DevicePerformance.enableGlassmorphism;
 
@@ -112,7 +134,7 @@ class GlassPanel extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: tokens.glassShadow,
-              blurRadius: 24, // 极简风格：降低阴影
+              blurRadius: 24,
               offset: const Offset(0, 12),
             ),
           ],
@@ -121,7 +143,7 @@ class GlassPanel extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius),
           child: shouldEnableBlur
               ? BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12), // 极简风格：降低模糊
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                   child: _buildGlassContent(tokens, radius),
                 )
               : _buildGlassContent(tokens, radius),
@@ -139,7 +161,7 @@ class GlassPanel extends StatelessWidget {
         gradient: showHighlight
             ? LinearGradient(
                 colors: [
-                  tokens.glassHighlight.withValues(alpha: 0.14),
+                  tokens.glassHighlight.withValues(alpha: 0.1),
                   Colors.transparent,
                 ],
                 begin: Alignment.topLeft,
@@ -153,6 +175,7 @@ class GlassPanel extends StatelessWidget {
   }
 }
 
+/// StatusBadge - 状态徽章
 class StatusBadge extends StatelessWidget {
   const StatusBadge({super.key, required this.label, this.icon, this.color});
 
@@ -169,24 +192,24 @@ class StatusBadge extends StatelessWidget {
       label: label,
       container: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: resolvedColor.withValues(alpha: 0.12),
+          color: resolvedColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: resolvedColor.withValues(alpha: 0.18)),
+          border: Border.all(color: resolvedColor.withValues(alpha: 0.15)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 13, color: resolvedColor),
-              const SizedBox(width: 4),
+              Icon(icon, size: 14, color: resolvedColor),
+              const SizedBox(width: 5),
             ],
             Text(
               label,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: resolvedColor,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -196,6 +219,7 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
+/// AppSectionHeader - 区块标题
 class AppSectionHeader extends StatelessWidget {
   const AppSectionHeader({
     super.key,
@@ -222,7 +246,7 @@ class AppSectionHeader extends StatelessWidget {
             children: [
               if (!hideTitle) Text(title, style: theme.textTheme.titleLarge),
               if (subtitle != null) ...[
-                if (!hideTitle) const SizedBox(height: 4),
+                if (!hideTitle) const SizedBox(height: 5),
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -239,17 +263,18 @@ class AppSectionHeader extends StatelessWidget {
   }
 }
 
-const double kCompactHeaderContentHeight = 40;
-const double kCompactHeaderItemGap = 12;
+const double kCompactHeaderContentHeight = 44;
+const double kCompactHeaderItemGap = 14;
 const EdgeInsets kCompactHeaderPanelPadding = EdgeInsets.fromLTRB(
+  20,
+  20,
+  20,
   18,
-  18,
-  18,
-  16,
 );
 
 enum HeaderCapsuleActionButtonDensity { regular, compact, iconOnly }
 
+/// HeaderCapsuleActionButton - 头部胶囊按钮
 class HeaderCapsuleActionButton extends StatelessWidget {
   const HeaderCapsuleActionButton({
     super.key,
@@ -280,44 +305,47 @@ class HeaderCapsuleActionButton extends StatelessWidget {
     final showLabel = hasLabel && !hidesLabel;
     final showTrailing = trailingIcon != null && !hidesLabel;
     final iconOnlyCircular = circular || hidesLabel;
+
     final resolvedIconSize = switch (density) {
       HeaderCapsuleActionButtonDensity.regular => 18.0,
       HeaderCapsuleActionButtonDensity.compact => 16.0,
       HeaderCapsuleActionButtonDensity.iconOnly => 18.0,
     };
-    final resolvedPadding =
-        padding ??
+
+    final resolvedPadding = padding ??
         switch (density) {
           HeaderCapsuleActionButtonDensity.regular =>
+            iconOnlyCircular
+                ? EdgeInsets.zero
+                : EdgeInsets.symmetric(
+                    horizontal: showLabel ? 12 : 14,
+                    vertical: showLabel ? 10 : 12,
+                  ),
+          HeaderCapsuleActionButtonDensity.compact =>
             iconOnlyCircular
                 ? EdgeInsets.zero
                 : EdgeInsets.symmetric(
                     horizontal: showLabel ? 10 : 12,
                     vertical: showLabel ? 8 : 10,
                   ),
-          HeaderCapsuleActionButtonDensity.compact =>
-            iconOnlyCircular
-                ? EdgeInsets.zero
-                : EdgeInsets.symmetric(
-                    horizontal: showLabel ? 8 : 10,
-                    vertical: showLabel ? 6 : 8,
-                  ),
           HeaderCapsuleActionButtonDensity.iconOnly => EdgeInsets.zero,
         };
+
     final iconOnlySize = switch (density) {
-      HeaderCapsuleActionButtonDensity.regular => 40.0,
-      HeaderCapsuleActionButtonDensity.compact => 36.0,
-      HeaderCapsuleActionButtonDensity.iconOnly => 36.0,
+      HeaderCapsuleActionButtonDensity.regular => 42.0,
+      HeaderCapsuleActionButtonDensity.compact => 38.0,
+      HeaderCapsuleActionButtonDensity.iconOnly => 38.0,
     };
+
     final button = Material(
       color: theme.colorScheme.primary.withValues(
-        alpha: onPressed == null ? 0.05 : 0.09,
+        alpha: onPressed == null ? 0.06 : 0.1,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(999),
         side: BorderSide(
           color: theme.colorScheme.primary.withValues(
-            alpha: onPressed == null ? 0.14 : 0.22,
+            alpha: onPressed == null ? 0.12 : 0.2,
           ),
         ),
       ),
@@ -341,34 +369,31 @@ class HeaderCapsuleActionButton extends StatelessWidget {
                     icon,
                     size: resolvedIconSize,
                     color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: onPressed == null ? 0.6 : 1,
+                      alpha: onPressed == null ? 0.5 : 1,
                     ),
                   ),
                   if (showLabel) ...[
-                    const SizedBox(width: 5),
+                    const SizedBox(width: 6),
                     DefaultTextStyle(
                       style: theme.textTheme.labelMedium!.copyWith(
-                        fontSize:
-                            density == HeaderCapsuleActionButtonDensity.compact
+                        fontSize: density == HeaderCapsuleActionButtonDensity.compact
                             ? 12
                             : null,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: theme.colorScheme.onSurface.withValues(
-                          alpha: onPressed == null ? 0.6 : 1,
+                          alpha: onPressed == null ? 0.5 : 1,
                         ),
                       ),
                       child: label!,
                     ),
                   ],
                   if (showTrailing) ...[
-                    SizedBox(width: showLabel ? 4 : 0),
+                    SizedBox(width: showLabel ? 5 : 0),
                     Icon(
                       trailingIcon,
-                      size: density == HeaderCapsuleActionButtonDensity.compact
-                          ? 14
-                          : 16,
+                      size: density == HeaderCapsuleActionButtonDensity.compact ? 14 : 16,
                       color: theme.colorScheme.onSurfaceVariant.withValues(
-                        alpha: onPressed == null ? 0.6 : 1,
+                        alpha: onPressed == null ? 0.5 : 1,
                       ),
                     ),
                   ],
@@ -396,6 +421,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
   }
 }
 
+/// CompactHeaderPanel - 紧凑头部面板
 class CompactHeaderPanel extends StatelessWidget {
   const CompactHeaderPanel({
     super.key,
@@ -411,7 +437,7 @@ class CompactHeaderPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final tokens = mindriverThemeOf(context);
+    final tokens = arcticThemeOf(context);
 
     return GlassPanel(
       key: key,
@@ -444,6 +470,7 @@ class CompactHeaderPanel extends StatelessWidget {
   }
 }
 
+/// HeroHeader - 英雄头部
 class HeroHeader extends StatelessWidget {
   const HeroHeader({
     super.key,
@@ -478,12 +505,12 @@ class HeroHeader extends StatelessWidget {
       );
     }
 
-    final tokens = mindriverThemeOf(context);
+    final tokens = arcticThemeOf(context);
 
     return SizedBox(
       key: key,
       child: GlassPanel(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         borderRadius: tokens.panelRadius,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -491,7 +518,7 @@ class HeroHeader extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (leading != null) ...[leading!, const SizedBox(width: 10)],
+                if (leading != null) ...[leading!, const SizedBox(width: 12)],
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,10 +528,10 @@ class HeroHeader extends StatelessWidget {
                           eyebrow!,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 5),
                       ],
                       Text(
                         title,
@@ -513,7 +540,7 @@ class HeroHeader extends StatelessWidget {
                         style: theme.textTheme.headlineSmall,
                       ),
                       if (hasSubtitle) ...[
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Text(
                           subtitle,
                           maxLines: 1,
@@ -527,14 +554,14 @@ class HeroHeader extends StatelessWidget {
                   ),
                 ),
                 if (trailing != null) ...[
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Align(alignment: Alignment.topCenter, child: trailing!),
                 ],
               ],
             ),
             if (badges.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Wrap(spacing: 5, runSpacing: 5, children: badges),
+              const SizedBox(height: 8),
+              Wrap(spacing: 6, runSpacing: 6, children: badges),
             ],
           ],
         ),
@@ -543,6 +570,7 @@ class HeroHeader extends StatelessWidget {
   }
 }
 
+/// AppEmptyState - 空状态
 class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
     super.key,
@@ -563,29 +591,29 @@ class AppEmptyState extends StatelessWidget {
 
     return Center(
       child: GlassPanel(
-        padding: const EdgeInsets.all(28),
+        padding: const EdgeInsets.all(32),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 72,
-                height: 72,
+                width: 80,
+                height: 80,
                 decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.12),
+                  color: scheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 34, color: scheme.primary),
+                child: Icon(icon, size: 36, color: scheme.primary),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Text(
                   subtitle!,
                   textAlign: TextAlign.center,
@@ -594,7 +622,7 @@ class AppEmptyState extends StatelessWidget {
                   ),
                 ),
               ],
-              if (action != null) ...[const SizedBox(height: 20), action!],
+              if (action != null) ...[const SizedBox(height: 24), action!],
             ],
           ),
         ),
@@ -603,6 +631,7 @@ class AppEmptyState extends StatelessWidget {
   }
 }
 
+/// ContentShell - 内容页面壳
 class ContentShell extends StatelessWidget {
   const ContentShell({
     super.key,
@@ -613,7 +642,7 @@ class ContentShell extends StatelessWidget {
     this.leading,
     this.trailing,
     this.badges = const <Widget>[],
-    this.headerSpacing = 8,
+    this.headerSpacing = 10,
     this.maxWidth,
     this.roundedViewport = false,
   });
@@ -631,7 +660,7 @@ class ContentShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = mindriverThemeOf(context);
+    final tokens = arcticThemeOf(context);
 
     return Material(
       color: Colors.transparent,
@@ -642,7 +671,7 @@ class ContentShell extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const AppPageBackdrop(),
+            const ArcticPageBackdrop(),
             ResponsiveContainer(
               maxWidth: maxWidth ?? tokens.contentMaxWidth,
               child: Column(
@@ -668,6 +697,7 @@ class ContentShell extends StatelessWidget {
   }
 }
 
+/// ProfileShell - 个人资料页面壳
 class ProfileShell extends StatelessWidget {
   const ProfileShell({
     super.key,
@@ -692,8 +722,9 @@ class ProfileShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = context.isMobile;
     final showSummary = summary is! SizedBox;
-    final topSectionSpacing = isMobile ? 20.0 : 12.0;
-    final tokens = mindriverThemeOf(context);
+    final topSectionSpacing = isMobile ? 24.0 : 14.0;
+    final tokens = arcticThemeOf(context);
+
     return Material(
       color: Colors.transparent,
       child: _ShellViewport(
@@ -703,7 +734,7 @@ class ProfileShell extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const AppPageBackdrop(),
+            const ArcticPageBackdrop(),
             ResponsiveContainer(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -718,12 +749,12 @@ class ProfileShell extends StatelessWidget {
                   if (showSummary) ...[
                     SizedBox(height: topSectionSpacing),
                     summary,
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                   ],
                   if (!showSummary) SizedBox(height: topSectionSpacing),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 24),
+                      padding: const EdgeInsets.only(bottom: 28),
                       child: child,
                     ),
                   ),
@@ -764,6 +795,7 @@ class _ShellViewport extends StatelessWidget {
   }
 }
 
+/// AuthShell - 认证页面壳
 class AuthShell extends StatelessWidget {
   const AuthShell({
     super.key,
@@ -782,7 +814,7 @@ class AuthShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = mindriverThemeOf(context);
+    final tokens = arcticThemeOf(context);
     final width = MediaQuery.of(context).size.width;
 
     return Material(
@@ -790,24 +822,24 @@ class AuthShell extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          const AppPageBackdrop(),
+          const ArcticPageBackdrop(),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(
-                  horizontal: width < AppBreakpoints.medium ? 20 : 32,
-                  vertical: 24,
+                  horizontal: width < AppBreakpoints.medium ? 24 : 36,
+                  vertical: 28,
                 ),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 540),
+                  constraints: const BoxConstraints(maxWidth: 480),
                   child: Column(
                     children: [
                       if (header != null) ...[
                         header!,
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
                       ],
                       GlassPanel(
-                        padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
+                        padding: const EdgeInsets.fromLTRB(32, 32, 32, 32),
                         borderRadius: tokens.panelRadius,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -816,18 +848,18 @@ class AuthShell extends StatelessWidget {
                               title,
                               style: Theme.of(context).textTheme.headlineMedium,
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             Text(
                               subtitle,
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 28),
                             child,
                           ],
                         ),
                       ),
                       if (footer != null) ...[
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
                         footer!,
                       ],
                     ],
@@ -841,3 +873,9 @@ class AuthShell extends StatelessWidget {
     );
   }
 }
+
+// Legacy compatibility
+typedef AppPageBackdrop = ArcticPageBackdrop;
+
+/// Legacy function for backwards compatibility
+MindriverThemeExtension mindriverThemeOf(BuildContext context) => arcticThemeOf(context);
