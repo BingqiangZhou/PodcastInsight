@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.22.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.22.0...v0.22.1) - 2026-03-21 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.22.1))
+
+### 🐛 Bug Fixes
+
+- *(core)* Update Redis client to use redis-py 5.0+ API ([e2b0706](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e2b0706ce249802d4b2371f47ec86178f46ce9a5))
+- *(db)* Add migration to correct highlight_extraction_tasks status type ([e6185b1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e6185b1581af8fc06bef8671abf07fd423584fc6))
+
+### 🚜 Refactor
+
+- *(ui)* Remove padding and margins from list views and cards ([dd898c4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dd898c46c8f34fe6b07ae06e3e458080b5e76dc3))
+
+
+
 ## [0.22.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.21.0...v0.22.0) - 2026-03-20 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.22.0))
 
 ### ⚙️ Miscellaneous Tasks
