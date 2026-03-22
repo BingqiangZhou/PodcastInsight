@@ -54,7 +54,7 @@ class PodcastEpisode(Base):
 
     # 转录文本
     transcript_url = Column(String(500))
-    transcript_content = Column(Text)
+    transcript_content = Column("transcript_content_deprecated", Text)
 
     # AI总结
     ai_summary = Column(Text)
