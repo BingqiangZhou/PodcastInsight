@@ -116,34 +116,61 @@ class ShimmerLoading extends StatefulWidget {
     this.baseColor,
     this.highlightColor,
     this.duration = const Duration(milliseconds: 1800),
+    this.visible = true,
   });
 
   final Widget child;
   final Color? baseColor;
   final Color? highlightColor;
   final Duration duration;
+  final bool visible;
 
   @override
   State<ShimmerLoading> createState() => _ShimmerLoadingState();
 }
 
 class _ShimmerLoadingState extends State<ShimmerLoading>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration)
-      ..repeat();
+    WidgetsBinding.instance.addObserver(this);
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    if (widget.visible) {
+      _controller.repeat();
+    }
     _animation = Tween<double>(begin: -2, end: 2).animate(
       CurvedAnimation(parent: _controller, curve: ArcticCurves.aurora),
     );
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!widget.visible) return;
+
+    if (state == AppLifecycleState.paused) {
+      _controller.stop();
+    } else if (state == AppLifecycleState.resumed) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(ShimmerLoading oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.visible && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!widget.visible && _controller.isAnimating) {
+      _controller.stop();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
@@ -261,8 +288,11 @@ class _AnimatedInState extends State<AnimatedIn>
   }
 }
 
-/// StaggeredAnimatedList - 交错动画列表
-class StaggeredAnimatedList extends StatelessWidget {
+/// StaggeredAnimatedList - 交错动画列表（内存优化版本）
+///
+/// 使用单一 AnimationController 驱动所有子项的交错入场动画
+/// 避免为每个子项创建独立的 AnimationController，减少内存占用
+class StaggeredAnimatedList extends StatefulWidget {
   const StaggeredAnimatedList({
     super.key,
     required this.children,
@@ -279,20 +309,113 @@ class StaggeredAnimatedList extends StatelessWidget {
   final Curve curve;
 
   @override
+  State<StaggeredAnimatedList> createState() => _StaggeredAnimatedListState();
+}
+
+class _StaggeredAnimatedListState extends State<StaggeredAnimatedList>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    // 计算总动画时长：最后一个子项的开始时间 + 其动画时长
+    final totalDuration = widget.itemDelay * (widget.children.length - 1) + widget.itemDuration;
+    _controller = AnimationController(
+      vsync: this,
+      duration: totalDuration,
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (int i = 0; i < children.length; i++)
-          AnimatedIn(
-            delay: itemDelay * i,
-            duration: itemDuration,
-            offset: offset,
-            curve: curve,
-            child: children[i],
+        for (int i = 0; i < widget.children.length; i++)
+          _StaggeredItem(
+            index: i,
+            controller: _controller,
+            itemDelay: widget.itemDelay,
+            itemDuration: widget.itemDuration,
+            offset: widget.offset,
+            curve: widget.curve,
+            child: widget.children[i],
           ),
       ],
+    );
+  }
+}
+
+/// _StaggeredItem - 单个交错动画项
+///
+/// 根据全局动画控制器的值计算当前项的动画状态
+class _StaggeredItem extends StatelessWidget {
+  const _StaggeredItem({
+    required this.index,
+    required this.controller,
+    required this.itemDelay,
+    required this.itemDuration,
+    required this.offset,
+    required this.curve,
+    required this.child,
+  });
+
+  final int index;
+  final AnimationController controller;
+  final Duration itemDelay;
+  final Duration itemDuration;
+  final Offset offset;
+  final Curve curve;
+  final Widget child;
+
+  /// 计算当前项的动画进度（0.0 - 1.0）
+  double _getItemProgress(double globalProgress) {
+    // 计算当前项的开始时间（相对于总动画时长的比例）
+    final totalDuration = controller.duration!;
+    final startTime = itemDelay * index;
+    final endTime = startTime + itemDuration;
+
+    // 将时间转换为进度值
+    final startProgress = startTime.inMilliseconds / totalDuration.inMilliseconds;
+    final endProgress = endTime.inMilliseconds / totalDuration.inMilliseconds;
+
+    // 计算当前项在其自身动画时间内的进度
+    if (globalProgress < startProgress) {
+      return 0.0;
+    } else if (globalProgress >= endProgress) {
+      return 1.0;
+    } else {
+      // 当前项正在动画中，计算其内部进度
+      final itemProgress = (globalProgress - startProgress) / (endProgress - startProgress);
+      // 应用缓动曲线
+      return curve.transform(itemProgress);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final progress = _getItemProgress(controller.value);
+
+        return Opacity(
+          opacity: progress,
+          child: Transform.translate(
+            offset: Offset(0, offset.dy * (1 - progress)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
     );
   }
 }
@@ -321,15 +444,18 @@ class PulseIndicator extends StatefulWidget {
 }
 
 class _PulseIndicatorState extends State<PulseIndicator>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration)
-      ..repeat(reverse: true);
+    WidgetsBinding.instance.addObserver(this);
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    if (widget.enabled) {
+      _controller.repeat(reverse: true);
+    }
     _animation = Tween<double>(
       begin: widget.minOpacity,
       end: widget.maxOpacity,
@@ -337,6 +463,17 @@ class _PulseIndicatorState extends State<PulseIndicator>
       parent: _controller,
       curve: ArcticCurves.aurora,
     ));
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!widget.enabled) return;
+
+    if (state == AppLifecycleState.paused) {
+      _controller.stop();
+    } else if (state == AppLifecycleState.resumed) {
+      _controller.repeat(reverse: true);
+    }
   }
 
   @override
@@ -351,6 +488,7 @@ class _PulseIndicatorState extends State<PulseIndicator>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
