@@ -14,8 +14,8 @@ from alembic import op
 
 revision: str = "016"
 down_revision: str | None = "015"
-branch_labels: str | Sequence[str] | None
-depends_on: str | Sequence[str] | None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -61,7 +61,13 @@ def upgrade() -> None:
         """
     )
 
-    # 3. Transcription tasks - chunk_info column
+    # 3. Transcription tasks - chunk_info column (convert JSON to JSONB)
+    op.execute(
+        """
+        ALTER TABLE transcription_tasks
+        ALTER COLUMN chunk_info SET DATA TYPE jsonb USING chunk_info::jsonb
+        """
+    )
     op.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_transcription_tasks_chunk_info_gin
@@ -69,7 +75,13 @@ def upgrade() -> None:
         """
     )
 
-    # 4. AI model configs - extra_config column
+    # 4. AI model configs - extra_config column (convert JSON to JSONB)
+    op.execute(
+        """
+        ALTER TABLE ai_model_configs
+        ALTER COLUMN extra_config SET DATA TYPE jsonb USING extra_config::jsonb
+        """
+    )
     op.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_ai_model_configs_extra_config_gin
@@ -77,7 +89,13 @@ def upgrade() -> None:
         """
     )
 
-    # 5. Admin audit logs - details column
+    # 5. Admin audit logs - details column (convert JSON to JSONB)
+    op.execute(
+        """
+        ALTER TABLE admin_audit_logs
+        ALTER COLUMN details SET DATA TYPE jsonb USING details::jsonb
+        """
+    )
     op.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_details_gin
@@ -99,7 +117,7 @@ def upgrade() -> None:
         """
     )
 
-    # 7. System settings - value column
+    # 7. System settings - value column (convert JSON to JSONB)
     op.execute(
         """
         ALTER TABLE system_settings
@@ -113,7 +131,13 @@ def upgrade() -> None:
         """
     )
 
-    # 8. Episode highlights - topic_tags column
+    # 8. Episode highlights - topic_tags column (convert JSON to JSONB)
+    op.execute(
+        """
+        ALTER TABLE episode_highlights
+        ALTER COLUMN topic_tags SET DATA TYPE jsonb USING topic_tags::jsonb
+        """
+    )
     op.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_episode_highlights_topic_tags_gin
@@ -121,7 +145,13 @@ def upgrade() -> None:
         """
     )
 
-    # 9. User sessions - device_info column
+    # 9. User sessions - device_info column (convert JSON to JSONB)
+    op.execute(
+        """
+        ALTER TABLE user_sessions
+        ALTER COLUMN device_info SET DATA TYPE jsonb USING device_info::jsonb
+        """
+    )
     op.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_user_sessions_device_info_gin
