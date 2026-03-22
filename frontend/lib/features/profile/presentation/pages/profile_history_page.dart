@@ -214,14 +214,13 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
     final isMobile = context.isMobile;
     return CompactHeaderPanel(
       title: l10n.profile_viewed_title,
-      leading: isMobile
+      trailing: isMobile
           ? null
-          : Tooltip(
-              message: MaterialLocalizations.of(context).backButtonTooltip,
-              child: IconButton.filledTonal(
-                onPressed: () => context.pop(),
-                icon: const Icon(Icons.arrow_back_rounded),
-              ),
+          : HeaderCapsuleActionButton(
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              icon: Icons.arrow_back_rounded,
+              onPressed: () => context.pop(),
+              circular: true,
             ),
     );
   }

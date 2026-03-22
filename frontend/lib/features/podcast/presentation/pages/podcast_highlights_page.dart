@@ -152,23 +152,26 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
     return CompactHeaderPanel(
       title: l10n.podcast_highlights_title,
-      leading: isMobile ? null : _buildBackButton(context),
-      trailing: _buildCalendarButton(context),
+      trailing: isMobile
+          ? _buildCalendarButton(context)
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildCalendarButton(context),
+                const SizedBox(width: 8),
+                _buildBackButton(context),
+              ],
+            ),
     );
   }
 
   Widget _buildBackButton(BuildContext context) {
-    return Tooltip(
-      message: MaterialLocalizations.of(context).backButtonTooltip,
-      child: IconButton.filledTonal(
-        onPressed: () async {
-          final navigator = Navigator.of(context);
-          if (navigator.canPop()) {
-            await navigator.maybePop();
-          }
-        },
-        icon: const Icon(Icons.arrow_back_rounded),
-      ),
+    return HeaderCapsuleActionButton(
+      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+      icon: Icons.arrow_back_rounded,
+      onPressed: () => context.pop(),
+      circular: true,
+      style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
   }
 
@@ -182,6 +185,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       },
       icon: Icons.calendar_month_outlined,
       circular: true,
+      style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 
 import '../../../../core/localization/app_localizations.dart';
@@ -454,21 +455,26 @@ class _ProfileCacheManagementPageState
     return CompactHeaderPanel(
       key: const Key('cache_manage_header_panel'),
       title: l10n.profile_cache_manage_title,
-      leading: isMobile
-          ? null
-          : Tooltip(
-              message: MaterialLocalizations.of(context).backButtonTooltip,
-              child: IconButton.filledTonal(
-                onPressed: () => Navigator.of(context).maybePop(),
-                icon: const Icon(Icons.arrow_back_rounded),
-              ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HeaderCapsuleActionButton(
+            key: const Key('cache_manage_refresh_action'),
+            tooltip: l10n.refresh,
+            onPressed: _refresh,
+            icon: Icons.refresh_rounded,
+            circular: true,
+          ),
+          if (!isMobile) ...[
+            const SizedBox(width: 8),
+            HeaderCapsuleActionButton(
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              icon: Icons.arrow_back_rounded,
+              onPressed: () => context.pop(),
+              circular: true,
             ),
-      trailing: HeaderCapsuleActionButton(
-        key: const Key('cache_manage_refresh_action'),
-        tooltip: l10n.refresh,
-        onPressed: _refresh,
-        icon: Icons.refresh_rounded,
-        circular: true,
+          ],
+        ],
       ),
     );
   }

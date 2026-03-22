@@ -558,50 +558,17 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildQueueButton() {
-    final theme = Theme.of(context);
-    final isCompact = _isCompactPhoneLayout;
-    final buttonSize = isCompact ? 36.0 : 40.0;
-    final iconSize = isCompact ? 16.0 : 18.0;
-
-    return Tooltip(
-      message: (AppLocalizations.of(context) ?? AppLocalizationsEn())
+    return HeaderCapsuleActionButton(
+      tooltip: (AppLocalizations.of(context) ?? AppLocalizationsEn())
           .podcast_add_to_queue,
-      child: Material(
-        color: theme.colorScheme.primary.withValues(alpha: 0.09),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-          side: BorderSide(
-            color: theme.colorScheme.primary.withValues(alpha: 0.22),
-          ),
-        ),
-        child: InkWell(
-          key: const Key('podcast_episode_detail_add_to_queue'),
-          borderRadius: BorderRadius.circular(999),
-          onTap: _isAddingToQueue ? null : _addCurrentEpisodeToQueue,
-          child: ConstrainedBox(
-            constraints: BoxConstraints.tightFor(
-              width: buttonSize,
-              height: buttonSize,
-            ),
-            child: Center(
-              child: _isAddingToQueue
-                  ? SizedBox(
-                      width: iconSize,
-                      height: iconSize,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    )
-                  : Icon(
-                      Icons.playlist_add_rounded,
-                      size: iconSize,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-            ),
-          ),
-        ),
-      ),
+      icon: Icons.playlist_add_rounded,
+      onPressed: _isAddingToQueue ? null : _addCurrentEpisodeToQueue,
+      circular: true,
+      isLoading: _isAddingToQueue,
+      density: _isCompactPhoneLayout
+          ? HeaderCapsuleActionButtonDensity.compact
+          : HeaderCapsuleActionButtonDensity.regular,
+      style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
   }
 
@@ -615,6 +582,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       density: _isCompactPhoneLayout
           ? HeaderCapsuleActionButtonDensity.compact
           : HeaderCapsuleActionButtonDensity.regular,
+      style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
   }
 

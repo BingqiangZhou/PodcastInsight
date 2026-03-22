@@ -135,15 +135,6 @@ class _ProfileSubscriptionsPageState
         MediaQuery.of(context).size.width < AppBreakpoints.medium;
     return CompactHeaderPanel(
       title: l10n.profile_subscriptions,
-      leading: isMobile
-          ? null
-          : Tooltip(
-              message: MaterialLocalizations.of(context).backButtonTooltip,
-              child: IconButton.filledTonal(
-                onPressed: () => context.pop(),
-                icon: const Icon(Icons.arrow_back_rounded),
-              ),
-            ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -178,6 +169,15 @@ class _ProfileSubscriptionsPageState
               );
             },
           ),
+          if (!isMobile) ...[
+            const SizedBox(width: 8),
+            HeaderCapsuleActionButton(
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              icon: Icons.arrow_back_rounded,
+              onPressed: () => context.pop(),
+              circular: true,
+            ),
+          ],
         ],
       ),
     );

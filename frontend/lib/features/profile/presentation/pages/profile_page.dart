@@ -710,10 +710,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final packageInfo = await PackageInfo.fromPlatform();
     if (!context.mounted) return;
 
-    _showConstrainedDialog<void>(
-      context,
+    showDialog<void>(
+      context: context,
       builder: (dialogContext) {
         final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
+        final dialogWidth = ResponsiveDialogHelper.maxWidth(
+          dialogContext,
+          desktopMaxWidth: 400,
+        );
         return AlertDialog(
           insetPadding: ResponsiveDialogHelper.insetPadding(),
           title: Row(
@@ -724,7 +728,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ],
           ),
           content: SizedBox(
-            width: double.maxFinite,
+            width: dialogWidth,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,

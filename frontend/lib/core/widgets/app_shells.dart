@@ -103,6 +103,14 @@ const EdgeInsets kCompactHeaderPanelPadding = EdgeInsets.fromLTRB(
 
 enum HeaderCapsuleActionButtonDensity { regular, compact, iconOnly }
 
+/// HeaderCapsuleActionButtonStyle - 头部胶囊按钮样式
+enum HeaderCapsuleActionButtonStyle {
+  /// Primary tinted style with colored background and border
+  primaryTinted,
+  /// Neutral surface style matching discover page (surfaceContainerHighest, no border)
+  surfaceNeutral,
+}
+
 /// HeaderCapsuleActionButton - 头部胶囊按钮
 class HeaderCapsuleActionButton extends StatelessWidget {
   const HeaderCapsuleActionButton({
@@ -115,6 +123,8 @@ class HeaderCapsuleActionButton extends StatelessWidget {
     this.padding,
     this.circular = false,
     this.density = HeaderCapsuleActionButtonDensity.regular,
+    this.isLoading = false,
+    this.style = HeaderCapsuleActionButtonStyle.surfaceNeutral,
   });
 
   final IconData icon;
@@ -125,15 +135,30 @@ class HeaderCapsuleActionButton extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final bool circular;
   final HeaderCapsuleActionButtonDensity density;
+  final bool isLoading;
+  final HeaderCapsuleActionButtonStyle style;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final hasLabel = label != null;
     final hidesLabel = density == HeaderCapsuleActionButtonDensity.iconOnly;
     final showLabel = hasLabel && !hidesLabel;
     final showTrailing = trailingIcon != null && !hidesLabel;
     final iconOnlyCircular = circular || hidesLabel;
+    final isDisabled = onPressed == null || isLoading;
+
+    // Style-specific colors
+    final isSurfaceNeutral = style == HeaderCapsuleActionButtonStyle.surfaceNeutral;
+
+    // Dark mode uses higher alpha for better visibility (primaryTinted only)
+    final bgAlpha = isDisabled
+        ? (isDark ? 0.08 : 0.06)
+        : (isDark ? 0.14 : 0.1);
+    final borderAlpha = isDisabled
+        ? (isDark ? 0.16 : 0.12)
+        : (isDark ? 0.24 : 0.2);
 
     final resolvedIconSize = switch (density) {
       HeaderCapsuleActionButtonDensity.regular => 18.0,
@@ -166,21 +191,26 @@ class HeaderCapsuleActionButton extends StatelessWidget {
       HeaderCapsuleActionButtonDensity.iconOnly => 36.0,
     };
 
+    // Border radius: pill shape for surfaceNeutral, fixed 10.0 for primaryTinted
+    final borderRadius = isSurfaceNeutral
+        ? (iconOnlyCircular ? iconOnlySize / 2 : 18.0)
+        : 10.0;
+
     final button = Material(
-      color: theme.colorScheme.primary.withValues(
-        alpha: onPressed == null ? 0.06 : 0.1,
-      ),
+      color: isSurfaceNeutral
+          ? theme.colorScheme.surfaceContainerHighest
+          : theme.colorScheme.primary.withValues(alpha: bgAlpha),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(
-          color: theme.colorScheme.primary.withValues(
-            alpha: onPressed == null ? 0.12 : 0.2,
+        borderRadius: BorderRadius.circular(borderRadius),
+        side: isSurfaceNeutral
+          ? BorderSide.none
+          : BorderSide(
+            color: theme.colorScheme.primary.withValues(alpha: borderAlpha),
           ),
-        ),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onPressed,
+        borderRadius: BorderRadius.circular(borderRadius),
+        onTap: isLoading ? null : onPressed,
         child: ConstrainedBox(
           constraints: iconOnlyCircular
               ? BoxConstraints.tightFor(
@@ -191,43 +221,52 @@ class HeaderCapsuleActionButton extends StatelessWidget {
           child: Center(
             child: Padding(
               padding: resolvedPadding,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    icon,
-                    size: resolvedIconSize,
-                    color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: onPressed == null ? 0.5 : 1,
-                    ),
-                  ),
-                  if (showLabel) ...[
-                    const SizedBox(width: 6),
-                    DefaultTextStyle(
-                      style: theme.textTheme.labelMedium!.copyWith(
-                        fontSize: density == HeaderCapsuleActionButtonDensity.compact
-                            ? 12
-                            : null,
-                        fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: onPressed == null ? 0.5 : 1,
+              child: isLoading
+                  ? SizedBox(
+                      width: resolvedIconSize,
+                      height: resolvedIconSize,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          icon,
+                          size: resolvedIconSize,
+                          color: theme.colorScheme.onSurfaceVariant.withValues(
+                            alpha: isDisabled ? 0.5 : 1,
+                          ),
                         ),
-                      ),
-                      child: label!,
+                        if (showLabel) ...[
+                          const SizedBox(width: 6),
+                          DefaultTextStyle(
+                            style: theme.textTheme.labelMedium!.copyWith(
+                              fontSize: density == HeaderCapsuleActionButtonDensity.compact
+                                  ? 12
+                                  : null,
+                              fontWeight: FontWeight.w500,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: isDisabled ? 0.5 : 1,
+                              ),
+                            ),
+                            child: label!,
+                          ),
+                        ],
+                        if (showTrailing) ...[
+                          SizedBox(width: showLabel ? 5 : 0),
+                          Icon(
+                            trailingIcon,
+                            size: density == HeaderCapsuleActionButtonDensity.compact ? 14 : 16,
+                            color: theme.colorScheme.onSurfaceVariant.withValues(
+                              alpha: isDisabled ? 0.5 : 1,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
-                  if (showTrailing) ...[
-                    SizedBox(width: showLabel ? 5 : 0),
-                    Icon(
-                      trailingIcon,
-                      size: density == HeaderCapsuleActionButtonDensity.compact ? 14 : 16,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(
-                        alpha: onPressed == null ? 0.5 : 1,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
             ),
           ),
         ),
@@ -237,7 +276,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
     final semanticsLabel = tooltip;
     final wrapped = Semantics(
       button: true,
-      enabled: onPressed != null,
+      enabled: onPressed != null && !isLoading,
       label: semanticsLabel,
       child: button,
     );
