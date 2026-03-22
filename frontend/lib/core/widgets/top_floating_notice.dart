@@ -1,12 +1,24 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-OverlayEntry? _activeTopNoticeEntry;
-Timer? _activeTopNoticeTimer;
+import '../providers/top_floating_notice_provider.dart';
 
 const double _topFloatingNoticeGap = 0;
 
+/// Show a floating notice at the top of the screen.
+///
+/// This function maintains backward compatibility while using the
+/// topFloatingNoticeProvider for state management.
+///
+/// Example:
+/// ```dart
+/// showTopFloatingNotice(
+///   context,
+///   message: 'Operation completed successfully',
+///   isError: false,
+///   duration: const Duration(seconds: 3),
+/// );
+/// ```
 void showTopFloatingNotice(
   BuildContext context, {
   required String message,
@@ -14,7 +26,10 @@ void showTopFloatingNotice(
   Duration duration = const Duration(seconds: 3),
   double extraTopOffset = 0,
 }) {
-  _removeTopFloatingNotice();
+  final container = ProviderScope.containerOf(context);
+  final notifier = container.read(topFloatingNoticeProvider.notifier);
+
+  _removeTopFloatingNotice(notifier);
 
   final overlay = Overlay.maybeOf(context, rootOverlay: true);
   if (overlay == null) {
@@ -96,15 +111,11 @@ void showTopFloatingNotice(
     ),
   );
 
-  _activeTopNoticeEntry = entry;
+  notifier.showNotice(entry: entry, duration: duration);
   overlay.insert(entry);
-  _activeTopNoticeTimer = Timer(duration, _removeTopFloatingNotice);
 }
 
-void _removeTopFloatingNotice() {
-  _activeTopNoticeTimer?.cancel();
-  _activeTopNoticeTimer = null;
-
-  _activeTopNoticeEntry?.remove();
-  _activeTopNoticeEntry = null;
+/// Internal function to remove the current floating notice
+void _removeTopFloatingNotice(TopFloatingNoticeNotifier notifier) {
+  notifier.hideNotice();
 }

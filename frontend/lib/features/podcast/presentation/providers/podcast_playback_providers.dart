@@ -37,6 +37,64 @@ typedef PlaybackRateSelectionSnapshot = ({
 const String kLastPlaybackSnapshotStorageKeyPrefix =
     'podcast_last_playback_snapshot_v1';
 
+/// Manages Timer lifecycle with automatic cleanup.
+/// Ensures all timers are cancelled and nullified properly.
+class _TimerManager {
+  /// Exposed for testing purposes only
+  @visibleForTesting
+  final Map<String, Timer> timers = {};
+
+  /// Creates a new one-shot timer with the given key.
+  /// If a timer with the same key exists, it will be cancelled first.
+  Timer create(String key, Duration duration, VoidCallback callback) {
+    cancel(key);
+    final timer = Timer(duration, () {
+      timers.remove(key);
+      if (!_isDisposed) callback();
+    });
+    timers[key] = timer;
+    return timer;
+  }
+
+  /// Creates a new periodic timer with the given key.
+  /// If a timer with the same key exists, it will be cancelled first.
+  Timer createPeriodic(
+    String key,
+    Duration duration,
+    void Function(Timer) callback,
+  ) {
+    cancel(key);
+    final timer = Timer.periodic(duration, (timer) {
+      if (!_isDisposed) callback(timer);
+    });
+    timers[key] = timer;
+    return timer;
+  }
+
+  /// Cancels and removes the timer with the given key.
+  void cancel(String key) {
+    final timer = timers.remove(key);
+    timer?.cancel();
+  }
+
+  /// Checks if a timer with the given key is active.
+  bool isActive(String key) {
+    final timer = timers[key];
+    return timer?.isActive ?? false;
+  }
+
+  /// Cancels all timers and clears the manager.
+  void dispose() {
+    for (final timer in timers.values) {
+      timer.cancel();
+    }
+    timers.clear();
+    _isDisposed = true;
+  }
+
+  bool _isDisposed = false;
+}
+
 class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   late PodcastRepository _repository;
   bool _isDisposed = false;
@@ -48,20 +106,25 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   bool? _lastPlayingState; // Track last playing state to reduce log spam
   ProcessingState? _lastProcessingState;
   bool _isHandlingQueueCompletion = false;
-  Timer? _syncThrottleTimer;
-  Timer? _sleepTimerTickTimer;
   DateTime? _lastPlaybackSyncAt;
   static const Duration _syncInterval = Duration(seconds: 2);
   static const Duration _lastPlaybackSnapshotDebounce = Duration(seconds: 2);
-  Timer? _snapshotPersistTimer;
   _PlaybackRateSelectionCache? _playbackRateSelectionCache;
 
   // Position debounce fields
-  Timer? _positionDebounceTimer;
   int? _pendingPositionMs;
   // Dynamic debounce intervals based on playback state
   static const Duration _positionDebounceIntervalPlaying = Duration(milliseconds: 500);
   static const Duration _positionDebounceIntervalPaused = Duration(milliseconds: 100);
+
+  // Timer manager for centralized timer lifecycle management
+  late final _TimerManager _timers = _TimerManager();
+
+  // Timer keys
+  static const String _kSyncThrottleTimer = 'syncThrottle';
+  static const String _kSleepTimerTick = 'sleepTimerTick';
+  static const String _kSnapshotPersist = 'snapshotPersist';
+  static const String _kPositionDebounce = 'positionDebounce';
 
   PodcastAudioHandler get _audioHandler => main_app.audioHandler;
 
@@ -127,14 +190,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   }
 
   void _cancelManagedTimers() {
-    _syncThrottleTimer?.cancel();
-    _syncThrottleTimer = null;
-    _sleepTimerTickTimer?.cancel();
-    _sleepTimerTickTimer = null;
-    _snapshotPersistTimer?.cancel();
-    _snapshotPersistTimer = null;
-    _positionDebounceTimer?.cancel();
-    _positionDebounceTimer = null;
+    _timers.dispose();
     _pendingPositionMs = null;
   }
 
@@ -156,9 +212,16 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     _playerStateSubscription = playerStateSubscription;
     _positionSubscription = positionSubscription;
     _durationSubscription = durationSubscription;
-    _syncThrottleTimer = syncThrottleTimer;
-    _sleepTimerTickTimer = sleepTimerTickTimer;
-    _snapshotPersistTimer = snapshotPersistTimer;
+    // For testing purposes, replace the timer manager with mock timers
+    if (syncThrottleTimer != null) {
+      _timers.timers[_kSyncThrottleTimer] = syncThrottleTimer;
+    }
+    if (sleepTimerTickTimer != null) {
+      _timers.timers[_kSleepTimerTick] = sleepTimerTickTimer;
+    }
+    if (snapshotPersistTimer != null) {
+      _timers.timers[_kSnapshotPersist] = snapshotPersistTimer;
+    }
   }
 
   @override
@@ -212,15 +275,13 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     if (state.currentEpisode == null) return;
 
     if (immediate) {
-      _snapshotPersistTimer?.cancel();
-      _snapshotPersistTimer = null;
+      _timers.cancel(_kSnapshotPersist);
       unawaited(_persistLastPlaybackSnapshot());
       return;
     }
 
-    if (_snapshotPersistTimer != null) return;
-    _snapshotPersistTimer = Timer(_lastPlaybackSnapshotDebounce, () {
-      _snapshotPersistTimer = null;
+    if (_timers.isActive(_kSnapshotPersist)) return;
+    _timers.create(_kSnapshotPersist, _lastPlaybackSnapshotDebounce, () {
       unawaited(_persistLastPlaybackSnapshot());
     });
   }
@@ -499,8 +560,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
       if (shouldUpdateImmediately) {
         // Immediate update for significant position changes (seek operations)
-        _positionDebounceTimer?.cancel();
-        _positionDebounceTimer = null;
+        _timers.cancel(_kPositionDebounce);
         _pendingPositionMs = null;
         if (state.position != positionMs) {
           state = state.copyWith(position: positionMs);
@@ -512,10 +572,8 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
             ? _positionDebounceIntervalPlaying
             : _positionDebounceIntervalPaused;
         _pendingPositionMs = positionMs;
-        _positionDebounceTimer?.cancel();
-        _positionDebounceTimer = Timer(debounceInterval, () {
+        _timers.create(_kPositionDebounce, debounceInterval, () {
           if (_isDisposed || !ref.mounted) return;
-          _positionDebounceTimer = null;
           final pending = _pendingPositionMs;
           _pendingPositionMs = null;
           if (pending != null && state.position != pending) {
@@ -1429,8 +1487,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       return;
     }
 
-    _sleepTimerTickTimer?.cancel();
-    _sleepTimerTickTimer = null;
+    _timers.cancel(_kSleepTimerTick);
 
     final endTime = DateTime.now().add(duration);
     state = state.copyWith(
@@ -1443,7 +1500,8 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       '[Sleep Timer] Sleep timer set: ${duration.inMinutes} minutes',
     );
 
-    _sleepTimerTickTimer = Timer.periodic(
+    _timers.createPeriodic(
+      _kSleepTimerTick,
       const Duration(seconds: 1),
       (_) => _onSleepTimerTick(),
     );
@@ -1452,8 +1510,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   void setSleepTimerAfterEpisode() {
     if (_isDisposed || !ref.mounted) return;
 
-    _sleepTimerTickTimer?.cancel();
-    _sleepTimerTickTimer = null;
+    _timers.cancel(_kSleepTimerTick);
 
     if (state.sleepTimerAfterEpisode &&
         state.sleepTimerEndTime == null &&
@@ -1475,12 +1532,11 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
   void cancelSleepTimer() {
     if (_isDisposed || !ref.mounted) return;
-    if (!state.isSleepTimerActive && _sleepTimerTickTimer == null) {
+    if (!state.isSleepTimerActive && !_timers.isActive(_kSleepTimerTick)) {
       return;
     }
 
-    _sleepTimerTickTimer?.cancel();
-    _sleepTimerTickTimer = null;
+    _timers.cancel(_kSleepTimerTick);
 
     state = state.copyWith(clearSleepTimer: true);
 
@@ -1492,8 +1548,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
     final endTime = state.sleepTimerEndTime;
     if (endTime == null) {
-      _sleepTimerTickTimer?.cancel();
-      _sleepTimerTickTimer = null;
+      _timers.cancel(_kSleepTimerTick);
       return;
     }
 
@@ -1503,8 +1558,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       logger.AppLogger.debug(
         '[Sleep Timer] Sleep timer expired, pausing playback',
       );
-      _sleepTimerTickTimer?.cancel();
-      _sleepTimerTickTimer = null;
+      _timers.cancel(_kSleepTimerTick);
       state = state.copyWith(clearSleepTimer: true);
       unawaited(pause());
       return;
@@ -1545,8 +1599,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     required int positionMs,
     required bool isPlaying,
   }) async {
-    _syncThrottleTimer?.cancel();
-    _syncThrottleTimer = null;
+    _timers.cancel(_kSyncThrottleTimer);
     final success = await _sendPlaybackSnapshot(
       episode: episode,
       positionMs: positionMs,
@@ -1569,13 +1622,12 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       return;
     }
 
-    if (_syncThrottleTimer?.isActive ?? false) {
+    if (_timers.isActive(_kSyncThrottleTimer)) {
       return;
     }
 
     final remaining = _syncInterval - now.difference(lastSync);
-    _syncThrottleTimer = Timer(remaining, () {
-      _syncThrottleTimer = null;
+    _timers.create(_kSyncThrottleTimer, remaining, () {
       if (_isDisposed) return;
       final currentEpisode = state.currentEpisode;
       if (currentEpisode == null) return;

@@ -20,6 +20,7 @@ import '../../features/settings/presentation/providers/app_update_provider.dart'
 import '../../features/settings/presentation/widgets/update_dialog.dart';
 
 import '../../main.dart' as main_app;
+import '../auth/auth_event.dart';
 
 /// Splash screen widget that matches the Mindriver brand style
 class _SplashScreenWidget extends StatelessWidget {
@@ -135,6 +136,9 @@ class _PersonalAIAssistantAppState
     // CRITICAL: Release audio resources when app is disposed
     // This ensures the audio player and (on mobile) the AudioService foreground service are properly cleaned up
     _cleanupAudioService();
+    // CRITICAL: Dispose AuthEventNotifier to clean up the broadcast stream
+    // This prevents memory leaks and ensures proper cleanup on app shutdown
+    AuthEventNotifier.instance.dispose();
     super.dispose();
   }
 

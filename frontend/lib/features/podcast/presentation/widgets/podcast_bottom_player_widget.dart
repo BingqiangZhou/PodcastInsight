@@ -11,7 +11,6 @@ import '../../../../core/providers/route_provider.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 import '../../../../core/utils/time_formatter.dart';
-import '../../../../core/widgets/app_shells.dart';
 import '../../data/models/podcast_episode_model.dart';
 import '../constants/playback_speed_options.dart';
 import '../navigation/podcast_navigation.dart';

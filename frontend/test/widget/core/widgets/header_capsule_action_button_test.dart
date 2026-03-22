@@ -253,7 +253,7 @@ void main() {
         );
 
         // Dark mode should have higher alpha (0.08 for disabled)
-        expect(material.color?.alpha, greaterThan(15)); // > ~0.06 * 255
+        expect((material.color?.a ?? 0) * 255.0.round(), greaterThan(15)); // > ~0.06 * 255
       });
     });
 
