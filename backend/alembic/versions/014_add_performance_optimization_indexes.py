@@ -56,13 +56,14 @@ def upgrade() -> None:
         """
     )
 
-    # 3. Partial index for active playback states
-    # Optimize queries for active user playback states
+    # 3. Index for playback states by user and episode
+    # Note: unique index idx_user_episode_unique already exists
+    # This adds an index optimized for lookup by user_id with play_count > 0
     op.execute(
         """
-        CREATE INDEX IF NOT EXISTS idx_playback_state_active_user
-        ON podcast_playback_states (user_id, episode_id)
-        WHERE deleted_at IS NULL
+        CREATE INDEX IF NOT EXISTS idx_playback_state_user_with_plays
+        ON podcast_playback_states (user_id)
+        WHERE play_count > 0
         """
     )
 
@@ -76,4 +77,4 @@ def downgrade() -> None:
 
     op.execute("DROP INDEX IF EXISTS idx_podcast_episodes_description_trgm")
 
-    op.execute("DROP INDEX IF EXISTS idx_playback_state_active_user")
+    op.execute("DROP INDEX IF EXISTS idx_playback_state_user_with_plays")
