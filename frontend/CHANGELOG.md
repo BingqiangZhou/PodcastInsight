@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.26.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.25.0...v0.26.0) - 2026-03-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.26.0))
+
+### ⚡ Performance
+
+- *(frontend)* Optimize Flutter app performance and stability ([75d5bae](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/75d5bae718c2667a2060c312503dd1988d77347e))
+- *(frontend)* Add scroll constants and optimize list rendering ([9743425](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/97434257bedeb3b4f47eaebfab99bf1feb7843ea))
+- *(frontend)* Optimize memory management and fix widget tests ([866ea3e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/866ea3edbc28b4d9590c258a1f281ff67b94858e))
+
+### 🚜 Refactor
+
+- *(podcast)* Extract state providers and add performance optimizations ([ac3967d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ac3967dfd0d0dc593f3c56057a094cfc3dc8a449))
+- *(frontend)* Improve resource cleanup and state management ([597311d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/597311d96ea2f64d46b6be19fd88a130c39c24b0))
+
+
+
+## [0.25.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.24.1...v0.25.0) - 2026-03-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.25.0))
+
+### ⚡ Performance
+
+- *(podcast)* Optimize summary page scrolling with dedicated widget and state preservation ([dc0e611](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dc0e611e627ff5b78e5484492b045f77124a32ea))
+
+### 🎨 Styling
+
+- *(ui)* Update header buttons to surfaceNeutral style and reposition back button ([212ba3d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/212ba3d4bc093b8a361adaa1ccb5065fd090d275))
+
+
+
 ## [0.24.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.24.0...v0.24.1) - 2026-03-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.24.1))
 
 ### ⚡ Performance

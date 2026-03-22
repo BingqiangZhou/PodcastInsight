@@ -9,12 +9,14 @@ and follows the architecture defined in security.py.
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 
 import aiohttp
 from defusedxml.ElementTree import fromstring
 
 from app.core.config import settings
 from app.core.datetime_utils import ensure_timezone_aware_fetch_time
+from app.core.http_client import get_shared_http_session
 from app.domains.ai.llm_privacy import ContentSanitizer
 from app.domains.podcast.integration.platform_detector import PlatformDetector
 from app.domains.podcast.integration.security import (
@@ -71,7 +73,14 @@ class SecureRSSParser:
         self.user_id = user_id
         self.security = PodcastSecurityValidator()
         self.privacy = ContentSanitizer(mode=settings.LLM_CONTENT_SANITIZE_MODE)
+        # Use provided session or get shared session
         self._shared_session = shared_session
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        """Get HTTP session, using shared session if available."""
+        if self._shared_session is not None:
+            return self._shared_session
+        return await get_shared_http_session()
 
     async def fetch_and_parse_feed(
         self,
@@ -128,13 +137,10 @@ class SecureRSSParser:
             return False, None, f"Failed to parse feed: {e}"
 
     async def _safe_fetch(self, url: str) -> tuple[str | None, str | None]:
-        """Fetch with size and timeout limits"""
+        """Fetch with size and timeout limits using shared session."""
         try:
-            timeout = aiohttp.ClientTimeout(total=60, connect=10)
-            if self._shared_session is None:
-                async with aiohttp.ClientSession(timeout=timeout) as session:
-                    return await self._fetch_with_session(session, url)
-            return await self._fetch_with_session(self._shared_session, url)
+            session = await self._get_session()
+            return await self._fetch_with_session(session, url)
 
         except aiohttp.ClientError as e:
             logger.error(f"Fetch error: {e}")

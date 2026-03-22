@@ -102,6 +102,11 @@ class Settings(BaseSettings):
     # CORS - Default to empty for security, set ALLOWED_HOSTS=* for development
     ALLOWED_HOSTS: list[str] = []
 
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: bool = True  # Enable rate limiting for API protection
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
+    RATE_LIMIT_REQUESTS_PER_HOUR: int = 1000
+
     # JWT
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = (

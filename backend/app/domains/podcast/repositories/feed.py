@@ -158,7 +158,7 @@ class PodcastFeedRepositoryMixin:
         )
         total_result = await self.db.execute(count_query)
         total = int(total_result.scalar() or 0)
-        await self.redis.cache_set(cache_key, str(total), ttl=30)
+        await self.redis.cache_set(cache_key, str(total), ttl=120)
         return total
 
     def _build_feed_lightweight_base_query(self, user_id: int):

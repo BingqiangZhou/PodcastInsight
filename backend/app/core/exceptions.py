@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.core.circuit_breaker import CircuitOpenError
 from app.core.json_encoder import CustomJSONResponse
 
 
@@ -285,6 +286,33 @@ async def general_exception_handler(
     )
 
 
+async def circuit_open_exception_handler(
+    request: Request, exc: CircuitOpenError
+) -> CustomJSONResponse:
+    """Handle circuit breaker open exceptions.
+
+    处理熔断器打开异常 - 返回503服务不可用
+    """
+    logger.warning(
+        f"熔断器打开: {exc.__class__.__name__} | "
+        f"路径: {request.url.path} | "
+        f"方法: {request.method} | "
+        f"消息: {exc!s}",
+    )
+
+    return CustomJSONResponse(
+        status_code=503,
+        content={
+            "detail": "Service temporarily unavailable. Please try again later.",
+            "type": "SERVICE_UNAVAILABLE",
+            "status_code": 503,
+            "message_en": "Service temporarily unavailable. Please try again later.",
+            "message_zh": "服务暂时不可用，请稍后重试。",
+        },
+        headers={"Retry-After": "30"},
+    )
+
+
 def setup_exception_handlers(app: FastAPI) -> None:
     """Setup exception handlers for the FastAPI app.
 
@@ -294,6 +322,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(CircuitOpenError, circuit_open_exception_handler)
     app.add_exception_handler(Exception, general_exception_handler)
 
 

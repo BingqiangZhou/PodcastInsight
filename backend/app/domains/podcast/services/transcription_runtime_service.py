@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+import shutil
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -24,17 +25,34 @@ from app.domains.podcast.transcription_state import get_transcription_state_mana
 logger = logging.getLogger(__name__)
 
 
+async def _directory_has_files_async(path: str) -> bool:
+    """Check if directory has any files (async wrapper)."""
+    return await asyncio.to_thread(_directory_has_files, path)
+
+
 def _directory_has_files(path: str) -> bool:
+    """Synchronous implementation of directory check."""
     return any(files for _, _, files in os.walk(path))
 
 
+async def _directory_size_bytes_async(path: str) -> int:
+    """Get directory size in bytes (async wrapper)."""
+    return await asyncio.to_thread(_directory_size_bytes, path)
+
+
 def _directory_size_bytes(path: str) -> int:
+    """Synchronous implementation of directory size calculation."""
     return sum(
         os.path.getsize(os.path.join(dirpath, filename))
         for dirpath, _, filenames in os.walk(path)
         for filename in filenames
         if os.path.isfile(os.path.join(dirpath, filename))
     )
+
+
+async def _rmtree_async(path: str) -> None:
+    """Remove directory tree asynchronously."""
+    await asyncio.to_thread(shutil.rmtree, path)
 
 
 class TranscriptionModelManager:

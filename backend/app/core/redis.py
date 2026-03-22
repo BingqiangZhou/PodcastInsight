@@ -311,6 +311,120 @@ class PodcastRedis:
         self._record_command_timing("DEL", (perf_counter() - started) * 1000)
         return result
 
+    # === Anti-Stampede Cache Operations ===
+
+    async def cache_get_with_lock(
+        self,
+        key: str,
+        loader: Any,
+        ttl: int = 3600,
+        lock_timeout: int = 10,
+    ) -> tuple[Any, bool]:
+        """Get cached value with distributed lock to prevent cache stampede.
+
+        Args:
+            key: Cache key
+            loader: Async callable to load value if cache miss
+            ttl: Cache TTL in seconds
+            lock_timeout: Lock timeout in seconds
+
+        Returns:
+            Tuple of (value, from_cache)
+        """
+        # Try to get from cache first
+        value = await self.cache_get_json(key)
+        if value is not None:
+            self._record_cache_lookup(key, hit=True)
+            return value, True
+
+        # Try to acquire lock
+        lock_key = f"lock:{key}"
+        client = await self._get_client()
+        started = perf_counter()
+        lock_acquired = await client.set(lock_key, "1", nx=True, ex=lock_timeout)
+        self._record_command_timing("SET_NX", (perf_counter() - started) * 1000)
+
+        if lock_acquired:
+            try:
+                # We hold the lock, load the value
+                value = await loader()
+                await self.cache_set_json(key, value, ttl=ttl)
+                self._record_cache_lookup(key, hit=False)
+                return value, False
+            finally:
+                # Release lock
+                await self._delete_keys_nonblocking(lock_key)
+        else:
+            # Another process is loading, wait and retry
+            await asyncio.sleep(0.1)
+            # Try to get from cache again
+            value = await self.cache_get_json(key)
+            if value is not None:
+                self._record_cache_lookup(key, hit=True)
+                return value, True
+            # Cache still empty, load anyway (fallback)
+            value = await loader()
+            await self.cache_set_json(key, value, ttl=ttl)
+            self._record_cache_lookup(key, hit=False)
+            return value, False
+
+    async def cache_get_or_load(
+        self,
+        key: str,
+        loader: Any,
+        ttl: int = 3600,
+        stale_ttl: int = 300,
+    ) -> Any:
+        """Get cached value with stale-while-revalidate pattern.
+
+        Returns stale data immediately while refreshing in background.
+
+        Args:
+            key: Cache key
+            loader: Async callable to load value if cache miss
+            ttl: Cache TTL in seconds
+            stale_ttl: Refresh threshold - refresh if TTL remaining < stale_ttl
+
+        Returns:
+            Cached or freshly loaded value
+        """
+        value = await self.cache_get_json(key)
+        if value is not None:
+            # Check if we should background refresh
+            client = await self._get_client()
+            started = perf_counter()
+            ttl_remaining = await client.ttl(key)
+            self._record_command_timing("TTL", (perf_counter() - started) * 1000)
+
+            if ttl_remaining > 0 and ttl_remaining < stale_ttl:
+                # Trigger background refresh (non-blocking)
+                asyncio.create_task(self._background_refresh(key, loader, ttl))
+                self._record_cache_lookup(key, hit=True)
+            return value
+
+        # Cache miss, load synchronously
+        value = await loader()
+        await self.cache_set_json(key, value, ttl=ttl)
+        self._record_cache_lookup(key, hit=False)
+        return value
+
+    async def _background_refresh(
+        self,
+        key: str,
+        loader: Any,
+        ttl: int,
+    ) -> None:
+        """Background cache refresh task."""
+        try:
+            value = await loader()
+            await self.cache_set_json(key, value, ttl=ttl)
+        except Exception as e:
+            # Log but don't raise - background task
+            import logging
+            logging.getLogger(__name__).warning(
+                "Background cache refresh failed for key %s: %s", key, e
+            )
+
     async def delete_keys(self, *keys: str) -> int:
         """Delete one or more keys."""
         return await self._delete_keys_nonblocking(*keys)
