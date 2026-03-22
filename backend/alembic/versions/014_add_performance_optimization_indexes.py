@@ -32,7 +32,7 @@ def upgrade() -> None:
     op.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_podcast_episodes_subscription_published
-        ON podcast_episodes (subscription_id, published DESC);
+        ON podcast_episodes (subscription_id, published_at DESC);
         """
     )
 
