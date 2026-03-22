@@ -4,6 +4,55 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.27.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.26.0...v0.27.0) - 2026-03-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.27.0))
+
+### ⚡ Performance
+
+- *(backend)* Implement comprehensive performance optimizations ([948e743](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/948e743d4945b14facc67a02ccbd7187179d7cc3))
+- *(backend)* Add observability metrics and transcript storage optimization ([3ec16e4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3ec16e405e0e543b3f290aacaeacf0d316c0aabb))
+
+### 🐛 Bug Fixes
+
+- *(migration)* Correct syntax error in migration 014 ([bd7fcfe](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bd7fcfe859cc31f9c891503306442598d27c8421))
+- *(migration)* Use correct column name published_at instead of published ([4f457b7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4f457b78ec66493bbbc83eea7857763b9dc29ebb))
+- *(migration)* Use correct column for playback state index ([a816e18](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a816e18fcb8a4cacb9dd42aeb63f27109d17f6a8))
+- *(migration)* Use default GIN operator class for JSON columns ([ea3b15e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ea3b15e961dcabaea2fc6b7b87dbc308fd15c6f1))
+- *(migration)* Convert JSON to JSONB and add GIN indexes ([19f92fb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/19f92fba7fe058d2994f5ee531e4ad0b3e4e8323))
+- *(migration)* Convert all JSON columns to JSONB before adding GIN indexes ([5c6fc27](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/5c6fc27ac46ce3aa025af1facacab1431defcdfa))
+- *(core)* Convert middleware.py to package for rate_limit import ([33c1435](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/33c1435143bd59417416fa97012c167ad552316d))
+- *(providers)* Import Depends from fastapi ([b9bfdb2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b9bfdb27becd3ef522368c2d114ed3fd2672f469))
+- *(providers)* Add missing Depends import from FastAPI ([515a6d2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/515a6d24bb94671cfb2c2521bd22b9d5436a6267))
+- *(providers)* Use callable reference instead of string for Depends injection ([c365747](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c36574723a02bb92e07025f66a6cdb225f1a258d))
+- *(podcast)* Map transcript_content to renamed database column ([2333a27](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2333a27a72ef8d8aff9b7d2f3d69c46f361820ae))
+- *(core)* Prevent circular recursion in Redis health check ([c3bdd63](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c3bdd63d2b6d02244132f04e5b166232bac40a7f))
+- *(podcast)* Add missing subscription model import in feed repository ([0878df5](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0878df5535ffec8843fafb1a36dae698ec1177c4))
+- *(core)* Resolve FastAPI dependency injection and add missing Redis methods ([9c0fc48](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9c0fc4890d8da58b3f0a1e9ebe078fac5745521b))
+
+### 🚀 Features
+
+- *(core)* Add comprehensive data clearing for server switching with user confirmation ([458921d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/458921d86a6ed569fc643798ba32c0f0a05e17ad))
+
+### 🚜 Refactor
+
+- *(backend)* Complete Phase 3 architecture and performance optimizations ([e625aa2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e625aa297f66847e6bd70277a6121b3498e82e32))
+
+
+
+## [0.26.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.25.0...v0.26.0) - 2026-03-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.26.0))
+
+### ⚡ Performance
+
+- *(frontend)* Optimize Flutter app performance and stability ([75d5bae](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/75d5bae718c2667a2060c312503dd1988d77347e))
+- *(frontend)* Add scroll constants and optimize list rendering ([9743425](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/97434257bedeb3b4f47eaebfab99bf1feb7843ea))
+- *(frontend)* Optimize memory management and fix widget tests ([866ea3e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/866ea3edbc28b4d9590c258a1f281ff67b94858e))
+
+### 🚜 Refactor
+
+- *(podcast)* Extract state providers and add performance optimizations ([ac3967d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ac3967dfd0d0dc593f3c56057a094cfc3dc8a449))
+- *(frontend)* Improve resource cleanup and state management ([597311d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/597311d96ea2f64d46b6be19fd88a130c39c24b0))
+
+
+
 ## [0.25.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.24.1...v0.25.0) - 2026-03-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.25.0))
 
 ### ⚡ Performance
