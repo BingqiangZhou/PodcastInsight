@@ -1,15 +1,24 @@
-"""Feed and pagination repository mixin."""
+"""Feed and pagination repository mixin.
+
+This module uses lazy imports for subscription models to maintain domain boundaries.
+"""
+
+from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.orm import joinedload
 
 from app.domains.podcast.models import PodcastEpisode, PodcastPlaybackState
-from app.domains.subscription.models import Subscription, UserSubscription
+from app.domains.podcast.repositories.base import _get_subscription_models
 from app.shared.repository_helpers import resolve_window_total
+
+# Use TYPE_CHECKING to avoid runtime dependency on subscription domain
+if TYPE_CHECKING:
+    from app.domains.subscription.models import Subscription, UserSubscription
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +33,13 @@ class PodcastFeedRepositoryMixin:
         page: int = 1,
         size: int = 20,
         filters: dict | None = None,
-    ) -> tuple[list[Subscription], int, dict[int, int]]:
+    ) -> tuple[list, int, dict[int, int]]:
+        """Get paginated user subscriptions.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         skip = (page - 1) * size
         base_query = (
             select(Subscription)
@@ -84,6 +99,12 @@ class PodcastFeedRepositoryMixin:
         size: int = 20,
         filters: dict | None = None,
     ) -> tuple[list[PodcastEpisode], int]:
+        """Get paginated episodes.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         skip = (page - 1) * size
         base_query = (
             select(PodcastEpisode)
@@ -162,6 +183,12 @@ class PodcastFeedRepositoryMixin:
         return total
 
     def _build_feed_lightweight_base_query(self, user_id: int):
+        """Build base query for lightweight feed.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         return (
             select(
                 PodcastEpisode.id.label("id"),
@@ -327,6 +354,12 @@ class PodcastFeedRepositoryMixin:
         cursor_published_at: Any = None,
         cursor_episode_id: int | None = None,
     ) -> tuple[list[PodcastEpisode], int, bool, tuple[Any, int] | None]:
+        """Get cursor-paginated feed.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         query = (
             select(PodcastEpisode)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
@@ -370,6 +403,12 @@ class PodcastFeedRepositoryMixin:
         page: int = 1,
         size: int = 20,
     ) -> tuple[list[PodcastEpisode], int]:
+        """Get paginated playback history.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         skip = (page - 1) * size
         base_query = (
             select(PodcastEpisode)
@@ -415,6 +454,12 @@ class PodcastFeedRepositoryMixin:
         cursor_last_updated_at: Any = None,
         cursor_episode_id: int | None = None,
     ) -> tuple[list[PodcastEpisode], int, bool, tuple[Any, int] | None]:
+        """Get cursor-paginated playback history.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         base_query = (
             select(
                 PodcastEpisode,
@@ -482,6 +527,12 @@ class PodcastFeedRepositoryMixin:
         page: int = 1,
         size: int = 20,
     ) -> tuple[list[dict[str, Any]], int]:
+        """Get paginated playback history (lite version).
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         skip = (page - 1) * size
         base_query = (
             select(

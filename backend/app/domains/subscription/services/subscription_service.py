@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import UTC, datetime
 from typing import Any
@@ -32,6 +33,9 @@ from app.shared.schemas import SubscriptionCreate, SubscriptionUpdate
 
 
 logger = logging.getLogger(__name__)
+
+# Maximum concurrent subscription operations
+_MAX_BATCH_CONCURRENCY = 10
 
 
 class SubscriptionService:
@@ -255,37 +259,62 @@ class SubscriptionService:
         self,
         subscriptions_data: list[SubscriptionCreate],
     ) -> list[dict[str, Any]]:
-        results = []
-        for sub_data in subscriptions_data:
-            try:
-                status, sub, message = await self._subscribe_or_attach(sub_data)
-                results.append(
-                    {
+        """Create multiple subscriptions concurrently with controlled parallelism.
+
+        Uses asyncio.Semaphore to limit concurrent operations and isolates errors
+        so individual failures don't affect other subscriptions.
+        """
+        if not subscriptions_data:
+            return []
+
+        semaphore = asyncio.Semaphore(_MAX_BATCH_CONCURRENCY)
+        results = [None] * len(subscriptions_data)
+
+        async def process_single(index: int, sub_data: SubscriptionCreate) -> dict:
+            """Process a single subscription with error isolation."""
+            async with semaphore:
+                try:
+                    status, sub, message = await self._subscribe_or_attach(sub_data)
+                    return {
                         "source_url": sub_data.source_url,
                         "title": sub_data.title,
                         "status": status,
                         "id": sub.id,
                         "message": message,
-                    },
-                )
-            except ValueError as exc:
-                results.append(
-                    {
+                    }
+                except ValueError as exc:
+                    return {
                         "source_url": sub_data.source_url,
                         "title": sub_data.title,
                         "status": "skipped",
                         "message": str(exc),
-                    },
-                )
-            except Exception as exc:
-                results.append(
-                    {
+                    }
+                except Exception as exc:
+                    logger.exception(
+                        "Error processing subscription %s: %s",
+                        sub_data.source_url,
+                        exc,
+                    )
+                    return {
                         "source_url": sub_data.source_url,
                         "title": sub_data.title,
                         "status": "error",
                         "message": str(exc),
-                    },
-                )
+                    }
+
+        # Create tasks for all subscriptions
+        tasks = [
+            process_single(i, sub_data)
+            for i, sub_data in enumerate(subscriptions_data)
+        ]
+
+        # Execute concurrently with semaphore limiting parallelism
+        completed_results = await asyncio.gather(*tasks)
+
+        # Map results back to original order
+        for i, result in enumerate(completed_results):
+            results[i] = result
+
         return results
 
     async def update_subscription(self, sub_id: int, sub_data: SubscriptionUpdate):

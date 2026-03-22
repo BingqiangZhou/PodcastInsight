@@ -6,6 +6,7 @@ Uses single Redis DB for all personal-scale operations:
 - Locks: Prevent duplicate processing
 - Session: User data (if needed)
 - Task locks: Podcast processing coordination
+- Runtime Metrics: Cross-process command and cache statistics
 
 Recommended naming conventions:
 - podcast:meta:{episode_id} - Episode metadata
@@ -17,6 +18,7 @@ Recommended naming conventions:
 - podcast:stats:{user_id} - User statistics
 - podcast:episodes:{sub_id}:{page} - Episode list page
 - podcast:search:{query_hash} - Search results
+- podcast:metrics:* - Runtime metrics stored in Redis
 """
 
 import asyncio
@@ -24,7 +26,7 @@ import hashlib
 import json
 import secrets
 from contextlib import suppress
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import perf_counter
 from typing import Any
 
@@ -47,22 +49,15 @@ class RedisJSONEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-class PodcastRedis:
-    """Simple Redis wrapper for podcast features"""
+# Redis keys for distributed runtime metrics
+_METRICS_COMMANDS_KEY = "podcast:metrics:commands"
+_METRICS_CACHE_KEY = "podcast:metrics:cache"
+_METRICS_TTL_SECONDS = 3600  # Metrics expire after 1 hour
 
-    _runtime_metrics: dict[str, Any] = {
-        "commands": {
-            "total_count": 0,
-            "total_ms": 0.0,
-            "max_ms": 0.0,
-            "by_command": {},
-        },
-        "cache": {
-            "hits": 0,
-            "misses": 0,
-            "by_namespace": {},
-        },
-    }
+
+class PodcastRedis:
+    """Simple Redis wrapper for podcast features with distributed metrics"""
+
     _health_check_interval_seconds = 30.0
 
     def __init__(self):
@@ -86,89 +81,163 @@ class PodcastRedis:
             return ":".join(parts[:2])
         return parts[0] if parts else "unknown"
 
-    @classmethod
-    def _record_command_timing(cls, command: str, elapsed_ms: float) -> None:
-        commands = cls._runtime_metrics["commands"]
-        commands["total_count"] += 1
-        commands["total_ms"] += elapsed_ms
-        commands["max_ms"] = max(commands["max_ms"], elapsed_ms)
+    async def _record_command_timing(self, command: str, elapsed_ms: float) -> None:
+        """Record command timing in Redis using atomic operations."""
+        client = await self._get_client()
+        started = perf_counter()
+        try:
+            # Use pipeline for atomic multi-operation
+            async with client.pipeline() as pipe:
+                # Total count and time
+                pipe.hincrby(_METRICS_COMMANDS_KEY, "total_count", 1)
+                pipe.hincrbyfloat(_METRICS_COMMANDS_KEY, "total_ms", elapsed_ms)
 
-        per_command = commands["by_command"]
-        stats = per_command.get(command)
-        if stats is None:
-            stats = {"count": 0, "total_ms": 0.0, "max_ms": 0.0}
-            per_command[command] = stats
-        stats["count"] += 1
-        stats["total_ms"] += elapsed_ms
-        stats["max_ms"] = max(stats["max_ms"], elapsed_ms)
+                # Track max_ms using Lua script for atomic max update
+                max_update_script = """
+                    local current = redis.call('HGET', KEYS[1], 'max_ms')
+                    local new_val = tonumber(ARGV[1])
+                    if current then
+                        current = tonumber(current)
+                        if new_val > current then
+                            redis.call('HSET', KEYS[1], 'max_ms', new_val)
+                        end
+                    else
+                        redis.call('HSET', KEYS[1], 'max_ms', new_val)
+                    end
+                """
+                pipe.eval(max_update_script, 1, _METRICS_COMMANDS_KEY, elapsed_ms)
 
-    @classmethod
-    def _record_cache_lookup(cls, key: str, *, hit: bool) -> None:
-        cache = cls._runtime_metrics["cache"]
-        if hit:
-            cache["hits"] += 1
-        else:
-            cache["misses"] += 1
+                # Per-command stats
+                pipe.hincrby(f"{_METRICS_COMMANDS_KEY}:by_command:{command}", "count", 1)
+                pipe.hincrbyfloat(f"{_METRICS_COMMANDS_KEY}:by_command:{command}", "total_ms", elapsed_ms)
 
-        namespace = cls._cache_namespace(key)
-        by_namespace = cache["by_namespace"]
-        ns_stats = by_namespace.get(namespace)
-        if ns_stats is None:
-            ns_stats = {"hits": 0, "misses": 0}
-            by_namespace[namespace] = ns_stats
-        if hit:
-            ns_stats["hits"] += 1
-        else:
-            ns_stats["misses"] += 1
+                # Update max_ms for specific command
+                pipe.eval(max_update_script, 1, f"{_METRICS_COMMANDS_KEY}:by_command:{command}", elapsed_ms)
 
-    @classmethod
-    def get_runtime_metrics(cls) -> dict[str, Any]:
-        commands = cls._runtime_metrics["commands"]
-        cache = cls._runtime_metrics["cache"]
+                # Set TTL on all keys
+                pipe.expire(_METRICS_COMMANDS_KEY, _METRICS_TTL_SECONDS)
+                pipe.expire(f"{_METRICS_COMMANDS_KEY}:by_command:{command}", _METRICS_TTL_SECONDS)
 
-        total_count = commands["total_count"]
-        total_ms = commands["total_ms"]
-        avg_ms = (total_ms / total_count) if total_count else 0.0
+                await pipe.execute()
+        except Exception:
+            # Silently fail to avoid impacting main operations
+            pass
 
-        hits = cache["hits"]
-        misses = cache["misses"]
-        lookups = hits + misses
-        hit_rate = (hits / lookups) if lookups else 0.0
+    async def _record_cache_lookup(self, key: str, *, hit: bool) -> None:
+        """Record cache lookup in Redis using atomic operations."""
+        client = await self._get_client()
+        try:
+            namespace = self._cache_namespace(key)
+            field = "hits" if hit else "misses"
 
-        by_command: dict[str, Any] = {}
-        for name, stats in commands["by_command"].items():
-            count = stats["count"]
-            by_command[name] = {
-                "count": count,
-                "avg_ms": (stats["total_ms"] / count) if count else 0.0,
-                "max_ms": stats["max_ms"],
+            async with client.pipeline() as pipe:
+                # Global stats
+                pipe.hincrby(_METRICS_CACHE_KEY, field, 1)
+
+                # Per-namespace stats
+                pipe.hincrby(f"{_METRICS_CACHE_KEY}:namespace:{namespace}", field, 1)
+
+                # Set TTL
+                pipe.expire(_METRICS_CACHE_KEY, _METRICS_TTL_SECONDS)
+                pipe.expire(f"{_METRICS_CACHE_KEY}:namespace:{namespace}", _METRICS_TTL_SECONDS)
+
+                await pipe.execute()
+        except Exception:
+            # Silently fail to avoid impacting main operations
+            pass
+
+    async def get_runtime_metrics(self) -> dict[str, Any]:
+        """Get runtime metrics from Redis (aggregated across all processes)."""
+        client = await self._get_client()
+        started = perf_counter()
+
+        try:
+            # Get command metrics
+            commands_data = await client.hgetall(_METRICS_COMMANDS_KEY) or {}
+            total_count = int(commands_data.get("total_count", 0))
+            total_ms = float(commands_data.get("total_ms", 0.0))
+            max_ms = float(commands_data.get("max_ms", 0.0))
+            avg_ms = (total_ms / total_count) if total_count else 0.0
+
+            # Get per-command metrics
+            by_command: dict[str, Any] = {}
+            command_keys_pattern = f"{_METRICS_COMMANDS_KEY}:by_command:*"
+            async for key in client.scan_iter(match=command_keys_pattern):
+                command_name = key.split(":")[-1]
+                cmd_data = await client.hgetall(key) or {}
+                count = int(cmd_data.get("count", 0))
+                cmd_total_ms = float(cmd_data.get("total_ms", 0.0))
+                cmd_max_ms = float(cmd_data.get("max_ms", 0.0))
+                by_command[command_name] = {
+                    "count": count,
+                    "avg_ms": (cmd_total_ms / count) if count else 0.0,
+                    "max_ms": cmd_max_ms,
+                }
+
+            # Get cache metrics
+            cache_data = await client.hgetall(_METRICS_CACHE_KEY) or {}
+            hits = int(cache_data.get("hits", 0))
+            misses = int(cache_data.get("misses", 0))
+            lookups = hits + misses
+            hit_rate = (hits / lookups) if lookups else 0.0
+
+            # Get per-namespace metrics
+            by_namespace: dict[str, Any] = {}
+            namespace_pattern = f"{_METRICS_CACHE_KEY}:namespace:*"
+            async for key in client.scan_iter(match=namespace_pattern):
+                namespace = key.split(":")[-1]
+                ns_data = await client.hgetall(key) or {}
+                ns_hits = int(ns_data.get("hits", 0))
+                ns_misses = int(ns_data.get("misses", 0))
+                ns_total = ns_hits + ns_misses
+                by_namespace[namespace] = {
+                    "hits": ns_hits,
+                    "misses": ns_misses,
+                    "hit_rate": (ns_hits / ns_total) if ns_total else 0.0,
+                }
+
+            await self._record_command_timing("HGETALL", (perf_counter() - started) * 1000)
+
+            return {
+                "commands": {
+                    "total_count": total_count,
+                    "avg_ms": avg_ms,
+                    "max_ms": max_ms,
+                    "by_command": by_command,
+                },
+                "cache": {
+                    "hits": hits,
+                    "misses": misses,
+                    "hit_rate": hit_rate,
+                    "by_namespace": by_namespace,
+                },
+            }
+        except Exception:
+            # Return empty metrics on error
+            return {
+                "commands": {
+                    "total_count": 0,
+                    "avg_ms": 0.0,
+                    "max_ms": 0.0,
+                    "by_command": {},
+                },
+                "cache": {
+                    "hits": 0,
+                    "misses": 0,
+                    "hit_rate": 0.0,
+                    "by_namespace": {},
+                },
             }
 
-        by_namespace: dict[str, Any] = {}
-        for namespace, stats in cache["by_namespace"].items():
-            ns_hits = stats["hits"]
-            ns_misses = stats["misses"]
-            ns_total = ns_hits + ns_misses
-            by_namespace[namespace] = {
-                "hits": ns_hits,
-                "misses": ns_misses,
-                "hit_rate": (ns_hits / ns_total) if ns_total else 0.0,
-            }
+    @classmethod
+    def _record_command_timing_sync(cls, command: str, elapsed_ms: float) -> None:
+        """Legacy method for backward compatibility - deprecated."""
+        pass
 
-        return {
-            "commands": {
-                "total_count": total_count,
-                "avg_ms": avg_ms,
-                "max_ms": commands["max_ms"],
-                "by_command": by_command,
-            },
-            "cache": {
-                "hits": hits,
-                "misses": misses,
-                "hit_rate": hit_rate,
-                "by_namespace": by_namespace,
-            },
-        }
+    @classmethod
+    def _record_cache_lookup_sync(cls, key: str, *, hit: bool) -> None:
+        """Legacy method for backward compatibility - deprecated."""
+        pass
 
     @staticmethod
     def _stable_hash(value: str) -> str:
@@ -206,7 +275,7 @@ class PodcastRedis:
         started = perf_counter()
         async for key in client.scan_iter(match=pattern):
             keys.append(key)
-        self._record_command_timing("SCAN_ITER", (perf_counter() - started) * 1000)
+        await self._record_command_timing("SCAN_ITER", (perf_counter() - started) * 1000)
         return keys
 
     @staticmethod
@@ -233,13 +302,13 @@ class PodcastRedis:
         started = perf_counter()
         try:
             result = await client.unlink(*keys)
-            self._record_command_timing("UNLINK", (perf_counter() - started) * 1000)
+            await self._record_command_timing("UNLINK", (perf_counter() - started) * 1000)
             return int(result or 0)
         except Exception:
             # Fall back to DEL for Redis deployments without UNLINK support.
             fallback_started = perf_counter()
             result = await client.delete(*keys)
-            self._record_command_timing(
+            await self._record_command_timing(
                 "DEL", (perf_counter() - fallback_started) * 1000
             )
             return int(result or 0)
@@ -247,7 +316,7 @@ class PodcastRedis:
     async def _ping_client(self, client: aioredis.Redis) -> None:
         started = perf_counter()
         await client.ping()
-        self._record_command_timing("PING", (perf_counter() - started) * 1000)
+        await self._record_command_timing("PING", (perf_counter() - started) * 1000)
 
     async def _get_client(self) -> aioredis.Redis:
         """Get Redis client instance"""
@@ -292,7 +361,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         value = await client.get(key)
-        self._record_command_timing("GET", (perf_counter() - started) * 1000)
+        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
         return value
 
     async def cache_set(self, key: str, value: str, ttl: int = 3600) -> bool:
@@ -300,7 +369,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.setex(key, ttl, value)
-        self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
+        await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
         return result
 
     async def cache_delete(self, key: str) -> bool:
@@ -308,7 +377,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.delete(key)
-        self._record_command_timing("DEL", (perf_counter() - started) * 1000)
+        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
         return result
 
     # === Anti-Stampede Cache Operations ===
@@ -334,7 +403,7 @@ class PodcastRedis:
         # Try to get from cache first
         value = await self.cache_get_json(key)
         if value is not None:
-            self._record_cache_lookup(key, hit=True)
+            await self._record_cache_lookup(key, hit=True)
             return value, True
 
         # Try to acquire lock
@@ -342,14 +411,14 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         lock_acquired = await client.set(lock_key, "1", nx=True, ex=lock_timeout)
-        self._record_command_timing("SET_NX", (perf_counter() - started) * 1000)
+        await self._record_command_timing("SET_NX", (perf_counter() - started) * 1000)
 
         if lock_acquired:
             try:
                 # We hold the lock, load the value
                 value = await loader()
                 await self.cache_set_json(key, value, ttl=ttl)
-                self._record_cache_lookup(key, hit=False)
+                await self._record_cache_lookup(key, hit=False)
                 return value, False
             finally:
                 # Release lock
@@ -360,12 +429,12 @@ class PodcastRedis:
             # Try to get from cache again
             value = await self.cache_get_json(key)
             if value is not None:
-                self._record_cache_lookup(key, hit=True)
+                await self._record_cache_lookup(key, hit=True)
                 return value, True
             # Cache still empty, load anyway (fallback)
             value = await loader()
             await self.cache_set_json(key, value, ttl=ttl)
-            self._record_cache_lookup(key, hit=False)
+            await self._record_cache_lookup(key, hit=False)
             return value, False
 
     async def cache_get_or_load(
@@ -394,18 +463,18 @@ class PodcastRedis:
             client = await self._get_client()
             started = perf_counter()
             ttl_remaining = await client.ttl(key)
-            self._record_command_timing("TTL", (perf_counter() - started) * 1000)
+            await self._record_command_timing("TTL", (perf_counter() - started) * 1000)
 
             if ttl_remaining > 0 and ttl_remaining < stale_ttl:
                 # Trigger background refresh (non-blocking)
                 asyncio.create_task(self._background_refresh(key, loader, ttl))
-                self._record_cache_lookup(key, hit=True)
+                await self._record_cache_lookup(key, hit=True)
             return value
 
         # Cache miss, load synchronously
         value = await loader()
         await self.cache_set_json(key, value, ttl=ttl)
-        self._record_cache_lookup(key, hit=False)
+        await self._record_cache_lookup(key, hit=False)
         return value
 
     async def _background_refresh(
@@ -434,7 +503,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         value = await client.hget(key, field)
-        self._record_command_timing("HGET", (perf_counter() - started) * 1000)
+        await self._record_command_timing("HGET", (perf_counter() - started) * 1000)
         return value
 
     async def cache_hgetall(self, key: str) -> dict[str, str]:
@@ -442,7 +511,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         value = await client.hgetall(key)
-        self._record_command_timing("HGETALL", (perf_counter() - started) * 1000)
+        await self._record_command_timing("HGETALL", (perf_counter() - started) * 1000)
         return value
 
     async def cache_hset(self, key: str, mapping: dict, ttl: int | None = None) -> int:
@@ -450,11 +519,11 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.hset(key, mapping=mapping)
-        self._record_command_timing("HSET", (perf_counter() - started) * 1000)
+        await self._record_command_timing("HSET", (perf_counter() - started) * 1000)
         if ttl:
             expire_started = perf_counter()
             await client.expire(key, ttl)
-            self._record_command_timing(
+            await self._record_command_timing(
                 "EXPIRE",
                 (perf_counter() - expire_started) * 1000,
             )
@@ -522,12 +591,12 @@ class PodcastRedis:
         if data:
             try:
                 value = json.loads(data)
-                self._record_cache_lookup(key, hit=True)
+                await self._record_cache_lookup(key, hit=True)
                 return value
             except json.JSONDecodeError:
-                self._record_cache_lookup(key, hit=False)
+                await self._record_cache_lookup(key, hit=False)
                 return None
-        self._record_cache_lookup(key, hit=False)
+        await self._record_cache_lookup(key, hit=False)
         return None
 
     async def cache_set_json(self, key: str, value: Any, ttl: int = 3600) -> bool:
@@ -576,7 +645,7 @@ class PodcastRedis:
             pipe.sadd(index_key, key)
             pipe.expire(index_key, 1800)
             await pipe.execute()
-        self._record_command_timing("PIPELINE_SETEX_SADD_EXPIRE", (perf_counter() - started) * 1000)
+        await self._record_command_timing("PIPELINE_SETEX_SADD_EXPIRE", (perf_counter() - started) * 1000)
         return True
 
     async def invalidate_subscription_list(self, user_id: int) -> None:
@@ -585,7 +654,7 @@ class PodcastRedis:
         index_key = self._subscription_index_key(user_id)
         started = perf_counter()
         keys = list(await client.smembers(index_key))
-        self._record_command_timing("SMEMBERS", (perf_counter() - started) * 1000)
+        await self._record_command_timing("SMEMBERS", (perf_counter() - started) * 1000)
         if not keys:
             pattern = f"podcast:subscriptions:v2:{user_id}:*"
             keys = await self._scan_keys(pattern)
@@ -660,7 +729,7 @@ class PodcastRedis:
             pipe.sadd(index_key, key)
             pipe.expire(index_key, 1800)
             await pipe.execute()
-        self._record_command_timing("PIPELINE_SETEX_SADD_EXPIRE", (perf_counter() - started) * 1000)
+        await self._record_command_timing("PIPELINE_SETEX_SADD_EXPIRE", (perf_counter() - started) * 1000)
         return True
 
     async def invalidate_episode_list(self, subscription_id: int) -> None:
@@ -669,7 +738,7 @@ class PodcastRedis:
         index_key = self._episode_index_key(subscription_id)
         started = perf_counter()
         keys = list(await client.smembers(index_key))
-        self._record_command_timing("SMEMBERS", (perf_counter() - started) * 1000)
+        await self._record_command_timing("SMEMBERS", (perf_counter() - started) * 1000)
         if not keys:
             pattern = f"podcast:episodes:{subscription_id}:*"
             keys = await self._scan_keys(pattern)
@@ -736,7 +805,7 @@ class PodcastRedis:
         key = f"podcast:lock:{lock_name}"
         started = perf_counter()
         result = await client.set(key, value, ex=expire, nx=True)
-        self._record_command_timing("SET", (perf_counter() - started) * 1000)
+        await self._record_command_timing("SET", (perf_counter() - started) * 1000)
         return bool(result)
 
     async def release_lock(self, lock_name: str) -> None:
@@ -744,7 +813,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         await client.delete(f"podcast:lock:{lock_name}")
-        self._record_command_timing("DEL", (perf_counter() - started) * 1000)
+        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
 
     async def acquire_owned_lock(
         self,
@@ -772,7 +841,7 @@ class PodcastRedis:
             f"podcast:lock:{lock_name}",
             token,
         )
-        self._record_command_timing("EVAL", (perf_counter() - started) * 1000)
+        await self._record_command_timing("EVAL", (perf_counter() - started) * 1000)
         return bool(result)
 
     async def set_if_not_exists(
@@ -786,7 +855,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.set(key, value, ex=ttl, nx=True)
-        self._record_command_timing("SET", (perf_counter() - started) * 1000)
+        await self._record_command_timing("SET", (perf_counter() - started) * 1000)
         return bool(result)
 
     async def get_ttl(self, key: str) -> int:
@@ -794,7 +863,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         ttl = await client.ttl(key)
-        self._record_command_timing("TTL", (perf_counter() - started) * 1000)
+        await self._record_command_timing("TTL", (perf_counter() - started) * 1000)
         return int(ttl)
 
     async def scan_keys(self, pattern: str) -> list[str]:
@@ -806,7 +875,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.zadd(key, {member: score})
-        self._record_command_timing("ZADD", (perf_counter() - started) * 1000)
+        await self._record_command_timing("ZADD", (perf_counter() - started) * 1000)
         return int(result or 0)
 
     async def sorted_set_remove(self, key: str, *members: str) -> int:
@@ -816,7 +885,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.zrem(key, *members)
-        self._record_command_timing("ZREM", (perf_counter() - started) * 1000)
+        await self._record_command_timing("ZREM", (perf_counter() - started) * 1000)
         return int(result or 0)
 
     async def sorted_set_cardinality(self, key: str) -> int:
@@ -824,7 +893,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.zcard(key)
-        self._record_command_timing("ZCARD", (perf_counter() - started) * 1000)
+        await self._record_command_timing("ZCARD", (perf_counter() - started) * 1000)
         return int(result or 0)
 
     async def sorted_set_range_by_score(
@@ -837,7 +906,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.zrangebyscore(key, min_score, max_score)
-        self._record_command_timing("ZRANGEBYSCORE", (perf_counter() - started) * 1000)
+        await self._record_command_timing("ZRANGEBYSCORE", (perf_counter() - started) * 1000)
         return list(result)
 
     async def sorted_set_remove_by_score(
@@ -850,7 +919,7 @@ class PodcastRedis:
         client = await self._get_client()
         started = perf_counter()
         result = await client.zremrangebyscore(key, min_score, max_score)
-        self._record_command_timing(
+        await self._record_command_timing(
             "ZREMRANGEBYSCORE",
             (perf_counter() - started) * 1000,
         )
@@ -872,12 +941,12 @@ class PodcastRedis:
         key = f"podcast:rate:{user_id}:{action}"
         started = perf_counter()
         current = await client.get(key)
-        self._record_command_timing("GET", (perf_counter() - started) * 1000)
+        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
 
         if current is None:
             set_started = perf_counter()
             await client.setex(key, window, 1)
-            self._record_command_timing("SETEX", (perf_counter() - set_started) * 1000)
+            await self._record_command_timing("SETEX", (perf_counter() - set_started) * 1000)
             return True
 
         count = int(current)
@@ -886,7 +955,7 @@ class PodcastRedis:
 
         incr_started = perf_counter()
         await client.incr(key)
-        self._record_command_timing("INCR", (perf_counter() - incr_started) * 1000)
+        await self._record_command_timing("INCR", (perf_counter() - incr_started) * 1000)
         return True
 
     async def close(self):
@@ -906,7 +975,7 @@ class PodcastRedis:
                 client = await self._get_client()
                 started = perf_counter()
                 await client.ping()
-                self._record_command_timing("PING", (perf_counter() - started) * 1000)
+                await self._record_command_timing("PING", (perf_counter() - started) * 1000)
             return {"status": "healthy"}
         except TimeoutError:
             return {"status": "unhealthy", "error": "timeout"}
@@ -919,9 +988,10 @@ async def get_redis() -> PodcastRedis:
     return PodcastRedis()
 
 
-def get_redis_runtime_metrics() -> dict[str, Any]:
-    """Get process-level Redis command and cache metrics."""
-    return PodcastRedis.get_runtime_metrics()
+async def get_redis_runtime_metrics() -> dict[str, Any]:
+    """Get distributed Redis command and cache metrics from Redis storage."""
+    redis = await get_redis()
+    return await redis.get_runtime_metrics()
 
 
 def get_shared_redis() -> PodcastRedis:

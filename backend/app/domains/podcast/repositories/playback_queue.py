@@ -1,9 +1,14 @@
-"""Playback and queue repository mixins."""
+"""Playback and queue repository mixins.
+
+This module uses lazy imports for subscription models to maintain domain boundaries.
+"""
+
+from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime
 from time import perf_counter
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import joinedload
@@ -14,11 +19,25 @@ from app.domains.podcast.models import (
     PodcastQueue,
     PodcastQueueItem,
 )
-from app.domains.subscription.models import UserSubscription
 from app.domains.user.models import User
+
+# Use TYPE_CHECKING to avoid runtime dependency on subscription domain
+if TYPE_CHECKING:
+    from app.domains.subscription.models import UserSubscription
 
 
 logger = logging.getLogger(__name__)
+
+
+def _get_user_subscription_model():
+    """Lazy import UserSubscription model to maintain domain boundaries.
+
+    Returns:
+        UserSubscription model class
+    """
+    from app.domains.subscription.models import UserSubscription
+
+    return UserSubscription
 
 
 class PodcastPlaybackQueueRepositoryMixin:
@@ -35,6 +54,7 @@ class PodcastPlaybackQueueRepositoryMixin:
         user_id: int,
         subscription_id: int,
     ) -> float | None:
+        UserSubscription = _get_user_subscription_model()
         stmt = select(UserSubscription.playback_rate_preference).where(
             and_(
                 *self._active_user_subscription_filters(user_id),
@@ -82,6 +102,7 @@ class PodcastPlaybackQueueRepositoryMixin:
         apply_to_subscription: bool,
         subscription_id: int | None = None,
     ) -> dict[str, Any]:
+        UserSubscription = _get_user_subscription_model()
         if apply_to_subscription:
             if subscription_id is None:
                 raise ValueError("SUBSCRIPTION_ID_REQUIRED")

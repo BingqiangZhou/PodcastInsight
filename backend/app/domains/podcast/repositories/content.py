@@ -1,14 +1,33 @@
-"""Subscription and episode content repository mixin."""
+"""Subscription and episode content repository mixin.
+
+This module uses lazy imports for subscription models to maintain domain boundaries.
+"""
+
+from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, desc, func, select
 from sqlalchemy.orm import attributes, joinedload
 
 from app.core.datetime_utils import sanitize_published_date
 from app.domains.podcast.models import PodcastEpisode
-from app.domains.subscription.models import Subscription, UserSubscription
+
+# Use TYPE_CHECKING to avoid runtime dependency on subscription domain
+if TYPE_CHECKING:
+    from app.domains.subscription.models import Subscription, UserSubscription
+
+
+def _get_subscription_models():
+    """Lazy import subscription models to maintain domain boundaries.
+
+    Returns:
+        Tuple of (Subscription, UserSubscription) models
+    """
+    from app.domains.subscription.models import Subscription, UserSubscription
+
+    return Subscription, UserSubscription
 
 
 class PodcastContentRepositoryMixin:
@@ -22,9 +41,15 @@ class PodcastContentRepositoryMixin:
         description: str = "",
         custom_name: str | None = None,
         metadata: dict | None = None,
-    ) -> Subscription:
+    ):
+        """Create or update a podcast subscription.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
         from app.admin.models import SystemSettings
         from app.domains.subscription.models import UpdateFrequency
+
+        Subscription, UserSubscription = _get_subscription_models()
 
         stmt = select(Subscription).where(
             and_(
@@ -112,7 +137,13 @@ class PodcastContentRepositoryMixin:
         await self.db.refresh(subscription)
         return subscription
 
-    async def get_user_subscriptions(self, user_id: int) -> list[Subscription]:
+    async def get_user_subscriptions(self, user_id: int) -> list:
+        """Get all user subscriptions for podcasts.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         stmt = (
             select(Subscription)
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
@@ -131,7 +162,13 @@ class PodcastContentRepositoryMixin:
         self,
         user_id: int,
         sub_id: int,
-    ) -> Subscription | None:
+    ):
+        """Get a subscription by ID.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         stmt = (
             select(Subscription)
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
@@ -150,7 +187,13 @@ class PodcastContentRepositoryMixin:
         self,
         user_id: int,
         feed_url: str,
-    ) -> Subscription | None:
+    ):
+        """Get a subscription by URL.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         stmt = (
             select(Subscription)
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
@@ -168,7 +211,13 @@ class PodcastContentRepositoryMixin:
     async def get_subscription_by_id_direct(
         self,
         subscription_id: int,
-    ) -> Subscription | None:
+    ):
+        """Get a subscription by ID without user filter.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, _ = _get_subscription_models()
+
         stmt = select(Subscription).where(
             and_(
                 Subscription.id == subscription_id,
@@ -336,6 +385,12 @@ class PodcastContentRepositoryMixin:
         self,
         user_id: int,
     ) -> list[dict[str, Any]]:
+        """Get pending summaries for a user.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         stmt = (
             select(PodcastEpisode, Subscription.title)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
@@ -393,6 +448,12 @@ class PodcastContentRepositoryMixin:
         episode_id: int,
         user_id: int | None = None,
     ) -> PodcastEpisode | None:
+        """Get an episode by ID.
+
+        Uses lazy imports to maintain domain boundary separation.
+        """
+        Subscription, UserSubscription = _get_subscription_models()
+
         stmt = (
             select(PodcastEpisode)
             .options(joinedload(PodcastEpisode.subscription))

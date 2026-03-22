@@ -91,14 +91,14 @@ def register_internal_routes(app: FastAPI) -> None:
         redis_cache_lookups_min=settings.OBS_ALERT_REDIS_CACHE_LOOKUPS_MIN,
     )
 
-    def build_metrics_payload() -> dict:
+    async def build_metrics_payload() -> dict:
         middleware = get_performance_middleware(app)
         if not middleware:
             return {"error": "Performance monitoring not enabled"}
 
         metrics = middleware.get_metrics()
         db_pool = get_db_pool_snapshot()
-        redis_runtime = get_redis_runtime_metrics()
+        redis_runtime = await get_redis_runtime_metrics()
         observability = build_observability_snapshot(
             performance_metrics=metrics,
             db_pool=db_pool,
@@ -147,11 +147,11 @@ def register_internal_routes(app: FastAPI) -> None:
 
     @app.get("/metrics", include_in_schema=False)
     async def get_metrics():
-        return build_metrics_payload()
+        return await build_metrics_payload()
 
     @app.get("/metrics/summary", include_in_schema=False)
     async def get_metrics_summary():
-        payload = build_metrics_payload()
+        payload = await build_metrics_payload()
         if "error" in payload:
             return payload
         return payload["observability"]

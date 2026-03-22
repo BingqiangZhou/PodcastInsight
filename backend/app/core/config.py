@@ -87,6 +87,7 @@ class Settings(BaseSettings):
     # Database - Pool sizing adjusted for podcast-heavy workloads
     # Base calculation: 5 domains × 6 concurrent/domain × 2 buffer = 60 connections
     DATABASE_URL: str | None = None
+    READ_DATABASE_URL: str | None = None  # Read replica URL (optional, defaults to DATABASE_URL)
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 40
 
@@ -94,6 +95,10 @@ class Settings(BaseSettings):
     DATABASE_POOL_TIMEOUT: int = 30  # Max wait for connection (seconds)
     DATABASE_RECYCLE: int = 3600  # Recycle connections after 1 hour
     DATABASE_CONNECT_TIMEOUT: int = 5  # Fast fail for connection issues
+
+    # Read replica pool settings (can be larger than primary for read-heavy workloads)
+    DATABASE_READ_POOL_SIZE: int | None = None  # Defaults to DATABASE_POOL_SIZE
+    DATABASE_READ_MAX_OVERFLOW: int | None = None  # Defaults to DATABASE_MAX_OVERFLOW
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379"

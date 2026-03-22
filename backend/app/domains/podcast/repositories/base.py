@@ -1,15 +1,38 @@
-"""Shared repository base for podcast persistence helpers."""
+"""Shared repository base for podcast persistence helpers.
+
+This module provides lazy imports for subscription models to maintain
+clean domain boundaries while allowing SQLAlchemy queries to work.
+"""
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.redis import PodcastRedis, get_shared_redis
 from app.domains.podcast.models import PodcastEpisode, PodcastPlaybackState
-from app.domains.subscription.models import Subscription, UserSubscription
+
+# Use TYPE_CHECKING to avoid runtime dependency on subscription domain
+# This maintains clean domain boundaries while providing type hints
+if TYPE_CHECKING:
+    from app.domains.subscription.models import Subscription, UserSubscription
+
+
+def _get_subscription_models():
+    """Lazy import subscription models to maintain domain boundaries.
+
+    This function is called at runtime when the models are actually needed
+    for SQLAlchemy queries, but the TYPE_CHECKING guard above ensures they
+    are not imported during type checking.
+
+    Returns:
+        Tuple of (Subscription, UserSubscription) models
+    """
+    from app.domains.subscription.models import Subscription, UserSubscription
+
+    return Subscription, UserSubscription
 
 
 class BasePodcastRepository:
@@ -23,7 +46,11 @@ class BasePodcastRepository:
 
     @staticmethod
     def _active_user_subscription_filters(user_id: int) -> tuple[Any, Any]:
-        """Common filter for active user-subscription mappings."""
+        """Common filter for active user-subscription mappings.
+
+        Uses lazy import to maintain domain boundary separation.
+        """
+        _, UserSubscription = _get_subscription_models()
         return (
             UserSubscription.user_id == user_id,
             UserSubscription.is_archived.is_(False),
@@ -31,6 +58,11 @@ class BasePodcastRepository:
 
     @staticmethod
     def _podcast_source_type_filter() -> Any:
+        """Filter for podcast source types.
+
+        Uses lazy import to maintain domain boundary separation.
+        """
+        Subscription, _ = _get_subscription_models()
         return Subscription.source_type.in_(["podcast-rss", "rss"])
 
     async def get_playback_state(

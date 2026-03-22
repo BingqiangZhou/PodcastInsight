@@ -35,7 +35,7 @@ async def _runtime_observability_payload(request: Request) -> dict:
     perf_store = get_performance_middleware(request.app)
     performance_metrics = perf_store.get_metrics() if perf_store else {"summary": {}}
     db_pool = get_db_pool_snapshot()
-    redis_runtime = get_redis_runtime_metrics()
+    redis_runtime = await get_redis_runtime_metrics()
     readiness = {
         "db": await check_db_readiness(),
         "redis": await get_shared_redis().check_health(),

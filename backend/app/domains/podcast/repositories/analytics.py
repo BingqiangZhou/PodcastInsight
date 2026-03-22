@@ -3,25 +3,34 @@
 import logging
 from datetime import UTC, date, datetime, timedelta
 from inspect import isawaitable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, case, desc, func, or_, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import joinedload
 
-from app.core.datetime_utils import (
-    ensure_timezone_aware_fetch_time,
-)
+from app.core.datetime_utils import ensure_timezone_aware_fetch_time
 from app.domains.podcast.models import (
     EpisodeHighlight,
     PodcastDailyReport,
     PodcastEpisode,
     PodcastPlaybackState,
 )
-from app.domains.subscription.models import Subscription, UserSubscription
+from app.domains.podcast.repositories.base import _get_subscription_models
+
+# Use TYPE_CHECKING to avoid runtime dependency on subscription domain
+if TYPE_CHECKING:
+    from app.domains.subscription.models import Subscription, UserSubscription
 
 
 logger = logging.getLogger(__name__)
+
+
+def _get_subscription_models():
+    """Lazy import subscription models to maintain domain boundaries."""
+    from app.domains.subscription.models import Subscription, UserSubscription
+
+    return Subscription, UserSubscription
 
 
 class PodcastAnalyticsRepositoryMixin:
@@ -124,6 +133,9 @@ class PodcastAnalyticsRepositoryMixin:
                 relevance_score = relevance_score + term
             relevance_score = relevance_score.label("relevance_score")
 
+            # Get models lazily to maintain domain boundaries
+            Subscription, UserSubscription = _get_subscription_models()
+
             base_query = (
                 select(PodcastEpisode, relevance_score)
                 .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
@@ -196,6 +208,7 @@ class PodcastAnalyticsRepositoryMixin:
         subscription_id: int,
         fetch_time: datetime | None = None,
     ):
+        Subscription, _ = _get_subscription_models()
         stmt = select(Subscription).where(Subscription.id == subscription_id)
         result = await self.db.execute(stmt)
         subscription = result.scalar_one_or_none()
@@ -208,6 +221,9 @@ class PodcastAnalyticsRepositoryMixin:
             await self.db.commit()
 
     async def update_subscription_metadata(self, subscription_id: int, metadata: dict):
+        from sqlalchemy.orm import attributes
+
+        Subscription, _ = _get_subscription_models()
         stmt = select(Subscription).where(Subscription.id == subscription_id)
         result = await self.db.execute(stmt)
         subscription = result.scalar_one_or_none()
@@ -216,8 +232,6 @@ class PodcastAnalyticsRepositoryMixin:
             current_config = dict(subscription.config or {})
             current_config.update(metadata)
             subscription.config = current_config
-            from sqlalchemy.orm import attributes
-
             attributes.flag_modified(subscription, "config")
             subscription.updated_at = datetime.now(UTC)
             await self.db.commit()
@@ -227,6 +241,7 @@ class PodcastAnalyticsRepositoryMixin:
         user_id: int,
         limit: int = 5,
     ) -> list[dict[str, Any]]:
+        Subscription, UserSubscription = _get_subscription_models()
         stmt = (
             select(
                 PodcastEpisode,
@@ -270,6 +285,7 @@ class PodcastAnalyticsRepositoryMixin:
         user_id: int,
         limit: int = 20,
     ) -> list[PodcastEpisode]:
+        Subscription, UserSubscription = _get_subscription_models()
         stmt = (
             select(PodcastEpisode)
             .join(PodcastPlaybackState)
@@ -310,6 +326,7 @@ class PodcastAnalyticsRepositoryMixin:
         return dates
 
     def _subscription_count_stmt(self, user_id: int) -> Any:
+        Subscription, UserSubscription = _get_subscription_models()
         return (
             select(func.count(Subscription.id))
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
@@ -323,6 +340,7 @@ class PodcastAnalyticsRepositoryMixin:
         include_played_episodes: bool = False,
         include_total_playtime: bool = False,
     ) -> Any:
+        Subscription, UserSubscription = _get_subscription_models()
         columns: list[Any] = [
             func.count(PodcastEpisode.id).label("total_episodes"),
             func.sum(case((PodcastEpisode.ai_summary.isnot(None), 1), else_=0)).label(
@@ -368,6 +386,7 @@ class PodcastAnalyticsRepositoryMixin:
         )
 
     async def get_profile_stats_aggregated(self, user_id: int) -> dict[str, Any]:
+        Subscription, UserSubscription = _get_subscription_models()
         total_subscriptions = (
             await self.db.scalar(self._subscription_count_stmt(user_id)) or 0
         )
@@ -417,6 +436,7 @@ class PodcastAnalyticsRepositoryMixin:
         }
 
     async def get_user_stats_aggregated(self, user_id: int) -> dict[str, Any]:
+        Subscription, UserSubscription = _get_subscription_models()
         total_subscriptions = (
             await self.db.scalar(self._subscription_count_stmt(user_id)) or 0
         )
