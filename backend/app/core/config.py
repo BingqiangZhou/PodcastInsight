@@ -204,6 +204,9 @@ class Settings(BaseSettings):
     OBS_ALERT_REDIS_COMMAND_MAX_MS: float = 100.0
     OBS_ALERT_REDIS_CACHE_HIT_RATE_MIN: float = 0.5
     OBS_ALERT_REDIS_CACHE_LOOKUPS_MIN: int = 20
+    # Circuit breaker observability
+    OBS_ALERT_CIRCUIT_BREAKER_OPEN_MAX: int = 0  # Alert if any breakers open
+    OBS_ALERT_CIRCUIT_BREAKER_REJECTED_MAX: int = 10
     OBS_SUCCESS_LOG_SAMPLE_RATE: float = 0.1
 
     model_config = SettingsConfigDict(

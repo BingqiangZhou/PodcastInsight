@@ -118,6 +118,12 @@ class PodcastEpisode(Base):
         back_populates="episode",
         cascade="all, delete",
     )
+    transcript = relationship(
+        "PodcastEpisodeTranscript",
+        back_populates="episode",
+        uselist=False,
+        cascade="all, delete",
+    )
 
     # Indexes
     __table_args__ = (
@@ -133,6 +139,32 @@ class PodcastEpisode(Base):
 
     def __repr__(self):
         return f"<PodcastEpisode(id={self.id}, title='{self.title[:30]}...', status='{self.status}')>"
+
+
+class PodcastEpisodeTranscript(Base):
+    """Dedicated storage for episode transcript content.
+
+    Separated from podcast_episodes to improve query performance
+    on the main table by avoiding large TEXT column scans.
+    """
+
+    __tablename__ = "podcast_episode_transcripts"
+
+    episode_id = Column(Integer, ForeignKey("podcast_episodes.id"), primary_key=True)
+    transcript_content = Column(Text, nullable=True)
+    transcript_word_count = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+
+    # Relationship
+    episode = relationship("PodcastEpisode", back_populates="transcript")
+
+    def __repr__(self):
+        return f"<PodcastEpisodeTranscript(episode_id={self.episode_id}, word_count={self.transcript_word_count})>"
 
 
 Subscription.podcast_episodes = relationship(
