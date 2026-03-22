@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 /// A wrapper widget that provides scroll-to-top functionality for its child content.
@@ -18,7 +19,8 @@ class ScrollableContentWrapper extends StatefulWidget {
   State<ScrollableContentWrapper> createState() => ScrollableContentWrapperState();
 }
 
-class ScrollableContentWrapperState extends State<ScrollableContentWrapper> {
+class ScrollableContentWrapperState extends State<ScrollableContentWrapper>
+    with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
 
   /// Scroll to the top of the content
@@ -33,6 +35,9 @@ class ScrollableContentWrapperState extends State<ScrollableContentWrapper> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -40,10 +45,31 @@ class ScrollableContentWrapperState extends State<ScrollableContentWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      padding: widget.padding,
-      child: widget.child,
+    super.build(context);
+    return RepaintBoundary(
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        padding: widget.padding,
+        physics: _getScrollPhysics(),
+        child: widget.child,
+      ),
     );
+  }
+
+  ScrollPhysics _getScrollPhysics() {
+    if (kIsWeb) {
+      return const ClampingScrollPhysics();
+    }
+    switch (Theme.of(context).platform) {
+      case TargetPlatform.android:
+        return const BouncingScrollPhysics();
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return const BouncingScrollPhysics();
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return const ClampingScrollPhysics();
+    }
   }
 }

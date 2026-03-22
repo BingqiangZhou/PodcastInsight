@@ -266,20 +266,30 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
                 .podcast_generating_summary,
           )
         else if (summaryState.hasSummary)
-          _buildSummaryCard(
-            context,
+          SummaryDisplayWidget(
             episodeTitle: episode.title,
             summary: summaryState.summary!,
             compact: compact,
+            useInternalScrolling: false,
+            onShareAll: _shareAllSummaryAsImage,
+            onShareSelected: (episodeTitle, summary, selectedText) {
+              _selectedSummaryText = selectedText;
+              return _shareSelectedSummaryAsImage(episodeTitle, summary);
+            },
           )
         else if (episodeSummaryFailure != null)
           _buildAiSummaryErrorState(context, episodeSummaryFailure)
         else if (sanitizedEpisodeSummary.isNotEmpty)
-          _buildSummaryCard(
-            context,
+          SummaryDisplayWidget(
             episodeTitle: episode.title,
             summary: sanitizedEpisodeSummary,
             compact: compact,
+            useInternalScrolling: false,
+            onShareAll: _shareAllSummaryAsImage,
+            onShareSelected: (episodeTitle, summary, selectedText) {
+              _selectedSummaryText = selectedText;
+              return _shareSelectedSummaryAsImage(episodeTitle, summary);
+            },
           )
         else
           _buildAiSummaryEmptyState(context),
@@ -299,75 +309,6 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
       title: (AppLocalizations.of(context) ?? AppLocalizationsEn())
           .podcast_transcription_failed,
       subtitle: message,
-    );
-  }
-
-  Widget _buildSummaryCard(
-    BuildContext context, {
-    required String episodeTitle,
-    required String summary,
-    bool compact = false,
-  }) {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: () =>
-                unawaited(_shareAllSummaryAsImage(episodeTitle, summary)),
-            icon: const Icon(Icons.ios_share_outlined, size: 16),
-            label: Text(l10n.podcast_share_all_content),
-          ),
-        ),
-        const SizedBox(height: 10),
-        SelectionArea(
-          onSelectionChanged: (selectedContent) {
-            _selectedSummaryText = selectedContent?.plainText.trim() ?? '';
-          },
-          contextMenuBuilder: (context, selectableRegionState) {
-            return AdaptiveTextSelectionToolbar.buttonItems(
-              anchors: selectableRegionState.contextMenuAnchors,
-              buttonItems: [
-                ...selectableRegionState.contextMenuButtonItems,
-                ContextMenuButtonItem(
-                  label: l10n.podcast_share_as_image,
-                  onPressed: () {
-                    ContextMenuController.removeAny();
-                    unawaited(
-                      _shareSelectedSummaryAsImage(episodeTitle, summary),
-                    );
-                  },
-                ),
-              ],
-            );
-          },
-          child: MarkdownBody(
-            data: summary,
-            styleSheet: MarkdownStyleSheet(
-              p: theme.textTheme.bodyLarge?.copyWith(
-                height: compact ? 1.55 : 1.65,
-              ),
-              h1: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-              h2: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-              h3: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-              listBullet: theme.textTheme.bodyLarge,
-              strong: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
