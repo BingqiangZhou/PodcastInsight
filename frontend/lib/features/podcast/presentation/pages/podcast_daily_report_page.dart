@@ -7,7 +7,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../core/constants/breakpoints.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/utils/time_formatter.dart';
 import '../../../../core/widgets/app_shells.dart';
 import '../../../../core/widgets/custom_adaptive_navigation.dart';
@@ -113,7 +113,7 @@ class _PodcastDailyReportPageState
   }
 
   Widget _buildHeaderPanel(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final isMobile =
         MediaQuery.of(context).size.width < AppBreakpoints.medium;
     return CompactHeaderPanel(
@@ -142,7 +142,7 @@ class _PodcastDailyReportPageState
   }
 
   Widget _buildCalendarButton(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return HeaderCapsuleActionButton(
       key: const Key('daily_report_calendar_menu_button'),
       tooltip: l10n.podcast_daily_report_dates,
@@ -156,7 +156,7 @@ class _PodcastDailyReportPageState
   }
 
   Widget _buildRegenerateButton(DateTime? targetDate) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final tokens = appThemeOf(context);
     return FilledButton.tonalIcon(
@@ -205,7 +205,7 @@ class _PodcastDailyReportPageState
   }
 
   Widget _buildDailyReportPanel(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final tokens = appThemeOf(context);
     final reportAsync = ref.watch(dailyReportProvider);
@@ -413,7 +413,7 @@ class _PodcastDailyReportPageState
     BuildContext context,
     PodcastDailyReportItem item,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final tokens = appThemeOf(context);
     final metaLine =
@@ -556,7 +556,7 @@ class _PodcastDailyReportPageState
   }
 
   Widget _buildCalendarPanelContent(BuildContext context, WidgetRef panelRef) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final reportDatesAsync = panelRef.watch(dailyReportDatesProvider);
     final selectedDate = panelRef.watch(selectedDailyReportDateProvider);
@@ -844,14 +844,14 @@ class _PodcastDailyReportPageState
       }
 
       if (generated != null && generated.available) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         showTopFloatingNotice(
           context,
           message: l10n.podcast_daily_report_generate_success,
           extraTopOffset: 64,
         );
       } else {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         showTopFloatingNotice(
           context,
           message: l10n.podcast_daily_report_generate_failed,
@@ -861,7 +861,7 @@ class _PodcastDailyReportPageState
       }
     } catch (error) {
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         final errorMessage = error.toString().trim();
         showTopFloatingNotice(
           context,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 
 import '../constants/breakpoints.dart';
-import '../localization/app_localizations.dart';
+import '../localization/app_localizations_extension.dart';
 import '../theme/app_colors.dart';
 
 const Duration _kBottomAccessoryPaddingTransition = Duration(milliseconds: 220);
@@ -243,7 +243,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
   }
 
   Widget _buildDesktopExpandedSidebar(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -279,7 +279,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
   }
 
   Widget _buildDesktopCollapsedSidebar(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return Column(
       children: [
         const SizedBox(height: 10),

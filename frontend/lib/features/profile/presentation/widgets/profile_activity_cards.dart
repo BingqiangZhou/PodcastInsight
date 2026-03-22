@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/breakpoints.dart';
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/widgets/app_shells.dart';
 import '../../../podcast/presentation/navigation/podcast_navigation.dart';
 import '../../../podcast/presentation/providers/podcast_providers.dart';
@@ -21,7 +21,7 @@ class ProfileActivityCards extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isMobile = context.isMobile;

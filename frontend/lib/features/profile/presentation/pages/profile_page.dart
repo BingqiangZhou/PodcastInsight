@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
@@ -78,7 +78,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final theme = Theme.of(context);
@@ -197,7 +197,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Widget _buildSettingsContent(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final isMobile = context.isMobile;
     final theme = Theme.of(context);
 
@@ -357,7 +357,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return Consumer(
       builder: (context, ref, _) {
         final currentCode = ref.watch(localeCodeProvider);
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         final languageName = switch (currentCode) {
           kLanguageSystem => l10n.languageFollowSystem,
           kLanguageChinese => l10n.languageChinese,
@@ -379,7 +379,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return Consumer(
       builder: (context, ref, _) {
         final currentCode = ref.watch(themeModeCodeProvider);
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         final themeModeName = switch (currentCode) {
           kThemeModeSystem => l10n.theme_mode_follow_system,
           kThemeModeLight => l10n.theme_mode_light,
@@ -442,7 +442,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _showEditProfileDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     _showConstrainedDialog<void>(
       context,
       builder: (dialogContext) {
@@ -500,7 +500,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _showSecurityDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     _showConstrainedDialog<void>(
       context,
       builder: (dialogContext) {
@@ -550,7 +550,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         return Consumer(
           builder: (dialogContext, ref, _) {
             final currentCode = ref.watch(localeCodeProvider);
-            final l10n = AppLocalizations.of(dialogContext)!;
+            final l10n = dialogContext.l10n;
             final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
 
             return AlertDialog(
@@ -622,7 +622,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         return Consumer(
           builder: (dialogContext, ref, _) {
             final currentCode = ref.watch(themeModeCodeProvider);
-            final l10n = AppLocalizations.of(dialogContext)!;
+            final l10n = dialogContext.l10n;
             final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
 
             return AlertDialog(
@@ -706,7 +706,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Future<void> _showAboutDialog(BuildContext context) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final packageInfo = await PackageInfo.fromPlatform();
     if (!context.mounted) return;
 
@@ -786,7 +786,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _showLogoutDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     _showConstrainedDialog<void>(
       context,
       builder: (dialogContext) {

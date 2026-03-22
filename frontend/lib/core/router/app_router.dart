@@ -20,7 +20,7 @@ import '../../features/profile/presentation/pages/profile_history_page.dart';
 import '../../features/profile/presentation/pages/profile_cache_management_page.dart';
 import '../../features/profile/presentation/pages/profile_subscriptions_page.dart';
 import '../../features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
-import '../../core/localization/app_localizations.dart';
+import '../../core/localization/app_localizations_extension.dart';
 import '../../core/widgets/app_shells.dart';
 import '../../core/widgets/page_transitions.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
@@ -260,7 +260,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) {
               final args = PodcastEpisodesPageArgs.extractFromState(state);
               if (args == null) {
-                final l10n = AppLocalizations.of(context)!;
+                final l10n = context.l10n;
                 return _buildPageWithTransition(
                   state: state,
                   child: Scaffold(
@@ -287,7 +287,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) {
               final args = PodcastEpisodeDetailPageArgs.extractFromState(state);
               if (args == null) {
-                final l10n = AppLocalizations.of(context)!;
+                final l10n = context.l10n;
                 return _buildPageWithTransition(
                   state: state,
                   child: Scaffold(
@@ -312,7 +312,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 state.pathParameters['episodeId'] ?? '',
               );
               if (episodeId == null) {
-                final l10n = AppLocalizations.of(context)!;
+                final l10n = context.l10n;
                 return _buildPageWithTransition(
                   state: state,
                   child: Scaffold(
@@ -433,7 +433,7 @@ class ErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,

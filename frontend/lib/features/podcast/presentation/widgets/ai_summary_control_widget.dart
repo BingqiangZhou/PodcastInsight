@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../../podcast/data/models/podcast_playback_model.dart';
 import '../providers/summary_providers.dart';
@@ -133,7 +133,7 @@ class _AISummaryControlWidgetState
   }
 
   Widget _buildNoTranscriptMessage(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -164,7 +164,7 @@ class _AISummaryControlWidgetState
     List<SummaryModelInfo> models, {
     required bool isLoading,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isCompact = widget.compact;
@@ -237,7 +237,7 @@ class _AISummaryControlWidgetState
     List<SummaryModelInfo> models,
     SummaryState summaryState,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isCompact = widget.compact;
@@ -364,7 +364,7 @@ class _AISummaryControlWidgetState
     List<SummaryModelInfo> models, {
     required bool enabled,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
@@ -423,7 +423,7 @@ class _AISummaryControlWidgetState
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),

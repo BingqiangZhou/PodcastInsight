@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/podcast_highlight_model.dart';
 import 'highlight_score_indicator.dart';
@@ -135,7 +135,7 @@ class HighlightCard extends ConsumerWidget {
 
   Widget _buildFavoriteButton(BuildContext context, ThemeData theme) {
     final isFavorited = highlight.isUserFavorited;
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     return Tooltip(
       message: isFavorited ? l10n.podcast_highlights_unfavorite : l10n.podcast_highlights_favorite,
@@ -159,7 +159,7 @@ class HighlightCard extends ConsumerWidget {
   }
 
   Widget _buildOriginalQuote(BuildContext context, ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return RepaintBoundary(
       child: Container(
         padding: const EdgeInsets.all(12),

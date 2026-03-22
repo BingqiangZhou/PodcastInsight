@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../data/models/podcast_search_model.dart';
 import '../providers/country_selector_provider.dart';
 
@@ -28,7 +29,7 @@ class _CountrySelectorDropdownState
     extends ConsumerState<CountrySelectorDropdown> {
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final countryState = ref.watch(countrySelectorProvider);
     final countryNotifier = ref.read(countrySelectorProvider.notifier);
 
@@ -146,7 +147,7 @@ class _CountrySelectorDropdownState
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _getCountryName(country, AppLocalizations.of(context)!),
+                    _getCountryName(country, context.l10n),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleMedium?.copyWith(

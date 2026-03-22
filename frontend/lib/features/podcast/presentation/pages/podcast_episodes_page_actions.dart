@@ -59,7 +59,7 @@ extension _PodcastEpisodesPageActions on _PodcastEpisodesPageState {
     try {
       await ref.read(podcastQueueControllerProvider.notifier).addToQueue(episode.id);
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
+      final l10n = context.l10n;
       showTopFloatingNotice(
         context,
         message: l10n.added_to_queue,
@@ -67,7 +67,7 @@ extension _PodcastEpisodesPageActions on _PodcastEpisodesPageState {
       );
     } catch (error) {
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
+      final l10n = context.l10n;
       showTopFloatingNotice(
         context,
         message: l10n.failed_to_add_to_queue(error.toString()),
@@ -90,7 +90,7 @@ extension _PodcastEpisodesPageActions on _PodcastEpisodesPageState {
       _isReparsing = true;
     });
 
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     try {
       if (mounted) {

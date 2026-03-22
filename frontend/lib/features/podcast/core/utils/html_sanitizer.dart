@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:html/dom.dart' as dom;
 
@@ -59,6 +60,24 @@ class HtmlSanitizer {
   ///
   /// Returns a sanitized HTML string safe for rendering
   static String sanitize(String html) {
+    return _sanitizeInIsolate(html);
+  }
+
+  /// Async version - sanitizes HTML in a background isolate
+  ///
+  /// [html] - The raw HTML string to sanitize
+  ///
+  /// Returns a sanitized HTML string safe for rendering
+  static Future<String> sanitizeAsync(String html) async {
+    if (html.isEmpty) return html;
+    return compute(_sanitizeInIsolate, html);
+  }
+
+  /// Isolate entry function - performs HTML sanitization
+  ///
+  /// This must be a top-level or static function to work with compute().
+  /// Contains the core sanitization logic moved from [sanitize].
+  static String _sanitizeInIsolate(String html) {
     if (html.isEmpty) return html;
 
     try {

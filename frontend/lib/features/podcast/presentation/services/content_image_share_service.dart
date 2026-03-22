@@ -11,7 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../data/models/podcast_conversation_model.dart';
@@ -366,7 +366,7 @@ class ContentImageShareService {
     BuildContext context,
     ShareImagePayload payload,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final normalizedText = payload.content.trim();
     final normalizedConversation = payload.conversationItems
         .map(
@@ -772,7 +772,7 @@ class ContentImageShareService {
   }
 
   static String _resolveTypeLabel(BuildContext context, ShareContentType type) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     switch (type) {
       case ShareContentType.summary:
         return l10n.podcast_filter_with_summary;
@@ -800,7 +800,7 @@ class ContentImageShareService {
     required Uint8List bytes,
     required String fileName,
   }) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.iOS:
@@ -843,7 +843,7 @@ class ContentImageShareService {
     required Uint8List bytes,
     required String fileName,
   }) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final granted = await _requestGalleryPermission();
     if (!granted) {
       throw ContentImageShareException(l10n.podcast_save_image_permission);

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import 'podcast_transcription_model.dart';
 
 /// Extension on [TranscriptionStatus] to provide localized status descriptions
 extension TranscriptionStatusLocalization on TranscriptionStatus {
   /// Get the localized status description for this transcription status
   String getLocalizedDescription(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     switch (this) {
       case TranscriptionStatus.pending:
         return l10n.transcription_status_pending;

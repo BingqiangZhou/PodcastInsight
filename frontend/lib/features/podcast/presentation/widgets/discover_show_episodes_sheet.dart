@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../data/models/itunes_episode_lookup_model.dart';
 import '../../data/models/podcast_episode_model.dart';
 import 'simplified_episode_card.dart';
@@ -23,7 +23,7 @@ class DiscoverShowEpisodesSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final now = DateTime.now();
 

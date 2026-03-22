@@ -72,6 +72,7 @@ class ShownotesDisplayWidgetState
   List<ShownotesAnchor> _anchors = const <ShownotesAnchor>[];
   List<_ShownotesSection> _sections = const <_ShownotesSection>[];
   final Map<String, GlobalKey> _sectionKeys = <String, GlobalKey>{};
+  bool _isLoading = false;
 
   void scrollToTop() {
     if (_scrollController.hasClients) {
@@ -102,7 +103,7 @@ class ShownotesDisplayWidgetState
   @override
   void initState() {
     super.initState();
-    _refreshShownotesCache(shouldSetState: false);
+    _refreshShownotesCache();
   }
 
   @override
@@ -110,7 +111,7 @@ class ShownotesDisplayWidgetState
     super.didUpdateWidget(oldWidget);
     if (_contentSignature(oldWidget.episode) !=
         _contentSignature(widget.episode)) {
-      _refreshShownotesCache(shouldSetState: true);
+      _refreshShownotesCache();
     }
   }
 
@@ -122,6 +123,10 @@ class ShownotesDisplayWidgetState
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return _buildLoadingState(context);
+    }
+
     if (_shownotes.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -164,11 +169,43 @@ class ShownotesDisplayWidgetState
     );
   }
 
-  void _refreshShownotesCache({required bool shouldSetState}) {
+  Future<void> _refreshShownotesCache() async {
     final nextShownotes = _resolveShownotesContent(widget.episode);
-    final nextSanitized = nextShownotes.isEmpty
-        ? ''
-        : HtmlSanitizer.sanitize(nextShownotes);
+    if (nextShownotes.isEmpty) {
+      if (mounted && _shownotes.isNotEmpty) {
+        setState(() {
+          _shownotes = '';
+          _sanitizedShownotes = '';
+          _sections = const <_ShownotesSection>[];
+          _anchors = const <ShownotesAnchor>[];
+          _sectionKeys.clear();
+        });
+        _notifyAnchorsChanged();
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    // Use async sanitization with compute for large content in production
+    // Fall back to sync for small content or when compute fails (e.g., in tests)
+    String nextSanitized;
+    if (nextShownotes.length < 10000) {
+      // For small content, use sync to avoid isolate overhead
+      nextSanitized = HtmlSanitizer.sanitize(nextShownotes);
+    } else {
+      // For large content, use async with compute
+      try {
+        nextSanitized = await HtmlSanitizer.sanitizeAsync(nextShownotes);
+      } catch (_) {
+        // Fallback to sync if compute fails (e.g., in test environment)
+        nextSanitized = HtmlSanitizer.sanitize(nextShownotes);
+      }
+    }
     final nextSections = nextSanitized.isEmpty
         ? const <_ShownotesSection>[]
         : _extractSections(nextSanitized);
@@ -179,6 +216,11 @@ class ShownotesDisplayWidgetState
     if (nextShownotes == _shownotes &&
         nextSanitized == _sanitizedShownotes &&
         listEquals(nextAnchors, _anchors)) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       return;
     }
 
@@ -188,19 +230,14 @@ class ShownotesDisplayWidgetState
       );
     }
 
-    if (shouldSetState) {
-      setState(() {
-        _shownotes = nextShownotes;
-        _sanitizedShownotes = nextSanitized;
-        _applySections(nextSections);
-      });
-      _notifyAnchorsChanged();
-      return;
-    }
+    if (!mounted) return;
 
-    _shownotes = nextShownotes;
-    _sanitizedShownotes = nextSanitized;
-    _applySections(nextSections);
+    setState(() {
+      _shownotes = nextShownotes;
+      _sanitizedShownotes = nextSanitized;
+      _isLoading = false;
+      _applySections(nextSections);
+    });
     _notifyAnchorsChanged();
   }
 
@@ -565,6 +602,30 @@ class ShownotesDisplayWidgetState
     return PodcastEmptyState(
       icon: Icons.description_outlined,
       title: l10n.podcast_no_shownotes,
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(18),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Shownotes',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const CircularProgressIndicator(),
+          ],
+        ),
+      ),
     );
   }
 

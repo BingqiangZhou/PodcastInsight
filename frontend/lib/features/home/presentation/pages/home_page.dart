@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/providers/route_provider.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/custom_adaptive_navigation.dart';
@@ -150,7 +150,7 @@ class _HomePageState extends ConsumerState<HomePage> with RouteAware {
   }
 
   List<NavigationDestination> _buildDestinations(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return [
       NavigationDestination(
         icon: const Icon(Icons.travel_explore_outlined),
@@ -257,7 +257,7 @@ class _HomePageState extends ConsumerState<HomePage> with RouteAware {
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                AppLocalizations.of(context)!.page_not_found,
+                context.l10n.page_not_found,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -266,7 +266,7 @@ class _HomePageState extends ConsumerState<HomePage> with RouteAware {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                AppLocalizations.of(context)!.page_not_found_subtitle,
+                context.l10n.page_not_found_subtitle,
                 style: TextStyle(
                   fontSize: 14,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,

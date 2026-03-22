@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../localization/app_localizations.dart';
+import '../localization/app_localizations_extension.dart';
 import '../theme/app_colors.dart';
 import 'app_shells.dart';
 
@@ -89,7 +89,7 @@ class EmptyFeedState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     return StyledEmptyState(
       icon: Icons.rss_feed,

@@ -7,7 +7,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../core/constants/breakpoints.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/widgets/app_shells.dart';
 import '../../../../core/widgets/custom_adaptive_navigation.dart';
 import '../../../../shared/widgets/loading_widget.dart';
@@ -148,7 +148,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   Widget _buildHeaderPanel(BuildContext context) {
     final isMobile =
         MediaQuery.of(context).size.width < AppBreakpoints.medium;
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     return CompactHeaderPanel(
       title: l10n.podcast_highlights_title,
@@ -176,7 +176,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   }
 
   Widget _buildCalendarButton(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return HeaderCapsuleActionButton(
       key: const Key('highlights_calendar_menu_button'),
       tooltip: l10n.podcast_highlights_dates,
@@ -192,7 +192,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   Widget _buildHighlightsPanel(BuildContext context) {
     final theme = Theme.of(context);
     final tokens = appThemeOf(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final highlightsAsync = ref.watch(highlightsProvider);
     final selectedDate = ref.watch(selectedHighlightDateProvider);
     final headerDate = selectedDate ?? _focusedCalendarDay;
@@ -292,7 +292,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   Widget _buildLoadingState(BuildContext context, DateTime headerDate) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,7 +322,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   Widget _buildErrorState(BuildContext context, DateTime headerDate) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
@@ -380,7 +380,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   Widget _buildEmptyState(BuildContext context, DateTime headerDate) {
     final theme = Theme.of(context);
     final tokens = appThemeOf(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
@@ -493,7 +493,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   Widget _buildCalendarPanelContent(BuildContext context, WidgetRef panelRef) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final datesAsync = panelRef.watch(highlightDatesProvider);
     final selectedDate = panelRef.watch(selectedHighlightDateProvider);
     final highlightDateKeys = <String>{

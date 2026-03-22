@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../data/models/podcast_episode_model.dart';
 import '../../data/models/podcast_state_models.dart';
@@ -118,7 +119,7 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final fallbackSubscriptionImageUrl = ref.watch(
       podcastEpisodesProvider.select(
         (state) =>

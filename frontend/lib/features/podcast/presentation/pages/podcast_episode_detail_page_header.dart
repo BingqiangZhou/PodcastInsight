@@ -7,34 +7,42 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   bool get _isUltraCompactPhoneLayout => MediaQuery.sizeOf(context).width < 360;
 
   Widget _buildHeader(PodcastEpisodeDetailResponse episode) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      child: _buildHeroHeaderCard(
-        episode,
-        isWide: false,
-        key: ValueKey(
-          'podcast_episode_detail_mobile_hero_'
-          '$_headerAnimationVersion',
-        ),
-      ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: _isHeaderExpandedNotifier,
+      builder: (context, isExpanded, _) {
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          child: _buildHeroHeaderCard(
+            episode,
+            isWide: false,
+            key: ValueKey(
+              'podcast_episode_detail_mobile_hero_$isExpanded',
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildAnimatedHeader(PodcastEpisodeDetailResponse episode) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      child: _buildHeroHeaderCard(
-        episode,
-        isWide: true,
-        key: ValueKey(
-          'podcast_episode_detail_wide_hero_'
-          '$_headerAnimationVersion',
-        ),
-      ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: _isHeaderExpandedNotifier,
+      builder: (context, isExpanded, _) {
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          child: _buildHeroHeaderCard(
+            episode,
+            isWide: true,
+            key: ValueKey(
+              'podcast_episode_detail_wide_hero_$isExpanded',
+            ),
+          ),
+        );
+      },
     );
   }
 

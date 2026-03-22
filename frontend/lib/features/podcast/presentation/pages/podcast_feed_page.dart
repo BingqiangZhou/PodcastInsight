@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/breakpoints.dart';
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/utils/text_processing_cache.dart';
 import '../../../../core/widgets/app_shells.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
@@ -75,7 +75,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final feedState = ref.watch(podcastFeedProvider);
     return ContentShell(
       title: l10n.podcast_feed_page_title,
@@ -114,7 +114,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
           .read(podcastQueueControllerProvider.notifier)
           .addToQueue(episode.id);
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         showTopFloatingNotice(
           context,
           message: l10n.added_to_queue,
@@ -123,7 +123,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
       }
     } catch (error) {
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         showTopFloatingNotice(
           context,
           message: l10n.failed_to_add_to_queue(error.toString()),
@@ -145,7 +145,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     required bool compact,
     bool heroStyle = false,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     if (heroStyle) {
       return HeaderCapsuleActionButton(
@@ -237,7 +237,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     BuildContext context, {
     required bool mobile,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return RefreshIndicator(
       onRefresh: () async {
         await ref
@@ -274,7 +274,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     WidgetRef localRef,
     PodcastFeedState feedState,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final showInitialLoading =
         _awaitingInitialFeed &&
         feedState.episodes.isEmpty &&

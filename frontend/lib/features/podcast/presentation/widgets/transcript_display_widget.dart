@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/utils/text_processing_cache.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import 'podcast_empty_state.dart';
@@ -161,7 +161,7 @@ class TranscriptDisplayWidgetState
   }
 
   Future<void> _shareSelectedTranscriptAsImage() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     try {
       await ContentImageShareService.shareAsImage(
         context,
@@ -181,7 +181,7 @@ class TranscriptDisplayWidgetState
   }
 
   Future<void> _shareSelectedTranscriptSegmentsAsImage() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     try {
       await ContentImageShareService.shareAsImage(
         context,
@@ -226,7 +226,7 @@ class TranscriptDisplayWidgetState
   }
 
   Widget _buildSelectionToolbar(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final selectedCount = _selectedTranscriptSegments.length;
@@ -260,7 +260,7 @@ class TranscriptDisplayWidgetState
   }
 
   Widget _buildSearchBar(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -336,7 +336,7 @@ class TranscriptDisplayWidgetState
     String sentence,
     int index,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final selectionKey = 'full_$index';
@@ -418,7 +418,7 @@ class TranscriptDisplayWidgetState
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     if (_searchResults.isEmpty) {
       return Center(
@@ -461,7 +461,7 @@ class TranscriptDisplayWidgetState
     String result,
     int index,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     final selectionKey = 'search_$index';
     final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
@@ -614,7 +614,7 @@ class TranscriptDisplayWidgetState
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return PodcastEmptyState(
       icon: Icons.article_outlined,
       title: l10n.podcast_no_transcript,

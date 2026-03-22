@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/router/app_router.dart';
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 
 /// Represents the user's sleep timer selection.
 class SleepTimerSelection {
@@ -43,7 +43,7 @@ const _kSleepTimerPresets = [
 ];
 
 String _formatPresetDuration(Duration d, BuildContext context) {
-  final l10n = AppLocalizations.of(context)!;
+  final l10n = context.l10n;
   if (d.inMinutes >= 60) {
     final hours = d.inHours;
     final mins = d.inMinutes.remainder(60);
@@ -73,7 +73,7 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
     useRootNavigator: true,
     builder: (context) {
       final theme = Theme.of(context);
-      final l10n = AppLocalizations.of(context)!;
+      final l10n = context.l10n;
 
       return SafeArea(
         child: SingleChildScrollView(
@@ -122,7 +122,7 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                     color: theme.colorScheme.primary,
                   ),
                   title: Text(
-                    AppLocalizations.of(context)!.player_stop_after_episode,
+                    context.l10n.player_stop_after_episode,
                   ),
                   onTap: () {
                     Navigator.of(

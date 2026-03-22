@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 
@@ -42,7 +43,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
   }
 
   Widget _buildNotStartedState(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final accentColor = theme.brightness == Brightness.dark
@@ -157,7 +158,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     // Show immediate feedback
     showTopFloatingNotice(
       context,
-      message: AppLocalizations.of(context)!.transcription_starting,
+      message: context.l10n.transcription_starting,
     );
 
     try {
@@ -168,7 +169,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
       if (context.mounted) {
         showTopFloatingNotice(
           context,
-          message: AppLocalizations.of(context)!.transcription_started_success,
+          message: context.l10n.transcription_started_success,
         );
       }
     } catch (e) {
@@ -185,7 +186,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
   }
 
   Widget _buildPendingState(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -269,7 +270,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     BuildContext context,
     PodcastTranscriptionResponse transcription,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     final progress = transcription.progressPercentage;
     final statusText = transcription.getLocalizedStatusDescription(context);
@@ -566,7 +567,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
             // Title
             Text(
-              AppLocalizations.of(context)!.transcription_complete_title,
+              context.l10n.transcription_complete_title,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -578,7 +579,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
             // Description
             Text(
-              AppLocalizations.of(context)!.transcription_complete_desc,
+              context.l10n.transcription_complete_desc,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -609,7 +610,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                       _buildStatItem(
                         context,
                         '${(wordCount / 1000).toStringAsFixed(1)}K',
-                        AppLocalizations.of(context)!.transcription_stat_words,
+                        context.l10n.transcription_stat_words,
                         Icons.text_fields,
                       ),
                       _buildStatItem(
@@ -679,7 +680,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     onPressed: () => _viewTranscription(ref),
                     icon: const Icon(Icons.visibility),
                     label: Text(
-                      AppLocalizations.of(context)!.transcription_view_button,
+                      context.l10n.transcription_view_button,
                     ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -704,7 +705,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
   ) {
     final errorMessage =
         transcription.errorMessage ??
-        AppLocalizations.of(context)!.transcription_unknown_error;
+        context.l10n.transcription_unknown_error;
     final friendlyMessage = _getFriendlyErrorMessage(context, errorMessage);
     final suggestion = _getErrorSuggestion(context, errorMessage);
 
@@ -735,7 +736,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
             // Title
             Text(
-              AppLocalizations.of(context)!.transcription_failed_title,
+              context.l10n.transcription_failed_title,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -794,7 +795,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
               ExpansionTile(
                 tilePadding: EdgeInsets.zero,
                 title: Text(
-                  AppLocalizations.of(context)!.transcription_technical_details,
+                  context.l10n.transcription_technical_details,
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -830,7 +831,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     onPressed: () => _deleteTranscription(ref),
                     icon: const Icon(Icons.delete_outline),
                     label: Text(
-                      AppLocalizations.of(context)!.podcast_transcription_clear,
+                      context.l10n.podcast_transcription_clear,
                     ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -846,7 +847,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     onPressed: () => _retryTranscription(ref),
                     icon: const Icon(Icons.refresh),
                     label: Text(
-                      AppLocalizations.of(context)!.transcription_retry_button,
+                      context.l10n.transcription_retry_button,
                     ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -872,27 +873,27 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     if (lowerError.contains('already in progress') ||
         lowerError.contains('already exists') ||
         lowerError.contains('locked')) {
-      return AppLocalizations.of(context)!.transcription_error_already_progress;
+      return context.l10n.transcription_error_already_progress;
     }
     if (lowerError.contains('network') ||
         lowerError.contains('connection') ||
         lowerError.contains('timeout')) {
-      return AppLocalizations.of(context)!.transcription_error_network;
+      return context.l10n.transcription_error_network;
     }
     if (lowerError.contains('audio') || lowerError.contains('download')) {
-      return AppLocalizations.of(context)!.transcription_error_audio_download;
+      return context.l10n.transcription_error_audio_download;
     }
     if (lowerError.contains('api') || lowerError.contains('transcription')) {
-      return AppLocalizations.of(context)!.transcription_error_service;
+      return context.l10n.transcription_error_service;
     }
     if (lowerError.contains('format') || lowerError.contains('convert')) {
-      return AppLocalizations.of(context)!.transcription_error_format;
+      return context.l10n.transcription_error_format;
     }
     if (lowerError.contains('server restart')) {
-      return AppLocalizations.of(context)!.transcription_error_server_restart;
+      return context.l10n.transcription_error_server_restart;
     }
 
-    return AppLocalizations.of(context)!.transcription_error_generic;
+    return context.l10n.transcription_error_generic;
   }
 
   String _getErrorSuggestion(BuildContext context, String error) {
@@ -901,22 +902,22 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     if (lowerError.contains('network') ||
         lowerError.contains('connection') ||
         lowerError.contains('timeout')) {
-      return AppLocalizations.of(context)!.transcription_suggest_network;
+      return context.l10n.transcription_suggest_network;
     }
     if (lowerError.contains('audio') || lowerError.contains('download')) {
-      return AppLocalizations.of(context)!.transcription_suggest_audio;
+      return context.l10n.transcription_suggest_audio;
     }
     if (lowerError.contains('api') || lowerError.contains('transcription')) {
-      return AppLocalizations.of(context)!.transcription_suggest_service;
+      return context.l10n.transcription_suggest_service;
     }
     if (lowerError.contains('format') || lowerError.contains('convert')) {
-      return AppLocalizations.of(context)!.transcription_suggest_format;
+      return context.l10n.transcription_suggest_format;
     }
     if (lowerError.contains('server restart')) {
-      return AppLocalizations.of(context)!.transcription_suggest_restart;
+      return context.l10n.transcription_suggest_restart;
     }
 
-    return AppLocalizations.of(context)!.transcription_suggest_generic;
+    return context.l10n.transcription_suggest_generic;
   }
 
   Widget _buildStatItem(

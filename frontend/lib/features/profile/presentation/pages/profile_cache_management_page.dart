@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/core_providers.dart';
@@ -231,7 +232,7 @@ class _ProfileCacheManagementPageState
     _MediaCacheStats stats,
     _CacheCategory category,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final selectedObjects = stats.objects
         .where((o) => _categoryFor(o) == category)
         .toList(growable: false);
@@ -291,7 +292,7 @@ class _ProfileCacheManagementPageState
   }
 
   Future<void> _clearAll() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -449,7 +450,7 @@ class _ProfileCacheManagementPageState
   }
 
   Widget _buildHeaderPanel(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final isMobile = context.isMobile;
 
     return CompactHeaderPanel(
@@ -504,7 +505,7 @@ class _ProfileCacheManagementPageState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocalizations.of(context)!.profile_cache_manage_total_used,
+              context.l10n.profile_cache_manage_total_used,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
@@ -557,17 +558,17 @@ class _ProfileCacheManagementPageState
               children: [
                 _buildLegendItem(
                   palette.images,
-                  AppLocalizations.of(context)!.profile_cache_manage_images,
+                  context.l10n.profile_cache_manage_images,
                   dotKey: const Key('cache_legend_images'),
                 ),
                 _buildLegendItem(
                   palette.audio,
-                  AppLocalizations.of(context)!.profile_cache_manage_audio,
+                  context.l10n.profile_cache_manage_audio,
                   dotKey: const Key('cache_legend_audio'),
                 ),
                 _buildLegendItem(
                   palette.other,
-                  AppLocalizations.of(context)!.profile_cache_manage_other,
+                  context.l10n.profile_cache_manage_other,
                   dotKey: const Key('cache_legend_other'),
                 ),
               ],
@@ -588,7 +589,7 @@ class _ProfileCacheManagementPageState
     required VoidCallback onClean,
   }) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     return Card(
       margin: EdgeInsets.symmetric(
@@ -672,7 +673,7 @@ class _ProfileCacheManagementPageState
     required _MediaCacheStats stats,
     required bool isLoading,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = _CachePagePalette.of(theme);
 

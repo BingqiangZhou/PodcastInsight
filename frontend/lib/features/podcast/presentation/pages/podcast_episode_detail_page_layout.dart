@@ -49,10 +49,20 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_isHeaderExpanded) ...[
-              _buildAnimatedHeader(episode),
-              const SizedBox(height: 12),
-            ],
+            ValueListenableBuilder<bool>(
+              valueListenable: _isHeaderExpandedNotifier,
+              builder: (context, isExpanded, _) {
+                if (!isExpanded) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  children: [
+                    _buildAnimatedHeader(episode),
+                    const SizedBox(height: 12),
+                  ],
+                );
+              },
+            ),
             _buildTopButtonBar(isWide: true),
             const SizedBox(height: 12),
             Expanded(
@@ -99,10 +109,20 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (_isHeaderExpanded) ...[
-          _buildHeader(episode),
-          const SizedBox(height: 12),
-        ],
+        ValueListenableBuilder<bool>(
+          valueListenable: _isHeaderExpandedNotifier,
+          builder: (context, isExpanded, _) {
+            if (!isExpanded) {
+              return const SizedBox.shrink();
+            }
+            return Column(
+              children: [
+                _buildHeader(episode),
+                const SizedBox(height: 12),
+              ],
+            );
+          },
+        ),
         _buildTopButtonBar(isWide: false),
         const SizedBox(height: 12),
         Expanded(

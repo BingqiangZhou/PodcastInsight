@@ -168,7 +168,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
   }
 
   Widget _buildEmptyState() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -206,7 +206,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
   }
 
   Widget _buildFilterChips() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
@@ -262,7 +262,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
   }
 
   Widget _buildMoreMenu() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return PopupMenuButton<String>(
       icon: Icon(
         Icons.more_vert,
@@ -285,7 +285,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
   }
 
   Widget _buildErrorState(Object error) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -320,7 +320,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
   }
 
   void _showFilterDialog() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(

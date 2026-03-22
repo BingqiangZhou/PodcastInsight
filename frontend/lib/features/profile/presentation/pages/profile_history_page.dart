@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
@@ -34,7 +35,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final historyAsync = ref.watch(playbackHistoryLiteProvider);
 
     return Scaffold(
@@ -458,7 +459,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
   }
 
   String _formatPlaybackPosition(BuildContext context, int seconds) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final duration = Duration(seconds: seconds);
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);

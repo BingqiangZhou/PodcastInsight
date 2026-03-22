@@ -62,8 +62,8 @@ class _PodcastEpisodeDetailPageState
   final PageController _pageController = PageController();
   final ValueNotifier<double> _scrollOffset = ValueNotifier(0.0);
   final ValueNotifier<bool> _showScrollToTopButton = ValueNotifier(false);
-  bool _isHeaderExpandedState = true;
-  int _headerAnimationVersion = 0;
+  final ValueNotifier<bool> _isHeaderExpandedNotifier = ValueNotifier(true);
+  int _episodeUpdateVersion = 0;
   static const double _headerScrollThreshold =
       50.0; // Header starts fading after 50px scroll
   static const double _autoCollapseScrollDeltaThreshold = 6.0;
@@ -97,6 +97,7 @@ class _PodcastEpisodeDetailPageState
     _pageController.dispose();
     _scrollOffset.dispose();
     _showScrollToTopButton.dispose();
+    _isHeaderExpandedNotifier.dispose();
     super.dispose();
   }
 
@@ -149,10 +150,6 @@ class _PodcastEpisodeDetailPageState
       return;
     }
     setState(updater);
-  }
-
-  bool get _isHeaderExpanded {
-    return _scrollOffset.value < _headerScrollThreshold;
   }
 
   void _updateHeaderStateForTab(int tabIndex) {
@@ -306,11 +303,8 @@ class _PodcastEpisodeDetailPageState
     }
 
     final isExpanded = scrollPosition < _headerScrollThreshold;
-    if (isExpanded != _isHeaderExpandedState && mounted) {
-      setState(() {
-        _isHeaderExpandedState = isExpanded;
-        _headerAnimationVersion++;
-      });
+    if (_isHeaderExpandedNotifier.value != isExpanded) {
+      _isHeaderExpandedNotifier.value = isExpanded;
     }
   }
 
@@ -355,6 +349,9 @@ class _PodcastEpisodeDetailPageState
     super.didUpdateWidget(oldWidget);
     // Check if episodeId has changed
     if (oldWidget.episodeId != widget.episodeId) {
+      _episodeUpdateVersion++;
+      final currentVersion = _episodeUpdateVersion;
+
       logger.AppLogger.debug(
         '[Playback] ===== didUpdateWidget: Episode ID changed =====',
       );
@@ -382,6 +379,13 @@ class _PodcastEpisodeDetailPageState
 
       // Reload data for the new episode
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Check version and mounted state to prevent race conditions
+        if (!mounted || _episodeUpdateVersion != currentVersion) {
+          logger.AppLogger.debug(
+            '[Playback] Skipping post-frame callback (version mismatch or unmounted)',
+          );
+          return;
+        }
         logger.AppLogger.debug(
           '[Playback] Calling _loadAndPlayEpisode for new episode',
         );
@@ -437,11 +441,7 @@ class _PodcastEpisodeDetailPageState
     // Reset scroll offset to expand header.
     _scrollOffset.value = 0.0;
     _showScrollToTopButton.value = false;
-    if (!_isHeaderExpandedState && mounted) {
-      setState(() {
-        _isHeaderExpandedState = true;
-      });
-    }
+    _isHeaderExpandedNotifier.value = true;
 
     // Call scrollToTop on the appropriate widget based on the current tab
     switch (_selectedTabIndex) {

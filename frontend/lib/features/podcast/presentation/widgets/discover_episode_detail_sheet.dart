@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/utils/time_formatter.dart';
 import '../../data/models/itunes_episode_lookup_model.dart';
 import 'podcast_image_widget.dart';
@@ -18,7 +18,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final description = episode.description?.trim().isNotEmpty == true
         ? episode.description!

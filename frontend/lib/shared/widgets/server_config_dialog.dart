@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/network/server_health_service.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -95,7 +95,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < AppBreakpoints.medium;
     final dialogWidth = isMobile ? screenWidth - 32 : 500.0;
@@ -239,7 +239,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
 
   Widget _buildConnectionStatusPanel() {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final accent = theme.brightness == Brightness.dark
         ? theme.colorScheme.tertiary
         : theme.colorScheme.primary;
@@ -356,7 +356,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   }
 
   Future<void> _saveServerConfig(BuildContext dialogContext) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final baseUrl = _serverUrlController.text.trim();
     if (baseUrl.isEmpty) return;
 

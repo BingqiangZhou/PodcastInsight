@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/services/app_update_service.dart';
 import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -103,7 +103,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = _UpdateDialogPalette.of(theme);
     final isMobile = context.isMobile;
@@ -160,7 +160,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
 
   /// Desktop actions layout
   List<Widget> _buildDesktopActions(BuildContext context, ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final palette = _UpdateDialogPalette.of(theme);
     return [
       // Use Row to control alignment
@@ -218,7 +218,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
 
   /// Mobile actions layout
   List<Widget> _buildMobileActions(BuildContext context, ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final palette = _UpdateDialogPalette.of(theme);
     return [
       SizedBox(
@@ -285,7 +285,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
   }
 
   Widget _buildReleaseInfo(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = _UpdateDialogPalette.of(theme);
     final isMobile = context.isMobile;
@@ -410,7 +410,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
   }
 
   Widget _buildReleaseNotes(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = _UpdateDialogPalette.of(theme);
     final releaseNotes = widget.release.body.trim();
@@ -534,7 +534,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
 
   void _showReleaseNotesLinkError() {
     if (!mounted) return;
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     showTopFloatingNotice(
       context,
       message: l10n.update_download_failed,
@@ -566,7 +566,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
         );
 
         if (!success && context.mounted) {
-          final l10n = AppLocalizations.of(context)!;
+          final l10n = context.l10n;
           showTopFloatingNotice(
             context,
             message: l10n.update_download_failed,
@@ -574,7 +574,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
           );
         } else if (success && context.mounted) {
           // Download started, close dialog and show message
-          final l10n = AppLocalizations.of(context)!;
+          final l10n = context.l10n;
           showTopFloatingNotice(
             context,
             message: l10n.downloading_in_background,
@@ -597,7 +597,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
       }
     } catch (e) {
       if (context.mounted) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         showTopFloatingNotice(
           context,
           message: '${l10n.update_download_failed}: $e',
@@ -672,7 +672,7 @@ class _ManualUpdateCheckDialogState
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final state = ref.watch(manualUpdateCheckProvider);
     _maybeRedirectToDetailedDialog(context, state);
     final dialogWidth = ResponsiveDialogHelper.maxWidth(
@@ -723,7 +723,7 @@ class _ManualUpdateCheckDialogState
   }
 
   Widget _buildContent(BuildContext context, AppUpdateState state) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = _UpdateDialogPalette.of(theme);
 
@@ -794,7 +794,7 @@ class _ManualUpdateCheckDialogState
   }
 
   List<Widget> _buildActions(BuildContext context, AppUpdateState state) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final palette = _UpdateDialogPalette.of(Theme.of(context));
 
     if (state.isLoading) {
@@ -839,7 +839,7 @@ void showUpdateAvailableSnackBar({
   required BuildContext context,
   required GitHubRelease release,
 }) {
-  final l10n = AppLocalizations.of(context)!;
+  final l10n = context.l10n;
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

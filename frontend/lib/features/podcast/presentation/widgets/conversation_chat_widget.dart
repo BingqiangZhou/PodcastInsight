@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
+import '../../../../core/utils/resource_cleanup_mixin.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../data/models/podcast_conversation_model.dart';
 import '../../data/models/podcast_playback_model.dart';
@@ -30,12 +32,14 @@ class ConversationChatWidget extends ConsumerStatefulWidget {
 }
 
 class ConversationChatWidgetState
-    extends ConsumerState<ConversationChatWidget> {
+    extends ConsumerState<ConversationChatWidget>
+    with ResourceCleanupMixin {
   static const double _modelSelectorMaxWidth = 160;
 
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  final ValueNotifier<String> _inputTextNotifier = ValueNotifier('');
   SummaryModelInfo? _selectedModel;
   Timer? _pendingScrollTimer;
   String _lastSelectedChatText = '';
@@ -44,10 +48,10 @@ class ConversationChatWidgetState
   bool _isMessageSelectMode = false;
   final Set<int> _selectedMessageIds = <int>{};
   ProviderSubscription<ConversationState>? _conversationSubscription;
+  int _episodeVersion = 0;
 
   void _onMessageInputChanged() {
-    if (!mounted) return;
-    setState(() {});
+    _inputTextNotifier.value = _messageController.text;
   }
 
   /// 滚动到顶部
@@ -99,6 +103,7 @@ class ConversationChatWidgetState
     _pendingScrollTimer?.cancel();
     releaseConversationProviders(widget.episodeId);
     _messageController.removeListener(_onMessageInputChanged);
+    _inputTextNotifier.dispose();
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
@@ -109,9 +114,18 @@ class ConversationChatWidgetState
   void didUpdateWidget(covariant ConversationChatWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.episodeId != widget.episodeId) {
+      _episodeVersion++;
+      final currentVersion = _episodeVersion;
+
       _conversationSubscription?.close();
       releaseConversationProviders(oldWidget.episodeId);
-      _bindConversationListener();
+
+      // Use addPostFrameCallback to ensure execution after current frame completes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Check version and mounted state to prevent race conditions
+        if (!mounted || _episodeVersion != currentVersion) return;
+        _bindConversationListener();
+      });
     }
   }
 
@@ -131,6 +145,7 @@ class ConversationChatWidgetState
   void _scheduleScrollToBottom(Duration delay) {
     _pendingScrollTimer?.cancel();
     _pendingScrollTimer = Timer(delay, _scrollToBottom);
+    registerTimer(_pendingScrollTimer!);
   }
 
   void _scrollToBottom() {
@@ -228,7 +243,7 @@ class ConversationChatWidgetState
   }
 
   String _messageRoleLabel(PodcastConversationMessage message) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return message.isUser
         ? l10n.podcast_conversation_user
         : l10n.podcast_conversation_assistant;
@@ -248,7 +263,7 @@ class ConversationChatWidgetState
   List<ShareConversationItem> _buildShareConversationItems(
     List<PodcastConversationMessage> messages,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return messages
         .map(
           (message) => ShareConversationItem(
@@ -266,7 +281,7 @@ class ConversationChatWidgetState
   Future<void> _shareConversationMessagesAsImage(
     List<PodcastConversationMessage> messages,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final conversationItems = _buildShareConversationItems(messages);
     final plainText = formatShareConversationItems(conversationItems);
     try {
@@ -290,7 +305,7 @@ class ConversationChatWidgetState
   }
 
   Future<void> _shareSelectedChatAsImage() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final roleLabel = _lastSelectedChatRoleLabel.isNotEmpty
         ? _lastSelectedChatRoleLabel
         : (_lastSelectedChatIsUser
@@ -332,7 +347,7 @@ class ConversationChatWidgetState
   }
 
   void _startNewChat() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -390,7 +405,7 @@ class ConversationChatWidgetState
   }
 
   Widget _buildSessionsDrawer(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final sessionsAsync = ref.watch(getSessionListProvider(widget.episodeId));
     final currentSessionId = ref.watch(
       getCurrentSessionIdProvider(widget.episodeId),
@@ -552,7 +567,7 @@ class ConversationChatWidgetState
   }
 
   Widget _buildHeader(BuildContext context, ConversationState state) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final availableModelsAsync = ref.watch(availableModelsProvider);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -701,7 +716,7 @@ class ConversationChatWidgetState
     BuildContext context,
     List<SummaryModelInfo> models,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     // 确保_selectedModel在可用列表中
     final selectedModelId = _selectedModel?.id;
@@ -806,7 +821,7 @@ class ConversationChatWidgetState
   }
 
   Widget _buildMessagesList(BuildContext context, ConversationState state) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     if (state.isLoading) {
@@ -857,7 +872,7 @@ class ConversationChatWidgetState
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Center(
@@ -1071,7 +1086,7 @@ class ConversationChatWidgetState
   }
 
   Widget _buildInputArea(BuildContext context, ConversationState state) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Container(
@@ -1133,24 +1148,31 @@ class ConversationChatWidgetState
               ),
             ),
             const SizedBox(width: 8),
-            IconButton.filled(
-              onPressed:
-                  (state.isReady &&
-                      _messageController.text.trim().isNotEmpty &&
-                      widget.aiSummary != null)
-                  ? _sendMessage
-                  : null,
-              icon: state.isSending
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    )
-                  : const Icon(Icons.send),
-              style: IconButton.styleFrom(padding: const EdgeInsets.all(12)),
+            ValueListenableBuilder<String>(
+              valueListenable: _inputTextNotifier,
+              builder: (context, inputText, child) {
+                return IconButton.filled(
+                  onPressed:
+                      (state.isReady &&
+                          inputText.trim().isNotEmpty &&
+                          widget.aiSummary != null)
+                      ? _sendMessage
+                      : null,
+                  icon: state.isSending
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        )
+                      : const Icon(Icons.send),
+                  style: IconButton.styleFrom(
+                    padding: const EdgeInsets.all(12),
+                  ),
+                );
+              },
             ),
           ],
         ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../providers/podcast_providers.dart';
 import 'bulk_import_dialog.dart';
@@ -40,12 +40,12 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
         Navigator.of(context).pop();
         showTopFloatingNotice(
           context,
-          message: AppLocalizations.of(context)!.podcast_added_successfully,
+          message: context.l10n.podcast_added_successfully,
         );
       }
     } catch (error) {
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = context.l10n;
         showTopFloatingNotice(
           context,
           message: '${l10n.podcast_failed_add} $error',
@@ -63,7 +63,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return Dialog(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),

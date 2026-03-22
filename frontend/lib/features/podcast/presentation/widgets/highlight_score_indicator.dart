@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// Widget for displaying the three-dimensional score of a highlight.
@@ -43,7 +43,7 @@ class HighlightScoreIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final barHeight = isDense ? _denseBarHeight : _defaultBarHeight;
     final labelWidth = isDense ? _denseLabelWidth : _defaultLabelWidth;
     final scoreWidth = isDense ? _denseScoreWidth : _defaultScoreWidth;

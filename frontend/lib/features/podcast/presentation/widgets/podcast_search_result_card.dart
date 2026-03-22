@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../data/models/podcast_search_model.dart';
 import '../constants/podcast_ui_constants.dart';
 import 'podcast_image_widget.dart';
@@ -25,7 +26,7 @@ class PodcastSearchResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final cardHorizontalPadding =
         dense ? 8.0 : kPodcastRowCardHorizontalPadding;

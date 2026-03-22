@@ -304,6 +304,36 @@ void main() {
       });
     });
 
+    group('Async sanitization', () {
+      test('should produce same result as sync version', () async {
+        const input = '<p>Hello <strong>world</strong></p><script>alert("XSS")</script>';
+        final syncResult = HtmlSanitizer.sanitize(input);
+        final asyncResult = await HtmlSanitizer.sanitizeAsync(input);
+        expect(asyncResult, syncResult);
+      });
+
+      test('should handle empty string', () async {
+        const input = '';
+        final result = await HtmlSanitizer.sanitizeAsync(input);
+        expect(result, '');
+      });
+
+      test('should remove dangerous tags async', () async {
+        const input = '<p>Hello</p><script>alert("XSS")</script><iframe src="evil.com"></iframe>';
+        final result = await HtmlSanitizer.sanitizeAsync(input);
+        expect(result, isNot(contains('script')));
+        expect(result, isNot(contains('iframe')));
+        expect(result, contains('<p>Hello</p>'));
+      });
+
+      test('should handle large HTML content', () async {
+        final input = List.generate(1000, (i) => '<p>Paragraph $i</p>').join();
+        final result = await HtmlSanitizer.sanitizeAsync(input);
+        expect(result, contains('<p>Paragraph 0</p>'));
+        expect(result, contains('<p>Paragraph 999</p>'));
+      });
+    });
+
     group('XSS attack vectors', () {
       test('should block script injection with onclick', () {
         const input = '<div onclick="alert(1)">Click me</div>';

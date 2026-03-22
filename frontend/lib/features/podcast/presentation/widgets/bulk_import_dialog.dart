@@ -9,6 +9,7 @@ import 'package:xml/xml.dart';
 import 'package:dio/dio.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 
@@ -111,7 +112,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
     if (text.isEmpty) return;
 
     final urls = _extractUrls(text);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     if (urls.isEmpty) {
       if (mounted) {
@@ -295,7 +296,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
 
   /// Validate all URLs and update the validation items
   Future<void> _validateUrls(List<String> urls, {bool append = false}) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final newUrls = _collectNewUrls(urls);
 
     if (newUrls.isEmpty) {
@@ -328,7 +329,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
     List<UrlWithTitle> urlsWithTitles, {
     bool append = false,
   }) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final finalizedNewItems = _collectNewUrlsWithTitles(urlsWithTitles);
 
     if (finalizedNewItems.isEmpty) {
@@ -384,7 +385,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
 
   /// Validate a single URL and update its status
   Future<void> _validateSingleUrl(UrlValidationItem item) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     if (!mounted) return;
 
     // Optimistic update if re-validating
@@ -405,7 +406,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   Future<void> _showEditUrlDialog(UrlValidationItem item) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final controller = TextEditingController(text: item.url);
     try {
       final result = await showDialog<String>(
@@ -452,7 +453,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   Future<void> _processFile(String path) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     try {
       logger.AppLogger.debug('== Processing file: $path ==');
       final file = File(path);
@@ -542,7 +543,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   Future<void> _import() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     if (_validationItems.isEmpty) return;
 
     // Only import valid RSS URLs
@@ -601,7 +602,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   String _getImportButtonText() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final validCount = _computeValidationStats().importableValidCount;
     if (validCount > 0) {
       return l10n.podcast_bulk_import_imported_count(validCount);
@@ -610,7 +611,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   Widget _buildFilterTabs() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final stats = _computeValidationStats();
 
     return Container(
@@ -674,7 +675,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   Widget _buildCompressedInput() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return GestureDetector(
@@ -733,7 +734,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   Widget _buildUrlListItem(UrlValidationItem item, int index) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     Color statusColor;
     IconData statusIcon;
     bool isValid = item.isValid;
@@ -862,7 +863,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   Future<void> _copyUrlToClipboard(String url, String? title) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final text = (title != null && title.isNotEmpty) ? '$title - $url' : url;
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
@@ -876,7 +877,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     // Filter items based on selection
     final filteredItems = _validationItems.where((item) {

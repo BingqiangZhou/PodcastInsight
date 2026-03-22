@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 import '../../../../core/widgets/app_shells.dart';
 import '../../../../core/widgets/adaptive_sheet_helper.dart';
@@ -147,7 +148,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
   }
 
   Future<void> _handleSubscribeFromSearch(PodcastSearchResult result) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     if (result.feedUrl == null || result.collectionName == null) {
       showTopFloatingNotice(
         context,
@@ -177,7 +178,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
   }
 
   Future<void> _handleSubscribeFromChart(PodcastDiscoverItem item) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final country = ref.read(countrySelectorProvider).selectedCountry;
     final itunesId = item.itunesId;
 
@@ -264,7 +265,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
   Future<_DiscoverEpisodeSelection?> _resolveDiscoverEpisodeSelection(
     PodcastDiscoverItem item,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final country = ref.read(countrySelectorProvider).selectedCountry;
     final searchService = ref.read(search.iTunesSearchServiceProvider);
     final showId = searchService.extractShowIdFromApplePodcastUrl(item.url);
@@ -296,7 +297,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
   }
 
   Future<void> _showPodcastEpisodeInfoSheet(PodcastDiscoverItem item) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final country = ref.read(countrySelectorProvider).selectedCountry;
     final showId = _resolveShowIdForPodcast(item);
     if (showId == null) {
@@ -392,7 +393,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     required ITunesPodcastEpisodeResult episode,
     required int showId,
   }) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final audioUrl = episode.resolvedAudioUrl;
     if (audioUrl == null || audioUrl.isEmpty) {
       _showErrorNotice(l10n.podcast_player_no_audio);
@@ -457,7 +458,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     final resolved = await _resolveEpisodeForSearchResult(episode);
     if (!mounted) return;
     if (resolved == null) {
-      final l10n = AppLocalizations.of(context)!;
+      final l10n = context.l10n;
       _showErrorNotice(l10n.podcast_failed_load_episodes);
       return;
     }
@@ -485,7 +486,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final hasSearched = ref.watch(
       search.podcastSearchProvider.select((state) => state.hasSearched),
     );
@@ -550,7 +551,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     PodcastDiscoverState discoverState, {
     required bool isDense,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     if (discoverState.isLoading &&
         discoverState.topShows.isEmpty &&
@@ -606,7 +607,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     search.PodcastSearchMode searchMode, {
     required bool isDense,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final toggleHeight = isDense ? 30.0 : 32.0;
 
@@ -844,7 +845,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     PodcastDiscoverState state, {
     required bool isDense,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final titleStyle = Theme.of(
       context,
     ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold);
@@ -892,7 +893,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     PodcastDiscoverState state, {
     required bool isDense,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final visibleItems = state.visibleItems;
 
     return ListView.builder(
@@ -1093,7 +1094,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     BuildContext context,
     PodcastDiscoverState state,
   ) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final categories = state.categories;
     final theme = Theme.of(context);
     final selected = state.selectedCategory;

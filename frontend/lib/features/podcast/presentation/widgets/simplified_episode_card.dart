@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/breakpoints.dart';
 import '../../data/models/podcast_episode_model.dart';
 import '../../core/utils/episode_description_helper.dart';
-import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import 'shared/episode_card_utils.dart';
 
 /// Simplified episode card without podcast image and name (for episodes list page)
@@ -25,7 +25,7 @@ class SimplifiedEpisodeCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final isMobile =
         MediaQuery.of(context).size.width < AppBreakpoints.medium;
