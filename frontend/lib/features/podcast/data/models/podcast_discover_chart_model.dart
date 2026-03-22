@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 enum ApplePodcastRssFormat {
   json('json'),
   rss('rss'),
@@ -110,7 +112,7 @@ class ApplePodcastChartResponse {
   }
 }
 
-class PodcastDiscoverItem {
+class PodcastDiscoverItem extends Equatable {
   final String itemId;
   final int? itunesId;
   final String title;
@@ -161,4 +163,16 @@ class PodcastDiscoverItem {
       kind: entry.kind.isNotEmpty ? resolvedKind : defaultKind,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    itemId,
+    itunesId,
+    title,
+    artist,
+    artworkUrl,
+    url,
+    genres,
+    kind,
+  ];
 }

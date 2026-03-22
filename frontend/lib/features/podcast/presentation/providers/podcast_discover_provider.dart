@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/cache_constants.dart';
@@ -10,7 +11,7 @@ import 'country_selector_provider.dart';
 
 enum PodcastDiscoverTab { podcasts, episodes }
 
-class PodcastDiscoverPaginationState {
+class PodcastDiscoverPaginationState extends Equatable {
   final int loadedCount;
   final bool isLoadingMore;
   final bool hasMore;
@@ -32,9 +33,12 @@ class PodcastDiscoverPaginationState {
       hasMore: hasMore ?? this.hasMore,
     );
   }
+
+  @override
+  List<Object?> get props => [loadedCount, isLoadingMore, hasMore];
 }
 
-class PodcastDiscoverState {
+class PodcastDiscoverState extends Equatable {
   final PodcastCountry country;
   final bool isLoading;
   final bool isRefreshing;
@@ -142,6 +146,21 @@ class PodcastDiscoverState {
   }
 
   List<PodcastDiscoverItem> get visibleItems => filteredActiveItems;
+
+  @override
+  List<Object?> get props => [
+    country,
+    isLoading,
+    isRefreshing,
+    error,
+    selectedTab,
+    selectedCategory,
+    topShows,
+    topEpisodes,
+    showsPagination,
+    episodesPagination,
+    lastRefreshTime,
+  ];
 }
 
 final applePodcastRssServiceProvider = Provider<ApplePodcastRssService>((ref) {
@@ -264,7 +283,6 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
     }
 
     final requestId = ++_activeRequestId;
-    final selectedTab = state.selectedTab;
     _inFlightShowsLoadMore = null;
     _inFlightEpisodesLoadMore = null;
     _inFlightLoadCountry = country;
@@ -296,40 +314,18 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
           episodesFuture,
         ).wait;
 
-        List<PodcastDiscoverItem>? shows;
-        List<PodcastDiscoverItem>? episodes;
-
-        shows = _mapChartItems(
-          showsResponse,
-          defaultKind: PodcastDiscoverKind.podcasts,
-        );
-        episodes = _mapChartItems(
-          episodesResponse,
-          defaultKind: PodcastDiscoverKind.podcastEpisodes,
-        );
-
-        // Early update for current tab for faster perceived loading
-        if (selectedTab == PodcastDiscoverTab.podcasts && _isRequestActive(requestId)) {
-          state = state.copyWith(
-            topShows: shows,
-            showsPagination: _paginationStateFor(
-              requestedLimit: CacheConstants.discoverInitialFetchLimit,
-              loadedCount: shows.length,
-            ),
-          );
-        } else if (selectedTab == PodcastDiscoverTab.episodes && _isRequestActive(requestId)) {
-          state = state.copyWith(
-            topEpisodes: episodes,
-            episodesPagination: _paginationStateFor(
-              requestedLimit: CacheConstants.discoverInitialFetchLimit,
-              loadedCount: episodes.length,
-            ),
-          );
-        }
-
         if (!_isRequestActive(requestId)) {
           return;
         }
+
+        final shows = _mapChartItems(
+          showsResponse,
+          defaultKind: PodcastDiscoverKind.podcasts,
+        );
+        final episodes = _mapChartItems(
+          episodesResponse,
+          defaultKind: PodcastDiscoverKind.podcastEpisodes,
+        );
 
         state = state.copyWith(
           country: country,

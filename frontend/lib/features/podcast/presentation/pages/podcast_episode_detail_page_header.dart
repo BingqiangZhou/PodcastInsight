@@ -458,7 +458,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }) {
     return Consumer(
       builder: (context, ref, _) {
-        final playerState = ref.watch(audioPlayerProvider);
+        final playStateInfo = ref.watch(audioEpisodePlayStateProvider);
         final effectiveDensity =
             density ??
             (_isUltraCompactPhoneLayout
@@ -466,7 +466,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                 : _isCompactPhoneLayout || compact
                 ? HeaderCapsuleActionButtonDensity.compact
                 : HeaderCapsuleActionButtonDensity.regular);
-        final playState = _resolveEpisodePlayState(playerState, episode);
+        final playState = _resolveEpisodePlayState(playStateInfo, episode);
         final showLabel =
             effectiveDensity != HeaderCapsuleActionButtonDensity.iconOnly;
 
@@ -507,18 +507,18 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   _EpisodeDetailPlayState _resolveEpisodePlayState(
-    AudioPlayerState playerState,
+    AudioEpisodePlayState playStateInfo,
     PodcastEpisodeDetailResponse episode,
   ) {
-    final isSameEpisode = playerState.currentEpisode?.id == episode.id;
+    final isSameEpisode = playStateInfo.currentEpisodeId == episode.id;
     final isCompleted =
         isSameEpisode &&
-        playerState.processingState == ProcessingState.completed;
-    if (isSameEpisode && playerState.isPlaying && !isCompleted) {
+        playStateInfo.processingState == ProcessingState.completed;
+    if (isSameEpisode && playStateInfo.isPlaying && !isCompleted) {
       return _EpisodeDetailPlayState.playing;
     }
 
-    final resumePositionMs = _resolveResumePositionMs(playerState, episode);
+    final resumePositionMs = _resolveResumePositionMs(playStateInfo, episode);
     if (resumePositionMs > 0 && !isCompleted) {
       return _EpisodeDetailPlayState.resume;
     }
@@ -527,12 +527,12 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   int _resolveResumePositionMs(
-    AudioPlayerState playerState,
+    AudioEpisodePlayState playStateInfo,
     PodcastEpisodeDetailResponse episode,
   ) {
-    final isSameEpisode = playerState.currentEpisode?.id == episode.id;
+    final isSameEpisode = playStateInfo.currentEpisodeId == episode.id;
     if (isSameEpisode) {
-      return playerState.position;
+      return playStateInfo.currentPositionMs;
     }
     return (episode.playbackPosition ?? 0) * 1000;
   }
@@ -544,9 +544,9 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     return Consumer(
       builder: (context, ref, _) {
         final theme = Theme.of(context);
-        final playerState = ref.watch(audioPlayerProvider);
-        final playState = _resolveEpisodePlayState(playerState, episode);
-        final resumePositionMs = _resolveResumePositionMs(playerState, episode);
+        final playStateInfo = ref.watch(audioEpisodePlayStateProvider);
+        final playState = _resolveEpisodePlayState(playStateInfo, episode);
+        final resumePositionMs = _resolveResumePositionMs(playStateInfo, episode);
 
         return switch (playState) {
           _EpisodeDetailPlayState.playing => StatusBadge(

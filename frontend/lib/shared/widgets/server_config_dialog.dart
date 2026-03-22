@@ -31,6 +31,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   List<String> _serverHistory = [];
   static const String _serverHistoryKey = 'server_history_list';
   static const int _maxHistoryItems = 5;
+  bool _isDisposed = false;
 
   /// Get local server URL based on platform
   String get _localServerUrl {
@@ -56,8 +57,10 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _debounceTimer?.cancel();
     _healthCheckSubscription?.cancel();
+    _healthCheckSubscription = null;
     _healthService.dispose();
     _serverUrlController.dispose();
     super.dispose();
@@ -66,7 +69,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   Future<void> _loadServerHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final historyList = prefs.getStringList(_serverHistoryKey);
-    if (!mounted || historyList == null) return;
+    if (_isDisposed || !mounted || historyList == null) return;
 
     setState(() {
       _serverHistory = historyList;
@@ -74,7 +77,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   }
 
   Future<void> _addToServerHistory(String url) async {
-    if (!mounted || url.trim().isEmpty) return;
+    if (_isDisposed || !mounted || url.trim().isEmpty) return;
 
     final normalizedUrl = url.trim();
     setState(() {
@@ -333,24 +336,22 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
         .verifyConnection(baseUrl)
         .listen(
           (result) {
-            if (mounted) {
-              setState(() {
-                _connectionStatus = result.status;
-                _connectionMessage = result.message;
-                if (result.responseTimeMs != null) {
-                  _connectionMessage =
-                      '${result.message} (${result.responseTimeMs}ms)';
-                }
-              });
-            }
+            if (_isDisposed || !mounted) return;
+            setState(() {
+              _connectionStatus = result.status;
+              _connectionMessage = result.message;
+              if (result.responseTimeMs != null) {
+                _connectionMessage =
+                    '${result.message} (${result.responseTimeMs}ms)';
+              }
+            });
           },
           onError: (e) {
-            if (mounted) {
-              setState(() {
-                _connectionStatus = ConnectionStatus.failed;
-                _connectionMessage = '连接错误: $e';
-              });
-            }
+            if (_isDisposed || !mounted) return;
+            setState(() {
+              _connectionStatus = ConnectionStatus.failed;
+              _connectionMessage = '连接错误: $e';
+            });
           },
         );
   }
@@ -363,11 +364,11 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
     try {
       // Use ServerConfigNotifier to properly save and update DioClient
       await ref.read(serverConfigProvider.notifier).updateServerUrl(baseUrl);
-      if (!mounted) return;
+      if (_isDisposed || !mounted) return;
 
       // Add to history after successful save
       await _addToServerHistory(baseUrl);
-      if (!mounted) return;
+      if (_isDisposed || !mounted) return;
 
       if (!dialogContext.mounted) return;
       final rootContext = Navigator.of(
@@ -383,13 +384,12 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
       );
       widget.onSave?.call();
     } catch (e) {
-      if (mounted) {
-        showTopFloatingNotice(
-          context,
-          message: l10n.save_failed(e.toString()),
-          isError: true,
-        );
-      }
+      if (_isDisposed || !mounted) return;
+      showTopFloatingNotice(
+        context,
+        message: l10n.save_failed(e.toString()),
+        isError: true,
+      );
     }
   }
 }

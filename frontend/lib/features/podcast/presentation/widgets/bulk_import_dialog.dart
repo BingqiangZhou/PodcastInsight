@@ -55,6 +55,140 @@ class _ValidationStats {
   final int invalidCount;
 }
 
+/// Widget for displaying a single URL list item with validation status
+class _UrlListItemWidget extends StatelessWidget {
+  const _UrlListItemWidget({
+    required this.item,
+    required this.index,
+    required this.onCopy,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final UrlValidationItem item;
+  final int index;
+  final VoidCallback onCopy;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final Color statusColor;
+    final IconData statusIcon;
+    final bool isValid = item.isValid;
+    final bool isChecking = item.isChecking;
+
+    if (isChecking) {
+      statusColor = Colors.orange;
+      statusIcon = Icons.hourglass_empty;
+    } else if (isValid) {
+      statusColor = Colors.green;
+      statusIcon = Icons.check_circle;
+    } else {
+      statusColor = Colors.red;
+      statusIcon = Icons.error;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+        ),
+      ),
+      child: ListTile(
+        dense: true,
+        visualDensity: const VisualDensity(
+          horizontal: 0,
+          vertical: -4,
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(
+          8,
+          0,
+          4,
+          0,
+        ),
+        leading: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: statusColor.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(statusIcon, color: statusColor, size: 14),
+        ),
+        title: Text(
+          item.title ?? l10n.podcast_unknown_title,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              item.url,
+              style: TextStyle(
+                fontSize: 10,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (!isValid && !isChecking && item.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Text(
+                  item.errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 9),
+                ),
+              ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.copy, size: 14),
+              onPressed: onCopy,
+              tooltip: l10n.podcast_copy,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              splashRadius: 16,
+            ),
+            const SizedBox(width: 4),
+            if (!isValid && !isChecking)
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.blue, size: 14),
+                onPressed: onEdit,
+                tooltip: l10n.podcast_edit_retry,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                splashRadius: 16,
+              )
+            else
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: Colors.grey,
+                  size: 14,
+                ),
+                onPressed: onDelete,
+                tooltip: l10n.podcast_remove,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                splashRadius: 16,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class BulkImportDialog extends StatefulWidget {
   final Future<void> Function(List<String> urls) onImport;
 
@@ -96,7 +230,7 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   void dispose() {
     _tabController.dispose();
     _textController.dispose();
-    _dio.close();
+    _dio.close(force: true);
     super.dispose();
   }
 
@@ -734,131 +868,23 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   }
 
   Widget _buildUrlListItem(UrlValidationItem item, int index) {
-    final l10n = context.l10n;
-    Color statusColor;
-    IconData statusIcon;
-    bool isValid = item.isValid;
-    bool isChecking = item.isChecking;
+    return _UrlListItemWidget(
+      item: item,
+      index: index,
+      onCopy: () => _copyUrlToClipboard(item.url, item.title),
+      onEdit: () => _showEditUrlDialog(item),
+      onDelete: () {
+        setState(() {
+          final originalIndex = _validationItems.indexOf(item);
+          if (originalIndex != -1) {
+            _validationItems.removeAt(originalIndex);
 
-    if (isChecking) {
-      statusColor = Colors.orange;
-      statusIcon = Icons.hourglass_empty;
-    } else if (isValid) {
-      statusColor = Colors.green;
-      statusIcon = Icons.check_circle;
-    } else {
-      statusColor = Colors.red;
-      statusIcon = Icons.error;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2), // More compact margin
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(6), // Smaller radius
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
-        ),
-      ),
-      child: ListTile(
-        dense: true,
-        visualDensity: const VisualDensity(
-          horizontal: 0,
-          vertical: -4,
-        ), // Compact density
-        contentPadding: const EdgeInsets.fromLTRB(
-          8,
-          0,
-          4,
-          0,
-        ), // More compact padding
-        leading: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(statusIcon, color: statusColor, size: 14), // Smaller icon
-        ),
-        title: Text(
-          item.title ?? l10n.podcast_unknown_title,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              item.url,
-              style: TextStyle(
-                fontSize: 10,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (!isValid && !isChecking && item.errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: Text(
-                  item.errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontSize: 9),
-                ),
-              ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.copy, size: 14),
-              onPressed: () => _copyUrlToClipboard(item.url, item.title),
-              tooltip: l10n.podcast_copy,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              splashRadius: 16,
-            ),
-            const SizedBox(width: 4),
-            if (!isValid && !isChecking)
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.blue, size: 14),
-                onPressed: () => _showEditUrlDialog(item),
-                tooltip: l10n.podcast_edit_retry,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                splashRadius: 16,
-              )
-            else
-              IconButton(
-                icon: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.grey,
-                  size: 14,
-                ),
-                onPressed: () {
-                  setState(() {
-                    final originalIndex = _validationItems.indexOf(item);
-                    if (originalIndex != -1) {
-                      _validationItems.removeAt(originalIndex);
-
-                      if (_validationItems.isEmpty && !_isInputExpanded) {
-                        _isInputExpanded = true;
-                      }
-                    }
-                  });
-                },
-                tooltip: l10n.podcast_remove,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                splashRadius: 16,
-              ),
-          ],
-        ),
-      ),
+            if (_validationItems.isEmpty && !_isInputExpanded) {
+              _isInputExpanded = true;
+            }
+          }
+        });
+      },
     );
   }
 
@@ -1172,14 +1198,11 @@ class _BulkImportDialogState extends State<BulkImportDialog>
                             ),
                           ),
                           child: _isImporting
-                              ? SizedBox(
+                              ? const SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
                                   ),
                                 )
                               : Text(_getImportButtonText()),

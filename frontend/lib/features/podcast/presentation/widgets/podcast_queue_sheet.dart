@@ -62,9 +62,7 @@ class PodcastQueueSheet extends ConsumerWidget {
     final title = l10n?.queue_up_next ?? l10n?.podcast_player_list ?? 'Up Next';
     final queueAsync = ref.watch(podcastQueueControllerProvider);
     final queueOperation = ref.watch(podcastQueueOperationProvider);
-    final queueSyncing = ref.watch(
-      audioPlayerProvider.select((state) => state.queueSyncing),
-    );
+    final queueSyncing = ref.watch(audioQueueSyncingProvider);
     final notifier = ref.read(podcastQueueControllerProvider.notifier);
     final screenWidth = MediaQuery.of(context).size.width;
     final sheetHeightFactor = screenWidth >= 600 ? 0.80 : 0.82;

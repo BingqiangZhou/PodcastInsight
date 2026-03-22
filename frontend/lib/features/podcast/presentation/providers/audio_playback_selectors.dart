@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/audio_player_state_model.dart';
 import '../../data/models/podcast_episode_model.dart';
 import 'podcast_providers.dart';
 
@@ -139,5 +140,34 @@ final audioQueuePositionProvider = Provider.family<int?, int>((ref, episodeId) {
       }
       return null;
     }),
+  );
+});
+
+/// Episode play state for determining button display (play/resume/playing)
+typedef AudioEpisodePlayState = ({
+  int? currentEpisodeId,
+  bool isPlaying,
+  ProcessingState? processingState,
+  int currentPositionMs,
+});
+
+/// Provider for episode play state - used by play buttons to determine their state
+final audioEpisodePlayStateProvider = Provider<AudioEpisodePlayState>((ref) {
+  return ref.watch(
+    audioPlayerProvider.select(
+      (state) => (
+        currentEpisodeId: state.currentEpisode?.id,
+        isPlaying: state.isPlaying,
+        processingState: state.processingState,
+        currentPositionMs: state.position,
+      ),
+    ),
+  );
+});
+
+/// Provider for queue syncing state
+final audioQueueSyncingProvider = Provider<bool>((ref) {
+  return ref.watch(
+    audioPlayerProvider.select((state) => state.queueSyncing),
   );
 });

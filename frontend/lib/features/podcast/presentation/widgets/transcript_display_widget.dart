@@ -323,6 +323,7 @@ class TranscriptDisplayWidgetState
       child: ListView.separated(
         controller: _scrollController,
         itemCount: segments.length,
+        cacheExtent: 500.0,
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           return _buildSentenceSegment(context, segments[index], index);
@@ -341,7 +342,8 @@ class TranscriptDisplayWidgetState
     final scheme = theme.colorScheme;
     final selectionKey = 'full_$index';
     final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
-    return Container(
+    return RepaintBoundary(
+      child: Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -414,6 +416,7 @@ class TranscriptDisplayWidgetState
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -448,6 +451,7 @@ class TranscriptDisplayWidgetState
       child: ListView.builder(
         controller: _scrollController,
         itemCount: _searchResults.length,
+        cacheExtent: 500.0,
         itemBuilder: (context, index) {
           final result = _searchResults[index];
           return _buildSearchResultItem(context, result, index);
@@ -468,7 +472,8 @@ class TranscriptDisplayWidgetState
     final query = _searchController.text;
     final highlightedText = _highlightSearchText(result, query);
 
-    return Container(
+    return RepaintBoundary(
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -539,6 +544,7 @@ class TranscriptDisplayWidgetState
             },
           ),
         ],
+      ),
       ),
     );
   }
@@ -657,6 +663,7 @@ class FormattedTranscriptWidget extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       child: ListView.builder(
         itemCount: segments.length,
+        cacheExtent: 500.0,
         itemBuilder: (context, index) {
           final segment = segments[index];
           return _buildDialogueSegment(context, segment);
@@ -725,7 +732,8 @@ class FormattedTranscriptWidget extends ConsumerWidget {
     BuildContext context,
     TranscriptDialogueSegment segment,
   ) {
-    return Container(
+    return RepaintBoundary(
+      child: Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -787,6 +795,7 @@ class FormattedTranscriptWidget extends ConsumerWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
