@@ -28,12 +28,15 @@ final topFloatingNoticeProvider =
 
 /// Notifier for managing top floating notice lifecycle
 class TopFloatingNoticeNotifier extends Notifier<TopFloatingNoticeState> {
+  OverlayEntry? _cachedEntry;
+  Timer? _cachedTimer;
+
   @override
   TopFloatingNoticeState build() {
     ref.onDispose(() {
       // Clean up resources when provider is disposed
-      state.entry?.remove();
-      state.timer?.cancel();
+      _cachedEntry?.remove();
+      _cachedTimer?.cancel();
     });
     return const TopFloatingNoticeState();
   }
@@ -49,13 +52,17 @@ class TopFloatingNoticeNotifier extends Notifier<TopFloatingNoticeState> {
     // Create and schedule removal timer
     final timer = Timer(duration, _removeCurrentNotice);
 
+    _cachedEntry = entry;
+    _cachedTimer = timer;
     state = state.copyWith(entry: entry, timer: timer);
   }
 
   /// Remove the current notice and clean up resources
   void _removeCurrentNotice() {
-    state.timer?.cancel();
-    state.entry?.remove();
+    _cachedTimer?.cancel();
+    _cachedEntry?.remove();
+    _cachedTimer = null;
+    _cachedEntry = null;
     state = const TopFloatingNoticeState();
   }
 
@@ -65,5 +72,5 @@ class TopFloatingNoticeNotifier extends Notifier<TopFloatingNoticeState> {
   }
 
   /// Check if a notice is currently visible
-  bool get isVisible => state.entry != null;
+  bool get isVisible => _cachedEntry != null;
 }

@@ -240,10 +240,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      l10n.auth_remember_me,
-                      softWrap: false,
-                      overflow: TextOverflow.ellipsis,
+                    Flexible(
+                      child: Text(
+                        l10n.auth_remember_me,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     const Spacer(),
                     TextButton(

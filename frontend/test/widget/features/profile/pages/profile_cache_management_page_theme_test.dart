@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
-import 'package:personal_ai_assistant/core/theme/app_theme.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_cache_management_page.dart';
 
@@ -142,12 +142,12 @@ void main() {
       final audioSegment = tester.widget<Container>(
         find.byKey(const Key('cache_segment_audio')),
       );
-      expect(audioSegment.color, AppTheme.lightTheme.colorScheme.tertiary);
+      expect(audioSegment.color, _buildTestTheme(brightness: Brightness.light).colorScheme.tertiary);
 
       final otherSegment = tester.widget<Container>(
         find.byKey(const Key('cache_segment_other')),
       );
-      expect(otherSegment.color, AppTheme.lightTheme.colorScheme.secondary);
+      expect(otherSegment.color, _buildTestTheme(brightness: Brightness.light).colorScheme.secondary);
 
       final audioLegend = tester.widget<Container>(
         find.byKey(const Key('cache_legend_audio')),
@@ -155,7 +155,7 @@ void main() {
       final audioLegendDecoration = audioLegend.decoration as BoxDecoration;
       expect(
         audioLegendDecoration.color,
-        AppTheme.lightTheme.colorScheme.tertiary,
+        _buildTestTheme(brightness: Brightness.light).colorScheme.tertiary,
       );
 
       final cleanButton = tester.widget<HeaderCapsuleActionButton>(
@@ -182,7 +182,7 @@ void main() {
       final noticeDecoration = noticeBox.decoration as BoxDecoration;
       expect(
         noticeDecoration.color,
-        AppTheme.lightTheme.colorScheme.onSurfaceVariant.withValues(
+        _buildTestTheme(brightness: Brightness.light).colorScheme.onSurfaceVariant.withValues(
           alpha: 0.16,
         ),
       );
@@ -191,7 +191,7 @@ void main() {
       );
       expect(
         noticeIcon.color,
-        AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+        _buildTestTheme(brightness: Brightness.light).colorScheme.onSurfaceVariant,
       );
     });
 
@@ -220,8 +220,8 @@ void main() {
       final resolvedForeground = deepCleanButton.style?.foregroundColor
           ?.resolve(<WidgetState>{});
 
-      expect(resolvedBackground, AppTheme.darkTheme.colorScheme.surface);
-      expect(resolvedForeground, AppTheme.darkTheme.colorScheme.onSurface);
+      expect(resolvedBackground, _buildTestTheme(brightness: Brightness.dark).colorScheme.surface);
+      expect(resolvedForeground, _buildTestTheme(brightness: Brightness.dark).colorScheme.onSurface);
     });
 
     testWidgets('stays stable in zero-data state', (tester) async {
@@ -251,7 +251,7 @@ void main() {
       final noticeDecoration = noticeBox.decoration as BoxDecoration;
       expect(
         noticeDecoration.color,
-        AppTheme.darkTheme.colorScheme.onSurfaceVariant.withValues(alpha: 0.24),
+        _buildTestTheme(brightness: Brightness.dark).colorScheme.onSurfaceVariant.withValues(alpha: 0.24),
       );
       expect(find.textContaining('0'), findsWidgets);
       expect(tester.takeException(), isNull);
@@ -268,11 +268,29 @@ void _setSurfaceSize(WidgetTester tester, Size size) {
   });
 }
 
+// Test theme that doesn't use Google Fonts to avoid network loading
+ThemeData _buildTestTheme({required Brightness brightness}) {
+  final colorScheme = ColorScheme.fromSeed(
+    seedColor: Colors.blue,
+    brightness: brightness,
+  );
+  return ThemeData(
+    useMaterial3: true,
+    brightness: brightness,
+    colorScheme: colorScheme,
+    extensions: [
+      brightness == Brightness.dark
+          ? AppThemeExtension.dark
+          : AppThemeExtension.light,
+    ],
+  );
+}
+
 Widget _buildTestApp({required ThemeMode themeMode}) {
   return ProviderScope(
     child: MaterialApp(
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: _buildTestTheme(brightness: Brightness.light),
+      darkTheme: _buildTestTheme(brightness: Brightness.dark),
       themeMode: themeMode,
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,

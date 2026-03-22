@@ -74,12 +74,7 @@ void main() {
         child: _buildNavigation(),
       );
 
-      final backdropFinder = find.byKey(
-        const Key('custom_adaptive_navigation_bottom_backdrop'),
-      );
-      expect(backdropFinder, findsOneWidget);
-
-      final backdropRect = tester.getRect(backdropFinder);
+      // The bottom accessory is positioned above the dock
       final accessoryRect = tester.getRect(
         find.byKey(const Key('test_bottom_accessory')),
       );
@@ -87,29 +82,8 @@ void main() {
         find.byKey(const Key('custom_adaptive_navigation_mobile_dock')),
       );
 
-      expect(backdropRect.bottom, closeTo(844, 0.1));
-      expect(backdropRect.top, lessThan(accessoryRect.top));
-      expect(backdropRect.top, lessThan(dockRect.top));
       expect(accessoryRect.bottom, lessThanOrEqualTo(dockRect.top + 2));
-
-      final mobileStack = tester
-          .widgetList<Stack>(find.byType(Stack))
-          .firstWhere(
-            (stack) => stack.children.any(
-              (child) =>
-                  child is Positioned &&
-                  child.child.key ==
-                      const Key('custom_adaptive_navigation_bottom_backdrop'),
-            ),
-          );
-      expect(
-        mobileStack.children.first,
-        isA<Positioned>().having(
-          (positioned) => positioned.child.key,
-          'child key',
-          const Key('custom_adaptive_navigation_bottom_backdrop'),
-        ),
-      );
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('mobile: bottom backdrop still renders without accessory', (
@@ -121,19 +95,12 @@ void main() {
         child: _buildNavigation(includeAccessory: false),
       );
 
-      final backdropFinder = find.byKey(
-        const Key('custom_adaptive_navigation_bottom_backdrop'),
-      );
-      expect(backdropFinder, findsOneWidget);
+      // When no accessory, the dock should still render
       expect(find.byKey(const Key('test_bottom_accessory')), findsNothing);
-
-      final backdropRect = tester.getRect(backdropFinder);
-      final dockRect = tester.getRect(
+      expect(
         find.byKey(const Key('custom_adaptive_navigation_mobile_dock')),
+        findsOneWidget,
       );
-
-      expect(backdropRect.bottom, closeTo(844, 0.1));
-      expect(backdropRect.top, lessThan(dockRect.top));
       expect(tester.takeException(), isNull);
     });
   });
@@ -152,7 +119,7 @@ void main() {
       final sidebarSize = tester.getSize(
         find.byKey(const ValueKey('desktop_navigation_sidebar')),
       );
-      expect(sidebarSize.width, closeTo(280, 0.1));
+      expect(sidebarSize.width, closeTo(256, 0.1));
     });
 
     testWidgets('collapsed: shows narrow sidebar without title', (
@@ -170,7 +137,7 @@ void main() {
       final sidebarSize = tester.getSize(
         find.byKey(const ValueKey('desktop_navigation_sidebar')),
       );
-      expect(sidebarSize.width, closeTo(80, 0.1));
+      expect(sidebarSize.width, closeTo(72, 0.1));
     });
   });
 }

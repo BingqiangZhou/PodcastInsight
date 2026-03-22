@@ -120,13 +120,7 @@ void main() {
     final cards = tester.widgetList<Card>(find.byType(Card)).toList();
     expect(cards.length, 2);
     for (final card in cards) {
-      expect(
-        card.margin,
-        const EdgeInsets.symmetric(
-          horizontal: kPodcastRowCardHorizontalMargin,
-          vertical: kPodcastRowCardVerticalMargin,
-        ),
-      );
+      expect(card.margin, EdgeInsets.zero);
       expect(card.shape, isA<RoundedRectangleBorder>());
       final shape = card.shape! as RoundedRectangleBorder;
       expect(

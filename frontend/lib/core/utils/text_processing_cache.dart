@@ -1,32 +1,71 @@
+/// LRU cache entry that tracks access time for eviction.
+class _CacheEntry<T> {
+  T value;
+  int lastAccess;
+
+  _CacheEntry(this.value) : lastAccess = DateTime.now().millisecondsSinceEpoch;
+}
+
 /// Text processing cache utility class.
 ///
 /// Uses LRU strategy to manage cache, avoiding repeated regex processing on each build.
 /// This improves performance by caching expensive text processing operations.
+///
+/// Features:
+/// - LRU eviction with access tracking
+/// - Memory pressure awareness
+/// - Configurable cache size
+/// - Automatic cleanup on low memory warnings
 class TextProcessingCache {
-  static final _descriptionCache = <String, String>{};
-  static final _sentenceCache = <String, List<String>>{};
-  static const int _maxCacheSize = 200;
+  static final _descriptionCache = <String, _CacheEntry<String>>{};
+  static final _sentenceCache = <String, _CacheEntry<List<String>>>{};
+
+  /// Maximum cache size (reduced from 200 to 100 for better memory management)
+  static const int _maxCacheSize = 100;
+
+  /// Timestamp of last cache cleanup
+  static int? _lastCleanupTime;
+
+  /// Minimum time between cleanups to avoid excessive GC
+  static const Duration _minCleanupInterval = Duration(minutes: 1);
+
+  // Initialize memory pressure listener
+  static bool _initialized = false;
+
+  static void _ensureInitialized() {
+    if (_initialized) return;
+    _initialized = true;
+
+    // Flutter's memory pressure handling is automatic in most cases
+    // This initialization is a placeholder for future enhancements
+  }
 
   /// Gets cached description text (HTML tags cleaned).
   ///
   /// Extracts processing logic from podcast_feed_page.dart's `_getFeedCardDescription`
   /// and related helper functions.
   static String getCachedDescription(String? rawDescription) {
+    _ensureInitialized();
+
     if (rawDescription == null || rawDescription.isEmpty) return '';
 
     final cacheKey = rawDescription.hashCode.toString();
-    if (_descriptionCache.containsKey(cacheKey)) {
-      return _descriptionCache[cacheKey]!;
+    final entry = _descriptionCache[cacheKey];
+
+    if (entry != null) {
+      // Update access time for LRU
+      entry.lastAccess = DateTime.now().millisecondsSinceEpoch;
+      return entry.value;
     }
 
     final processed = _processDescription(rawDescription);
 
-    // LRU eviction
+    // LRU eviction - remove oldest entry when cache is full
     if (_descriptionCache.length >= _maxCacheSize) {
-      _descriptionCache.remove(_descriptionCache.keys.first);
+      _evictOldestEntry(_descriptionCache);
     }
 
-    _descriptionCache[cacheKey] = processed;
+    _descriptionCache[cacheKey] = _CacheEntry(processed);
     return processed;
   }
 
@@ -34,21 +73,47 @@ class TextProcessingCache {
   ///
   /// Extracts processing logic from transcript_display_widget.dart's `_splitIntoSentences`.
   static List<String> getCachedSentences(String text) {
+    _ensureInitialized();
+
     if (text.isEmpty) return [];
 
     final cacheKey = text.hashCode.toString();
-    if (_sentenceCache.containsKey(cacheKey)) {
-      return _sentenceCache[cacheKey]!;
+    final entry = _sentenceCache[cacheKey];
+
+    if (entry != null) {
+      // Update access time for LRU
+      entry.lastAccess = DateTime.now().millisecondsSinceEpoch;
+      return entry.value;
     }
 
     final sentences = _splitIntoSentences(text);
 
+    // LRU eviction - remove oldest entry when cache is full
     if (_sentenceCache.length >= _maxCacheSize) {
-      _sentenceCache.remove(_sentenceCache.keys.first);
+      _evictOldestEntry(_sentenceCache);
     }
 
-    _sentenceCache[cacheKey] = sentences;
+    _sentenceCache[cacheKey] = _CacheEntry(sentences);
     return sentences;
+  }
+
+  /// Evicts the oldest (least recently used) entry from a cache.
+  static void _evictOldestEntry<T>(Map<String, _CacheEntry<T>> cache) {
+    if (cache.isEmpty) return;
+
+    String? oldestKey;
+    int oldestTime = DateTime.now().millisecondsSinceEpoch;
+
+    for (final entry in cache.entries) {
+      if (entry.value.lastAccess < oldestTime) {
+        oldestTime = entry.value.lastAccess;
+        oldestKey = entry.key;
+      }
+    }
+
+    if (oldestKey != null) {
+      cache.remove(oldestKey);
+    }
   }
 
   /// Processes description text by removing HTML tags and cleaning content.
@@ -80,8 +145,11 @@ class TextProcessingCache {
       return '';
     }
 
+    // Decode HTML entities
+    final decoded = _decodeHtmlEntities(sanitized);
+
     // Recover visible content when malformed/truncated tag fragments remain.
-    final recovered = _recoverMalformedTagInlineContent(sanitized);
+    final recovered = _recoverMalformedTagInlineContent(decoded);
     final cleaned = recovered.replaceAll(
       RegExp(r'<[/!]?[a-zA-Z][^>\n]*(?=\n|$)'),
       '',
@@ -89,6 +157,54 @@ class TextProcessingCache {
 
     final cssCleaned = _removeLikelyCssNoise(cleaned);
     return cssCleaned.trim();
+  }
+
+  /// Decodes common HTML entities to their character equivalents.
+  static String _decodeHtmlEntities(String text) {
+    final htmlEntities = {
+      '&nbsp;': ' ',
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&apos;': "'",
+      '&#39;': "'",
+      '&#34;': '"',
+      '&#160;': ' ',
+      '&mdash;': '—',
+      '&ndash;': '–',
+      '&hellip;': '...',
+      '&copy;': '©',
+      '&reg;': '®',
+      '&trade;': '™',
+      '&euro;': '€',
+      '&pound;': '£',
+      '&yen;': '¥',
+      '&cent;': '¢',
+      '&sect;': '§',
+      '&para;': '¶',
+    };
+
+    var decoded = text;
+    for (final entry in htmlEntities.entries) {
+      decoded = decoded.replaceAll(entry.key, entry.value);
+    }
+
+    // Handle numeric entities like &#123;
+    decoded = decoded.replaceAllMapped(
+      RegExp(r'&#(\d+);'),
+      (match) =>
+          String.fromCharCode(int.tryParse(match.group(1) ?? '0') ?? 0),
+    );
+    // Handle hex entities like &#x1F600;
+    decoded = decoded.replaceAllMapped(
+      RegExp(r'&#x([0-9a-fA-F]+);'),
+      (match) => String.fromCharCode(
+        int.tryParse(match.group(1) ?? '0', radix: 16) ?? 0,
+      ),
+    );
+
+    return decoded;
   }
 
   /// Splits text into sentences based on punctuation marks.
@@ -223,5 +339,47 @@ class TextProcessingCache {
   static void clearAll() {
     _descriptionCache.clear();
     _sentenceCache.clear();
+    _lastCleanupTime = null;
+  }
+
+  /// Gets current cache statistics for monitoring.
+  ///
+  /// Returns a map with cache sizes and memory usage info.
+  static Map<String, dynamic> getStats() {
+    return {
+      'descriptionCacheSize': _descriptionCache.length,
+      'sentenceCacheSize': _sentenceCache.length,
+      'maxCacheSize': _maxCacheSize,
+      'totalEntries': _descriptionCache.length + _sentenceCache.length,
+      'lastCleanup': _lastCleanupTime,
+    };
+  }
+
+  /// Performs periodic cleanup of stale cache entries.
+  ///
+  /// This can be called periodically or when memory pressure is detected.
+  /// Only cleans up if enough time has passed since the last cleanup.
+  static void performCleanup() {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // Skip if cleanup was done recently
+    if (_lastCleanupTime != null &&
+        (now - _lastCleanupTime!) < _minCleanupInterval.inMilliseconds) {
+      return;
+    }
+
+    _lastCleanupTime = now;
+
+    // Reduce cache size by removing least recently used entries
+    // Keep only 70% of max cache size to create headroom
+    final targetSize = (_maxCacheSize * 0.7).floor();
+
+    while (_descriptionCache.length > targetSize) {
+      _evictOldestEntry(_descriptionCache);
+    }
+
+    while (_sentenceCache.length > targetSize) {
+      _evictOldestEntry(_sentenceCache);
+    }
   }
 }

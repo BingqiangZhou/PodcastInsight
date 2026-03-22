@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -239,7 +240,11 @@ void main() {
     testWidgets('uses latest theme when shown after theme toggle', (
       tester,
     ) async {
-      await tester.pumpWidget(const _ThemeSwitchingApp());
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: _ThemeSwitchingApp(),
+        ),
+      );
 
       await tester.tap(find.byKey(const Key('toggle_theme')));
       await tester.pumpAndSettle();
@@ -257,7 +262,7 @@ void main() {
     testWidgets('positions notice exactly at app bar when no top inset', (
       tester,
     ) async {
-      await _pumpHost(tester, viewPadding: EdgeInsets.zero);
+      await _pumpHost(tester);
 
       await tester.tap(find.byKey(const Key('show_notice_default')));
       await tester.pump();
@@ -275,25 +280,27 @@ void main() {
       const topInset = 32.0;
       late BuildContext hostContext;
       await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          home: Builder(
-            builder: (context) {
-              final mediaQuery = MediaQuery.of(context);
-              return MediaQuery(
-                data: mediaQuery.copyWith(
-                  viewPadding: const EdgeInsets.only(top: topInset),
-                  padding: const EdgeInsets.only(top: topInset),
-                ),
-                child: Builder(
-                  builder: (context) {
-                    hostContext = context;
-                    return const _TopNoticeHost();
-                  },
-                ),
-              );
-            },
+        ProviderScope(
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            home: Builder(
+              builder: (context) {
+                final mediaQuery = MediaQuery.of(context);
+                return MediaQuery(
+                  data: mediaQuery.copyWith(
+                    viewPadding: const EdgeInsets.only(top: topInset),
+                    padding: const EdgeInsets.only(top: topInset),
+                  ),
+                  child: Builder(
+                    builder: (context) {
+                      hostContext = context;
+                      return const _TopNoticeHost();
+                    },
+                  ),
+                );
+              },
+            ),
           ),
         ),
       );
@@ -316,21 +323,23 @@ Future<void> _pumpHost(
   EdgeInsets viewPadding = EdgeInsets.zero,
 }) {
   return tester.pumpWidget(
-    MaterialApp(
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
-      home: Builder(
-        builder: (context) {
-          final mediaQuery = MediaQuery.of(context);
-          return MediaQuery(
-            data: mediaQuery.copyWith(
-              viewPadding: viewPadding,
-              padding: viewPadding,
-            ),
-            child: const _TopNoticeHost(),
-          );
-        },
+    ProviderScope(
+      child: MaterialApp(
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeMode,
+        home: Builder(
+          builder: (context) {
+            final mediaQuery = MediaQuery.of(context);
+            return MediaQuery(
+              data: mediaQuery.copyWith(
+                viewPadding: viewPadding,
+                padding: viewPadding,
+              ),
+              child: const _TopNoticeHost(),
+            );
+          },
+        ),
       ),
     ),
   );

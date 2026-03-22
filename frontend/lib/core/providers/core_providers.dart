@@ -13,6 +13,9 @@ final dioClientProvider = Provider<DioClient>((ref) {
 });
 
 final appCacheServiceProvider = Provider<AppCacheService>((ref) {
+  // Initialize cache service with optimized memory settings
+  AppCacheServiceImpl.initialize();
+
   return AppCacheServiceImpl();
 });
 

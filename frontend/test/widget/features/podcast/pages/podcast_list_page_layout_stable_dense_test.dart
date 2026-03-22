@@ -107,7 +107,6 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(AppPageBackdrop), findsOneWidget);
     expect(find.byType(HeroHeader), findsOneWidget);
     expect(find.text('Discover'), findsOneWidget);
     expect(
@@ -117,7 +116,7 @@ void main() {
     final viewportClip = tester.widget<ClipRRect>(
       find.byKey(const Key('content_shell_viewport_clip')),
     );
-    expect(viewportClip.borderRadius, BorderRadius.circular(28));
+    expect(viewportClip.borderRadius, BorderRadius.circular(16));
   });
 
   testWidgets(

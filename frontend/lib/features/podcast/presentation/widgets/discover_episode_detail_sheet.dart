@@ -34,13 +34,15 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: PodcastImageWidget(
-                    imageUrl: episode.artworkUrl600 ?? episode.artworkUrl100,
-                    width: 64,
-                    height: 64,
-                    iconSize: 26,
+                RepaintBoundary(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: PodcastImageWidget(
+                      imageUrl: episode.artworkUrl600 ?? episode.artworkUrl100,
+                      width: 64,
+                      height: 64,
+                      iconSize: 26,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),

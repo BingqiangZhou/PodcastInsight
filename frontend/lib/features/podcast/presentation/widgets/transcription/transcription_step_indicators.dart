@@ -38,22 +38,10 @@ class TranscriptionStepIndicators extends StatelessWidget {
               status: status,
             ),
             if (!isLast)
-              SizedBox(
-                width: 20,
-                child: Center(
-                  child: Container(
-                    height: 2,
-                    width: 16,
-                    color:
-                        transcriptionConnectorHighlighted(
-                          progressPercentage,
-                          index,
-                        )
-                        ? Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.5)
-                        : Colors.grey.withValues(alpha: 0.2),
-                  ),
+              _ConnectorLine(
+                highlighted: transcriptionConnectorHighlighted(
+                  progressPercentage,
+                  index,
                 ),
               ),
           ],
@@ -84,6 +72,28 @@ class TranscriptionStatusStepIcon extends StatelessWidget {
       default:
         return const Icon(Icons.pending, size: 16, color: Colors.grey);
     }
+  }
+}
+
+class _ConnectorLine extends StatelessWidget {
+  const _ConnectorLine({required this.highlighted});
+
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 20,
+      child: Center(
+        child: Container(
+          height: 2,
+          width: 16,
+          color: highlighted
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
+              : Colors.grey.withValues(alpha: 0.2),
+        ),
+      ),
+    );
   }
 }
 

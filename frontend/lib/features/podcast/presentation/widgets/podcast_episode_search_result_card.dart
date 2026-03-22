@@ -51,18 +51,20 @@ class PodcastEpisodeSearchResultCard extends StatelessWidget {
             constraints: BoxConstraints(minHeight: imageSize),
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(kPodcastRowCardImageRadius),
-                  child: SizedBox(
-                    key: const Key('podcast_episode_search_result_card_artwork'),
-                    width: imageSize,
-                    height: imageSize,
-                    child: PodcastImageWidget(
-                      imageUrl: episode.artworkUrl100 ?? episode.artworkUrl600,
+                RepaintBoundary(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(kPodcastRowCardImageRadius),
+                    child: SizedBox(
+                      key: const Key('podcast_episode_search_result_card_artwork'),
                       width: imageSize,
                       height: imageSize,
-                      iconSize: 24,
-                      iconColor: theme.colorScheme.onPrimaryContainer,
+                      child: PodcastImageWidget(
+                        imageUrl: episode.artworkUrl100 ?? episode.artworkUrl600,
+                        width: imageSize,
+                        height: imageSize,
+                        iconSize: 24,
+                        iconColor: theme.colorScheme.onPrimaryContainer,
+                      ),
                     ),
                   ),
                 ),

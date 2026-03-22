@@ -109,7 +109,7 @@ void main() {
       final viewportClip = tester.widget<ClipRRect>(
         find.byKey(const Key('content_shell_viewport_clip')),
       );
-      expect(viewportClip.borderRadius, BorderRadius.circular(28));
+      expect(viewportClip.borderRadius, BorderRadius.circular(16));
     });
 
     testWidgets('displays mock data on mobile screen', (

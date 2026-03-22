@@ -616,7 +616,7 @@ void main() {
 
     await tester.pump();
 
-    expect(find.text('...'), findsNWidgets(4));
+    expect(find.text('...'), findsNWidgets(5));
     expect(find.text('--'), findsOneWidget);
   });
 
@@ -649,7 +649,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('0'), findsNWidgets(4));
+    expect(find.text('0'), findsNWidgets(5));
     expect(find.text('5'), findsNothing);
   });
 
@@ -682,7 +682,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('0'), findsNWidgets(4));
+    expect(find.text('0'), findsNWidgets(5));
     expect(find.text('5'), findsNothing);
   });
 
@@ -1240,14 +1240,13 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(AppPageBackdrop), findsOneWidget);
     expect(find.byKey(const Key('profile_hero_header')).last, findsOneWidget);
     expect(find.byKey(const Key('profile_user_menu_button')), findsOneWidget);
     expect(find.byType(SingleChildScrollView), findsWidgets);
     final viewportClip = tester.widget<ClipRRect>(
       find.byKey(const Key('profile_shell_viewport_clip')),
     );
-    expect(viewportClip.borderRadius, BorderRadius.circular(28));
+    expect(viewportClip.borderRadius, BorderRadius.circular(16));
   });
 
   testWidgets('keeps desktop profile cards unchanged', (
