@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.25.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.24.1...v0.25.0) - 2026-03-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.25.0))
+
+### ⚡ Performance
+
+- *(podcast)* Optimize summary page scrolling with dedicated widget and state preservation ([dc0e611](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dc0e611e627ff5b78e5484492b045f77124a32ea))
+
+### 🎨 Styling
+
+- *(ui)* Update header buttons to surfaceNeutral style and reposition back button ([212ba3d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/212ba3d4bc093b8a361adaa1ccb5065fd090d275))
+
+
+
+## [0.24.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.24.0...v0.24.1) - 2026-03-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.24.1))
+
+### ⚡ Performance
+
+- *(podcast)* Optimize animation and text processing performance ([ad975e8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ad975e8296cff470e090d400bc80c58696eff743))
+- *(frontend)* Improve animation lifecycle and list rendering performance ([4e2b9ff](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4e2b9ff7e3b90f5e8fdbaf2057feca86a9b5e545))
+
+### 🐛 Bug Fixes
+
+- *(podcast)* Improve highlight extraction task claiming and timeout handling ([b7134ba](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b7134babfd53bf0fb2dac0a3e1b83a9797e85b27))
+- *(podcast)* Fix profile highlights count and improve highlight card layout ([bde0422](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bde0422b186065789c0362afc2f7dcfc315a70b9))
+
+### 🚜 Refactor
+
+- *(widgets)* Optimize animation memory usage in micro_interactions ([43cf1ae](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/43cf1ae44d0cb39374dfdb9320896ced03b974da))
+
+
+
 ## [0.24.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.23.0...v0.24.0) - 2026-03-21 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.24.0))
 
 ### 🎨 Styling
