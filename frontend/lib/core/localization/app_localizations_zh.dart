@@ -612,6 +612,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get restore_defaults_success => '已恢复默认服务器地址';
 
   @override
+  String get profile_server_switch_title => '切换服务器';
+
+  @override
+  String get profile_server_switch_message => '切换服务器将清除所有本地数据，您需要重新登录。是否继续？';
+
+  @override
+  String get profile_server_switch_success => '服务器切换成功，请重新登录';
+
+  @override
+  String get profile_server_switch_clearing => '正在清理数据...';
+
+  @override
   String get drop_files_here => '拖放文件到这里！';
 
   @override

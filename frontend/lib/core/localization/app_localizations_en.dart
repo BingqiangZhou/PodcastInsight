@@ -626,6 +626,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restore_defaults_success => 'Restored default server address';
 
   @override
+  String get profile_server_switch_title => 'Switch Server';
+
+  @override
+  String get profile_server_switch_message =>
+      'Switching server will clear all local data and require re-login. Continue?';
+
+  @override
+  String get profile_server_switch_success =>
+      'Server switched successfully. Please log in again.';
+
+  @override
+  String get profile_server_switch_clearing => 'Clearing data...';
+
+  @override
   String get drop_files_here => 'Drop files here!';
 
   @override

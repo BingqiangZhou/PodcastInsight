@@ -1274,6 +1274,30 @@ abstract class AppLocalizations {
   /// **'Restored default server address'**
   String get restore_defaults_success;
 
+  /// Server switch confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Server'**
+  String get profile_server_switch_title;
+
+  /// Server switch confirmation dialog message
+  ///
+  /// In en, this message translates to:
+  /// **'Switching server will clear all local data and require re-login. Continue?'**
+  String get profile_server_switch_message;
+
+  /// Server switch success message
+  ///
+  /// In en, this message translates to:
+  /// **'Server switched successfully. Please log in again.'**
+  String get profile_server_switch_success;
+
+  /// Loading message while clearing data
+  ///
+  /// In en, this message translates to:
+  /// **'Clearing data...'**
+  String get profile_server_switch_clearing;
+
   /// Drop files hint
   ///
   /// In en, this message translates to:

@@ -820,6 +820,22 @@
     "@restore_defaults_success":  {
                                       "description":  "Restore defaults success message"
                                   },
+    "profile_server_switch_title":  "Switch Server",
+    "@profile_server_switch_title":  {
+                                         "description":  "Server switch confirmation dialog title"
+                                     },
+    "profile_server_switch_message":  "Switching server will clear all local data and require re-login. Continue?",
+    "@profile_server_switch_message":  {
+                                           "description":  "Server switch confirmation dialog message"
+                                       },
+    "profile_server_switch_success":  "Server switched successfully. Please log in again.",
+    "@profile_server_switch_success":  {
+                                           "description":  "Server switch success message"
+                                       },
+    "profile_server_switch_clearing":  "Clearing data...",
+    "@profile_server_switch_clearing":  {
+                                            "description":  "Loading message while clearing data"
+                                        },
     "drop_files_here":  "Drop files here!",
     "@drop_files_here":  {
                              "description":  "Drop files hint"

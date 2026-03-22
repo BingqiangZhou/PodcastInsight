@@ -35,7 +35,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     super.initState();
     _loadVersion();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(profileStatsProvider.notifier).load(forceRefresh: false);
+      final authState = ref.read(authProvider);
+      if (authState.isAuthenticated) {
+        // Force refresh after login to ensure fresh data from new server
+        ref.read(profileStatsProvider.notifier).load(forceRefresh: true);
+      }
     });
   }
 

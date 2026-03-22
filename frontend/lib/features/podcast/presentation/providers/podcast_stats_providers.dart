@@ -45,9 +45,21 @@ class ProfileStatsNotifier extends AsyncNotifier<ProfileStatsModel?> {
     return DateTime.now().difference(_lastLoadedAt!) < cacheDuration;
   }
 
+  /// Reset the notifier state completely.
+  /// Called when switching servers or on login to ensure clean state.
+  void reset() {
+    _lastLoadedAt = null;
+    _inFlightRequest = null;
+    state = const AsyncValue.data(null);
+  }
+
   Future<ProfileStatsModel?> load({bool forceRefresh = false}) async {
+    final hasError = state.hasError;
+    final isLoading = state.isLoading;
     final previousData = state.value;
-    if (!forceRefresh && previousData != null && _isFresh()) {
+
+    // If has error or loading, skip cache check and continue to fetch
+    if (!forceRefresh && !hasError && !isLoading && previousData != null && _isFresh()) {
       return previousData;
     }
 
@@ -123,9 +135,21 @@ class PlaybackHistoryLiteNotifier
     return DateTime.now().difference(_lastLoadedAt!) < cacheDuration;
   }
 
+  /// Reset the notifier state completely.
+  /// Called when switching servers or on login to ensure clean state.
+  void reset() {
+    _lastLoadedAt = null;
+    _inFlightRequest = null;
+    state = const AsyncValue.data(null);
+  }
+
   Future<PlaybackHistoryLiteResponse?> load({bool forceRefresh = false}) async {
+    final hasError = state.hasError;
+    final isLoading = state.isLoading;
     final previousData = state.value;
-    if (!forceRefresh && previousData != null && _isFresh()) {
+
+    // If has error or loading, skip cache check and continue to fetch
+    if (!forceRefresh && !hasError && !isLoading && previousData != null && _isFresh()) {
       return previousData;
     }
 

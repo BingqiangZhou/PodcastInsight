@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/network/server_health_service.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
+import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -361,8 +363,66 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
     final baseUrl = _serverUrlController.text.trim();
     if (baseUrl.isEmpty) return;
 
+    final currentUrl = ref.read(serverConfigProvider).serverUrl;
+
+    // If URL hasn't changed, just close the dialog
+    if (currentUrl == baseUrl) {
+      Navigator.of(dialogContext).pop();
+      return;
+    }
+
+    // Show confirmation dialog for server switch
+    final confirmed = await showDialog<bool>(
+      context: dialogContext,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.profile_server_switch_title),
+        content: Text(l10n.profile_server_switch_message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    // Show loading dialog (use rootNavigator to show above all other dialogs)
+    showDialog<void>(
+      context: dialogContext,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (ctx) => PopScope(
+        canPop: false,
+        child: Center(
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(l10n.profile_server_switch_clearing),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
     try {
-      // Use ServerConfigNotifier to properly save and update DioClient
+      // Use ServerConfigNotifier to save and clear data
       await ref.read(serverConfigProvider.notifier).updateServerUrl(baseUrl);
       if (_isDisposed || !mounted) return;
 
@@ -370,21 +430,38 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
       await _addToServerHistory(baseUrl);
       if (_isDisposed || !mounted) return;
 
-      if (!dialogContext.mounted) return;
-      final rootContext = Navigator.of(
-        dialogContext,
-        rootNavigator: true,
-      ).context;
-      Navigator.of(dialogContext).pop();
-      if (!rootContext.mounted) return;
-      showTopFloatingNotice(
-        rootContext,
-        message: l10n.restore_defaults_success,
-        duration: const Duration(milliseconds: 1500),
-      );
+      // Close loading dialog and config dialog
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext, rootNavigator: true).pop(); // Close loading dialog
+        Navigator.of(dialogContext).pop(); // Close config dialog
+      }
+
+      // Show success message and navigate after dialog is closed
+      if (mounted) {
+        showTopFloatingNotice(
+          context,
+          message: l10n.profile_server_switch_success,
+        );
+
+        // Use addPostFrameCallback to ensure navigation happens after dialogs are closed
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // Use global navigator key to get root context for navigation
+          final rootContext = appNavigatorKey.currentContext;
+          if (rootContext != null && rootContext.mounted) {
+            rootContext.go('/login');
+          }
+        });
+      }
+
       widget.onSave?.call();
     } catch (e) {
       if (_isDisposed || !mounted) return;
+
+      // Close loading dialog on error
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext, rootNavigator: true).pop();
+      }
+
       showTopFloatingNotice(
         context,
         message: l10n.save_failed(e.toString()),

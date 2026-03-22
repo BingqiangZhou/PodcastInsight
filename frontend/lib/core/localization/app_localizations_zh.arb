@@ -821,6 +821,22 @@
     "@restore_defaults_success":  {
                                       "description":  "恢复默认成功消息"
                                   },
+    "profile_server_switch_title":  "切换服务器",
+    "@profile_server_switch_title":  {
+                                         "description":  "切换服务器确认对话框标题"
+                                     },
+    "profile_server_switch_message":  "切换服务器将清除所有本地数据，您需要重新登录。是否继续？",
+    "@profile_server_switch_message":  {
+                                           "description":  "切换服务器确认对话框消息"
+                                       },
+    "profile_server_switch_success":  "服务器切换成功，请重新登录",
+    "@profile_server_switch_success":  {
+                                           "description":  "切换服务器成功消息"
+                                       },
+    "profile_server_switch_clearing":  "正在清理数据...",
+    "@profile_server_switch_clearing":  {
+                                            "description":  "清理数据时的加载提示"
+                                        },
     "drop_files_here":  "拖放文件到这里！",
     "@drop_files_here":  {
                              "description":  "拖放文件提示"

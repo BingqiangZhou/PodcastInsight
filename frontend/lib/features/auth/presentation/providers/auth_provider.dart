@@ -577,6 +577,16 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  /// Clear local auth state without calling logout API
+  /// Used when switching servers to reset auth state cleanly
+  Future<void> clearLocalAuthState() async {
+    _disableAutoRefresh();
+    final currentUserId = state.user?.id;
+    await _clearAuthState();
+    await _clearPlaybackSnapshot(currentUserId);
+    state = const AuthState(isAuthenticated: false, isLoading: false);
+  }
+
   Future<void> checkAuthStatus() async {
     await _checkAuthStatus();
   }
