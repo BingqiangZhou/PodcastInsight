@@ -7,13 +7,12 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cache_ttl import CacheTTL
 from app.core.redis import PodcastRedis, get_shared_redis
-from app.domains.podcast.models import PodcastEpisode
-from app.domains.podcast.services.transcription_dispatch_guard import (
-    TranscriptionDispatchGuard,
-)
+from app.domains.podcast.models import PodcastEpisode, TranscriptionTask
 from app.domains.podcast.services.transcription_runtime_service import (
     PodcastTranscriptionRuntimeService,
 )
@@ -24,9 +23,6 @@ from app.domains.podcast.services.transcription_schedule_service import (
 )
 from app.domains.podcast.services.transcription_state_coordinator import (
     TranscriptionStateCoordinator,
-)
-from app.domains.podcast.services.transcription_status_projection import (
-    build_transcription_status_payload,
 )
 from app.domains.podcast.transcription_schedule_projections import (
     BatchTranscriptionProjection,
@@ -43,6 +39,49 @@ from app.domains.podcast.utils.status_helpers import status_value
 
 
 logger = logging.getLogger(__name__)
+
+
+# ── Status Projection Helpers (inlined from transcription_status_projection.py) ──
+
+STATUS_MESSAGES = {
+    "pending": "Waiting to start",
+    "downloading": "Downloading audio file",
+    "converting": "Converting audio format",
+    "splitting": "Splitting audio into chunks",
+    "transcribing": "Transcribing audio",
+    "merging": "Merging transcription output",
+    "completed": "Transcription completed",
+    "failed": "Transcription failed",
+    "cancelled": "Transcription cancelled",
+}
+
+
+def _build_transcription_status_payload(task, *, status_key: str) -> dict[str, Any]:
+    """Build the route payload for a transcription task status."""
+    current_chunk = 0
+    total_chunks = 0
+    if task.chunk_info and "chunks" in task.chunk_info:
+        total_chunks = len(task.chunk_info["chunks"])
+        if status_key == "transcribing" and task.progress_percentage > 45:
+            current_chunk = int(((task.progress_percentage - 45) / 50) * total_chunks)
+
+    eta_seconds = None
+    if task.started_at and status_key not in {"completed", "failed", "cancelled"}:
+        elapsed = (datetime.now(UTC) - task.started_at).total_seconds()
+        if task.progress_percentage > 0:
+            estimated_total = elapsed / (task.progress_percentage / 100)
+            eta_seconds = int(estimated_total - elapsed)
+
+    return {
+        "task_id": task.id,
+        "episode_id": task.episode_id,
+        "status": status_key,
+        "progress": task.progress_percentage,
+        "message": STATUS_MESSAGES.get(status_key, "Unknown status"),
+        "current_chunk": current_chunk,
+        "total_chunks": total_chunks,
+        "eta_seconds": eta_seconds,
+    }
 
 
 class TranscriptionWorkflowService:
@@ -73,17 +112,44 @@ class TranscriptionWorkflowService:
         self.scheduler_factory = scheduler_factory
         self.state_manager_factory = state_manager_factory
         self.redis_factory = redis_factory
-        self.claim_dispatched = claim_dispatched
-        self.clear_dispatched = clear_dispatched
-        self.dispatch_guard = TranscriptionDispatchGuard(
-            db,
-            redis_factory=redis_factory,
-            claim_dispatched=claim_dispatched,
-            clear_dispatched=clear_dispatched,
-        )
+        self._claim_dispatched_callback = claim_dispatched
+        self._clear_dispatched_callback = clear_dispatched
         self.state_coordinator = TranscriptionStateCoordinator(
             state_manager_factory=state_manager_factory,
         )
+
+    # ── Dispatch Guard Methods (inlined from transcription_dispatch_guard.py) ──
+
+    async def _claim_dispatch(self, task_id: int) -> bool:
+        """Claim dispatch right for a task. Returns True if claimed successfully."""
+        if self._claim_dispatched_callback is not None:
+            return await self._claim_dispatched_callback(self.db, task_id)
+
+        redis = self.redis_factory()
+        key = f"podcast:transcription:dispatched:{task_id}"
+        if await redis.set_if_not_exists(key, "1", ttl=CacheTTL.hours(2)):
+            return True
+
+        status_stmt = select(TranscriptionTask.status).where(
+            TranscriptionTask.id == task_id,
+        )
+        status_result = await self.db.execute(status_stmt)
+        task_status_value = status_value(status_result.scalar_one_or_none())
+        if task_status_value in {"completed", "failed", "cancelled"}:
+            return False
+        raise RuntimeError(
+            f"Task {task_id} dispatch key exists while task status={task_status_value}",
+        )
+
+    async def _clear_dispatch(self, task_id: int) -> None:
+        """Clear dispatch flag for a task."""
+        if self._clear_dispatched_callback is not None:
+            await self._clear_dispatched_callback(task_id)
+            return
+
+        redis = self.redis_factory()
+        key = f"podcast:transcription:dispatched:{task_id}"
+        await redis.delete_keys(key)
 
     async def start_episode_transcription(
         self,
@@ -189,7 +255,7 @@ class TranscriptionWorkflowService:
                 "You don't have permission to access this transcription task",
             )
 
-        return build_transcription_status_payload(
+        return _build_transcription_status_payload(
             task,
             status_key=status_value(task.status),
         )
@@ -336,7 +402,8 @@ class TranscriptionWorkflowService:
             task_id=task_id,
             config_db_id=config_db_id,
             transcription_service_factory=self.transcription_service_factory,
-            dispatch_guard=self.dispatch_guard,
+            claim_dispatch=self._claim_dispatch,
+            clear_dispatch=self._clear_dispatch,
             status_value=status_value,
         )
 

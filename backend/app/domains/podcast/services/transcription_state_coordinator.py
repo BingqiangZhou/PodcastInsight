@@ -11,9 +11,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.podcast.models import TranscriptionStatus, TranscriptionTask
-from app.domains.podcast.services.transcription_dispatch_guard import (
-    TranscriptionDispatchGuard,
-)
 
 
 logger = logging.getLogger(__name__)
@@ -75,10 +72,11 @@ class TranscriptionStateCoordinator:
         task_id: int,
         config_db_id: int | None,
         transcription_service_factory,
-        dispatch_guard: TranscriptionDispatchGuard,
+        claim_dispatch: Callable[[int], Awaitable[bool]],
+        clear_dispatch: Callable[[int], Awaitable[None]],
         status_value: Callable[[object], str],
     ) -> dict[str, Any]:
-        dispatch_claimed = await dispatch_guard.claim(task_id)
+        dispatch_claimed = await claim_dispatch(task_id)
         if not dispatch_claimed:
             return {
                 "status": "skipped",
@@ -91,7 +89,7 @@ class TranscriptionStateCoordinator:
         result = await db.execute(stmt)
         task = result.scalar_one_or_none()
         if task is None:
-            await dispatch_guard.clear(task_id)
+            await clear_dispatch(task_id)
             return {"status": "error", "reason": "task_not_found", "task_id": task_id}
 
         episode_id = task.episode_id
@@ -102,7 +100,7 @@ class TranscriptionStateCoordinator:
         )
         if not lock_acquired:
             locked_task_id = await state_manager.is_episode_locked(episode_id)
-            await dispatch_guard.clear(task_id)
+            await clear_dispatch(task_id)
             lock_owner = (
                 str(locked_task_id) if locked_task_id is not None else "unknown_owner"
             )
@@ -159,4 +157,4 @@ class TranscriptionStateCoordinator:
             raise
         finally:
             await state_manager.release_task_lock(episode_id, task_id)
-            await dispatch_guard.clear(task_id)
+            await clear_dispatch(task_id)
