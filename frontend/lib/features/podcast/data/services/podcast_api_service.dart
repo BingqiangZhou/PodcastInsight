@@ -282,6 +282,7 @@ abstract class PodcastApiService {
     @Query('date') String? date,
     @Query('page') int page,
     @Query('per_page') int perPage,
+    @Query('episode_id') int? episodeId,
   );
 
   @GET('/podcasts/highlights/dates')
@@ -289,6 +290,11 @@ abstract class PodcastApiService {
 
   @GET('/podcasts/highlights/stats')
   Future<HighlightStatsResponse> getHighlightStats();
+
+  @POST('/podcasts/episodes/{episodeId}/highlights/extract')
+  Future<HighlightExtractResponse> extractEpisodeHighlights(
+    @Path('episodeId') int episodeId,
+  );
 
   @POST('/podcasts/highlights/{highlightId}/toggle-favorite')
   Future<void> toggleHighlightFavorite(@Path('highlightId') int highlightId);

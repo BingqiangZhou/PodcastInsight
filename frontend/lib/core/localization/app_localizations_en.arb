@@ -2185,5 +2185,63 @@
     "podcast_highlights_cannot_load":  "Cannot load highlights",
     "podcast_highlights_retry":  "Retry",
     "podcast_highlights_no_highs":  "No highlights",
-    "podcast_highlights_loading_highlights":  "Loading highlights..."
+    "podcast_highlights_loading_highlights":  "Loading highlights...",
+    "podcast_highlights_favorited":  "Favorited",
+    "@podcast_highlights_favorited":  {
+                                            "description":  "Already favorited state"
+                                        },
+    "podcast_highlights_overall_score":  "Score: {score}",
+    "@podcast_highlights_overall_score":  {
+                                                "description":  "Overall score display",
+                                                "placeholders":  {
+                                                    "score":  {
+                                                        "type":  "double"
+                                                    }
+                                                }
+                                            },
+    "podcast_highlights_topic_tags":  "Topics",
+    "@podcast_highlights_topic_tags":  {
+                                            "description":  "Topic tags section label"
+                                        },
+    "podcast_highlights_multiple_count":  "{count, plural, one{1 highlight} other{{count} highlights}}",
+    "@podcast_highlights_multiple_count":  {
+                                                "description":  "Multiple highlights count in sheet header",
+                                                "placeholders":  {
+                                                    "count":  {
+                                                        "type":  "int"
+                                                    }
+                                                }
+                                            },
+    "podcast_highlights_extract_hint":  "Extract key insights from this transcript",
+    "@podcast_highlights_extract_hint":  {
+                                                "description":  "Hint text for extracting highlights"
+                                            },
+    "podcast_highlights_extract_action":  "Extract",
+    "@podcast_highlights_extract_action":  {
+                                                "description":  "Extract highlights button text"
+                                            },
+    "podcast_highlights_extract_queued":  "Highlight extraction started. Please check back in a few minutes.",
+    "@podcast_highlights_extract_queued":  {
+                                                "description":  "Message shown when highlight extraction is queued"
+                                            },
+    "podcast_highlights_extract_failed":  "Failed to start highlight extraction",
+    "@podcast_highlights_extract_failed":  {
+                                                "description":  "Message shown when highlight extraction fails"
+                                            },
+    "podcast_transcript_view_full":  "Full Text",
+    "@podcast_transcript_view_full":  {
+                                                "description":  "Full transcript view mode label"
+                                            },
+    "podcast_transcript_view_highlights":  "Highlights",
+    "@podcast_transcript_view_highlights":  {
+                                                "description":  "Highlights view mode label"
+                                            },
+    "podcast_highlights_empty_title":  "No Highlights Yet",
+    "@podcast_highlights_empty_title":  {
+                                                "description":  "Title for empty highlights state"
+                                            },
+    "podcast_highlights_empty_subtitle":  "Extract key insights from this episode",
+    "@podcast_highlights_empty_subtitle":  {
+                                                "description":  "Subtitle for empty highlights state"
+                                            }
 }

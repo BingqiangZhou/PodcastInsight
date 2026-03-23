@@ -500,6 +500,14 @@ class PodcastRedis(
         await self._record_command_timing("SET", (perf_counter() - started) * 1000)
         return bool(result)
 
+    async def set_if_not_exists(self, key: str, value: str, *, ttl: int | None = None) -> bool:
+        """Set a key only if it does not already exist. Returns True if set."""
+        client = await self._get_client()
+        started = perf_counter()
+        result = await client.set(key, value, ex=ttl, nx=True)
+        await self._record_command_timing("SET", (perf_counter() - started) * 1000)
+        return bool(result)
+
     async def acquire_owned_lock(
         self, lock_name: str, *, expire: int = CacheTTL.LOCK_TIMEOUT
     ) -> str | None:

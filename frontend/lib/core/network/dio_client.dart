@@ -118,9 +118,10 @@ class DioClient {
       }
     }
 
+    // Add trailing slash to prevent double slash when Retrofit paths start with '/'
     final apiBaseUrl = savedBaseUrl.isNotEmpty
-        ? '$savedBaseUrl/api/v1'
-        : '${config.AppConfig.serverBaseUrl}/api/v1';
+        ? '$savedBaseUrl/api/v1/'
+        : '${config.AppConfig.serverBaseUrl}/api/v1/';
 
     _dio.options.baseUrl = apiBaseUrl;
     logger.AppLogger.debug(
@@ -159,7 +160,8 @@ class DioClient {
         } else if (normalizedUrl.contains('/api/v1/')) {
           normalizedUrl = normalizedUrl.replaceFirst('/api/v1/', '/');
         }
-        updateBaseUrl('$normalizedUrl/api/v1');
+        // Add trailing slash to prevent double slash when Retrofit paths start with '/'
+        updateBaseUrl('$normalizedUrl/api/v1/');
         logger.AppLogger.debug(
           ' [DioClient] Applied saved backend API baseUrl: $savedUrl',
         );

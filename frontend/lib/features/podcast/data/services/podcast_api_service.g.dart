@@ -1393,12 +1393,14 @@ class _PodcastApiService implements PodcastApiService {
     String? date,
     int page,
     int perPage,
+    int? episodeId,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'date': date,
       r'page': page,
       r'per_page': perPage,
+      r'episode_id': episodeId,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -1471,6 +1473,35 @@ class _PodcastApiService implements PodcastApiService {
     late HighlightStatsResponse _value;
     try {
       _value = HighlightStatsResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<HighlightExtractResponse> extractEpisodeHighlights(
+    int episodeId,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<HighlightExtractResponse>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/podcasts/episodes/${episodeId}/highlights/extract',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late HighlightExtractResponse _value;
+    try {
+      _value = HighlightExtractResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

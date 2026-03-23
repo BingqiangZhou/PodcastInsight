@@ -2186,5 +2186,17 @@
     "podcast_highlights_cannot_load":  "无法加载高光观点",
     "podcast_highlights_retry":  "重试",
     "podcast_highlights_no_highs":  "暂无高光",
-    "podcast_highlights_loading_highlights":  "正在加载高光观点"
+    "podcast_highlights_loading_highlights":  "正在加载高光观点",
+    "podcast_highlights_favorited":  "已收藏",
+    "podcast_highlights_overall_score":  "评分: {score}",
+    "podcast_highlights_topic_tags":  "主题标签",
+    "podcast_highlights_multiple_count":  "{count} 条高光",
+    "podcast_highlights_extract_hint":  "从转录文本中提取关键观点",
+    "podcast_highlights_extract_action":  "提取",
+    "podcast_highlights_extract_queued":  "高光提取已开始，请几分钟后刷新查看",
+    "podcast_highlights_extract_failed":  "启动高光提取失败",
+    "podcast_transcript_view_full":  "全文",
+    "podcast_transcript_view_highlights":  "高亮",
+    "podcast_highlights_empty_title":  "暂无高亮",
+    "podcast_highlights_empty_subtitle":  "从本期播客中提取关键见解"
 }

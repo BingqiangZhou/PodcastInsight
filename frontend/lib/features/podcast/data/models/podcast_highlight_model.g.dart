@@ -103,3 +103,14 @@ Map<String, dynamic> _$HighlightStatsResponseToJson(
   'avg_score': instance.avgScore,
   'latest_extraction_date': instance.latestExtractionDate?.toIso8601String(),
 };
+
+HighlightExtractResponse _$HighlightExtractResponseFromJson(
+  Map<String, dynamic> json,
+) => HighlightExtractResponse(
+  taskId: json['task_id'] as String,
+  status: json['status'] as String,
+);
+
+Map<String, dynamic> _$HighlightExtractResponseToJson(
+  HighlightExtractResponse instance,
+) => <String, dynamic>{'task_id': instance.taskId, 'status': instance.status};

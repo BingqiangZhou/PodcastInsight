@@ -191,3 +191,24 @@ class HighlightStatsResponse extends Equatable {
   @override
   List<Object?> get props => [totalHighlights, avgScore, latestExtractionDate];
 }
+
+/// 高光提取响应
+@JsonSerializable()
+class HighlightExtractResponse extends Equatable {
+  @JsonKey(name: 'task_id')
+  final String taskId;
+  final String status;
+
+  const HighlightExtractResponse({
+    required this.taskId,
+    required this.status,
+  });
+
+  factory HighlightExtractResponse.fromJson(Map<String, dynamic> json) =>
+      _$HighlightExtractResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$HighlightExtractResponseToJson(this);
+
+  @override
+  List<Object?> get props => [taskId, status];
+}

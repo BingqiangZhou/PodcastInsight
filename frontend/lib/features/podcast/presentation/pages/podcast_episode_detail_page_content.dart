@@ -81,6 +81,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
   Widget _buildTranscriptContent(PodcastEpisodeDetailResponse episode) {
     final transcriptionProvider = getTranscriptionProvider(widget.episodeId);
     final transcriptionState = ref.watch(transcriptionProvider);
+    final highlightsState = ref.watch(episodeHighlightsProvider(widget.episodeId));
 
     return transcriptionState.when(
       data: (transcription) {
@@ -90,6 +91,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
             episodeId: widget.episodeId,
             episodeTitle: episode.title,
             transcription: transcription,
+            highlights: highlightsState.value?.items,
           );
         }
 

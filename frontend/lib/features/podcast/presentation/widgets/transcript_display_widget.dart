@@ -6,16 +6,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/utils/text_processing_cache.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
+import '../../data/models/podcast_highlight_model.dart';
+import '../providers/podcast_highlights_providers.dart';
+import '../utils/highlight_matcher.dart';
+import 'highlight_card.dart';
+import 'highlight_detail_sheet.dart';
 import 'podcast_empty_state.dart';
 import '../providers/transcription_providers.dart';
 import '../../data/models/podcast_transcription_model.dart';
 import '../services/content_image_share_service.dart';
+
+/// View mode for transcript display
+enum TranscriptViewMode { highlights, fullTranscript }
 
 class TranscriptDisplayWidget extends ConsumerStatefulWidget {
   final int episodeId;
   final String episodeTitle;
   final PodcastTranscriptionResponse? transcription;
   final Function(String)? onSearchChanged;
+  final List<HighlightResponse>? highlights;
 
   const TranscriptDisplayWidget({
     super.key,
@@ -23,6 +32,7 @@ class TranscriptDisplayWidget extends ConsumerStatefulWidget {
     required this.episodeTitle,
     this.transcription,
     this.onSearchChanged,
+    this.highlights,
   });
 
   @override
@@ -33,16 +43,30 @@ class TranscriptDisplayWidget extends ConsumerStatefulWidget {
 class TranscriptDisplayWidgetState
     extends ConsumerState<TranscriptDisplayWidget> {
   final TextEditingController _searchController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  // Separate scroll controllers for each view to avoid accessibility tree issues
+  final ScrollController _highlightsScrollController = ScrollController();
+  final ScrollController _fullTranscriptScrollController = ScrollController();
   List<String> _searchResults = [];
   bool _isSearching = false;
   String _lastSelectedTranscriptText = '';
   final Map<String, String> _selectedTranscriptSegments = <String, String>{};
 
+  // View mode state - always default to highlights view
+  TranscriptViewMode _viewMode = TranscriptViewMode.highlights;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
+
   /// 滚动到顶部
   void scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
+    final controller = _viewMode == TranscriptViewMode.highlights
+        ? _highlightsScrollController
+        : _fullTranscriptScrollController;
+    if (controller.hasClients) {
+      controller.animateTo(
         0.0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -51,16 +75,11 @@ class TranscriptDisplayWidgetState
   }
 
   @override
-  void initState() {
-    super.initState();
-    _searchController.addListener(_onSearchChanged);
-  }
-
-  @override
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-    _scrollController.dispose();
+    _highlightsScrollController.dispose();
+    _fullTranscriptScrollController.dispose();
     super.dispose();
   }
 
@@ -208,21 +227,92 @@ class TranscriptDisplayWidgetState
       return _buildEmptyState(context);
     }
 
+    final hasHighlights = widget.highlights != null && widget.highlights!.isNotEmpty;
+
     return Column(
       children: [
-        // Search bar
-        _buildSearchBar(context),
-        if (_selectedTranscriptSegments.isNotEmpty)
-          _buildSelectionToolbar(context),
+        // View mode toggle (Highlights | Full Text)
+        _buildViewModeToggle(context),
 
-        // Content
+        // Highlight extraction banner (show if no highlights)
+        if (!hasHighlights && !_isSearching)
+          _buildExtractHighlightsBanner(context),
+
+        // Content - switch between highlights and full transcript
         Expanded(
-          child: _isSearching
-              ? _buildSearchResults(context)
+          child: _viewMode == TranscriptViewMode.highlights
+              ? _buildHighlightsView(context)
               : _buildFullTranscript(context, content),
         ),
       ],
     );
+  }
+
+  Widget _buildExtractHighlightsBanner(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: scheme.primary.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.auto_awesome_outlined,
+            size: 20,
+            color: scheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              l10n.podcast_highlights_extract_hint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurface,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton.icon(
+            onPressed: () => _extractHighlights(),
+            icon: const Icon(Icons.auto_awesome, size: 16),
+            label: Text(l10n.podcast_highlights_extract_action),
+            style: TextButton.styleFrom(
+              foregroundColor: scheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _extractHighlights() async {
+    final response = await extractEpisodeHighlights(ref, widget.episodeId);
+    if (!mounted) return;
+
+    final l10n = context.l10n;
+    if (response != null) {
+      showTopFloatingNotice(
+        context,
+        message: l10n.podcast_highlights_extract_queued,
+        isError: false,
+      );
+    } else {
+      showTopFloatingNotice(
+        context,
+        message: l10n.podcast_highlights_extract_failed,
+        isError: true,
+      );
+    }
   }
 
   Widget _buildSelectionToolbar(BuildContext context) {
@@ -314,25 +404,336 @@ class TranscriptDisplayWidgetState
     );
   }
 
-  Widget _buildFullTranscript(BuildContext context, String content) {
-    // 根据句号分段（支持中英文句号）
-    final segments = TextProcessingCache.getCachedSentences(content);
+  Widget _buildViewModeToggle(BuildContext context) {
+    final l10n = context.l10n;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: ListView.separated(
-        controller: _scrollController,
-        itemCount: segments.length,
-        cacheExtent: 500.0,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          return _buildSentenceSegment(context, segments[index], index);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: SegmentedButton<TranscriptViewMode>(
+        selected: {_viewMode},
+        onSelectionChanged: (Set<TranscriptViewMode> selection) {
+          setState(() => _viewMode = selection.first);
         },
+        segments: [
+          // Highlights first (default view)
+          ButtonSegment(
+            value: TranscriptViewMode.highlights,
+            label: Text(l10n.podcast_transcript_view_highlights),
+            icon: const Icon(Icons.auto_awesome_outlined, size: 18),
+          ),
+          ButtonSegment(
+            value: TranscriptViewMode.fullTranscript,
+            label: Text(l10n.podcast_transcript_view_full),
+            icon: const Icon(Icons.article_outlined, size: 18),
+          ),
+        ],
       ),
     );
   }
 
+  Widget _buildHighlightsView(BuildContext context) {
+    final highlights = widget.highlights;
+
+    if (highlights == null || highlights.isEmpty) {
+      return _buildEmptyHighlightsState(context);
+    }
+
+    // Sort by overall score descending
+    final sortedHighlights = List<HighlightResponse>.from(highlights)
+      ..sort((a, b) => b.overallScore.compareTo(a.overallScore));
+
+    return ListView.builder(
+      controller: _highlightsScrollController,
+      padding: const EdgeInsets.all(16),
+      itemCount: sortedHighlights.length,
+      cacheExtent: 500.0,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: RepaintBoundary(
+            key: ValueKey('highlight_card_${sortedHighlights[index].id}'),
+            child: HighlightCard(
+              highlight: sortedHighlights[index],
+              onTap: () => _showHighlightDetail([sortedHighlights[index]]),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyHighlightsState(BuildContext context) {
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.auto_awesome_outlined,
+            size: 64,
+            color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.podcast_highlights_empty_title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: scheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.podcast_highlights_empty_subtitle,
+            style: TextStyle(
+              fontSize: 14,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFullTranscript(BuildContext context, String content) {
+    // 根据句号分段（支持中英文句号）
+    final segments = TextProcessingCache.getCachedSentences(content);
+
+    return Column(
+      children: [
+        // Search bar (only in full transcript view)
+        _buildSearchBar(context),
+
+        // Selection toolbar (only in full transcript view)
+        if (_selectedTranscriptSegments.isNotEmpty)
+          _buildSelectionToolbar(context),
+
+        // Content area
+        Expanded(
+          child: _isSearching
+              ? _buildSearchResults(context)
+              : Container(
+                  padding: const EdgeInsets.all(16),
+                  child: ListView.separated(
+                    controller: _fullTranscriptScrollController,
+                    itemCount: segments.length,
+                    cacheExtent: 500.0,
+                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      return RepaintBoundary(
+                        key: ValueKey('transcript_segment_${segments[index].hashCode}'),
+                        // Use normal segment only - no highlight styling in full transcript view
+                        child: _buildNormalSegment(context, segments[index], index),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  /// Find highlights that match within a sentence
+  List<HighlightResponse> _findMatchingHighlights(
+    String sentence,
+    List<HighlightResponse>? highlights,
+  ) {
+    if (highlights == null || highlights.isEmpty) {
+      return [];
+    }
+
+    return highlights.where((highlight) {
+      return HighlightMatcher.containsHighlight(
+        text: sentence,
+        highlight: highlight,
+      );
+    }).toList()
+      ..sort((a, b) => b.overallScore.compareTo(a.overallScore));
+  }
+
   Widget _buildSentenceSegment(
+    BuildContext context,
+    String sentence,
+    int index,
+    List<HighlightResponse>? highlights,
+  ) {
+    // Check if this segment contains any highlights
+    final matchingHighlights = _findMatchingHighlights(sentence, highlights);
+
+    if (matchingHighlights.isNotEmpty) {
+      return _buildHighlightedSegment(
+        context,
+        sentence,
+        index,
+        matchingHighlights,
+      );
+    }
+
+    // Original non-highlighted segment
+    return _buildNormalSegment(context, sentence, index);
+  }
+
+  Widget _buildHighlightedSegment(
+    BuildContext context,
+    String sentence,
+    int index,
+    List<HighlightResponse> highlights,
+  ) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final selectionKey = 'full_$index';
+    final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
+    final hasMultipleHighlights = highlights.length > 1;
+    final borderColor = isSelected ? scheme.primary : scheme.outline.withValues(alpha: 0.15);
+
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () => _showHighlightDetail(highlights),
+        child: Container(
+          decoration: BoxDecoration(
+            color: scheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: borderColor,
+              width: 1,
+            ),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(color: scheme.primary, width: 3),
+              ),
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(7),
+                bottomRight: Radius.circular(7),
+              ),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '#${index + 1}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (hasMultipleHighlights)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.star,
+                            size: 10,
+                            color: scheme.primary,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${highlights.length}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    else
+                      Icon(
+                        Icons.star,
+                        size: 14,
+                        color: scheme.primary,
+                      ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () =>
+                          _toggleTranscriptSegmentSelection(selectionKey, sentence),
+                      icon: Icon(
+                        isSelected
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                      ),
+                      tooltip: isSelected
+                          ? l10n.podcast_deselect_all
+                          : l10n.podcast_enter_select_mode,
+                      iconSize: 18,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SelectableText(
+                  sentence,
+                  onSelectionChanged: (selection, _) {
+                    _updateSelectedTranscriptText(sentence, selection);
+                  },
+                  contextMenuBuilder: (context, editableTextState) {
+                    return AdaptiveTextSelectionToolbar.buttonItems(
+                      anchors: editableTextState.contextMenuAnchors,
+                      buttonItems: [
+                        ...editableTextState.contextMenuButtonItems,
+                        ContextMenuButtonItem(
+                          label: l10n.podcast_share_as_image,
+                          onPressed: () {
+                            final value = editableTextState.textEditingValue;
+                            final selected = value.selection
+                                .textInside(value.text)
+                                .trim();
+                            _lastSelectedTranscriptText = selected;
+                            ContextMenuController.removeAny();
+                            unawaited(_shareSelectedTranscriptAsImage());
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.6,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showHighlightDetail(List<HighlightResponse> highlights) {
+    if (highlights.isEmpty) return;
+
+    if (highlights.length == 1) {
+      showHighlightDetailSheet(
+        context: context,
+        highlight: highlights.first,
+      );
+    } else {
+      showMultipleHighlightsSheet(
+        context: context,
+        highlights: highlights,
+      );
+    }
+  }
+
+  Widget _buildNormalSegment(
     BuildContext context,
     String sentence,
     int index,
@@ -449,12 +850,15 @@ class TranscriptDisplayWidgetState
     return Container(
       padding: const EdgeInsets.all(16),
       child: ListView.builder(
-        controller: _scrollController,
+        controller: _fullTranscriptScrollController,
         itemCount: _searchResults.length,
         cacheExtent: 500.0,
         itemBuilder: (context, index) {
           final result = _searchResults[index];
-          return _buildSearchResultItem(context, result, index);
+          return RepaintBoundary(
+            key: ValueKey('search_result_${result.hashCode}'),
+            child: _buildSearchResultItem(context, result, index),
+          );
         },
       ),
     );
@@ -666,7 +1070,10 @@ class FormattedTranscriptWidget extends ConsumerWidget {
         cacheExtent: 500.0,
         itemBuilder: (context, index) {
           final segment = segments[index];
-          return _buildDialogueSegment(context, segment);
+          return RepaintBoundary(
+            key: ValueKey('dialogue_segment_$index'),
+            child: _buildDialogueSegment(context, segment),
+          );
         },
       ),
     );

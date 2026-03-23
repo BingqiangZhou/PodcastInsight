@@ -1581,4 +1581,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get podcast_highlights_loading_highlights => '正在加载高光观点';
+
+  @override
+  String get podcast_highlights_favorited => '已收藏';
+
+  @override
+  String podcast_highlights_overall_score(double score) {
+    return '评分: $score';
+  }
+
+  @override
+  String get podcast_highlights_topic_tags => '主题标签';
+
+  @override
+  String podcast_highlights_multiple_count(int count) {
+    return '$count 条高光';
+  }
+
+  @override
+  String get podcast_highlights_extract_hint => '从转录文本中提取关键观点';
+
+  @override
+  String get podcast_highlights_extract_action => '提取';
+
+  @override
+  String get podcast_highlights_extract_queued => '高光提取已开始，请几分钟后刷新查看';
+
+  @override
+  String get podcast_highlights_extract_failed => '启动高光提取失败';
+
+  @override
+  String get podcast_transcript_view_full => '全文';
+
+  @override
+  String get podcast_transcript_view_highlights => '高亮';
+
+  @override
+  String get podcast_highlights_empty_title => '暂无高亮';
+
+  @override
+  String get podcast_highlights_empty_subtitle => '从本期播客中提取关键见解';
 }

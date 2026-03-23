@@ -30,6 +30,43 @@ final highlightStatsCacheDurationProvider = Provider<Duration>(
   (ref) => const Duration(minutes: 5),
 );
 
+/// 单集高光缓存时长
+final episodeHighlightsCacheDurationProvider = Provider<Duration>(
+  (ref) => const Duration(minutes: 5),
+);
+
+/// 单集高光 Provider (用于转录页面集成)
+final episodeHighlightsProvider =
+    FutureProvider.family<HighlightsListResponse?, int>((ref, episodeId) async {
+  final repository = ref.read(podcastRepositoryProvider);
+  try {
+    return repository.getHighlights(
+      episodeId: episodeId,
+      perPage: 100,
+    );
+  } catch (error, stackTrace) {
+    logger.AppLogger.debug('Failed to load episode highlights: $error');
+    return null;
+  }
+});
+
+/// 触发单集高光提取
+Future<HighlightExtractResponse?> extractEpisodeHighlights(
+  WidgetRef ref,
+  int episodeId,
+) async {
+  final repository = ref.read(podcastRepositoryProvider);
+  try {
+    final response = await repository.extractEpisodeHighlights(episodeId);
+    // Refresh the episode highlights provider
+    ref.invalidate(episodeHighlightsProvider(episodeId));
+    return response;
+  } catch (error) {
+    logger.AppLogger.debug('Failed to extract episode highlights: $error');
+    return null;
+  }
+}
+
 /// 高光列表 Provider
 final highlightsProvider =
     AsyncNotifierProvider<HighlightsNotifier, HighlightsListResponse?>(

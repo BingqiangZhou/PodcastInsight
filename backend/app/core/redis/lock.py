@@ -41,45 +41,6 @@ class LockOperations:
         if record_timing:
             await record_timing("DEL", (perf_counter() - started) * 1000)
 
-    async def acquire_owned_lock(
-        self,
-        client: Any,
-        lock_name: str,
-        *,
-        expire: int = CacheTTL.LOCK_TIMEOUT,
-        acquire_lock_func: Any = None,
-    ) -> str | None:
-        """Acquire a lock and return its owner token when successful."""
-        token = secrets.token_urlsafe(16)
-        acquired = await acquire_lock_func(
-            client, lock_name, expire=expire, value=token
-        )
-        return token if acquired else None
-
-    async def release_owned_lock(
-        self,
-        client: Any,
-        lock_name: str,
-        token: str,
-        record_timing: Any = None,
-    ) -> bool:
-        """Release a lock only when the stored token matches the caller token."""
-        started = perf_counter()
-        result = await client.eval(
-            """
-            if redis.call("get", KEYS[1]) == ARGV[1] then
-                return redis.call("del", KEYS[1])
-            end
-            return 0
-            """,
-            1,
-            f"podcast:lock:{lock_name}",
-            token,
-        )
-        if record_timing:
-            await record_timing("EVAL", (perf_counter() - started) * 1000)
-        return bool(result)
-
     async def set_if_not_exists(
         self,
         client: Any,

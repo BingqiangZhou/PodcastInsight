@@ -3073,6 +3073,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading highlights...'**
   String get podcast_highlights_loading_highlights;
+
+  /// Already favorited state
+  ///
+  /// In en, this message translates to:
+  /// **'Favorited'**
+  String get podcast_highlights_favorited;
+
+  /// Overall score display
+  ///
+  /// In en, this message translates to:
+  /// **'Score: {score}'**
+  String podcast_highlights_overall_score(double score);
+
+  /// Topic tags section label
+  ///
+  /// In en, this message translates to:
+  /// **'Topics'**
+  String get podcast_highlights_topic_tags;
+
+  /// Multiple highlights count in sheet header
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 highlight} other{{count} highlights}}'**
+  String podcast_highlights_multiple_count(int count);
+
+  /// Hint text for extracting highlights
+  ///
+  /// In en, this message translates to:
+  /// **'Extract key insights from this transcript'**
+  String get podcast_highlights_extract_hint;
+
+  /// Extract highlights button text
+  ///
+  /// In en, this message translates to:
+  /// **'Extract'**
+  String get podcast_highlights_extract_action;
+
+  /// Message shown when highlight extraction is queued
+  ///
+  /// In en, this message translates to:
+  /// **'Highlight extraction started. Please check back in a few minutes.'**
+  String get podcast_highlights_extract_queued;
+
+  /// Message shown when highlight extraction fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start highlight extraction'**
+  String get podcast_highlights_extract_failed;
+
+  /// Full transcript view mode label
+  ///
+  /// In en, this message translates to:
+  /// **'Full Text'**
+  String get podcast_transcript_view_full;
+
+  /// Highlights view mode label
+  ///
+  /// In en, this message translates to:
+  /// **'Highlights'**
+  String get podcast_transcript_view_highlights;
+
+  /// Title for empty highlights state
+  ///
+  /// In en, this message translates to:
+  /// **'No Highlights Yet'**
+  String get podcast_highlights_empty_title;
+
+  /// Subtitle for empty highlights state
+  ///
+  /// In en, this message translates to:
+  /// **'Extract key insights from this episode'**
+  String get podcast_highlights_empty_subtitle;
 }
 
 class _AppLocalizationsDelegate

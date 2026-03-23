@@ -621,10 +621,11 @@ class PodcastRepository {
     DateTime? date,
     int page = 1,
     int perPage = 20,
+    int? episodeId,
   }) async {
     try {
       final dateParam = date != null ? EpisodeCardUtils.formatDate(date) : null;
-      return await _apiService.getHighlights(dateParam, page, perPage);
+      return await _apiService.getHighlights(dateParam, page, perPage, episodeId);
     } on DioException catch (e) {
       throw NetworkException.fromDioError(e);
     }
@@ -657,6 +658,14 @@ class PodcastRepository {
   Future<void> deleteHighlight(int highlightId) async {
     try {
       await _apiService.deleteHighlight(highlightId);
+    } on DioException catch (e) {
+      throw NetworkException.fromDioError(e);
+    }
+  }
+
+  Future<HighlightExtractResponse> extractEpisodeHighlights(int episodeId) async {
+    try {
+      return await _apiService.extractEpisodeHighlights(episodeId);
     } on DioException catch (e) {
       throw NetworkException.fromDioError(e);
     }

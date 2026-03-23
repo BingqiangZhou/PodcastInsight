@@ -1638,4 +1638,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get podcast_highlights_loading_highlights => 'Loading highlights...';
+
+  @override
+  String get podcast_highlights_favorited => 'Favorited';
+
+  @override
+  String podcast_highlights_overall_score(double score) {
+    return 'Score: $score';
+  }
+
+  @override
+  String get podcast_highlights_topic_tags => 'Topics';
+
+  @override
+  String podcast_highlights_multiple_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count highlights',
+      one: '1 highlight',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get podcast_highlights_extract_hint =>
+      'Extract key insights from this transcript';
+
+  @override
+  String get podcast_highlights_extract_action => 'Extract';
+
+  @override
+  String get podcast_highlights_extract_queued =>
+      'Highlight extraction started. Please check back in a few minutes.';
+
+  @override
+  String get podcast_highlights_extract_failed =>
+      'Failed to start highlight extraction';
+
+  @override
+  String get podcast_transcript_view_full => 'Full Text';
+
+  @override
+  String get podcast_transcript_view_highlights => 'Highlights';
+
+  @override
+  String get podcast_highlights_empty_title => 'No Highlights Yet';
+
+  @override
+  String get podcast_highlights_empty_subtitle =>
+      'Extract key insights from this episode';
 }
