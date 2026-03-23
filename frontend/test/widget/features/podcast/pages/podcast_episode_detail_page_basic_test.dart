@@ -266,7 +266,7 @@ void main() {
         find.byKey(const Key('podcast_episode_detail_loading_content')),
         findsOneWidget,
       );
-      expect(find.byType(GlassPanel), findsNothing);
+            expect(find.byType(SurfacePanel), findsNothing);
 
       completer.complete(_episode());
       await tester.pumpAndSettle();

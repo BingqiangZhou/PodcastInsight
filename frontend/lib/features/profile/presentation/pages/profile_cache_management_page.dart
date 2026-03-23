@@ -812,7 +812,7 @@ class _ProfileCacheManagementPageState
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const AppPageBackdrop(),
+            const SizedBox(),
             SafeArea(
               bottom: false,
               child: ResponsiveContainer(

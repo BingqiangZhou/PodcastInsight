@@ -138,7 +138,7 @@ void main() {
     expect(find.byKey(const Key('app_init_logo')), findsOneWidget);
     expect(find.byKey(const Key('app_init_loading_indicator')), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.byType(GlassPanel), findsNothing);
+    expect(find.byType(SurfacePanel), findsNothing);
     expect(
       find.ancestor(
         of: find.byKey(const Key('app_init_logo')),

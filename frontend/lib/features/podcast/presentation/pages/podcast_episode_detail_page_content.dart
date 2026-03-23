@@ -19,7 +19,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     return Stack(
       fit: StackFit.expand,
       children: [
-        const AppPageBackdrop(),
+        const SizedBox(),
         Center(
           child: LoadingStatusContent(
             key: const Key('podcast_episode_detail_loading_content'),
@@ -402,7 +402,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     return Stack(
       fit: StackFit.expand,
       children: [
-        const AppPageBackdrop(),
+        const SizedBox(),
         Center(
           child: AppEmptyState(
             icon: Icons.error_outline,

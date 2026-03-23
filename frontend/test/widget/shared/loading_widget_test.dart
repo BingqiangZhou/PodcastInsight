@@ -22,6 +22,6 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.text('Signing in...'), findsOneWidget);
     expect(find.byKey(const Key('loading_overlay_content')), findsOneWidget);
-    expect(find.byType(GlassPanel), findsNothing);
+        expect(find.byType(SurfacePanel), findsNothing);
   });
 }

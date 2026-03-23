@@ -23,7 +23,7 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
         return Stack(
           fit: StackFit.expand,
           children: [
-            const AppPageBackdrop(),
+            const SizedBox(),
             Padding(
               padding: outerPadding,
               child: isWideScreen

@@ -349,9 +349,6 @@ class SurfacePanel extends StatelessWidget {
   }
 }
 
-// Legacy compatibility
-@Deprecated('Use SurfacePanel instead')
-typedef GlassPanel = SurfacePanel;
 
 /// CompactHeaderPanel - 紧凑头部面板
 class CompactHeaderPanel extends StatelessWidget {
@@ -788,9 +785,3 @@ class AuthShell extends StatelessWidget {
   }
 }
 
-// Legacy compatibility
-@Deprecated('Use SurfacePanel instead')
-typedef ArcticPageBackdrop = SizedBox;
-
-@Deprecated('No longer needed')
-typedef AppPageBackdrop = ArcticPageBackdrop;

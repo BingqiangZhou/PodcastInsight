@@ -45,7 +45,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const AppPageBackdrop(),
+            const SizedBox(),
             SafeArea(
               bottom: false,
               child: ResponsiveContainer(

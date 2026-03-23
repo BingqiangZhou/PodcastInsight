@@ -1058,33 +1058,6 @@ class _PodcastApiService implements PodcastApiService {
   }
 
   @override
-  Future<SimpleResponse> getRecommendations(int limit) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'limit': limit};
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<SimpleResponse>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/podcasts/recommendations',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late SimpleResponse _value;
-    try {
-      _value = SimpleResponse.fromJson(_result.data!);
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options, response: _result);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
   Future<PodcastTranscriptionResponse> getTranscription(int episodeId) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

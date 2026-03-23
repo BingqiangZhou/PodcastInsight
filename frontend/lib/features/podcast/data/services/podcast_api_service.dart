@@ -213,11 +213,6 @@ abstract class PodcastApiService {
   @GET('/podcasts/stats/profile')
   Future<ProfileStatsModel> getProfileStats();
 
-  // === Recommendations ===
-
-  @GET('/podcasts/recommendations')
-  Future<SimpleResponse> getRecommendations(@Query('limit') int limit);
-
   // === Transcription Management ===
 
   @GET('/podcasts/episodes/{episodeId}/transcription')

@@ -57,7 +57,7 @@ void main() {
       );
       expect(refreshButton.circular, isTrue);
 
-      final glassPanels = find.byType(GlassPanel);
+            final glassPanels = find.byType(SurfacePanel);
       final headerRect = tester.getRect(glassPanels.first);
       final contentRect = tester.getRect(
         find.byKey(const Key('cache_manage_content_panel')),

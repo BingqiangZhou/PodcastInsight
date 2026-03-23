@@ -92,7 +92,7 @@ class _ProfileSubscriptionsPageState
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const AppPageBackdrop(),
+            const SizedBox(),
             SafeArea(
               bottom: false,
               child: ResponsiveContainer(

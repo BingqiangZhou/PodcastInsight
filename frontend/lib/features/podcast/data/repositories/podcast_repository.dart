@@ -451,16 +451,6 @@ class PodcastRepository {
     }
   }
 
-  // === Recommendations ===
-
-  Future<void> getRecommendations({int limit = 10}) async {
-    try {
-      await _apiService.getRecommendations(limit);
-    } on DioException catch (e) {
-      throw NetworkException.fromDioError(e);
-    }
-  }
-
   // === Transcription Management ===
 
   Future<PodcastTranscriptionResponse?> getTranscription(int episodeId) async {

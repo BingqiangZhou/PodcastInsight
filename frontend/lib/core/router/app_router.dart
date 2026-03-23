@@ -33,7 +33,7 @@ final RouteObserver<ModalRoute<dynamic>> appRouteObserver =
 CustomTransitionPage<T> _buildPageWithTransition<T>({
   required GoRouterState state,
   required Widget child,
-  AppPageTransitionType transitionType = AppPageTransitionType.fadeSlide,
+  ArcticPageTransitionType transitionType = ArcticPageTransitionType.fadeSlide,
 }) {
   return CustomTransitionPage<T>(
     key: state.pageKey,
@@ -45,13 +45,13 @@ CustomTransitionPage<T> _buildPageWithTransition<T>({
       final curvedAnimation = animation.drive(curve);
 
       switch (transitionType) {
-        case AppPageTransitionType.fade:
+        case ArcticPageTransitionType.fade:
           return FadeTransition(
             opacity: curvedAnimation,
             child: child,
           );
 
-        case AppPageTransitionType.fadeSlide:
+        case ArcticPageTransitionType.fadeSlide:
           return SlideTransition(
             position: curvedAnimation.drive(
               Tween<Offset>(
@@ -65,7 +65,7 @@ CustomTransitionPage<T> _buildPageWithTransition<T>({
             ),
           );
 
-        case AppPageTransitionType.slideUp:
+        case ArcticPageTransitionType.slideUp:
           return SlideTransition(
             position: curvedAnimation.drive(
               Tween<Offset>(
@@ -79,7 +79,7 @@ CustomTransitionPage<T> _buildPageWithTransition<T>({
             ),
           );
 
-        case AppPageTransitionType.scale:
+        case ArcticPageTransitionType.scale:
           return ScaleTransition(
             scale: curvedAnimation.drive(
               Tween<double>(begin: 0.97, end: 1.0),
@@ -147,7 +147,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildPageWithTransition(
           state: state,
           child: const SplashPage(),
-          transitionType: AppPageTransitionType.fade,
+          transitionType: ArcticPageTransitionType.fade,
         ),
       ),
 
@@ -438,7 +438,7 @@ class ErrorPage extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const AppPageBackdrop(),
+                          const SizedBox(),
           AppEmptyState(
             icon: Icons.error_outline,
             title: l10n.unknown_error,

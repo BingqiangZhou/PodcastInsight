@@ -363,12 +363,3 @@ AppThemeExtension appThemeOf(BuildContext context) {
           : AppThemeExtension.light);
 }
 
-// Legacy compatibility
-@Deprecated('Use AppThemeExtension instead')
-typedef MindriverThemeExtension = AppThemeExtension;
-
-@Deprecated('Use appThemeOf instead')
-MindriverThemeExtension mindriverThemeOf(BuildContext context) => appThemeOf(context);
-
-@Deprecated('Use appThemeOf instead')
-MindriverThemeExtension arcticThemeOf(BuildContext context) => appThemeOf(context);

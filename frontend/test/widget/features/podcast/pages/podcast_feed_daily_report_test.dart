@@ -183,7 +183,7 @@ void main() {
       );
       expect(find.text('Loading daily report...'), findsWidgets);
       expect(find.byType(CircularProgressIndicator), findsWidgets);
-      expect(find.byType(GlassPanel), findsOneWidget);
+            expect(find.byType(SurfacePanel), findsOneWidget);
     });
 
     testWidgets('renders retry action when initial report load fails', (

@@ -12,7 +12,6 @@ import '../providers/route_provider.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
-import '../widgets/app_shells.dart';
 import '../utils/app_logger.dart' as logger;
 import '../../shared/widgets/loading_widget.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
@@ -34,7 +33,7 @@ class _SplashScreenWidget extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const AppPageBackdrop(),
+                          const SizedBox(),
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),

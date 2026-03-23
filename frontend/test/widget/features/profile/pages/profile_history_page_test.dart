@@ -42,7 +42,7 @@ void main() {
       find.byKey(const Key('profile_history_loading_content')),
       findsOneWidget,
     );
-    expect(find.byType(GlassPanel), findsOneWidget);
+        expect(find.byType(SurfacePanel), findsOneWidget);
   });
 
   testWidgets('renders history list from lightweight provider', (

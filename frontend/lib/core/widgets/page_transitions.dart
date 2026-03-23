@@ -223,7 +223,3 @@ class ArcticTransitions {
   static ArcticPageTransitionType get aurora => ArcticPageTransitionType.aurora;
 }
 
-// Legacy compatibility - keep old names working
-typedef AppPageRoute = ArcticPageRoute;
-typedef AppPageTransitionType = ArcticPageTransitionType;
-typedef AppTransitions = ArcticTransitions;
