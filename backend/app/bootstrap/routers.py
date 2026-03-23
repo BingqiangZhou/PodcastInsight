@@ -29,4 +29,8 @@ def include_application_routers(app: FastAPI) -> None:
         prefix=f"{settings.API_V1_STR}/podcasts",
         tags=["podcasts"],
     )
-    app.include_router(admin_router, prefix="/super", tags=["admin"])
+    app.include_router(
+        admin_router,
+        prefix=f"{settings.API_V1_STR}/admin",
+        tags=["admin"],
+    )

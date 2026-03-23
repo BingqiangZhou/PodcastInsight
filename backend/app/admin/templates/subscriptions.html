@@ -461,7 +461,7 @@ async function submitEdit() {
         testResultDiv.className = 'mt-2 text-sm text-blue-600';
         testResultDiv.textContent = '正在保存并测试链接...';
 
-        const response = await fetch(`/super/subscriptions/${id}/edit`, {
+        const response = await fetch(`/api/v1/admin/subscriptions/${id}/edit`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -519,7 +519,7 @@ async function testFeedUrl() {
     testResultDiv.textContent = '正在测试链接...';
 
     try {
-        const response = await fetch('/super/subscriptions/test-url', {
+        const response = await fetch('/api/v1/admin/subscriptions/test-url', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -552,7 +552,7 @@ async function testFeedUrl() {
 
 async function refreshSubscription(id) {
     try {
-        const response = await fetch(`/super/subscriptions/${id}/refresh`, {
+        const response = await fetch(`/api/v1/admin/subscriptions/${id}/refresh`, {
             method: 'POST',
         });
 
@@ -574,7 +574,7 @@ async function deleteSubscription(id) {
     }
 
     try {
-        const response = await fetch(`/super/subscriptions/${id}/delete`, {
+        const response = await fetch(`/api/v1/admin/subscriptions/${id}/delete`, {
             method: 'DELETE',
         });
 
@@ -672,7 +672,7 @@ async function batchRefresh() {
     }
 
     try {
-        const response = await fetch('/super/subscriptions/batch/refresh', {
+        const response = await fetch('/api/v1/admin/subscriptions/batch/refresh', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -704,7 +704,7 @@ async function batchToggleStatus() {
     }
 
     try {
-        const response = await fetch('/super/subscriptions/batch/toggle', {
+        const response = await fetch('/api/v1/admin/subscriptions/batch/toggle', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -736,7 +736,7 @@ async function batchDelete() {
     }
 
     try {
-        const response = await fetch('/super/subscriptions/batch/delete', {
+        const response = await fetch('/api/v1/admin/subscriptions/batch/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -835,7 +835,7 @@ async function exportOPML() {
         `;
 
         // Fetch OPML content
-        const response = await fetch('/super/api/subscriptions/export/opml');
+        const response = await fetch('/api/v1/admin/api/subscriptions/export/opml');
 
         if (!response.ok) {
             throw new Error('Export failed');
@@ -929,7 +929,7 @@ async function testAllSubscriptions() {
 
     try {
         // First, get all subscriptions
-        const response = await fetch('/super/subscriptions/test-all', {
+        const response = await fetch('/api/v1/admin/subscriptions/test-all', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1173,7 +1173,7 @@ async function submitImport() {
             导入中...
         `;
 
-        const response = await fetch('/super/api/subscriptions/import/opml', {
+        const response = await fetch('/api/v1/admin/api/subscriptions/import/opml', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

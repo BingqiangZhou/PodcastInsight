@@ -281,7 +281,7 @@ function changePerPage(perPage) {
 
 async function toggleUser(userId) {
     try {
-        const response = await fetch(`/super/users/${userId}/toggle`, {
+        const response = await fetch(`/api/v1/admin/users/${userId}/toggle`, {
             method: 'PUT',
         });
 
@@ -311,7 +311,7 @@ async function confirmResetPassword() {
     if (!currentUserId) return;
 
     try {
-        const response = await fetch(`/super/users/${currentUserId}/reset-password`, {
+        const response = await fetch(`/api/v1/admin/users/${currentUserId}/reset-password`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

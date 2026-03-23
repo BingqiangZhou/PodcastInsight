@@ -38,7 +38,7 @@ async def setup_page(
     admin_exists = await service.admin_exists()
     if admin_exists:
         # Admin already exists, redirect to login
-        return RedirectResponse(url="/super/login", status_code=303)
+        return RedirectResponse(url="/api/v1/admin/login", status_code=303)
 
     return service.build_csrf_template_response(
         templates=templates,
@@ -63,7 +63,7 @@ async def setup_admin(
         # Check if admin already exists
         admin_exists = await service.admin_exists()
         if admin_exists:
-            return RedirectResponse(url="/super/login", status_code=303)
+            return RedirectResponse(url="/api/v1/admin/login", status_code=303)
 
         # Validate CSRF token
         service.validate_csrf(request, csrf_token)
@@ -194,7 +194,7 @@ async def login(
             return response
 
         # No 2FA required, create session directly
-        response = service.build_session_redirect(user.id, url="/super")
+        response = service.build_session_redirect(user.id, url="/api/v1/admin")
 
         # Log login with 2FA status
         if user.is_2fa_enabled and not admin_2fa_enabled:
@@ -222,7 +222,7 @@ async def login(
 async def logout():
     """Handle logout."""
     response = RedirectResponse(
-        url="/super/login", status_code=status.HTTP_303_SEE_OTHER
+        url="/api/v1/admin/login", status_code=status.HTTP_303_SEE_OTHER
     )
     response.delete_cookie(key="admin_session")
     return response
@@ -288,7 +288,7 @@ async def verify_2fa_login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
             )
 
-        response = service.build_session_redirect(user.id, url="/super")
+        response = service.build_session_redirect(user.id, url="/api/v1/admin")
         # Clear 2FA cookie
         response.delete_cookie(key="2fa_user_id")
 
@@ -375,7 +375,7 @@ async def verify_2fa_setup(
         logger.info(f"User {user.username} enabled 2FA")
 
         # Redirect to dashboard
-        return RedirectResponse(url="/super", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url="/api/v1/admin", status_code=status.HTTP_303_SEE_OTHER)
 
     except HTTPException:
         raise
@@ -415,7 +415,7 @@ async def disable_2fa(
         logger.info(f"User {user.username} disabled 2FA")
 
         # Redirect to dashboard with success message
-        return RedirectResponse(url="/super", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url="/api/v1/admin", status_code=status.HTTP_303_SEE_OTHER)
 
     except HTTPException:
         raise

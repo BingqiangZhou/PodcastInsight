@@ -19,6 +19,28 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Lua script for atomic rate limit check and increment
+# Returns: [current_count, ttl] or [-1, retry_after] if limit exceeded
+RATE_LIMIT_SCRIPT = """
+local key = KEYS[1]
+local limit = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+local current = tonumber(redis.call('GET', key)) or 0
+
+if current >= limit then
+    local ttl = redis.call('TTL', key)
+    return {-1, ttl}
+end
+
+local new_count = redis.call('INCR', key)
+if new_count == 1 then
+    redis.call('EXPIRE', key, window)
+end
+
+local ttl = redis.call('TTL', key)
+return {new_count, ttl}
+"""
+
 
 @dataclass
 class RateLimitConfig:
@@ -109,11 +131,17 @@ class InMemoryRateLimiter:
 class RedisRateLimiter:
     """Redis-based rate limiter for distributed deployments.
 
-    Uses Redis INCR and EXPIRE for atomic rate limiting.
+    Uses Lua script for atomic rate limiting to prevent race conditions.
     """
 
     def __init__(self, redis_client: Any) -> None:
         self._redis = redis_client
+        self._script = None
+
+    async def _ensure_script_loaded(self) -> None:
+        """Lazy load and cache the Lua script."""
+        if self._script is None:
+            self._script = self._redis.register_script(RATE_LIMIT_SCRIPT)
 
     async def is_allowed(
         self,
@@ -121,7 +149,7 @@ class RedisRateLimiter:
         max_requests: int,
         window_seconds: int,
     ) -> tuple[bool, int, int]:
-        """Check if request is allowed using Redis.
+        """Check if request is allowed using atomic Lua script.
 
         Args:
             key: Unique identifier (IP or user ID)
@@ -132,33 +160,22 @@ class RedisRateLimiter:
             Tuple of (is_allowed, remaining_requests, retry_after_seconds)
         """
         redis_key = f"rate_limit:{key}"
-        now = time.time()
 
         try:
-            # Use Redis pipeline for atomic operations
-            async with self._redis.pipeline() as pipe:
-                pipe.get(redis_key)
-                pipe.ttl(redis_key)
-                results = await pipe.execute()
+            await self._ensure_script_loaded()
 
-            current_count = int(results[0] or 0)
-            ttl = int(results[1] or 0)
+            # Execute Lua script atomically
+            result = await self._script(
+                keys=[redis_key],
+                args=[max_requests, window_seconds]
+            )
 
-            if current_count >= max_requests:
-                retry_after = max(1, ttl)
+            new_count, ttl = result
+
+            if new_count == -1:
+                # Limit exceeded
+                retry_after = max(1, ttl) if ttl > 0 else window_seconds
                 return False, 0, retry_after
-
-            # Increment counter
-            new_count = await self._redis.incr(redis_key)
-
-            # Set expiry on first request
-            if new_count == 1:
-                await self._redis.expire(redis_key, window_seconds)
-                ttl = window_seconds
-            elif ttl < 0:
-                # Key exists but no expiry (shouldn't happen, but handle it)
-                await self._redis.expire(redis_key, window_seconds)
-                ttl = window_seconds
 
             remaining = max(0, max_requests - new_count)
             return True, remaining, 0

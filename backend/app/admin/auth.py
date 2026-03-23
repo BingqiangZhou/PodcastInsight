@@ -65,7 +65,7 @@ class AdminAuthRequired:
                 raise HTTPException(
                     status_code=status.HTTP_307_TEMPORARY_REDIRECT,
                     detail="2FA setup required",
-                    headers={"Location": "/super/2fa/setup"},
+                    headers={"Location": "/api/v1/admin/2fa/setup"},
                 )
 
             return user

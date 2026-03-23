@@ -93,21 +93,21 @@ def register_admin_http_exception_handler(app: FastAPI) -> None:
 
     @app.exception_handler(HTTPException)
     async def custom_http_exception_handler(request, exc):
-        is_admin_request = request.url.path.startswith("/super/")
+        is_admin_request = request.url.path.startswith("/api/v1/admin/")
 
         if exc.status_code == status.HTTP_307_TEMPORARY_REDIRECT:
             return RedirectResponse(
-                url=exc.headers.get("Location", "/super/2fa/setup"),
+                url=exc.headers.get("Location", "/api/v1/admin/2fa/setup"),
                 status_code=status.HTTP_303_SEE_OTHER,
             )
 
         if (
             is_admin_request
             and exc.status_code == status.HTTP_401_UNAUTHORIZED
-            and request.url.path != "/super/login"
+            and request.url.path != "/api/v1/admin/login"
         ):
             return RedirectResponse(
-                url="/super/login",
+                url="/api/v1/admin/login",
                 status_code=status.HTTP_303_SEE_OTHER,
             )
 

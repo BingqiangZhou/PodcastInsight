@@ -31,32 +31,32 @@
                         <h1 class="text-xl font-bold text-gray-900">管理后台</h1>
                     </div>
                     <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="/super" class="{% if request.url.path == '/super' or request.url.path == '/super/' %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="/api/v1/admin" class="{% if request.url.path == '/api/v1/admin' or request.url.path == '/api/v1/admin/' %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             首页
                         </a>
-                        <a href="/super/apikeys" class="{% if '/apikeys' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="/api/v1/admin/apikeys" class="{% if '/apikeys' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             API Keys
                         </a>
-                        <a href="/super/subscriptions" class="{% if '/subscriptions' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="/api/v1/admin/subscriptions" class="{% if '/subscriptions' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             RSS订阅
                         </a>
-                        <a href="/super/users" class="{% if '/users' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="/api/v1/admin/users" class="{% if '/users' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             用户管理
                         </a>
-                        <a href="/super/audit-logs" class="{% if '/audit-logs' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="/api/v1/admin/audit-logs" class="{% if '/audit-logs' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             审计日志
                         </a>
-                        <a href="/super/settings" class="{% if '/settings' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="/api/v1/admin/settings" class="{% if '/settings' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             系统设置
                         </a>
-                        <a href="/super/monitoring" class="{% if '/monitoring' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="/api/v1/admin/monitoring" class="{% if '/monitoring' in request.url.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             监控
                         </a>
                     </div>
                 </div>
                 <div class="flex items-center">
                     <span class="text-sm text-gray-700 mr-4">{{ user.username }}</span>
-                    <form action="/super/logout" method="post" class="inline">
+                    <form action="/api/v1/admin/logout" method="post" class="inline">
                         <button type="submit" class="text-sm text-gray-500 hover:text-gray-700">
                             登出
                         </button>

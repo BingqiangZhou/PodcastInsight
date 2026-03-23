@@ -44,10 +44,10 @@ async def csrf_exception_handler(request: Request, exc: CSRFException) -> Respon
 
     # Map paths to their templates
     template_mapping = {
-        "/super/setup": "setup.html",
-        "/super/login": "login.html",
-        "/super/2fa_setup": "2fa_setup.html",
-        "/super/2fa_verify": "2fa_verify.html",
+        "/api/v1/admin/setup": "setup.html",
+        "/api/v1/admin/login": "login.html",
+        "/api/v1/admin/2fa_setup": "2fa_setup.html",
+        "/api/v1/admin/2fa_verify": "2fa_verify.html",
     }
 
     # Try to determine the current page from referer or path

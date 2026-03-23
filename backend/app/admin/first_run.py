@@ -38,19 +38,19 @@ async def first_run_middleware(request: Request, call_next):
     """Middleware to redirect to setup page if no admin user exists.
 
     This middleware checks if any superuser exists in the database.
-    If not, it redirects all /super/* requests (except /super/setup)
+    If not, it redirects all /api/v1/admin/* requests (except /api/v1/admin/setup)
     to the setup page.
     """
-    # Only apply to /super routes
-    if not request.url.path.startswith("/super"):
+    # Only apply to /api/v1/admin routes
+    if not request.url.path.startswith("/api/v1/admin"):
         return await call_next(request)
 
     # Allow access to setup page itself
-    if request.url.path.startswith("/super/setup"):
+    if request.url.path.startswith("/api/v1/admin/setup"):
         return await call_next(request)
 
     # Allow access to static files
-    if request.url.path.startswith("/super/static"):
+    if request.url.path.startswith("/api/v1/admin/static"):
         return await call_next(request)
 
     # Check if admin exists
@@ -59,7 +59,7 @@ async def first_run_middleware(request: Request, call_next):
     if not admin_exists:
         # Redirect to setup page
         logger.info(f"No admin user found, redirecting {request.url.path} to setup")
-        return RedirectResponse(url="/super/setup", status_code=303)
+        return RedirectResponse(url="/api/v1/admin/setup", status_code=303)
 
     # Admin exists, continue normally
     return await call_next(request)

@@ -812,7 +812,7 @@ async function testApiKeyBeforeCreate() {
     document.getElementById('test-result').classList.add('hidden');
 
     try {
-        const response = await fetch('/super/apikeys/test', {
+        const response = await fetch('/api/v1/admin/apikeys/test', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -877,7 +877,7 @@ async function submitCreateForm(event) {
     }
 
     try {
-        const response = await fetch('/super/apikeys/create', {
+        const response = await fetch('/api/v1/admin/apikeys/create', {
             method: 'POST',
             body: formData,
         });
@@ -900,7 +900,7 @@ async function submitCreateForm(event) {
 
 async function toggleApiKey(keyId) {
     try {
-        const response = await fetch(`/super/apikeys/${keyId}/toggle`, {
+        const response = await fetch(`/api/v1/admin/apikeys/${keyId}/toggle`, {
             method: 'PUT',
         });
 
@@ -922,7 +922,7 @@ async function deleteApiKey(keyId) {
     }
 
     try {
-        const response = await fetch(`/super/apikeys/${keyId}/delete`, {
+        const response = await fetch(`/api/v1/admin/apikeys/${keyId}/delete`, {
             method: 'DELETE',
         });
 
@@ -1011,7 +1011,7 @@ async function submitEdit() {
     }
 
     try {
-        const response = await fetch(`/super/apikeys/${id}/edit`, {
+        const response = await fetch(`/api/v1/admin/apikeys/${id}/edit`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1055,7 +1055,7 @@ async function testApiKeyBeforeEdit() {
     document.getElementById('edit-test-result').classList.add('hidden');
 
     try {
-        const response = await fetch('/super/apikeys/test', {
+        const response = await fetch('/api/v1/admin/apikeys/test', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1294,7 +1294,7 @@ async function submitEncryptedExport() {
     btn.textContent = '导出中...';
 
     try {
-        const response = await fetch('/super/api/apikeys/export/json', {
+        const response = await fetch('/api/v1/admin/api/apikeys/export/json', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1377,7 +1377,7 @@ async function submitPlaintextExport() {
     btn.textContent = '导出中...';
 
     try {
-        const response = await fetch('/super/api/apikeys/export/json', {
+        const response = await fetch('/api/v1/admin/api/apikeys/export/json', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1533,7 +1533,7 @@ async function performImport(fileContent, mode, password) {
             requestBody.import_password = password;
         }
 
-        const response = await fetch('/super/api/apikeys/import/json', {
+        const response = await fetch('/api/v1/admin/api/apikeys/import/json', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

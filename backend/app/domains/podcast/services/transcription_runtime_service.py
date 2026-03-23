@@ -497,7 +497,7 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
                 continue
 
             dir_size = await asyncio.to_thread(_directory_size_bytes, temp_episode_dir)
-            shutil.rmtree(temp_episode_dir)
+            await _rmtree_async(temp_episode_dir)
             cleaned_count += 1
             freed_bytes += dir_size
 

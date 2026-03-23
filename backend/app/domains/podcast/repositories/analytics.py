@@ -291,6 +291,7 @@ class PodcastAnalyticsRepositoryMixin:
             .join(PodcastPlaybackState)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
+            .options(joinedload(PodcastEpisode.subscription))
             .where(
                 and_(
                     *self._active_user_subscription_filters(user_id),
@@ -304,7 +305,7 @@ class PodcastAnalyticsRepositoryMixin:
         )
 
         result = await self.db.execute(stmt)
-        return list(result.scalars().all())
+        return list(result.scalars().unique().all())
 
     async def get_recent_play_dates(self, user_id: int, days: int = 30) -> set[date]:
         stmt = (

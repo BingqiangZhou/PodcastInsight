@@ -104,7 +104,7 @@ class AdminSetupAuthService:
 
     def build_setup_redirect(self, user_id: int) -> RedirectResponse:
         response = RedirectResponse(
-            url="/super/2fa/setup",
+            url="/api/v1/admin/2fa/setup",
             status_code=status.HTTP_303_SEE_OTHER,
         )
         response.set_cookie(

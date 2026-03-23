@@ -516,7 +516,7 @@
         twoFaStatusText.textContent = newEnabled ? '启用中...' : '禁用中...';
 
         try {
-            const response = await fetch('/super/settings/api/security', {
+            const response = await fetch('/api/v1/admin/settings/api/security', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -616,7 +616,7 @@
                 frequencyData.update_day = parseInt(document.getElementById('update-day').value);
             }
 
-            const response = await fetch('/super/settings/frequency', {
+            const response = await fetch('/api/v1/admin/settings/frequency', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -671,7 +671,7 @@
     document.addEventListener('DOMContentLoaded', async function() {
         // Load audio settings
         try {
-            const response = await fetch('/super/settings/api/audio');
+            const response = await fetch('/api/v1/admin/settings/api/audio');
             if (response.ok) {
                 const data = await response.json();
                 if (data.chunk_size_mb !== undefined) {
@@ -691,7 +691,7 @@
 
         // Load frequency settings
         try {
-            const freqResponse = await fetch('/super/settings/frequency');
+            const freqResponse = await fetch('/api/v1/admin/settings/frequency');
             if (freqResponse.ok) {
                 const freqData = await freqResponse.json();
                 if (freqData.update_frequency) {
@@ -714,7 +714,7 @@
 
         // Load security settings (2FA)
         try {
-            const securityResponse = await fetch('/super/settings/api/security');
+            const securityResponse = await fetch('/api/v1/admin/settings/api/security');
             if (securityResponse.ok) {
                 const securityData = await securityResponse.json();
                 current2FAState.enabled = securityData.admin_2fa_enabled;
@@ -749,7 +749,7 @@
         saveBtn.innerHTML = '<span class="spinner"></span> 保存中...';
 
         try {
-            const response = await fetch('/super/settings/api/audio', {
+            const response = await fetch('/api/v1/admin/settings/api/audio', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -796,7 +796,7 @@
         refreshBtn.innerHTML = '<span class="spinner"></span> 加载中...';
 
         try {
-            const response = await fetch('/super/settings/api/storage/info');
+            const response = await fetch('/api/v1/admin/settings/api/storage/info');
             if (response.ok) {
                 const data = await response.json();
                 updateStorageUI(data);
@@ -858,7 +858,7 @@
         updateAutoCleanupUI();
 
         try {
-            const response = await fetch('/super/settings/api/storage/cleanup/config', {
+            const response = await fetch('/api/v1/admin/settings/api/storage/cleanup/config', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -935,7 +935,7 @@
         cleanupBtn.innerHTML = '<span class="spinner"></span> 清理中...';
 
         try {
-            const response = await fetch('/super/settings/api/storage/cleanup/execute', {
+            const response = await fetch('/api/v1/admin/settings/api/storage/cleanup/execute', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -976,7 +976,7 @@
     // Load auto cleanup config on page load
     async function loadAutoCleanupConfig() {
         try {
-            const response = await fetch('/super/settings/api/storage/cleanup/config');
+            const response = await fetch('/api/v1/admin/settings/api/storage/cleanup/config');
             if (response.ok) {
                 const data = await response.json();
                 autoCleanupState.enabled = data.enabled;

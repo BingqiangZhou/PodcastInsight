@@ -52,7 +52,12 @@ class RedisJSONEncoder(json.JSONEncoder):
 # Redis keys for distributed runtime metrics
 _METRICS_COMMANDS_KEY = "podcast:metrics:commands"
 _METRICS_CACHE_KEY = "podcast:metrics:cache"
+_METRICS_CACHE_PENETRATION_KEY = "podcast:metrics:penetration"
 _METRICS_TTL_SECONDS = 3600  # Metrics expire after 1 hour
+
+# Null value cache marker and TTL
+_NULL_VALUE_MARKER = "__NULL__"
+_NULL_CACHE_TTL = 60  # 60 seconds for null value caching
 
 
 class PodcastRedis:
@@ -146,6 +151,35 @@ class PodcastRedis:
             # Silently fail to avoid impacting main operations
             pass
 
+    async def _record_cache_penetration(self, key: str) -> None:
+        """Record cache penetration event (query for non-existent data)."""
+        client = await self._get_client()
+        try:
+            namespace = self._cache_namespace(key)
+
+            async with client.pipeline() as pipe:
+                # Global penetration counter
+                pipe.hincrby(_METRICS_CACHE_PENETRATION_KEY, "total_attempts", 1)
+
+                # Per-namespace penetration counter
+                pipe.hincrby(
+                    f"{_METRICS_CACHE_PENETRATION_KEY}:namespace:{namespace}",
+                    "attempts",
+                    1,
+                )
+
+                # Set TTL
+                pipe.expire(_METRICS_CACHE_PENETRATION_KEY, _METRICS_TTL_SECONDS)
+                pipe.expire(
+                    f"{_METRICS_CACHE_PENETRATION_KEY}:namespace:{namespace}",
+                    _METRICS_TTL_SECONDS,
+                )
+
+                await pipe.execute()
+        except Exception:
+            # Silently fail to avoid impacting main operations
+            pass
+
     async def get_runtime_metrics(self) -> dict[str, Any]:
         """Get runtime metrics from Redis (aggregated across all processes)."""
         client = await self._get_client()
@@ -198,6 +232,21 @@ class PodcastRedis:
 
             await self._record_command_timing("HGETALL", (perf_counter() - started) * 1000)
 
+            # Get cache penetration metrics
+            penetration_data = await client.hgetall(_METRICS_CACHE_PENETRATION_KEY) or {}
+            total_penetration = int(penetration_data.get("total_attempts", 0))
+
+            # Get per-namespace penetration metrics
+            penetration_by_namespace: dict[str, Any] = {}
+            penetration_pattern = f"{_METRICS_CACHE_PENETRATION_KEY}:namespace:*"
+            async for key in client.scan_iter(match=penetration_pattern):
+                namespace = key.split(":")[-1]
+                ns_data = await client.hgetall(key) or {}
+                ns_attempts = int(ns_data.get("attempts", 0))
+                penetration_by_namespace[namespace] = {
+                    "attempts": ns_attempts,
+                }
+
             return {
                 "commands": {
                     "total_count": total_count,
@@ -210,6 +259,10 @@ class PodcastRedis:
                     "misses": misses,
                     "hit_rate": hit_rate,
                     "by_namespace": by_namespace,
+                },
+                "penetration": {
+                    "total_attempts": total_penetration,
+                    "by_namespace": penetration_by_namespace,
                 },
             }
         except Exception:
@@ -225,6 +278,10 @@ class PodcastRedis:
                     "hits": 0,
                     "misses": 0,
                     "hit_rate": 0.0,
+                    "by_namespace": {},
+                },
+                "penetration": {
+                    "total_attempts": 0,
                     "by_namespace": {},
                 },
             }
@@ -387,14 +444,20 @@ class PodcastRedis:
         loader: Any,
         ttl: int = 3600,
         lock_timeout: int = 10,
+        max_wait_time: float = 3.0,
     ) -> tuple[Any, bool]:
         """Get cached value with distributed lock to prevent cache stampede.
+
+        Uses exponential backoff polling when lock is held by another process.
+        This prevents multiple requests from simultaneously loading the same data
+        when the initial load takes longer than a short sleep interval.
 
         Args:
             key: Cache key
             loader: Async callable to load value if cache miss
             ttl: Cache TTL in seconds
             lock_timeout: Lock timeout in seconds
+            max_wait_time: Maximum time to wait for lock holder (default 3.0 seconds)
 
         Returns:
             Tuple of (value, from_cache)
@@ -423,14 +486,49 @@ class PodcastRedis:
                 # Release lock
                 await self._delete_keys_nonblocking(lock_key)
         else:
-            # Another process is loading, wait and retry
-            await asyncio.sleep(0.1)
-            # Try to get from cache again
-            value = await self.cache_get_json(key)
-            if value is not None:
-                await self._record_cache_lookup(key, hit=True)
-                return value, True
-            # Cache still empty, load anyway (fallback)
+            # Another process is loading, wait with exponential backoff
+            # This prevents cache stampede when load time exceeds a short sleep
+            wait_start = perf_counter()
+            initial_delay = 0.05  # Start with 50ms
+            max_delay = 0.5  # Cap at 500ms per attempt
+            attempt = 0
+
+            while (perf_counter() - wait_start) < max_wait_time:
+                # Exponential backoff: 0.05s, 0.1s, 0.2s, 0.4s, 0.5s, 0.5s, ...
+                delay = min(initial_delay * (2 ** attempt), max_delay)
+                await asyncio.sleep(delay)
+
+                # Try to get from cache again
+                value = await self.cache_get_json(key)
+                if value is not None:
+                    await self._record_cache_lookup(key, hit=True)
+                    return value, True
+
+                # Check if lock was released (lock holder failed)
+                started = perf_counter()
+                lock_exists = await client.exists(lock_key)
+                await self._record_command_timing("EXISTS", (perf_counter() - started) * 1000)
+
+                if not lock_exists:
+                    # Lock was released without cache being set, try to acquire it
+                    started = perf_counter()
+                    lock_acquired = await client.set(lock_key, "1", nx=True, ex=lock_timeout)
+                    await self._record_command_timing("SET_NX", (perf_counter() - started) * 1000)
+
+                    if lock_acquired:
+                        try:
+                            # We acquired the lock, load the value
+                            value = await loader()
+                            await self.cache_set_json(key, value, ttl=ttl)
+                            await self._record_cache_lookup(key, hit=False)
+                            return value, False
+                        finally:
+                            await self._delete_keys_nonblocking(lock_key)
+
+                attempt += 1
+
+            # Max wait time exceeded, load anyway as fallback
+            # This ensures availability even if lock holder crashes
             value = await loader()
             await self.cache_set_json(key, value, ttl=ttl)
             await self._record_cache_lookup(key, hit=False)
@@ -1025,6 +1123,168 @@ class PodcastRedis:
                 self._client = None
                 self._client_loop_token = None
                 self._last_health_check_at = 0.0
+
+    # === Cache Penetration Protection ===
+
+    async def cache_get_with_null_protection(
+        self,
+        key: str,
+        loader: Any,
+        ttl: int = 3600,
+    ) -> tuple[Any, bool]:
+        """Get cached value with null value caching to prevent cache penetration.
+
+        When a loader returns None (data not found), we cache a special marker
+        to prevent repeated database queries for the same non-existent data.
+
+        Args:
+            key: Cache key
+            loader: Async callable to load value if cache miss
+            ttl: Cache TTL in seconds for actual data (null values use _NULL_CACHE_TTL)
+
+        Returns:
+            Tuple of (value, from_cache). Value is None if:
+            - Data doesn't exist and was cached as null
+            - Data doesn't exist and wasn't cached before
+
+        """
+        # Try to get from cache first
+        cached_value = await self.cache_get(key)
+        if cached_value is not None:
+            if cached_value == _NULL_VALUE_MARKER:
+                # Null value cached - data doesn't exist
+                await self._record_cache_lookup(key, hit=True)
+                await self._record_cache_penetration(key)
+                return None, True
+            # Actual data cached
+            await self._record_cache_lookup(key, hit=True)
+            return json.loads(cached_value), True
+
+        # Cache miss - load from data source
+        await self._record_cache_lookup(key, hit=False)
+        value = await loader()
+
+        if value is None:
+            # Data doesn't exist - cache null marker to prevent penetration
+            await self.cache_set(key, _NULL_VALUE_MARKER, ttl=_NULL_CACHE_TTL)
+            await self._record_cache_penetration(key)
+            return None, False
+
+        # Cache the actual value
+        await self.cache_set_json(key, value, ttl=ttl)
+        return value, False
+
+    async def cache_get_json_with_null_protection(
+        self,
+        key: str,
+        loader: Any,
+        ttl: int = 3600,
+    ) -> Any:
+        """Get JSON cached value with null protection (simplified API).
+
+        Args:
+            key: Cache key
+            loader: Async callable to load value if cache miss
+            ttl: Cache TTL in seconds
+
+        Returns:
+            Cached or loaded value, or None if data doesn't exist
+
+        """
+        value, _from_cache = await self.cache_get_with_null_protection(
+            key,
+            loader,
+            ttl=ttl,
+        )
+        return value
+
+    async def set_null_value(self, key: str) -> bool:
+        """Explicitly set a null value marker for a key.
+
+        Use this when you know a resource doesn't exist and want to
+        prevent future cache penetration attempts.
+
+        Args:
+            key: Cache key to mark as null
+
+        Returns:
+            True if successfully set
+
+        """
+        return await self.cache_set(key, _NULL_VALUE_MARKER, ttl=_NULL_CACHE_TTL)
+
+    async def is_null_value_cached(self, key: str) -> bool:
+        """Check if a key has a null value marker cached.
+
+        Args:
+            key: Cache key to check
+
+        Returns:
+            True if key has null marker cached
+
+        """
+        value = await self.cache_get(key)
+        return value == _NULL_VALUE_MARKER
+
+    async def invalidate_null_cache(self, pattern: str | None = None) -> int:
+        """Invalidate null value caches.
+
+        Args:
+            pattern: Optional key pattern to match (e.g., "podcast:meta:*").
+                     If None, clears all null markers (use with caution).
+
+        Returns:
+            Number of keys deleted
+
+        """
+        client = await self._get_client()
+
+        if pattern:
+            # Delete null values matching pattern
+            count = 0
+            async for key in client.scan_iter(match=pattern):
+                value = await client.get(key)
+                if value == _NULL_VALUE_MARKER:
+                    await self._delete_keys_nonblocking(key)
+                    count += 1
+            return count
+
+        # This would be expensive - scan all keys and delete null markers
+        # Not recommended for production use
+        return 0
+
+    async def get_penetration_metrics(self) -> dict[str, Any]:
+        """Get cache penetration metrics.
+
+        Returns:
+            Dict with total_attempts and by_namespace breakdown
+
+        """
+        client = await self._get_client()
+        try:
+            penetration_data = await client.hgetall(_METRICS_CACHE_PENETRATION_KEY) or {}
+            total_attempts = int(penetration_data.get("total_attempts", 0))
+
+            # Get per-namespace penetration metrics
+            by_namespace: dict[str, Any] = {}
+            penetration_pattern = f"{_METRICS_CACHE_PENETRATION_KEY}:namespace:*"
+            async for key in client.scan_iter(match=penetration_pattern):
+                namespace = key.split(":")[-1]
+                ns_data = await client.hgetall(key) or {}
+                ns_attempts = int(ns_data.get("attempts", 0))
+                by_namespace[namespace] = {
+                    "attempts": ns_attempts,
+                }
+
+            return {
+                "total_attempts": total_attempts,
+                "by_namespace": by_namespace,
+            }
+        except Exception:
+            return {
+                "total_attempts": 0,
+                "by_namespace": {},
+            }
 
     async def check_health(self, timeout_seconds: float = 1.5) -> dict[str, Any]:
         """Return a compact Redis readiness payload suitable for readiness probes."""
