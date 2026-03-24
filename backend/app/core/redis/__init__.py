@@ -551,6 +551,14 @@ class PodcastRedis(
         await self._record_command_timing("SET", (perf_counter() - started) * 1000)
         return bool(result)
 
+    async def release_lock(self, lock_name: str) -> None:
+        """Release distributed lock."""
+        client = await self._get_client()
+        key = f"podcast:lock:{lock_name}"
+        started = perf_counter()
+        await client.delete(key)
+        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
+
     async def set_if_not_exists(self, key: str, value: str, *, ttl: int | None = None) -> bool:
         """Set a key only if it does not already exist. Returns True if set."""
         client = await self._get_client()
