@@ -11,11 +11,12 @@ Usage:
 """
 
 import asyncio
-import json
 import logging
 from contextlib import suppress
 from time import perf_counter
 from typing import Any
+
+import orjson
 
 from redis import asyncio as aioredis
 
@@ -286,10 +287,10 @@ class PodcastRedis(
         await self._record_command_timing("GET", (perf_counter() - started) * 1000)
         if data:
             try:
-                value = json.loads(data)
+                value = orjson.loads(data)
                 await self._record_cache_lookup(key, hit=True)
                 return value
-            except json.JSONDecodeError:
+            except orjson.JSONDecodeError:
                 await self._record_cache_lookup(key, hit=False)
                 return None
         await self._record_cache_lookup(key, hit=False)
@@ -297,11 +298,11 @@ class PodcastRedis(
 
     async def cache_set_json(self, key: str, value: Any, ttl: int = CacheTTL.DEFAULT) -> bool:
         """Serialize and cache JSON value."""
-        from app.core.redis.client import RedisJSONEncoder
+        from app.core.redis.client import redis_json_default
         client = await self._get_client()
         started = perf_counter()
         try:
-            json_str = json.dumps(value, cls=RedisJSONEncoder)
+            json_str = orjson.dumps(value, default=redis_json_default).decode('utf-8')
             result = await client.setex(key, ttl, json_str)
             await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
             return bool(result)

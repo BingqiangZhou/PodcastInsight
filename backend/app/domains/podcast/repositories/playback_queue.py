@@ -221,7 +221,7 @@ class PodcastPlaybackQueueRepositoryMixin:
             self.db.add(state)
 
         await self.db.commit()
-        await self.db.refresh(state)
+        # No refresh needed - state.id is auto-populated by SQLAlchemy after flush/commit
 
         if self.redis:
             await self.redis.set_user_progress(user_id, episode_id, position / 100)
@@ -261,7 +261,6 @@ class PodcastPlaybackQueueRepositoryMixin:
         This is more efficient than get_queue_with_items when we already have
         the queue object, as it avoids the initial get_or_create_queue query.
         """
-        await self.db.refresh(queue)
         stmt = (
             select(PodcastQueue)
             .options(

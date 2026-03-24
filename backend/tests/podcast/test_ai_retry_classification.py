@@ -35,7 +35,7 @@ def test_summary_retryable_status_classification() -> None:
 async def test_summary_retry_retries_only_transient_errors(monkeypatch) -> None:
     manager = SummaryModelManager(db=AsyncMock())
     manager.ai_model_repo.increment_usage = AsyncMock()
-    model_config = SimpleNamespace(id=1, name="summary-model")
+    model_config = SimpleNamespace(id=1, name="summary-model", provider="openai")
 
     attempts = 0
 
@@ -65,7 +65,7 @@ async def test_summary_retry_retries_only_transient_errors(monkeypatch) -> None:
 async def test_summary_retry_does_not_retry_non_transient_errors(monkeypatch) -> None:
     manager = SummaryModelManager(db=AsyncMock())
     manager.ai_model_repo.increment_usage = AsyncMock()
-    model_config = SimpleNamespace(id=1, name="summary-model")
+    model_config = SimpleNamespace(id=1, name="summary-model", provider="openai")
 
     attempts = 0
 

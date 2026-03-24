@@ -107,7 +107,7 @@ class SubscriptionService:
                         user_sub.update_day_of_week,
                     ) = await self._get_default_schedule_settings()
                 await self.db.commit()
-                await self.db.refresh(existing)
+                # No refresh needed - existing is already in session with updated values
                 return "updated", existing, "Subscription restored"
 
             if existing.status == SubscriptionStatus.ACTIVE:
@@ -126,7 +126,7 @@ class SubscriptionService:
             existing.error_message = None
             existing.updated_at = datetime.now(UTC)
             await self.db.commit()
-            await self.db.refresh(existing)
+            # No refresh needed - existing is already in session with updated values
             return (
                 "updated",
                 existing,
@@ -161,7 +161,7 @@ class SubscriptionService:
             message = f"Updated and subscribed to existing source: {existing.title}"
 
         await self.db.commit()
-        await self.db.refresh(existing)
+        # No refresh needed - existing is already in session with updated values
         return status, existing, message
 
     def _add_subscription_to_opml(
@@ -438,7 +438,7 @@ class SubscriptionService:
             if latest_published_at:
                 sub.latest_item_published_at = latest_published_at
             await self.db.commit()
-            await self.db.refresh(sub)
+            # No refresh needed - sub is already in session with updated values
             return {
                 "subscription_id": sub.id,
                 "status": "success",

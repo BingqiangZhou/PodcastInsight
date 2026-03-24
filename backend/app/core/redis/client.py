@@ -4,11 +4,11 @@ Handles connection pooling, health checks, and reconnection logic.
 """
 
 import asyncio
-import json
 import logging
 from contextlib import suppress
 from datetime import datetime
 from time import perf_counter
+from typing import Any
 
 from redis import asyncio as aioredis
 from redis.backoff import ExponentialBackoff
@@ -19,13 +19,23 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
-class RedisJSONEncoder(json.JSONEncoder):
-    """Custom JSON encoder for Redis that handles datetime objects"""
+def redis_json_default(obj: Any) -> Any:
+    """Default JSON encoder function for Redis that handles datetime objects.
 
-    def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        return super().default(obj)
+    Compatible with orjson.dumps(default=...).
+
+    Args:
+        obj: Object to encode
+
+    Returns:
+        JSON-serializable representation of the object
+
+    Raises:
+        TypeError: If object is not serializable
+    """
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
 class RedisClientManager:

@@ -95,7 +95,7 @@ class AuthenticationService:
         try:
             self.db.add(user)
             await self.db.commit()
-            await self.db.refresh(user)
+            # No refresh needed - user.id is auto-populated by SQLAlchemy after flush/commit
             return user
         except IntegrityError as err:
             await self.db.rollback()
@@ -223,7 +223,7 @@ class AuthenticationService:
         try:
             self.db.add(session)
             await self.db.commit()
-            await self.db.refresh(session)
+            # No refresh needed - session.id is auto-populated by SQLAlchemy after flush/commit
         except IntegrityError as err:
             await self.db.rollback()
             raise BadRequestError("Failed to create user session") from err
@@ -465,7 +465,7 @@ class AuthenticationService:
         try:
             self.db.add(password_reset)
             await self.db.commit()
-            await self.db.refresh(password_reset)
+            # No refresh needed - password_reset.id is auto-populated by SQLAlchemy after flush/commit
 
             # Send password reset email
             await email_service.send_password_reset_email(

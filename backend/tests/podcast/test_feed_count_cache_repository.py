@@ -41,4 +41,4 @@ async def test_feed_total_count_caches_db_result_on_miss():
 
     assert total == 5
     db.execute.assert_awaited_once()
-    redis.cache_set.assert_awaited_once_with("podcast:feed:count:2", "5", ttl=30)
+    redis.cache_set.assert_awaited_once_with("podcast:feed:count:2", "5", ttl=120)

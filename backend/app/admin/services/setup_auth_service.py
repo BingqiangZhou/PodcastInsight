@@ -62,11 +62,11 @@ class AdminSetupAuthService:
         )
         self.db.add(admin_user)
         await self.db.commit()
-        await self.db.refresh(admin_user)
+        # No refresh needed - admin_user.id is auto-populated by SQLAlchemy after flush/commit
 
         admin_user.totp_secret = generate_totp_secret()
         await self.db.commit()
-        await self.db.refresh(admin_user)
+        # No refresh needed - admin_user is already in session with updated values
         logger.info("Initial admin user created: %s", username)
         return admin_user
 
@@ -74,7 +74,7 @@ class AdminSetupAuthService:
         if not user.totp_secret:
             user.totp_secret = generate_totp_secret()
             await self.db.commit()
-            await self.db.refresh(user)
+            # No refresh needed - user is already in session with updated values
         return user.totp_secret
 
     async def verify_login_credentials(

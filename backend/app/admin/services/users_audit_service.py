@@ -104,7 +104,7 @@ class AdminUsersAuditService:
             else UserStatus.ACTIVE
         )
         await self.db.commit()
-        await self.db.refresh(target_user)
+        # No refresh needed - target_user is already in session with updated values
         return target_user
 
     async def toggle_user(
@@ -148,7 +148,7 @@ class AdminUsersAuditService:
         new_password = secrets.token_urlsafe(16)
         target_user.hashed_password = get_password_hash(new_password)
         await self.db.commit()
-        await self.db.refresh(target_user)
+        # No refresh needed - target_user is already in session with updated values
         return target_user, new_password
 
     async def reset_user_password_action(

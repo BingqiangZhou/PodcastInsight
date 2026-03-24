@@ -31,7 +31,7 @@ class UserRepository:
 
         self.db.add(db_user)
         await self.db.commit()
-        await self.db.refresh(db_user)
+        # No refresh needed - db_user.id is auto-populated by SQLAlchemy after flush/commit
         return db_user
 
     async def get_by_id(self, user_id: int) -> User | None:
@@ -73,7 +73,7 @@ class UserRepository:
             setattr(user, field, value)
 
         await self.db.commit()
-        await self.db.refresh(user)
+        # No refresh needed - user is already in session with updated values
         return user
 
     async def delete(self, user_id: int) -> bool:
@@ -120,7 +120,7 @@ class UserSessionRepository:
 
         self.db.add(db_session)
         await self.db.commit()
-        await self.db.refresh(db_session)
+        # No refresh needed - db_session.id is auto-populated by SQLAlchemy after flush/commit
         return db_session
 
     async def get_by_token(self, session_token: str) -> UserSession | None:

@@ -155,7 +155,7 @@ class AdminSubscriptionsCommandService:
             subscription.error_message = str(exc)
 
         await self.db.commit()
-        await self.db.refresh(subscription)
+        # No refresh needed - subscription is already in session with updated values
         await log_admin_action(
             db=self.db,
             user_id=user.id,
@@ -429,7 +429,7 @@ class AdminSubscriptionsCommandService:
 
         subscription.last_fetched_at = datetime.now(UTC)
         await self.db.commit()
-        await self.db.refresh(subscription)
+        # No refresh needed - subscription is already in session with updated values
         await log_admin_action(
             db=self.db,
             user_id=user.id,

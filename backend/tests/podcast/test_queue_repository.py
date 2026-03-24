@@ -41,6 +41,7 @@ def _mock_db() -> SimpleNamespace:
         commit=AsyncMock(),
         delete=AsyncMock(),
         expire=Mock(),
+        execute=AsyncMock(return_value=SimpleNamespace(unique=lambda: SimpleNamespace(scalar_one=lambda: None))),
     )
 
 
@@ -55,6 +56,7 @@ async def test_add_or_move_to_tail_adds_new_item_without_full_rewrite() -> None:
 
     repo.get_queue_with_items = AsyncMock(side_effect=[queue, queue])
     repo._rewrite_queue_positions = AsyncMock()
+    repo._refresh_queue_with_items = AsyncMock(return_value=queue)
 
     result = await repo.add_or_move_to_tail(user_id=1, episode_id=11, max_items=500)
 
@@ -241,6 +243,7 @@ async def test_remove_item_does_not_access_queue_after_expire() -> None:
 
     repo.get_queue_with_items = AsyncMock(side_effect=[queue, queue])
     repo._rewrite_queue_positions = AsyncMock()
+    repo._refresh_queue_with_items = AsyncMock(return_value=queue)
 
     result = await repo.remove_item(user_id=1, episode_id=11)
 

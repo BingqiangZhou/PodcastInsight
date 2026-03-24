@@ -92,7 +92,6 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_success() -> None:
         [],
         [SimpleNamespace(id=11, published_at=now)],
     )
-    sync_service = AsyncMock()
 
     with patch(
         "app.domains.podcast.services.task_orchestration_service.PodcastSubscriptionRepository",
@@ -100,9 +99,6 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_success() -> None:
     ), patch(
         "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
         return_value=parser,
-    ), patch(
-        "app.domains.podcast.services.task_orchestration_service.PodcastSyncService",
-        return_value=sync_service,
     ), patch(
         "app.domains.podcast.services.task_orchestration_service.worker_db_session",
         _fake_worker_db_session,

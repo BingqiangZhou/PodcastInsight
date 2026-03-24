@@ -10,7 +10,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:${PATH}" \
     UV_LINK_MODE=copy \
     UV_PYTHON=/usr/local/bin/python3.11 \
-    UV_PYTHON_DOWNLOADS=never
+    UV_PYTHON_DOWNLOADS=never \
+    UV_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+    UV_EXTRA_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 配置国内 Debian 镜像源（清华大学）
 RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/debian.sources \

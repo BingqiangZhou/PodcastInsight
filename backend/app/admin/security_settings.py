@@ -73,5 +73,5 @@ async def set_admin_2fa_enabled(db: AsyncSession, enabled: bool) -> SystemSettin
         logger.info(f"Created admin 2FA setting in database: {enabled}")
 
     await db.commit()
-    await db.refresh(setting)
+    # No refresh needed - setting is already in session with updated values
     return setting

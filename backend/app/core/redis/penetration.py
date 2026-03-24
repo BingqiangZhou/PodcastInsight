@@ -3,10 +3,11 @@
 Prevents cache penetration by caching null values.
 """
 
-import json
 import logging
 from time import perf_counter
 from typing import Any
+
+import orjson
 
 from app.core.cache_ttl import CacheTTL
 
@@ -57,7 +58,7 @@ class PenetrationOperations:
             # Actual data cached
             if record_lookup:
                 await record_lookup(key, hit=True)
-            return json.loads(cached_value), True
+            return orjson.loads(cached_value), True
 
         # Cache miss - load from data source
         if record_lookup:
@@ -72,7 +73,7 @@ class PenetrationOperations:
             return None, False
 
         # Cache the actual value
-        await cache_set_func(key, json.dumps(value), ttl=ttl)
+        await cache_set_func(key, orjson.dumps(value).decode('utf-8'), ttl=ttl)
         return value, False
 
     async def cache_get_json_with_null_protection(

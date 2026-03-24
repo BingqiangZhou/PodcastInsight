@@ -233,7 +233,7 @@ class AdminApiKeysService:
         )
         self.db.add(new_config)
         await self.db.commit()
-        await self.db.refresh(new_config)
+        # No refresh needed - new_config.id is auto-populated by SQLAlchemy after flush/commit
 
         await log_admin_action(
             db=self.db,
@@ -266,7 +266,7 @@ class AdminApiKeysService:
 
         model_config.is_active = not model_config.is_active
         await self.db.commit()
-        await self.db.refresh(model_config)
+        # No refresh needed - model_config is already in session with updated values
         await log_admin_action(
             db=self.db,
             user_id=user.id,
@@ -337,7 +337,7 @@ class AdminApiKeysService:
             model_config.api_key_encrypted = True
 
         await self.db.commit()
-        await self.db.refresh(model_config)
+        # No refresh needed - model_config is already in session with updated values
         await log_admin_action(
             db=self.db,
             user_id=user.id,

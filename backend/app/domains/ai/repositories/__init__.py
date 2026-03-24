@@ -26,7 +26,7 @@ class AIModelConfigRepository:
         try:
             self.db.add(model_config)
             await self.db.commit()
-            await self.db.refresh(model_config)
+            # No refresh needed - model_config.id is auto-populated by SQLAlchemy after flush/commit
             return model_config
         except Exception as e:
             await self.db.rollback()

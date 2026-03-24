@@ -3,10 +3,11 @@
 Basic caching operations (get/set/hash) and JSON helpers.
 """
 
-import json
 import logging
 from time import perf_counter
 from typing import Any
+
+import orjson
 
 from app.core.cache_ttl import CacheTTL
 
@@ -71,11 +72,11 @@ class CacheOperations:
         data = await self.cache_get(key)
         if data:
             try:
-                value = json.loads(data)
+                value = orjson.loads(data)
                 if record_lookup:
                     await record_lookup(key, hit=True)
                 return value
-            except json.JSONDecodeError:
+            except orjson.JSONDecodeError:
                 if record_lookup:
                     await record_lookup(key, hit=False)
                 return None
@@ -87,10 +88,10 @@ class CacheOperations:
         self, key: str, value: Any, client: Any, ttl: int = CacheTTL.DEFAULT
     ) -> bool:
         """Serialize and cache JSON value."""
-        from app.core.redis.client import RedisJSONEncoder
+        from app.core.redis.client import redis_json_default
 
         try:
-            json_str = json.dumps(value, cls=RedisJSONEncoder)
+            json_str = orjson.dumps(value, default=redis_json_default).decode('utf-8')
             return await self.cache_set(key, json_str, ttl=ttl)
         except (TypeError, ValueError):
             return False

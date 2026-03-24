@@ -69,7 +69,7 @@ async def log_admin_action(
 
         db.add(audit_log)
         await db.commit()
-        await db.refresh(audit_log)
+        # No refresh needed - audit_log.id is auto-populated by SQLAlchemy after flush/commit
 
         logger.info(
             f"Audit log created: user={username}, action={action}, "

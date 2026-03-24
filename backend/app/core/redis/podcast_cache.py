@@ -4,10 +4,11 @@ Business logic caching for podcast subscriptions, episodes, feeds, etc.
 """
 
 import hashlib
-import json
 import logging
 from time import perf_counter
 from typing import Any
+
+import orjson
 
 from app.core.cache_ttl import CacheTTL
 
@@ -19,7 +20,7 @@ class PodcastCacheOperations:
 
     def _stable_hash(self, value: str) -> str:
         normalized = value.strip().lower()
-        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+        return hashlib.md5(normalized.encode("utf-8")).hexdigest()
 
     def _subscription_index_key(self, user_id: int) -> str:
         return f"podcast:subscriptions:index:{user_id}"
@@ -37,7 +38,7 @@ class PodcastCacheOperations:
             "size": size,
             "filters": filters or {},
         }
-        payload_str = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        payload_str = orjson.dumps(payload, option=orjson.OPT_SORT_KEYS).decode('utf-8')
         token = self._stable_hash(payload_str)
         return f"podcast:subscriptions:v2:{user_id}:{token}"
 
@@ -52,7 +53,7 @@ class PodcastCacheOperations:
         size: int,
     ) -> str:
         query_str = f"{query}:{search_in}:{page}:{size}".lower()
-        return hashlib.sha256(query_str.encode("utf-8")).hexdigest()
+        return hashlib.md5(query_str.encode("utf-8")).hexdigest()
 
     # === Episode Metadata ===
 
@@ -144,7 +145,7 @@ class PodcastCacheOperations:
         index_key = self._subscription_index_key(user_id)
 
         try:
-            json_str = json.dumps(data)
+            json_str = orjson.dumps(data).decode('utf-8')
         except (TypeError, ValueError):
             return False
 
@@ -220,7 +221,7 @@ class PodcastCacheOperations:
         index_key = self._episode_index_key(subscription_id)
 
         try:
-            json_str = json.dumps(data)
+            json_str = orjson.dumps(data).decode('utf-8')
         except (TypeError, ValueError):
             return False
         started = perf_counter()

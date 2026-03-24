@@ -113,7 +113,7 @@ class ConversationService:
         )
         self.db.add(session)
         await self.db.commit()
-        await self.db.refresh(session)
+        # No refresh needed - session.id is auto-populated by SQLAlchemy after flush/commit
 
         logger.info(
             f"Created session {session.id} for episode {episode_id}, user {user_id}"
@@ -301,7 +301,7 @@ class ConversationService:
         self.db.add(assistant_conv)
 
         await self.db.commit()
-        await self.db.refresh(assistant_conv)
+        # No refresh needed - assistant_conv.id is auto-populated by SQLAlchemy after flush/commit
 
         logger.info(
             f"Conversation saved for episode {episode_id}, user {user_id}, session {session_id}, turn {current_turn + 1}"

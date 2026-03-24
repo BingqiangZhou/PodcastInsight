@@ -1258,7 +1258,7 @@ class PodcastTranscriptionService:
 
         self.db.add(task)
         await self.db.commit()
-        await self.db.refresh(task)
+        # No refresh needed - task.id is auto-populated by SQLAlchemy after flush/commit
 
         logger.info(
             f"[TRANSCRIPTION] Task created in DB: id={task.id}, status={task.status}",

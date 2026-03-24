@@ -6,11 +6,12 @@ Provides fast state management for podcast transcription tasks:
 - Ephemeral status storage with TTL
 """
 
-import json
 import logging
 import time
 from datetime import UTC, datetime
 from typing import Any
+
+import orjson
 
 from app.core.redis import get_shared_redis
 
@@ -434,7 +435,7 @@ class TranscriptionStateManager:
             "updated_at": datetime.now(UTC).isoformat(),
         }
 
-        await self.redis.cache_set(key, json.dumps(progress_data), ttl=ttl_seconds)
+        await self.redis.cache_set(key, orjson.dumps(progress_data).decode('utf-8'), ttl=ttl_seconds)
         if status in {"pending", "in_progress"}:
             await self.redis.sorted_set_add(
                 self._active_task_index_key(),
@@ -471,8 +472,8 @@ class TranscriptionStateManager:
 
         if data:
             try:
-                return json.loads(data)
-            except json.JSONDecodeError:
+                return orjson.loads(data)
+            except orjson.JSONDecodeError:
                 logger.warning(f"Invalid cached progress data for task {task_id}")
         return None
 
@@ -520,7 +521,7 @@ class TranscriptionStateManager:
             "updated_at": datetime.now(UTC).isoformat(),
         }
 
-        await self.redis.cache_set(key, json.dumps(status_data), ttl=ttl_seconds)
+        await self.redis.cache_set(key, orjson.dumps(status_data).decode('utf-8'), ttl=ttl_seconds)
 
     async def get_task_status(self, task_id: int) -> dict[str, Any] | None:
         """Get lightweight task status
@@ -537,8 +538,8 @@ class TranscriptionStateManager:
 
         if data:
             try:
-                return json.loads(data)
-            except json.JSONDecodeError:
+                return orjson.loads(data)
+            except orjson.JSONDecodeError:
                 logger.warning(f"Invalid cached status data for task {task_id}")
         return None
 

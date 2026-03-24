@@ -232,7 +232,7 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
                         existing_task.progress_percentage = 0
                         existing_task.current_step = "not_started"
                         await self.db.commit()
-                        await self.db.refresh(existing_task)
+                        # No refresh needed - existing_task is already in session with updated values
 
                         config_db_id = await self._resolve_transcription_config_db_id(
                             model_name,
@@ -342,7 +342,7 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
         try:
             self.db.add(task)
             await self.db.commit()
-            await self.db.refresh(task)
+            # No refresh needed - task.id is auto-populated by SQLAlchemy after flush/commit
             return task, model_config.id, True
         except IntegrityError:
             await self.db.rollback()

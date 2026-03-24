@@ -336,7 +336,7 @@ class SubscriptionRepository:
         self.db.add(user_sub)
 
         await self.db.commit()
-        await self.db.refresh(sub)
+        # No refresh needed - sub is already in session with populated values
         return sub
 
     async def update_subscription(
@@ -361,7 +361,7 @@ class SubscriptionRepository:
                 setattr(sub, key, value)
 
         await self.db.commit()
-        await self.db.refresh(sub)
+        # No refresh needed - sub is already in session with updated values
         return sub
 
     async def delete_subscription(self, user_id: int, sub_id: int) -> bool:
@@ -408,7 +408,7 @@ class SubscriptionRepository:
             sub.latest_item_published_at = latest_published_at
 
         await self.db.commit()
-        await self.db.refresh(sub)
+        # No refresh needed - sub is already in session with updated values
         return sub
 
     async def create_or_update_item(
@@ -458,7 +458,7 @@ class SubscriptionRepository:
             self.db.add(item)
 
         await self.db.commit()
-        await self.db.refresh(item)
+        # No refresh needed - item.id is auto-populated by SQLAlchemy after flush/commit
         return item
 
     async def create_or_update_items_batch(
@@ -540,7 +540,7 @@ class SubscriptionRepository:
         if not item.read_at:
             item.read_at = datetime.now(UTC)
             await self.db.commit()
-            await self.db.refresh(item)
+            # No refresh needed - item is already in session with updated values
         return item
 
     async def mark_item_as_unread(
@@ -553,7 +553,7 @@ class SubscriptionRepository:
             return None
         item.read_at = None
         await self.db.commit()
-        await self.db.refresh(item)
+        # No refresh needed - item is already in session with updated values
         return item
 
     async def toggle_bookmark(
@@ -566,7 +566,7 @@ class SubscriptionRepository:
             return None
         item.bookmarked = not item.bookmarked
         await self.db.commit()
-        await self.db.refresh(item)
+        # No refresh needed - item is already in session with updated values
         return item
 
     async def delete_item(self, item_id: int, user_id: int) -> bool:
@@ -592,7 +592,7 @@ class SubscriptionRepository:
         )
         self.db.add(category)
         await self.db.commit()
-        await self.db.refresh(category)
+        # No refresh needed - category.id is auto-populated by SQLAlchemy after flush/commit
         return category
 
     async def update_category(
@@ -608,7 +608,7 @@ class SubscriptionRepository:
             if hasattr(category, key) and value is not None:
                 setattr(category, key, value)
         await self.db.commit()
-        await self.db.refresh(category)
+        # No refresh needed - category is already in session with updated values
         return category
 
     async def delete_category(self, category_id: int, user_id: int) -> bool:

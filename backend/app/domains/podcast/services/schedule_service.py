@@ -85,8 +85,7 @@ class PodcastScheduleService:
             subscription.fetch_interval = fetch_interval
 
         await self.db.commit()
-        await self.db.refresh(subscription)
-        await self.db.refresh(user_sub)
+        # No refresh needed - subscription and user_sub are already in session with updated values
 
         return self._build_schedule_projection(subscription, user_sub)
 
@@ -144,10 +143,7 @@ class PodcastScheduleService:
             updated_rows.append((sub, user_sub))
 
         await self.db.commit()
-
-        for sub, user_sub in updated_rows:
-            await self.db.refresh(sub)
-            await self.db.refresh(user_sub)
+        # No refresh needed - sub and user_sub are already in session with updated values
 
         return [
             self._build_schedule_projection(sub, user_sub)

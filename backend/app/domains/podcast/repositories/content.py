@@ -124,7 +124,7 @@ class PodcastContentRepositoryMixin:
             self.db.add(user_sub)
 
         await self.db.commit()
-        await self.db.refresh(subscription)
+        # No refresh needed - subscription is already in session with updated values
         return subscription
 
     async def get_user_subscriptions(self, user_id: int) -> list:
@@ -264,7 +264,7 @@ class PodcastContentRepositoryMixin:
             is_new = True
 
         await self.db.commit()
-        await self.db.refresh(episode)
+        # No refresh needed - episode.id is auto-populated by SQLAlchemy after flush/commit
         if is_new or episode.ai_summary:
             await self._cache_episode_metadata(episode)
         return episode, is_new
@@ -502,7 +502,7 @@ class PodcastContentRepositoryMixin:
         episode.metadata_json = metadata
 
         await self.db.commit()
-        await self.db.refresh(episode)
+        # No refresh needed - episode is already in session with updated values
         await self.redis.set_ai_summary(episode_id, summary, version)
         return episode
 
