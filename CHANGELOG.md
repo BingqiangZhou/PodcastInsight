@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.30.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.29.0...v0.30.0) - 2026-03-24 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.30.0))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(frontend)* Update dependencies and generated files ([28198ea](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/28198eae74c1e5f062e8801d0d1d6aad5c337683))
+
+### ⚡ Performance
+
+- *(backend)* Optimize stability and performance with batched metrics and concurrent processing ([4857600](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/485760036755e8b3d635eaa71ecad213e24a9283))
+
+### 🎨 Styling
+
+- *(ui)* Remove borders and padding from content area cards ([78c5bf4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/78c5bf4f20a9066c5358929b932a602b2332acfd))
+
+### 🐛 Bug Fixes
+
+- *(frontend)* Resolve null safety and unused variable warnings ([ebf20d3](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ebf20d3f47f698d66ac96ad898e7650297a00c14))
+- *(backend)* Resolve test failures and improve stability ([aa9cceb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/aa9ccebd76c0c019f3b371f7b1b10eff87602fe7))
+
+### 🚀 Features
+
+- *(frontend)* Enhance stability and performance ([50061bb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/50061bbbfa14cff63a10e596332b2caf2fcf7cee))
+
+### 🚜 Refactor
+
+- *(frontend)* Improve error handling and null safety ([9efd85e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9efd85e151883fd88b05c92c49f95ffbeb67f044))
+- *(podcast)* Remove bulk import dialog and batch subscription functionality ([ec41ddb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ec41ddbe352e13a5cb19e1a9947a77d2128e5367))
+- *(backend)* Modularize shared AI client and unify error handling patterns ([91605b4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/91605b4a36446f3908a191969575fb33b9bbc69a))
+- *(frontend)* Eliminate unsafe force unwrap operators for null safety ([752045f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/752045f41d11c5ff3956b7f70664dc388993eaf5))
+- *(frontend)* Improve null safety and remove unused bulk import dialog ([3a2c50a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3a2c50aec944d1b3c53b887e4b3fd81aa534fca6))
+
+
+
 ## [0.29.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.28.0...v0.29.0) - 2026-03-23 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.29.0))
 
 ### 🚀 Features
