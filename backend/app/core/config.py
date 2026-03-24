@@ -215,6 +215,11 @@ class Settings(BaseSettings):
     OBS_ALERT_CIRCUIT_BREAKER_REJECTED_MAX: int = 10
     OBS_SUCCESS_LOG_SAMPLE_RATE: float = 0.1
 
+    # AI Client Configuration (used by app.core.ai_client)
+    AI_CLIENT_MAX_RETRIES: int = 3  # Maximum retry attempts for AI API calls
+    AI_CLIENT_BASE_DELAY: int = 2  # Base delay in seconds for exponential backoff
+    AI_CLIENT_MAX_PROMPT_LENGTH: int = 1000000  # Maximum prompt length before truncation (1 million characters)
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=True,

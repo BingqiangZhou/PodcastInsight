@@ -5,6 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import DatabaseError
 from app.domains.ai.models import AIModelConfig, ModelType
+from app.shared.repository_helpers import (
+    calculate_offset,
+    count_records,
+    get_by_field,
+)
+from app.shared.repository_helpers import (
+    get_by_id as repo_get_by_id,
+)
 
 
 class AIModelConfigRepository:
@@ -27,18 +35,14 @@ class AIModelConfigRepository:
     async def get_by_id(self, model_id: int) -> AIModelConfig | None:
         """根据ID获取模型配置"""
         try:
-            stmt = select(AIModelConfig).where(AIModelConfig.id == model_id)
-            result = await self.db.execute(stmt)
-            return result.scalar_one_or_none()
+            return await repo_get_by_id(self.db, AIModelConfig, model_id)
         except Exception as e:
             raise DatabaseError(f"Failed to get model config by id: {e!s}") from e
 
     async def get_by_name(self, name: str) -> AIModelConfig | None:
         """根据名称获取模型配置"""
         try:
-            stmt = select(AIModelConfig).where(AIModelConfig.name == name)
-            result = await self.db.execute(stmt)
-            return result.scalar_one_or_none()
+            return await get_by_field(self.db, AIModelConfig, "name", name)
         except Exception as e:
             raise DatabaseError(f"Failed to get model config by name: {e!s}") from e
 
@@ -62,11 +66,7 @@ class AIModelConfigRepository:
                 conditions.append(AIModelConfig.provider == provider)
 
             # 查询总数
-            count_stmt = select(func.count(AIModelConfig.id))
-            if conditions:
-                count_stmt = count_stmt.where(and_(*conditions))
-            count_result = await self.db.execute(count_stmt)
-            total = count_result.scalar()
+            total = await count_records(self.db, AIModelConfig, filters=conditions)
 
             # 查询数据
             stmt = select(AIModelConfig)
@@ -74,7 +74,7 @@ class AIModelConfigRepository:
                 stmt = stmt.where(and_(*conditions))
 
             stmt = stmt.order_by(AIModelConfig.created_at.desc())
-            stmt = stmt.offset((page - 1) * size).limit(size)
+            stmt = stmt.offset(calculate_offset(page, size)).limit(size)
 
             result = await self.db.execute(stmt)
             models = list(result.scalars().all())
@@ -345,14 +345,12 @@ class AIModelConfigRepository:
                 conditions.append(AIModelConfig.model_type == model_type)
 
             # 查询总数
-            count_stmt = select(func.count(AIModelConfig.id)).where(and_(*conditions))
-            count_result = await self.db.execute(count_stmt)
-            total = count_result.scalar()
+            total = await count_records(self.db, AIModelConfig, filters=conditions)
 
             # 查询数据
             stmt = select(AIModelConfig).where(and_(*conditions))
             stmt = stmt.order_by(AIModelConfig.created_at.desc())
-            stmt = stmt.offset((page - 1) * size).limit(size)
+            stmt = stmt.offset(calculate_offset(page, size)).limit(size)
 
             result = await self.db.execute(stmt)
             models = list(result.scalars().all())

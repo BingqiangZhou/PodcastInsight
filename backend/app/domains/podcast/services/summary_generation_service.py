@@ -1,24 +1,18 @@
 """Database-backed AI summary generation services."""
 
 import asyncio
-import json
 import logging
-import random
-import time
 from datetime import UTC, datetime
 from typing import Any
 
-import aiohttp
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.ai_client import call_ai_api_with_retry
 from app.core.exceptions import ValidationError
-from app.core.http_client import get_shared_http_session
 from app.core.redis import get_shared_redis
 from app.core.utils import filter_thinking_content
 from app.domains.ai.models import ModelType
-from app.domains.ai.repositories import AIModelConfigRepository
-from app.domains.podcast.ai_key_resolver import resolve_api_key_with_fallback
+from app.domains.ai.services.base_model_manager import BaseModelManager
 from app.domains.podcast.models import PodcastEpisode
 from app.domains.subscription.parsers.feed_parser import strip_html_tags
 
@@ -26,53 +20,15 @@ from app.domains.subscription.parsers.feed_parser import strip_html_tags
 logger = logging.getLogger(__name__)
 
 
-class RetryableSummaryModelError(Exception):
-    """Transient summary model invocation error that can be retried."""
-
-
-def _is_retryable_http_status(status_code: int) -> bool:
-    return status_code >= 500 or status_code in {408, 409, 425, 429}
-
-
-def _looks_like_html_error_page(text: str) -> bool:
-    lowered = text.lower()
-    markers = (
-        "<!doctype html",
-        "<html",
-        "<head",
-        "cloudflare",
-        "524: a timeout occurred",
-        "/cdn-cgi/",
-    )
-    return any(marker in lowered for marker in markers)
-
-
-class SummaryModelManager:
+class SummaryModelManager(BaseModelManager):
     """Resolve and invoke text-generation models for summaries."""
 
     def __init__(self, db: AsyncSession):
-        self.db = db
-        self.ai_model_repo = AIModelConfigRepository(db)
-
-    async def get_active_summary_model(self, model_name: str | None = None):
-        if model_name:
-            model = await self.ai_model_repo.get_by_name(model_name)
-            if (
-                not model
-                or not model.is_active
-                or model.model_type != ModelType.TEXT_GENERATION
-            ):
-                raise ValidationError(
-                    f"Summary model '{model_name}' not found or not active",
-                )
-            return model
-
-        active_models = await self.ai_model_repo.get_active_models_by_priority(
-            ModelType.TEXT_GENERATION,
+        super().__init__(
+            db=db,
+            model_type=ModelType.TEXT_GENERATION,
+            operation_name="Summary generation",
         )
-        if not active_models:
-            raise ValidationError("No active summary model found")
-        return active_models[0]
 
     async def generate_summary(
         self,
@@ -81,15 +37,10 @@ class SummaryModelManager:
         model_name: str | None = None,
         custom_prompt: str | None = None,
     ) -> dict[str, Any]:
-        if model_name:
-            model = await self.get_active_summary_model(model_name)
-            models_to_try = [model]
-        else:
-            models_to_try = await self.ai_model_repo.get_active_models_by_priority(
-                ModelType.TEXT_GENERATION,
-            )
-            if not models_to_try:
-                raise ValidationError("No active text generation models available")
+        models_to_try = await self.get_models_to_try(
+            model_name=model_name,
+            error_message="No active text generation models available",
+        )
 
         last_error = None
         total_processing_time = 0.0
@@ -102,7 +53,7 @@ class SummaryModelManager:
                     model_config.name,
                     model_config.priority,
                 )
-                api_key = await self._get_api_key(model_config)
+                api_key = await self.resolve_api_key(model_config)
                 if not custom_prompt:
                     custom_prompt = self._build_default_prompt(episode_info, transcript)
 
@@ -139,6 +90,10 @@ class SummaryModelManager:
             f"All text generation models failed. Last error: {last_error}",
         )
 
+    async def _parse_summary_response(self, content: str) -> str:
+        """Parse AI response content into summary."""
+        return filter_thinking_content(content).strip()
+
     async def _call_ai_api_with_retry(
         self,
         model_config,
@@ -146,195 +101,17 @@ class SummaryModelManager:
         prompt: str,
         episode_info: dict[str, Any],
     ) -> tuple[str, float, int]:
-        max_retries = 3
-        base_delay = 2
-
-        for attempt in range(max_retries):
-            attempt_start = time.time()
-            try:
-                summary_content = await self._call_ai_api(
-                    model_config=model_config,
-                    api_key=api_key,
-                    prompt=prompt,
-                    episode_info=episode_info,
-                )
-                processing_time = time.time() - attempt_start
-                tokens_used = len(prompt.split()) + len(summary_content.split())
-                await self.ai_model_repo.increment_usage(
-                    model_config.id,
-                    success=True,
-                    tokens_used=tokens_used,
-                )
-                return summary_content, processing_time, tokens_used
-            except (
-                RetryableSummaryModelError,
-                TimeoutError,
-                aiohttp.ClientError,
-            ) as exc:
-                await self.ai_model_repo.increment_usage(model_config.id, success=False)
-                if attempt < max_retries - 1:
-                    backoff = base_delay * (2**attempt)
-                    logger.warning(
-                        "Summary transient error model=%s provider=%s attempt=%s/%s retryable=true error_type=%s error=%s",
-                        model_config.name,
-                        model_config.provider,
-                        attempt + 1,
-                        max_retries,
-                        type(exc).__name__,
-                        exc,
-                    )
-                    await asyncio.sleep(backoff + random.uniform(0, 0.5 * backoff))
-                    continue
-                logger.error(
-                    "Summary transient retries exhausted model=%s provider=%s attempts=%s error_type=%s error=%s",
-                    model_config.name,
-                    model_config.provider,
-                    max_retries,
-                    type(exc).__name__,
-                    exc,
-                )
-                raise Exception(
-                    f"Model {model_config.name} failed after {max_retries} attempts: {exc}",
-                ) from exc
-            except Exception as exc:
-                await self.ai_model_repo.increment_usage(model_config.id, success=False)
-                logger.error(
-                    "Summary non-retryable failure model=%s provider=%s retryable=false error_type=%s error=%s",
-                    model_config.name,
-                    model_config.provider,
-                    type(exc).__name__,
-                    exc,
-                )
-                raise Exception(
-                    f"Model {model_config.name} failed without retry: {exc}",
-                ) from exc
-
-        raise Exception("Unexpected error in _call_ai_api_with_retry")
-
-    async def _call_ai_api(
-        self,
-        model_config,
-        api_key: str,
-        prompt: str,
-        episode_info: dict[str, Any],
-    ) -> str:
-        del episode_info
-        max_prompt_length = 100000
-        if len(prompt) > max_prompt_length:
-            prompt = prompt[:max_prompt_length] + "\n\n[内容过长，已截断]"
-
-        api_url = model_config.api_url
-        if not api_url.endswith("/chat/completions"):
-            api_url = (
-                f"{api_url}chat/completions"
-                if api_url.endswith("/")
-                else f"{api_url}/chat/completions"
-            )
-
-        timeout = aiohttp.ClientTimeout(total=model_config.timeout_seconds)
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-        data = {
-            "model": model_config.model_id,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": model_config.get_temperature_float() or 0.7,
-        }
-        if model_config.max_tokens is not None:
-            data["max_tokens"] = model_config.max_tokens
-        if model_config.extra_config:
-            data.update(model_config.extra_config)
-
-        session = await get_shared_http_session()
-        async with session.post(
-            api_url,
-            headers=headers,
-            json=data,
-            timeout=timeout,
-        ) as response:
-            response_text = await response.text()
-            content_type = response.headers.get("Content-Type", "")
-
-            if "text/html" in content_type.lower() or (
-                _looks_like_html_error_page(response_text)
-                and "application/json" not in content_type.lower()
-            ):
-                raise HTTPException(
-                    status_code=500,
-                    detail=(
-                        "AI summary provider returned an HTML error page "
-                        "instead of JSON response"
-                    ),
-                )
-
-            if response.status != 200:
-                error_text = response_text
-                if _is_retryable_http_status(response.status):
-                    logger.warning(
-                        "Summary API transient status model=%s provider=%s status=%s retryable=true",
-                        model_config.name,
-                        model_config.provider,
-                        response.status,
-                    )
-                    raise RetryableSummaryModelError(
-                        f"AI summary API transient error: {response.status} - {error_text[:200]}",
-                    )
-                logger.error(
-                    "Summary API non-retryable status model=%s provider=%s status=%s retryable=false",
-                    model_config.name,
-                    model_config.provider,
-                    response.status,
-                )
-                if response.status == 400:
-                    raise HTTPException(
-                        status_code=500,
-                        detail=(
-                            "AI API bad request (400). Possible causes: invalid model ID, "
-                            f"malformed request, or prompt too long. Error: {error_text[:200]}"
-                        ),
-                    )
-                if response.status == 401:
-                    raise HTTPException(
-                        status_code=500,
-                        detail="AI API authentication failed (401). Check API key configuration.",
-                    )
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"AI summary API error: {response.status} - {error_text[:200]}",
-                )
-
-            try:
-                result = json.loads(response_text)
-            except json.JSONDecodeError as exc:
-                raise HTTPException(
-                    status_code=500,
-                    detail="AI summary provider returned non-JSON response",
-                ) from exc
-
-            if "choices" not in result or not result["choices"]:
-                raise HTTPException(
-                    status_code=500,
-                    detail="Invalid response from AI API",
-                )
-
-            content = result["choices"][0].get("message", {}).get("content")
-            if not content or not isinstance(content, str):
-                raise HTTPException(
-                    status_code=500,
-                    detail="AI API returned empty or invalid content",
-                )
-
-            if _looks_like_html_error_page(content):
-                raise HTTPException(
-                    status_code=500,
-                    detail=(
-                        "AI summary provider returned HTML error content "
-                        "inside the completion payload"
-                    ),
-                )
-
-            return filter_thinking_content(content).strip()
+        """Call AI API with retry logic using shared module."""
+        del episode_info  # Not needed for summary generation
+        summary_content, processing_time, tokens_used = await call_ai_api_with_retry(
+            model_config=model_config,
+            api_key=api_key,
+            prompt=prompt,
+            response_parser=self._parse_summary_response,
+            ai_model_repo=self.ai_model_repo,
+            operation_name="Summary generation",
+        )
+        return summary_content, processing_time, tokens_used
 
     def _build_default_prompt(
         self,
@@ -419,41 +196,6 @@ Shownotes: {description}
 请开始进行详尽的分析，确保所有内容"条理化"、"列表化"，严格遵守事实分级原则：
 """
         return prompt
-
-    async def _get_api_key(self, model_config) -> str:
-        active_models = await self.ai_model_repo.get_active_models(
-            ModelType.TEXT_GENERATION,
-        )
-        try:
-            return resolve_api_key_with_fallback(
-                primary_model=model_config,
-                fallback_models=active_models,
-                logger=logger,
-                invalid_message=(
-                    f"No valid API key found. Model '{model_config.name}' has a "
-                    "placeholder/invalid API key, and no alternative models with "
-                    "valid API keys were found. Please configure a valid API key "
-                    "for at least one TEXT_GENERATION model."
-                ),
-            )
-        except ValueError as exc:
-            raise ValidationError(str(exc)) from exc
-
-    async def list_available_models(self):
-        active_models = await self.ai_model_repo.get_active_models(
-            ModelType.TEXT_GENERATION,
-        )
-        return [
-            {
-                "id": model.id,
-                "name": model.name,
-                "display_name": model.display_name,
-                "provider": model.provider,
-                "model_id": model.model_id,
-                "is_default": model.is_default,
-            }
-            for model in active_models
-        ]
 
 
 class PodcastSummaryGenerationService:
