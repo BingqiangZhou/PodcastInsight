@@ -291,6 +291,7 @@ class _PodcastDailyReportPageState
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
+      showBorder: false,
       borderRadius: tokens.panelRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,6 +355,7 @@ class _PodcastDailyReportPageState
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
+      showBorder: false,
       borderRadius: tokens.panelRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,9 +435,6 @@ class _PodcastDailyReportPageState
               alpha: theme.brightness == Brightness.dark ? 0.34 : 0.76,
             ),
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.52),
-            ),
             boxShadow: [
               BoxShadow(
                 color: tokens.glassShadow.withValues(

@@ -108,6 +108,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
 
                             return SurfacePanel(
                               padding: EdgeInsets.zero,
+                              showBorder: false,
                               borderRadius: appThemeOf(
                                 context,
                               ).panelRadius,
@@ -248,6 +249,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
+      showBorder: false,
       borderRadius: appThemeOf(context).panelRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -10,6 +10,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
       padding: EdgeInsets.zero,
       borderRadius: tokens.panelRadius,
       backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.22),
+      showBorder: false,
       showHighlight: false,
       child: child,
     );

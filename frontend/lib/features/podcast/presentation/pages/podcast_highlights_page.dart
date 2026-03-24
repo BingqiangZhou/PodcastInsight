@@ -215,6 +215,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
+      showBorder: false,
       borderRadius: tokens.panelRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,6 +328,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
+      showBorder: false,
       borderRadius: appThemeOf(context).panelRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,6 +387,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
+      showBorder: false,
       borderRadius: tokens.panelRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,9 +412,6 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
                     alpha: theme.brightness == Brightness.dark ? 0.38 : 0.8,
                   ),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-                  ),
                 ),
                 padding: const EdgeInsets.all(18),
                 child: Text(

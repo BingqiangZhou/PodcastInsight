@@ -141,7 +141,7 @@ class ShownotesDisplayWidgetState
     );
 
     return Padding(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.zero,
       child: SingleChildScrollView(
         controller: _scrollController,
         child: SelectionArea(

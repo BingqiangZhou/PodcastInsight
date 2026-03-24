@@ -515,7 +515,7 @@ class TranscriptDisplayWidgetState
           child: _isSearching
               ? _buildSearchResults(context)
               : Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.zero,
                   child: ListView.separated(
                     controller: _fullTranscriptScrollController,
                     itemCount: segments.length,
@@ -587,7 +587,6 @@ class TranscriptDisplayWidgetState
     final selectionKey = 'full_$index';
     final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
     final hasMultipleHighlights = highlights.length > 1;
-    final borderColor = isSelected ? scheme.primary : scheme.outline.withValues(alpha: 0.15);
 
     return RepaintBoundary(
       child: GestureDetector(
@@ -596,10 +595,6 @@ class TranscriptDisplayWidgetState
           decoration: BoxDecoration(
             color: scheme.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: borderColor,
-              width: 1,
-            ),
           ),
           child: Container(
             decoration: BoxDecoration(
@@ -749,12 +744,6 @@ class TranscriptDisplayWidgetState
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isSelected
-              ? scheme.primary
-              : scheme.outline.withValues(alpha: 0.2),
-          width: 1,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -883,11 +872,6 @@ class TranscriptDisplayWidgetState
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isSelected
-              ? scheme.primary
-              : scheme.outline.withValues(alpha: 0.2),
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

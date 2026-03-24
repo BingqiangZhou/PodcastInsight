@@ -296,6 +296,7 @@ class _ProfileSubscriptionsPageState
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
+      showBorder: false,
       borderRadius: appThemeOf(context).panelRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,6 +364,7 @@ class _ProfileSubscriptionsPageState
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
+      showBorder: false,
       borderRadius: appThemeOf(context).panelRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
