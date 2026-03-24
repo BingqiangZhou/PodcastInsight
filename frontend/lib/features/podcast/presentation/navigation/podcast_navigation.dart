@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/app_logger.dart' as logger;
 import '../../data/models/podcast_subscription_model.dart';
 import '../widgets/shared/episode_card_utils.dart';
 
@@ -88,7 +89,11 @@ class PodcastNavigation {
     try {
       GoRouter.of(context);
       return context;
-    } catch (_) {
+    } catch (e, stackTrace) {
+      logger.AppLogger.debug(
+        '[PodcastNavigation] GoRouter not found in context, falling back to appNavigatorKey: $e',
+      );
+      logger.AppLogger.debug('[PodcastNavigation] Stack trace: $stackTrace');
       return appNavigatorKey.currentContext;
     }
   }

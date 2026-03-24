@@ -42,12 +42,14 @@ class SimplifiedEpisodeCard extends ConsumerWidget {
       description: episode.description,
     );
 
-    return Card(
-      margin: isMobile
-          ? const EdgeInsets.symmetric(horizontal: 4, vertical: 6)
-          : EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
+    return RepaintBoundary(
+      key: ValueKey('simplified_episode_card_${episode.id}'),
+      child: Card(
+        margin: isMobile
+            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 6)
+            : EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -167,6 +169,7 @@ class SimplifiedEpisodeCard extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

@@ -294,11 +294,15 @@ class Version implements Comparable<Version> {
     if (minor != other.minor) return minor.compareTo(other.minor);
     if (patch != other.patch) return patch.compareTo(other.patch);
 
-    // Handle pre-release
-    if (preRelease == null && other.preRelease != null) return 1;
-    if (preRelease != null && other.preRelease == null) return -1;
-    if (preRelease == null && other.preRelease == null) return 0;
-    return preRelease!.compareTo(other.preRelease!);
+    // Handle pre-release comparison
+    // null (stable release) > pre-release
+    final thisPre = preRelease;
+    final otherPre = other.preRelease;
+
+    if (thisPre == null && otherPre == null) return 0;
+    if (thisPre == null) return 1; // stable > pre-release
+    if (otherPre == null) return -1; // pre-release < stable
+    return thisPre.compareTo(otherPre);
   }
 
   @override

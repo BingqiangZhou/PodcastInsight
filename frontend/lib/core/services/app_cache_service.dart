@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
+import '../utils/app_logger.dart' as logger;
+
 /// Cache configuration constants.
 ///
 /// These values are tuned for a podcast/feed reader app with:
@@ -62,7 +64,8 @@ class AppMediaCacheManager extends CacheManager {
         'stalePeriodDays': _AppCacheConfig.stalePeriod.inDays,
         'cacheKey': key,
       };
-    } catch (_) {
+    } catch (e) {
+      logger.AppLogger.debug('[AppCache] Failed to get cache stats for key $key: $e');
       return {};
     }
   }

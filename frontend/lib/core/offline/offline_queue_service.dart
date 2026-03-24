@@ -301,7 +301,8 @@ class OfflineQueueService {
   QueuedRequest? getRequest(String requestId) {
     try {
       return _queue.firstWhere((r) => r.id == requestId);
-    } catch (_) {
+    } catch (e) {
+      logger.AppLogger.debug('[OfflineQueue] Request not found: $requestId, error: $e');
       return null;
     }
   }

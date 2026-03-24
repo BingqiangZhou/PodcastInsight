@@ -69,7 +69,9 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
       if (cached is Map<String, dynamic>) {
         return PodcastEpisodeListResponse.fromJson(cached);
       }
-    } catch (_) {}
+    } catch (e) {
+      logger.AppLogger.debug('[Episodes] Failed to read episodes from cache: $e');
+    }
     return null;
   }
 
@@ -198,7 +200,9 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
             response.toJson(),
             expiration: _episodesCacheExpiration,
           );
-        } catch (_) {}
+        } catch (e) {
+          logger.AppLogger.debug('[Episodes] Failed to cache episodes: $e');
+        }
       }
     } catch (error) {
       logger.AppLogger.debug('[Error] Failed to load episodes: $error');

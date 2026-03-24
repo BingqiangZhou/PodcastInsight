@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../../core/utils/app_logger.dart' as logger;
+
 part 'schedule_config_model.g.dart';
 
 /// Update frequency enum for scheduled RSS feed refresh
@@ -108,7 +110,8 @@ class ScheduleConfigResponse extends Equatable {
       return UpdateFrequency.values.firstWhere(
         (e) => e.value == updateFrequency,
       );
-    } catch (_) {
+    } catch (e) {
+      logger.AppLogger.debug('[ScheduleConfig] Unknown update frequency: $updateFrequency, error: $e');
       return null;
     }
   }

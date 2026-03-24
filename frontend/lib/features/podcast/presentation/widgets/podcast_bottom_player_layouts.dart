@@ -460,7 +460,9 @@ class _ExpandedHero extends ConsumerWidget {
               String resolvedCurrentLocation = currentLocation;
               try {
                 resolvedCurrentLocation = GoRouterState.of(context).uri.toString();
-              } catch (_) {}
+              } catch (e) {
+                logger.AppLogger.debug('[BottomPlayer] Failed to get current route: $e');
+              }
               final episodeDetailPath =
                   '/podcast/episodes/${episode.subscriptionId}/${episode.id}';
               if (resolvedCurrentLocation.startsWith(episodeDetailPath)) {

@@ -162,7 +162,8 @@ Future<PodcastEpisodeModel> resolveEpisodeForPlayback(
   try {
     final latest = await fetchLatest();
     return mergeEpisodeForPlayback(incoming, latest);
-  } catch (_) {
+  } catch (e) {
+    logger.AppLogger.debug('[Playback] Failed to fetch latest episode data, using incoming: $e');
     return incoming;
   }
 }

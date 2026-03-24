@@ -132,7 +132,8 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   PodcastAudioHandler? _audioHandlerOrNull() {
     try {
       return main_app.audioHandler;
-    } catch (_) {
+    } catch (e) {
+      logger.AppLogger.debug('[Playback] Audio handler not available: $e');
       return null;
     }
   }

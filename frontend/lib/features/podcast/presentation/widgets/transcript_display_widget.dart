@@ -8,7 +8,6 @@ import '../../../../core/utils/text_processing_cache.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../data/models/podcast_highlight_model.dart';
 import '../providers/podcast_highlights_providers.dart';
-import '../utils/highlight_matcher.dart';
 import 'highlight_card.dart';
 import 'highlight_detail_sheet.dart';
 import 'podcast_empty_state.dart';
@@ -454,7 +453,10 @@ class TranscriptDisplayWidgetState
             key: ValueKey('highlight_card_${sortedHighlights[index].id}'),
             child: HighlightCard(
               highlight: sortedHighlights[index],
-              onTap: () => _showHighlightDetail([sortedHighlights[index]]),
+              onTap: () => showHighlightDetailSheet(
+                context: context,
+                highlight: sortedHighlights[index],
+              ),
             ),
           ),
         );
@@ -535,198 +537,6 @@ class TranscriptDisplayWidgetState
     );
   }
 
-  /// Find highlights that match within a sentence
-  List<HighlightResponse> _findMatchingHighlights(
-    String sentence,
-    List<HighlightResponse>? highlights,
-  ) {
-    if (highlights == null || highlights.isEmpty) {
-      return [];
-    }
-
-    return highlights.where((highlight) {
-      return HighlightMatcher.containsHighlight(
-        text: sentence,
-        highlight: highlight,
-      );
-    }).toList()
-      ..sort((a, b) => b.overallScore.compareTo(a.overallScore));
-  }
-
-  Widget _buildSentenceSegment(
-    BuildContext context,
-    String sentence,
-    int index,
-    List<HighlightResponse>? highlights,
-  ) {
-    // Check if this segment contains any highlights
-    final matchingHighlights = _findMatchingHighlights(sentence, highlights);
-
-    if (matchingHighlights.isNotEmpty) {
-      return _buildHighlightedSegment(
-        context,
-        sentence,
-        index,
-        matchingHighlights,
-      );
-    }
-
-    // Original non-highlighted segment
-    return _buildNormalSegment(context, sentence, index);
-  }
-
-  Widget _buildHighlightedSegment(
-    BuildContext context,
-    String sentence,
-    int index,
-    List<HighlightResponse> highlights,
-  ) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final selectionKey = 'full_$index';
-    final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
-    final hasMultipleHighlights = highlights.length > 1;
-
-    return RepaintBoundary(
-      child: GestureDetector(
-        onTap: () => _showHighlightDetail(highlights),
-        child: Container(
-          decoration: BoxDecoration(
-            color: scheme.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(color: scheme.primary, width: 3),
-              ),
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(7),
-                bottomRight: Radius.circular(7),
-              ),
-            ),
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      '#${index + 1}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const Spacer(),
-                    if (hasMultipleHighlights)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.star,
-                            size: 10,
-                            color: scheme.primary,
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${highlights.length}',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    else
-                      Icon(
-                        Icons.star,
-                        size: 14,
-                        color: scheme.primary,
-                      ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () =>
-                          _toggleTranscriptSegmentSelection(selectionKey, sentence),
-                      icon: Icon(
-                        isSelected
-                            ? Icons.check_circle
-                            : Icons.radio_button_unchecked,
-                      ),
-                      tooltip: isSelected
-                          ? l10n.podcast_deselect_all
-                          : l10n.podcast_enter_select_mode,
-                      iconSize: 18,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                SelectableText(
-                  sentence,
-                  onSelectionChanged: (selection, _) {
-                    _updateSelectedTranscriptText(sentence, selection);
-                  },
-                  contextMenuBuilder: (context, editableTextState) {
-                    return AdaptiveTextSelectionToolbar.buttonItems(
-                      anchors: editableTextState.contextMenuAnchors,
-                      buttonItems: [
-                        ...editableTextState.contextMenuButtonItems,
-                        ContextMenuButtonItem(
-                          label: l10n.podcast_share_as_image,
-                          onPressed: () {
-                            final value = editableTextState.textEditingValue;
-                            final selected = value.selection
-                                .textInside(value.text)
-                                .trim();
-                            _lastSelectedTranscriptText = selected;
-                            ContextMenuController.removeAny();
-                            unawaited(_shareSelectedTranscriptAsImage());
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                  style: TextStyle(
-                    fontSize: 15,
-                    height: 1.6,
-                    color: scheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showHighlightDetail(List<HighlightResponse> highlights) {
-    if (highlights.isEmpty) return;
-
-    if (highlights.length == 1) {
-      showHighlightDetailSheet(
-        context: context,
-        highlight: highlights.first,
-      );
-    } else {
-      showMultipleHighlightsSheet(
-        context: context,
-        highlights: highlights,
-      );
-    }
-  }
 
   Widget _buildNormalSegment(
     BuildContext context,

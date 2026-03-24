@@ -44,7 +44,7 @@ final episodeHighlightsProvider =
       episodeId: episodeId,
       perPage: 100,
     );
-  } catch (error, stackTrace) {
+  } catch (error) {
     logger.AppLogger.debug('Failed to load episode highlights: $error');
     return null;
   }

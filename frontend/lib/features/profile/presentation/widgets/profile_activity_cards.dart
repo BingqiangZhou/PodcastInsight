@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/breakpoints.dart';
 import '../../../../core/localization/app_localizations_extension.dart';
+import '../../../../core/utils/app_logger.dart' as logger;
 import '../../../../core/widgets/app_shells.dart';
 import '../../../podcast/presentation/navigation/podcast_navigation.dart';
 import '../../../podcast/presentation/providers/podcast_providers.dart';
@@ -267,7 +268,11 @@ class ProfileActivityCards extends ConsumerWidget {
     }
     try {
       return EpisodeCardUtils.formatDate(DateTime.parse(latestDailyReportDate));
-    } catch (_) {
+    } catch (e, stackTrace) {
+      logger.AppLogger.debug(
+        '[ProfileActivityCards] Failed to parse daily report date: $latestDailyReportDate, error: $e',
+      );
+      logger.AppLogger.debug('[ProfileActivityCards] Stack trace: $stackTrace');
       return '--';
     }
   }

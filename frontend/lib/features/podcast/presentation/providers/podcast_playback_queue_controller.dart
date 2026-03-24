@@ -336,8 +336,9 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
         trackSyncing: false,
         setErrorStateOnFailure: false,
       );
-    } catch (_) {
+    } catch (e) {
       // Keep existing queue UI state when background refresh fails.
+      logger.AppLogger.debug('[PlaybackQueue] Background queue refresh failed: $e');
     } finally {
       _clearQueueOperation();
     }

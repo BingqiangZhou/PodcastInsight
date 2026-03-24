@@ -201,8 +201,9 @@ class ShownotesDisplayWidgetState
       // For large content, use async with compute
       try {
         nextSanitized = await HtmlSanitizer.sanitizeAsync(nextShownotes);
-      } catch (_) {
+      } catch (e) {
         // Fallback to sync if compute fails (e.g., in test environment)
+        logger.AppLogger.debug('[Shownotes] Async sanitization failed, falling back to sync: $e');
         nextSanitized = HtmlSanitizer.sanitize(nextShownotes);
       }
     }

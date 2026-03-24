@@ -243,7 +243,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
                         if (showLabel) ...[
                           const SizedBox(width: 6),
                           DefaultTextStyle(
-                            style: theme.textTheme.labelMedium!.copyWith(
+                            style: (theme.textTheme.labelMedium ?? const TextStyle()).copyWith(
                               fontSize: density == HeaderCapsuleActionButtonDensity.compact
                                   ? 12
                                   : null,
