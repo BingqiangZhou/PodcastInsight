@@ -276,7 +276,8 @@ class _BulkImportDialogState extends State<BulkImportDialog>
   List<String> _extractUrls(String content) {
     final urls = _urlRegex
         .allMatches(content)
-        .map((m) => m.group(0)!.trim())
+        .map((m) => m.group(0)?.trim())
+        .whereType<String>()
         .toSet()
         .toList();
     return urls;

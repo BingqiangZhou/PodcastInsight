@@ -303,7 +303,11 @@ class _PersonalAIAssistantAppState
         final RouteMatchList matchList =
             router.routerDelegate.currentConfiguration;
         queueCurrentRouteUpdate(matchList.uri.toString());
-      } catch (_) {
+      } catch (e, stackTrace) {
+        logger.AppLogger.debug(
+          '[App] Failed to get current route configuration: $e',
+        );
+        logger.AppLogger.debug('[App] Stack trace: $stackTrace');
         queueCurrentRouteUpdate('/');
       }
     }

@@ -243,7 +243,6 @@ class _HighlightDetailContent extends StatelessWidget {
   Widget _buildEpisodeSource(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final l10n = context.l10n;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -305,7 +304,6 @@ class _MultipleHighlightsContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
 
     return SafeArea(
       child: Column(

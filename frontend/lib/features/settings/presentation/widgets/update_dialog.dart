@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +11,7 @@ import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/shared/models/github_release.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
-import 'dart:io';
+import '../../../../core/utils/app_logger.dart' as logger;
 
 class _UpdateDialogPalette {
   const _UpdateDialogPalette({
@@ -526,7 +528,11 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
       if (!opened) {
         _showReleaseNotesLinkError();
       }
-    } catch (_) {
+    } catch (e, stackTrace) {
+      logger.AppLogger.debug(
+        '[UpdateDialog] Failed to open release notes link: $href, error: $e',
+      );
+      logger.AppLogger.debug('[UpdateDialog] Stack trace: $stackTrace');
       if (!mounted) return;
       _showReleaseNotesLinkError();
     }
