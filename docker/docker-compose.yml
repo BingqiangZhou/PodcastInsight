@@ -14,6 +14,13 @@
 #   - Celery Beat (定时任务调度 / Scheduled tasks)
 #   - Nginx (反向代理 / Reverse proxy)
 
+# Shared logging configuration for all services
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   # =============================================================================
   # PostgreSQL Database
@@ -38,6 +45,15 @@ services:
       timeout: 5s
       retries: 5
     restart: always
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   # =============================================================================
   # Redis Cache
@@ -68,6 +84,15 @@ services:
       timeout: 3s
       retries: 5
     restart: always
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   # =============================================================================
   # Backend API
@@ -122,11 +147,19 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
+    # Health check for backend service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     # 本地与云端统一使用 gunicorn（本地可通过 BACKEND_CMD 增加 --reload）
     # Unified: gunicorn for both local and cloud
-    command: ${BACKEND_CMD:-gunicorn app.main:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 4 --timeout 120 --log-level info}
+    command: ${BACKEND_CMD:-gunicorn app.main:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 4 --timeout 90 --graceful-timeout 30 --log-level info}
     # Use shared memory for Chromium
     shm_size: 2gb
+    logging: *default-logging
 
   # =============================================================================
   # Celery Core Worker
@@ -174,6 +207,7 @@ services:
     command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=${CELERY_WORKERS_CORE:-2} -Q subscription_sync,ai_generation,maintenance
     # Use shared memory for Chromium
     shm_size: 2gb
+    logging: *default-logging
 
   # =============================================================================
   # Celery Transcription Worker
@@ -216,6 +250,7 @@ services:
           memory: 512M
     command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=${CELERY_WORKERS_TRANSCRIPTION:-2} -Q transcription
     shm_size: 2gb
+    logging: *default-logging
 
   # =============================================================================
   # Celery Beat
@@ -250,6 +285,15 @@ services:
     networks:
       - app_network
     restart: always
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
     command: celery -A app.core.celery_app:celery_app beat --loglevel=${CELERY_LOG_LEVEL:-info}
 
   # =============================================================================

@@ -64,3 +64,91 @@ async def close_shared_http_session() -> None:
             await _shared_http_session.close()
         _shared_http_session = None
         _shared_http_session_loop_token = None
+
+
+async def http_request_with_retry(
+    method: str,
+    url: str,
+    max_retries: int = 3,
+    initial_delay: float = 1.0,
+    max_delay: float = 30.0,
+    exponential_base: float = 2.0,
+    retryable_status_codes: set[int] | None = None,
+    **kwargs: any,
+) -> aiohttp.ClientResponse:
+    """Execute HTTP request with exponential backoff retry.
+
+    Args:
+        method: HTTP method (GET, POST, etc.)
+        url: Request URL
+        max_retries: Maximum number of retry attempts (default: 3)
+        initial_delay: Initial delay in seconds (default: 1.0)
+        max_delay: Maximum delay between retries (default: 30.0)
+        exponential_base: Base for exponential backoff (default: 2.0)
+        retryable_status_codes: HTTP status codes to retry (default: 5xx, 429)
+        **kwargs: Additional arguments for aiohttp request
+
+    Returns:
+        aiohttp.ClientResponse object
+
+    Raises:
+        aiohttp.ClientError: After all retries exhausted
+    """
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    if retryable_status_codes is None:
+        retryable_status_codes = {429, 500, 502, 503, 504}
+
+    session = await get_shared_http_session()
+    last_exception: Exception | None = None
+
+    for attempt in range(max_retries + 1):
+        try:
+            response = await session.request(method, url, **kwargs)
+
+            # Check if status code is retryable
+            if response.status in retryable_status_codes and attempt < max_retries:
+                delay = min(initial_delay * (exponential_base ** attempt), max_delay)
+                logger.warning(
+                    "HTTP %s %s returned %d, retrying in %.1fs (attempt %d/%d)",
+                    method,
+                    url,
+                    response.status,
+                    delay,
+                    attempt + 1,
+                    max_retries,
+                )
+                await response.release()  # Release connection before retry
+                await asyncio.sleep(delay)
+                continue
+
+            return response
+
+        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+            last_exception = exc
+            if attempt < max_retries:
+                delay = min(initial_delay * (exponential_base ** attempt), max_delay)
+                logger.warning(
+                    "HTTP %s %s failed: %s, retrying in %.1fs (attempt %d/%d)",
+                    method,
+                    url,
+                    exc,
+                    delay,
+                    attempt + 1,
+                    max_retries,
+                )
+                await asyncio.sleep(delay)
+            else:
+                logger.error(
+                    "HTTP %s %s failed after %d attempts: %s",
+                    method,
+                    url,
+                    max_retries + 1,
+                    exc,
+                )
+
+    # All retries exhausted
+    raise last_exception or aiohttp.ClientError("Max retries exceeded")
+

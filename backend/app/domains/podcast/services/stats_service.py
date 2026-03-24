@@ -3,6 +3,7 @@
 Provides aggregated user-level podcast stats and cache handling.
 """
 
+import asyncio
 import logging
 from typing import Any
 
@@ -41,7 +42,11 @@ class PodcastStatsService:
         self.redis = redis or get_shared_redis()
 
     async def get_user_stats(self) -> dict[str, Any]:
-        """Get cached/aggregated user stats with playback context."""
+        """Get cached/aggregated user stats with playback context.
+
+        Uses parallel fetching for stats, recently_played, and listening_streak
+        to minimize API response time.
+        """
         cached = await safe_cache_get(
             lambda: self.redis.get_user_stats(self.user_id),
             log_warning=logger.warning,
@@ -53,19 +58,27 @@ class PodcastStatsService:
 
         logger.info("Cache MISS for user stats: user_id=%s", self.user_id)
 
-        stats = await self.repo.get_user_stats_aggregated(self.user_id)
+        # Fetch all data in parallel using asyncio.gather
+        results = await asyncio.gather(
+            self.repo.get_user_stats_aggregated(self.user_id),
+            self.playback_service.get_recently_played(limit=5),
+            self.playback_service.calculate_listening_streak(),
+            return_exceptions=True,
+        )
 
-        try:
-            recently_played = await self.playback_service.get_recently_played(limit=5)
-        except Exception:
+        # Extract results with error handling
+        stats = results[0] if not isinstance(results[0], Exception) else {}
+        recently_played = (
+            results[1] if not isinstance(results[1], Exception) else []
+        )
+        listening_streak = (
+            results[2] if not isinstance(results[2], Exception) else 0
+        )
+
+        if isinstance(results[1], Exception):
             logger.warning("Failed to get recently played, defaulting to empty list")
-            recently_played = []
-
-        try:
-            listening_streak = await self.playback_service.calculate_listening_streak()
-        except Exception:
+        if isinstance(results[2], Exception):
             logger.warning("Failed to calculate listening streak, defaulting to 0")
-            listening_streak = 0
 
         result = {
             **stats,
@@ -105,14 +118,17 @@ class PodcastStatsService:
         return result
 
     async def invalidate_cached_stats(self) -> None:
-        """Invalidate user stats/profile stats caches."""
-        await safe_cache_invalidate(
-            lambda: self.redis.invalidate_user_stats(self.user_id),
-            log_warning=logger.warning,
-            error_message=f"Redis user stats cache invalidation failed for user_id={self.user_id}",
-        )
-        await safe_cache_invalidate(
-            lambda: self.redis.invalidate_profile_stats(self.user_id),
-            log_warning=logger.warning,
-            error_message=f"Redis profile stats cache invalidation failed for user_id={self.user_id}",
+        """Invalidate user stats/profile stats caches in parallel."""
+        await asyncio.gather(
+            safe_cache_invalidate(
+                lambda: self.redis.invalidate_user_stats(self.user_id),
+                log_warning=logger.warning,
+                error_message=f"Redis user stats cache invalidation failed for user_id={self.user_id}",
+            ),
+            safe_cache_invalidate(
+                lambda: self.redis.invalidate_profile_stats(self.user_id),
+                log_warning=logger.warning,
+                error_message=f"Redis profile stats cache invalidation failed for user_id={self.user_id}",
+            ),
+            return_exceptions=True,
         )

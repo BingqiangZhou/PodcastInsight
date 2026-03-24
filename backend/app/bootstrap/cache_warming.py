@@ -42,31 +42,62 @@ class CacheWarmupService:
         }
 
     async def warm_all(self) -> dict[str, Any]:
-        """Execute all cache warming strategies.
+        """Execute all cache warming strategies with priority ordering.
+
+        Priorities:
+        1. System settings (highest - small, frequently accessed)
+        2. Popular podcasts (medium - commonly viewed)
+        3. User subscriptions (lower - user-specific, larger dataset)
 
         Returns:
             Dictionary containing warm-up statistics.
         """
-        logger.info("Starting cache warm-up...")
+        import asyncio
+
+        logger.info("Starting prioritized cache warm-up...")
         start_time = datetime.now(UTC)
 
-        try:
-            # Run warm-up tasks sequentially to avoid SQLAlchemy session concurrency issues
-            await self._warm_active_users_subscriptions()
-            await self._warm_popular_podcasts()
-            await self._warm_system_settings()
+        # Define warm-up tasks with priorities (lower number = higher priority)
+        priorities = [
+            (self._warm_system_settings, "system_settings", 30.0),
+            (self._warm_popular_podcasts, "popular_podcasts", 45.0),
+            (self._warm_active_users_subscriptions, "user_subscriptions", 60.0),
+        ]
 
-            duration = (datetime.now(UTC) - start_time).total_seconds()
-            logger.info(
-                "Cache warm-up completed in %.2fs: %s",
-                duration,
-                self._stats,
-            )
-            return self._stats
-        except Exception as exc:
-            logger.error("Fatal error during cache warm-up: %s", exc)
-            self._stats["errors"].append(f"Fatal: {exc}")
-            return self._stats
+        for task_func, task_name, timeout_seconds in priorities:
+            try:
+                async with asyncio.timeout(timeout_seconds):
+                    logger.debug("Starting cache warm-up task: %s", task_name)
+                    task_start = datetime.now(UTC)
+                    await task_func()
+                    task_duration = (datetime.now(UTC) - task_start).total_seconds()
+                    logger.info(
+                        "Cache warm-up task '%s' completed in %.2fs",
+                        task_name,
+                        task_duration,
+                    )
+            except asyncio.TimeoutError:
+                logger.warning(
+                    "Cache warm-up task '%s' timed out after %.1fs (continuing)",
+                    task_name,
+                    timeout_seconds,
+                )
+                self._stats["errors"].append(f"{task_name}: timeout")
+            except Exception as exc:
+                logger.error(
+                    "Cache warm-up task '%s' failed: %s",
+                    task_name,
+                    exc,
+                )
+                self._stats["errors"].append(f"{task_name}: {exc}")
+
+        duration = (datetime.now(UTC) - start_time).total_seconds()
+        logger.info(
+            "Prioritized cache warm-up completed in %.2fs: %s",
+            duration,
+            self._stats,
+        )
+        return self._stats
 
     async def _warm_active_users_subscriptions(self) -> None:
         """Warm up subscription lists for recently active users."""

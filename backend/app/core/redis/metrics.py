@@ -1,9 +1,15 @@
 """Redis Metrics Recording.
 
 Handles command timing, cache hit/miss tracking, and penetration metrics.
+Uses batched recording to minimize Redis overhead.
 """
 
+import asyncio
+import atexit
 import logging
+import threading
+import weakref
+from collections import defaultdict
 from time import perf_counter
 from typing import Any
 
@@ -14,9 +20,219 @@ _METRICS_COMMANDS_KEY = "podcast:metrics:commands"
 _METRICS_CACHE_KEY = "podcast:metrics:cache"
 _METRICS_CACHE_PENETRATION_KEY = "podcast:metrics:penetration"
 
+# Batched metrics configuration
+_METRICS_FLUSH_INTERVAL_SECONDS = 5.0  # Flush every 5 seconds
+_METRICS_BUFFER_SIZE_THRESHOLD = 100  # Flush when buffer exceeds 100 items
+
+
+class _MetricsBuffer:
+    """Thread-safe buffer for batching metrics before flushing to Redis."""
+
+    _instance: "_MetricsBuffer | None" = None
+    _lock = threading.Lock()
+
+    def __new__(cls) -> "_MetricsBuffer":
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self) -> None:
+        if self._initialized:
+            return
+        self._initialized = True
+
+        # Thread-safe buffers
+        self._command_buffer: dict[str, list[float]] = defaultdict(list)
+        self._cache_buffer: dict[tuple[str, bool], int] = defaultdict(int)  # (namespace, hit) -> count
+        self._penetration_buffer: dict[str, int] = defaultdict(int)  # namespace -> count
+        self._buffer_lock = threading.Lock()
+
+        # Flush task management
+        self._flush_task: asyncio.Task | None = None
+        self._redis_client_ref: weakref.ref | None = None
+        self._running = False
+
+        # Register cleanup on exit
+        atexit.register(self._sync_flush_on_exit)
+
+    def start_flush_task(self, redis_client: Any) -> None:
+        """Start the background flush task."""
+        self._redis_client_ref = weakref.ref(redis_client)
+        if self._flush_task is None or self._flush_task.done():
+            try:
+                loop = asyncio.get_running_loop()
+                self._running = True
+                self._flush_task = loop.create_task(self._periodic_flush())
+            except RuntimeError:
+                # No running loop, will flush on demand
+                pass
+
+    async def _periodic_flush(self) -> None:
+        """Periodically flush metrics to Redis."""
+        while self._running:
+            try:
+                await asyncio.sleep(_METRICS_FLUSH_INTERVAL_SECONDS)
+                await self._flush_to_redis()
+            except asyncio.CancelledError:
+                # Final flush on cancellation
+                await self._flush_to_redis()
+                break
+            except Exception as e:
+                logger.debug("Metrics flush error: %s", e)
+
+    def record_command(self, command: str, elapsed_ms: float) -> None:
+        """Record a command timing in the buffer."""
+        with self._buffer_lock:
+            self._command_buffer[command].append(elapsed_ms)
+
+            # Check if we should flush due to buffer size
+            total_commands = sum(len(v) for v in self._command_buffer.values())
+            if total_commands >= _METRICS_BUFFER_SIZE_THRESHOLD:
+                self._trigger_async_flush()
+
+    def record_cache_lookup(self, key: str, hit: bool) -> None:
+        """Record a cache lookup in the buffer."""
+        namespace = self._extract_namespace(key)
+        with self._buffer_lock:
+            self._cache_buffer[(namespace, hit)] += 1
+
+    def record_penetration(self, key: str) -> None:
+        """Record a cache penetration event in the buffer."""
+        namespace = self._extract_namespace(key)
+        with self._buffer_lock:
+            self._penetration_buffer[namespace] += 1
+
+    def _extract_namespace(self, key: str) -> str:
+        """Extract namespace from cache key."""
+        parts = key.split(":")
+        if len(parts) >= 3:
+            return ":".join(parts[:3])
+        if len(parts) >= 2:
+            return ":".join(parts[:2])
+        return parts[0] if parts else "unknown"
+
+    def _trigger_async_flush(self) -> None:
+        """Trigger an async flush if possible."""
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._flush_to_redis())
+        except RuntimeError:
+            pass  # No running loop, will flush later
+
+    async def _flush_to_redis(self) -> None:
+        """Flush all buffered metrics to Redis."""
+        if self._redis_client_ref is None:
+            return
+
+        client = self._redis_client_ref()
+        if client is None:
+            return
+
+        # Swap buffers atomically
+        with self._buffer_lock:
+            command_buffer = dict(self._command_buffer)
+            cache_buffer = dict(self._cache_buffer)
+            penetration_buffer = dict(self._penetration_buffer)
+            self._command_buffer.clear()
+            self._cache_buffer.clear()
+            self._penetration_buffer.clear()
+
+        if not command_buffer and not cache_buffer and not penetration_buffer:
+            return
+
+        try:
+            from app.core.cache_ttl import CacheTTL
+
+            # Aggregate command metrics
+            total_count = sum(len(timings) for timings in command_buffer.values())
+            total_ms = sum(sum(timings) for timings in command_buffer.values())
+            max_ms = max((max(timings) for timings in command_buffer.values() if timings), default=0.0)
+
+            async with client.pipeline() as pipe:
+                # Global command stats
+                if total_count > 0:
+                    pipe.hincrby(_METRICS_COMMANDS_KEY, "total_count", total_count)
+                    pipe.hincrbyfloat(_METRICS_COMMANDS_KEY, "total_ms", total_ms)
+
+                    # Update max_ms using Lua script (single call instead of per-command)
+                    max_update_script = """
+                        local current = redis.call('HGET', KEYS[1], 'max_ms')
+                        local new_val = tonumber(ARGV[1])
+                        if current then
+                            current = tonumber(current)
+                            if new_val > current then
+                                redis.call('HSET', KEYS[1], 'max_ms', new_val)
+                            end
+                        else
+                            redis.call('HSET', KEYS[1], 'max_ms', new_val)
+                        end
+                    """
+                    pipe.eval(max_update_script, 1, _METRICS_COMMANDS_KEY, max_ms)
+
+                # Per-command stats (batched)
+                for command, timings in command_buffer.items():
+                    cmd_count = len(timings)
+                    cmd_total_ms = sum(timings)
+                    cmd_max_ms = max(timings) if timings else 0.0
+                    cmd_key = f"{_METRICS_COMMANDS_KEY}:by_command:{command}"
+
+                    pipe.hincrby(cmd_key, "count", cmd_count)
+                    pipe.hincrbyfloat(cmd_key, "total_ms", cmd_total_ms)
+                    pipe.eval(max_update_script, 1, cmd_key, cmd_max_ms)
+                    pipe.expire(cmd_key, CacheTTL.METRICS)
+
+                # Cache stats (batched)
+                for (namespace, hit), count in cache_buffer.items():
+                    field = "hits" if hit else "misses"
+                    pipe.hincrby(_METRICS_CACHE_KEY, field, count)
+                    pipe.hincrby(f"{_METRICS_CACHE_KEY}:namespace:{namespace}", field, count)
+                    pipe.expire(f"{_METRICS_CACHE_KEY}:namespace:{namespace}", CacheTTL.METRICS)
+
+                # Penetration stats (batched)
+                for namespace, count in penetration_buffer.items():
+                    pipe.hincrby(_METRICS_CACHE_PENETRATION_KEY, "total_attempts", count)
+                    pipe.hincrby(
+                        f"{_METRICS_CACHE_PENETRATION_KEY}:namespace:{namespace}",
+                        "attempts",
+                        count,
+                    )
+                    pipe.expire(
+                        f"{_METRICS_CACHE_PENETRATION_KEY}:namespace:{namespace}",
+                        CacheTTL.METRICS,
+                    )
+
+                # Set TTL on global keys
+                if total_count > 0 or cache_buffer or penetration_buffer:
+                    pipe.expire(_METRICS_COMMANDS_KEY, CacheTTL.METRICS)
+                    pipe.expire(_METRICS_CACHE_KEY, CacheTTL.METRICS)
+                    pipe.expire(_METRICS_CACHE_PENETRATION_KEY, CacheTTL.METRICS)
+
+                await pipe.execute()
+
+            logger.debug(
+                "Flushed metrics: %d commands, %d cache ops, %d penetrations",
+                total_count,
+                len(cache_buffer),
+                len(penetration_buffer),
+            )
+        except Exception as e:
+            logger.debug("Failed to flush metrics: %s", e)
+
+    def _sync_flush_on_exit(self) -> None:
+        """Synchronous flush on process exit."""
+        self._running = False
+        # Best effort - can't do async in atexit
+
+
+# Global metrics buffer singleton
+_metrics_buffer = _MetricsBuffer()
+
 
 class MetricsOperations:
-    """Records and retrieves Redis runtime metrics."""
+    """Records and retrieves Redis runtime metrics using batched recording."""
 
     @staticmethod
     def _cache_namespace(key: str) -> str:
@@ -28,124 +244,35 @@ class MetricsOperations:
             return ":".join(parts[:2])
         return parts[0] if parts else "unknown"
 
+    async def _init_metrics_buffer(self) -> None:
+        """Initialize the metrics buffer with Redis client."""
+        client = await self._get_client()
+        _metrics_buffer.start_flush_task(client)
+
     async def _record_command_timing(
         self, command: str, elapsed_ms: float, client: Any = None
     ) -> None:
-        """Record command timing in Redis using atomic operations."""
-        from app.core.cache_ttl import CacheTTL
+        """Record command timing using batched buffer.
 
-        # Get client if not provided (for backward compatibility)
-        if client is None:
-            client = await self._get_client()
-
-        try:
-            # Use pipeline for atomic multi-operation
-            async with client.pipeline() as pipe:
-                # Total count and time
-                pipe.hincrby(_METRICS_COMMANDS_KEY, "total_count", 1)
-                pipe.hincrbyfloat(_METRICS_COMMANDS_KEY, "total_ms", elapsed_ms)
-
-                # Track max_ms using Lua script for atomic max update
-                max_update_script = """
-                    local current = redis.call('HGET', KEYS[1], 'max_ms')
-                    local new_val = tonumber(ARGV[1])
-                    if current then
-                        current = tonumber(current)
-                        if new_val > current then
-                            redis.call('HSET', KEYS[1], 'max_ms', new_val)
-                        end
-                    else
-                        redis.call('HSET', KEYS[1], 'max_ms', new_val)
-                    end
-                """
-                pipe.eval(max_update_script, 1, _METRICS_COMMANDS_KEY, elapsed_ms)
-
-                # Per-command stats
-                pipe.hincrby(f"{_METRICS_COMMANDS_KEY}:by_command:{command}", "count", 1)
-                pipe.hincrbyfloat(
-                    f"{_METRICS_COMMANDS_KEY}:by_command:{command}", "total_ms", elapsed_ms
-                )
-
-                # Update max_ms for specific command
-                pipe.eval(
-                    max_update_script, 1,
-                    f"{_METRICS_COMMANDS_KEY}:by_command:{command}", elapsed_ms
-                )
-
-                # Set TTL on all keys
-                pipe.expire(_METRICS_COMMANDS_KEY, CacheTTL.METRICS)
-                pipe.expire(
-                    f"{_METRICS_COMMANDS_KEY}:by_command:{command}", CacheTTL.METRICS
-                )
-
-                await pipe.execute()
-        except Exception:
-            # Silently fail to avoid impacting main operations
-            pass
+        Metrics are accumulated locally and flushed to Redis periodically
+        to minimize per-command overhead.
+        """
+        _metrics_buffer.record_command(command, elapsed_ms)
 
     async def _record_cache_lookup(self, key: str, *, hit: bool, client: Any = None) -> None:
-        """Record cache lookup in Redis using atomic operations."""
-        from app.core.cache_ttl import CacheTTL
+        """Record cache lookup using batched buffer.
 
-        # Get client if not provided (for backward compatibility)
-        if client is None:
-            client = await self._get_client()
-
-        try:
-            namespace = self._cache_namespace(key)
-            field = "hits" if hit else "misses"
-
-            async with client.pipeline() as pipe:
-                # Global stats
-                pipe.hincrby(_METRICS_CACHE_KEY, field, 1)
-
-                # Per-namespace stats
-                pipe.hincrby(f"{_METRICS_CACHE_KEY}:namespace:{namespace}", field, 1)
-
-                # Set TTL
-                pipe.expire(_METRICS_CACHE_KEY, CacheTTL.METRICS)
-                pipe.expire(
-                    f"{_METRICS_CACHE_KEY}:namespace:{namespace}", CacheTTL.METRICS
-                )
-
-                await pipe.execute()
-        except Exception:
-            # Silently fail to avoid impacting main operations
-            pass
+        Metrics are accumulated locally and flushed to Redis periodically
+        to minimize per-operation overhead.
+        """
+        _metrics_buffer.record_cache_lookup(key, hit=hit)
 
     async def _record_cache_penetration(self, key: str, client: Any = None) -> None:
-        """Record cache penetration event (query for non-existent data)."""
-        from app.core.cache_ttl import CacheTTL
+        """Record cache penetration event using batched buffer.
 
-        # Get client if not provided (for backward compatibility)
-        if client is None:
-            client = await self._get_client()
-
-        try:
-            namespace = self._cache_namespace(key)
-
-            async with client.pipeline() as pipe:
-                # Global penetration counter
-                pipe.hincrby(_METRICS_CACHE_PENETRATION_KEY, "total_attempts", 1)
-
-                # Per-namespace penetration counter
-                pipe.hincrby(
-                    f"{_METRICS_CACHE_PENETRATION_KEY}:namespace:{namespace}",
-                    "attempts",
-                    1,
-                )
-
-                # Set TTL
-                pipe.expire(_METRICS_CACHE_PENETRATION_KEY, CacheTTL.METRICS)
-                pipe.expire(
-                    f"{_METRICS_CACHE_PENETRATION_KEY}:namespace:{namespace}",
-                    CacheTTL.METRICS,
-                )
-
-                await pipe.execute()
-        except Exception:
-            # Silently fail to avoid impacting main operations
-            pass
+        Metrics are accumulated locally and flushed to Redis periodically.
+        """
+        _metrics_buffer.record_penetration(key)
 
     async def get_runtime_metrics(self, client: Any) -> dict[str, Any]:
         """Get runtime metrics from Redis (aggregated across all processes)."""

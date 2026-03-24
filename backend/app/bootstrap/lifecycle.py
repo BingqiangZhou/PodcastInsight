@@ -8,7 +8,7 @@ from fastapi import FastAPI
 
 from app.bootstrap.cache_warming import execute_cache_warmup
 from app.core.config import get_settings
-from app.core.database import close_db, get_async_session_factory, init_db
+from app.core.database import check_db_readiness, close_db, get_async_session_factory, init_db
 from app.core.http_client import close_shared_http_session
 from app.core.logging_config import setup_logging_from_env
 from app.core.redis import close_shared_redis, get_shared_redis
@@ -18,6 +18,52 @@ from app.domains.podcast.services.transcription_workflow_service import (
 
 
 logger = logging.getLogger(__name__)
+
+
+async def verify_critical_services() -> dict[str, bool]:
+    """Verify all critical services are healthy before accepting traffic.
+
+    Returns:
+        Dictionary with service names and their health status.
+    """
+    checks = {}
+    settings = get_settings()
+
+    # Database connectivity
+    try:
+        async with asyncio.timeout(5.0):
+            db_status = await check_db_readiness()
+            checks["database"] = db_status.get("status") == "healthy"
+            if not checks["database"]:
+                logger.error(
+                    "Database health check failed: %s",
+                    db_status.get("error", "Unknown error"),
+                )
+    except asyncio.TimeoutError:
+        checks["database"] = False
+        logger.error("Database health check timed out after 5 seconds")
+    except Exception as exc:
+        checks["database"] = False
+        logger.error("Database health check failed: %s", exc)
+
+    # Redis connectivity
+    try:
+        async with asyncio.timeout(3.0):
+            redis_status = await get_shared_redis().check_health()
+            checks["redis"] = redis_status.get("status") == "healthy"
+            if not checks["redis"]:
+                logger.error(
+                    "Redis health check failed: %s",
+                    redis_status.get("error", "Unknown error"),
+                )
+    except asyncio.TimeoutError:
+        checks["redis"] = False
+        logger.error("Redis health check timed out after 3 seconds")
+    except Exception as exc:
+        checks["redis"] = False
+        logger.error("Redis health check failed: %s", exc)
+
+    return checks
 
 
 @asynccontextmanager
@@ -39,11 +85,54 @@ async def application_lifespan(app: FastAPI):
         for issue in config_issues:
             logger.warning("Configuration warning: %s", issue)
 
+    # Initialize database
     await init_db()
+
+    # Setup query counter hooks for N+1 detection (development only)
+    if settings.ENVIRONMENT == "development":
+        try:
+            from app.core.middleware.query_analysis import setup_query_counter_hooks
+
+            setup_query_counter_hooks()
+            logger.info("Query counter hooks configured for N+1 detection")
+        except Exception as exc:
+            logger.warning("Failed to setup query counter hooks: %s", exc)
+
+    # Verify critical services are healthy
+    logger.info("Verifying critical services health...")
+    service_health = await verify_critical_services()
+
+    unhealthy_services = [
+        service for service, healthy in service_health.items() if not healthy
+    ]
+
+    if unhealthy_services:
+        logger.error(
+            "Critical services unhealthy: %s. "
+            "Application will continue with degraded functionality.",
+            ", ".join(unhealthy_services),
+        )
+        # Store health status in app state for graceful degradation
+        app.state.degraded_services = unhealthy_services
+        app.state.service_health = service_health
+    else:
+        logger.info("All critical services are healthy")
+        app.state.degraded_services = []
+        app.state.service_health = service_health
 
     # Execute cache warm-up in background (non-blocking)
     session_factory = get_async_session_factory()
-    asyncio.create_task(_run_cache_warmup_async(session_factory))
+    warmup_task = asyncio.create_task(_run_cache_warmup_async(session_factory))
+    # Add error callback to prevent silent failures
+    warmup_task.add_done_callback(
+        lambda task: logger.error(
+            "Cache warmup background task failed: %s",
+            task.exception(),
+            exc_info=task.exception(),
+        )
+        if task.exception()
+        else None
+    )
 
     startup_lock_token: str | None = None
     try:

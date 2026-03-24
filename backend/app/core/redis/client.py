@@ -106,6 +106,11 @@ class RedisClientManager:
             self._client = new_client
             self._client_loop_token = current_loop_token
             self._last_health_check_at = perf_counter()
+
+            # Initialize metrics buffer for batched recording
+            from app.core.redis.metrics import _metrics_buffer
+            _metrics_buffer.start_flush_task(new_client)
+
             return self._client
 
         now = perf_counter()

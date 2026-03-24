@@ -486,6 +486,9 @@ class HighlightExtractionService:
     ) -> dict[str, Any]:
         """Extract highlights for episodes with transcripts but no highlights.
 
+        Uses concurrent processing with semaphore for rate limiting.
+        Each episode gets an isolated database session to prevent transaction conflicts.
+
         Args:
             max_episodes_per_run: Maximum episodes to process in one run
 
@@ -505,40 +508,55 @@ class HighlightExtractionService:
                 "processed_at": datetime.now(UTC).isoformat(),
             }
 
-        processed_count = 0
-        failed_count = 0
-        skipped_count = 0
+        # Limit concurrency to avoid overwhelming AI API and database
+        max_concurrent = min(5, max_episodes_per_run)
+        semaphore = asyncio.Semaphore(max_concurrent)
 
-        for episode_id in claimed_episode_ids:
-            try:
-                async with worker_db_session(
-                    "celery-highlight-episode"
-                ) as episode_session:
-                    service = HighlightExtractionService(episode_session)
-                    await service.extract_highlights_for_episode(episode_id)
-                processed_count += 1
-            except ValidationError as exc:
-                if self._is_skippable_validation_error(exc):
-                    skipped_count += 1
-                    logger.warning(
-                        "Skipping highlight extraction for episode %s due to unmet precondition: %s",
-                        episode_id,
-                        exc,
+        async def process_episode(episode_id: int) -> str:
+            """Process a single episode with isolated session.
+
+            Returns: 'success', 'skipped', or 'failed'
+            """
+            async with semaphore:
+                try:
+                    async with worker_db_session(
+                        "celery-highlight-episode"
+                    ) as episode_session:
+                        service = HighlightExtractionService(episode_session)
+                        await service.extract_highlights_for_episode(episode_id)
+                    return "success"
+                except ValidationError as exc:
+                    if self._is_skippable_validation_error(exc):
+                        logger.warning(
+                            "Skipping highlight extraction for episode %s due to unmet precondition: %s",
+                            episode_id,
+                            exc,
+                        )
+                        await self._reset_claimed_highlight_status_safe(episode_id)
+                        return "skipped"
+
+                    logger.exception(
+                        "Failed to extract highlights for episode %s", episode_id
                     )
-                    await self._reset_claimed_highlight_status_safe(episode_id)
-                    continue
+                    await self._mark_highlight_extraction_failed_safe(episode_id, str(exc))
+                    return "failed"
+                except Exception as exc:
+                    logger.exception(
+                        "Failed to extract highlights for episode %s", episode_id
+                    )
+                    await self._mark_highlight_extraction_failed_safe(episode_id, str(exc))
+                    return "failed"
 
-                failed_count += 1
-                logger.exception(
-                    "Failed to extract highlights for episode %s", episode_id
-                )
-                await self._mark_highlight_extraction_failed_safe(episode_id, str(exc))
-            except Exception as exc:
-                failed_count += 1
-                logger.exception(
-                    "Failed to extract highlights for episode %s", episode_id
-                )
-                await self._mark_highlight_extraction_failed_safe(episode_id, str(exc))
+        # Process all episodes concurrently
+        results = await asyncio.gather(
+            *[process_episode(episode_id) for episode_id in claimed_episode_ids],
+            return_exceptions=True,
+        )
+
+        # Count results
+        processed_count = sum(1 for r in results if r == "success")
+        skipped_count = sum(1 for r in results if r == "skipped")
+        failed_count = sum(1 for r in results if r == "failed" or isinstance(r, Exception))
 
         logger.info(
             "Pending highlight extraction run completed: processed=%s failed=%s skipped=%s claimed=%s",

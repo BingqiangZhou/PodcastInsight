@@ -84,18 +84,25 @@ class Settings(BaseSettings):
     SECRET_KEY: str | None = None
     ENVIRONMENT: str = "development"
 
-    # Database - Pool sizing adjusted for multi-worker Docker deployment
-    # With 8 worker processes (4 gunicorn + 4 celery), each needs smaller pool
-    # Total capacity: 8 workers × (5 + 10) = 120 connections (within 200 limit)
+    # Database - Pool sizing optimized for stability and performance
+    # With 8 worker processes (4 gunicorn + 4 celery), increased pool size for better throughput
+    # Total capacity: 8 workers × (10 + 15) = 200 connections (100% of PostgreSQL limit)
+    # Note: Monitored via OBS_ALERT_DB_POOL_OCCUPANCY_RATIO to prevent exhaustion
     DATABASE_URL: str | None = None
     READ_DATABASE_URL: str | None = None  # Read replica URL (optional, defaults to DATABASE_URL)
-    DATABASE_POOL_SIZE: int = 5
-    DATABASE_MAX_OVERFLOW: int = 10
+    DATABASE_POOL_SIZE: int = 10  # Increased from 5 for better connection availability
+    DATABASE_MAX_OVERFLOW: int = 15  # Increased from 10 to handle traffic spikes
 
     # Database timeout settings
     DATABASE_POOL_TIMEOUT: int = 30  # Max wait for connection (seconds)
     DATABASE_RECYCLE: int = 3600  # Recycle connections after 1 hour
     DATABASE_CONNECT_TIMEOUT: int = 5  # Fast fail for connection issues
+    DATABASE_STATEMENT_TIMEOUT: int = 30000  # 30 seconds in milliseconds - prevent long-running queries
+    DATABASE_POOL_WAKEUP_TIMEOUT: int = 60  # Timeout for connection pool warming on startup
+
+    # Database query logging (for development/performance debugging)
+    DATABASE_ECHO: bool = False  # Echo SQL queries to logs (enable in development)
+    DATABASE_ECHO_POOL: bool = True  # Echo connection pool events
 
     # Read replica pool settings (can be larger than primary for read-heavy workloads)
     DATABASE_READ_POOL_SIZE: int | None = None  # Defaults to DATABASE_POOL_SIZE

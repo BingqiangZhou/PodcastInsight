@@ -26,7 +26,21 @@ def configure_middlewares(app: FastAPI) -> None:
     """Register middleware stack."""
     settings = get_settings()
 
-    # Rate limiting middleware (added first, executes last)
+    # Query analysis middleware (for N+1 detection) - added first, executes last
+    if settings.ENVIRONMENT == "development":
+        from app.core.middleware.query_analysis import (
+            QueryAnalysisMiddleware,
+            setup_query_counter_hooks,
+        )
+
+        app.add_middleware(
+            QueryAnalysisMiddleware,
+            warning_threshold=10,
+            critical_threshold=50,
+        )
+        logger.info("Query analysis middleware enabled for development")
+
+    # Rate limiting middleware (added early, executes late)
     rate_limit_config = RateLimitConfig(
         requests_per_minute=settings.RATE_LIMIT_REQUESTS_PER_MINUTE,
         requests_per_hour=settings.RATE_LIMIT_REQUESTS_PER_HOUR,
@@ -67,6 +81,17 @@ def configure_middlewares(app: FastAPI) -> None:
     from app.admin.first_run import first_run_middleware
 
     app.middleware("http")(first_run_middleware)
+
+    # Response optimization (compression + payload limits)
+    from app.core.middleware.response_optimization import (
+        configure_response_optimization,
+    )
+
+    configure_response_optimization(
+        app,
+        compression_min_size=1000,  # Compress responses > 1KB
+        max_payload_size=10 * 1024 * 1024,  # 10MB max request size
+    )
 
 
 def configure_exception_handlers(app: FastAPI) -> None:
@@ -149,6 +174,13 @@ def register_internal_routes(app: FastAPI) -> None:
     @app.get("/metrics", include_in_schema=False)
     async def get_metrics():
         return await build_metrics_payload()
+
+    @app.get("/metrics/prometheus", include_in_schema=False)
+    async def get_prometheus_metrics():
+        """Prometheus-formatted metrics endpoint."""
+        from app.core.metrics import get_prometheus_metrics
+
+        return await get_prometheus_metrics()
 
     @app.get("/metrics/summary", include_in_schema=False)
     async def get_metrics_summary():
