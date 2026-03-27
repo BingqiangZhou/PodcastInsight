@@ -55,6 +55,10 @@ class TranscriptDisplayWidgetState
   // View mode state - always default to highlights view
   TranscriptViewMode _viewMode = TranscriptViewMode.highlights;
 
+  // Cached sorted highlights - only re-sorted when highlights data changes
+  List<HighlightResponse>? _cachedSortedHighlights;
+  List<HighlightResponse>? _lastRawHighlights;
+
   @override
   void initState() {
     super.initState();
@@ -445,9 +449,13 @@ class TranscriptDisplayWidgetState
       return _buildEmptyHighlightsState(context);
     }
 
-    // Sort by overall score descending
-    final sortedHighlights = List<HighlightResponse>.from(highlights)
-      ..sort((a, b) => b.overallScore.compareTo(a.overallScore));
+    // Only re-sort when the highlights reference changes (new data from parent)
+    if (!identical(highlights, _lastRawHighlights)) {
+      _lastRawHighlights = highlights;
+      _cachedSortedHighlights = List<HighlightResponse>.from(highlights)
+        ..sort((a, b) => b.overallScore.compareTo(a.overallScore));
+    }
+    final sortedHighlights = _cachedSortedHighlights!;
 
     return ListView.builder(
       controller: _highlightsScrollController,
@@ -556,8 +564,7 @@ class TranscriptDisplayWidgetState
     final scheme = theme.colorScheme;
     final selectionKey = 'full_$index';
     final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
-    return RepaintBoundary(
-      child: Container(
+    return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -624,7 +631,6 @@ class TranscriptDisplayWidgetState
           ),
         ],
       ),
-      ),
     );
   }
 
@@ -683,8 +689,7 @@ class TranscriptDisplayWidgetState
     final query = _searchController.text;
     final highlightedText = _highlightSearchText(result, query);
 
-    return RepaintBoundary(
-      child: Container(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -750,7 +755,6 @@ class TranscriptDisplayWidgetState
             },
           ),
         ],
-      ),
       ),
     );
   }
@@ -941,8 +945,7 @@ class FormattedTranscriptWidget extends ConsumerWidget {
     BuildContext context,
     TranscriptDialogueSegment segment,
   ) {
-    return RepaintBoundary(
-      child: Container(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1004,7 +1007,6 @@ class FormattedTranscriptWidget extends ConsumerWidget {
             ),
           ),
         ],
-      ),
       ),
     );
   }
