@@ -145,3 +145,6 @@ docker/storage/
 docker/temp/
 
 specs/
+
+# Worktrees
+.worktrees/
