@@ -2115,6 +2115,14 @@ class PodcastTranscriptionService:
                 task_id,
             )
             await self._schedule_ai_summary(session, task_id)
+
+            # Highlight extraction
+            log_with_timestamp(
+                "INFO",
+                f"[HIGHLIGHT] Scheduling highlight extraction for episode {task.episode_id}",
+                task_id,
+            )
+            await self._schedule_highlight_extraction(session, task_id)
         except Exception as e:
             import traceback
 
@@ -2312,6 +2320,58 @@ class PodcastTranscriptionService:
                 ),
             )
             await session.commit()
+
+    async def _schedule_highlight_extraction(
+        self, session: AsyncSession, task_id: int
+    ):
+        """Trigger highlight extraction after successful transcription."""
+        try:
+            stmt = select(TranscriptionTask).where(TranscriptionTask.id == task_id)
+            result = await session.execute(stmt)
+            task = result.scalar_one_or_none()
+
+            if not task:
+                log_with_timestamp(
+                    "ERROR",
+                    f"[HIGHLIGHT] Transcription task {task_id} not found for highlight extraction",
+                    task_id,
+                )
+                return
+
+            from app.domains.podcast.services.highlight_extraction_service import (
+                HighlightExtractionService,
+            )
+
+            highlight_service = HighlightExtractionService(session)
+            log_with_timestamp(
+                "INFO",
+                f"[HIGHLIGHT] Starting highlight extraction for episode {task.episode_id}",
+                task_id,
+            )
+
+            highlight_result = await highlight_service.extract_highlights_for_episode(
+                task.episode_id
+            )
+
+            log_with_timestamp(
+                "INFO",
+                f"[HIGHLIGHT] Highlight extraction result for episode {task.episode_id}: "
+                f"status={highlight_result.get('status')}, "
+                f"count={highlight_result.get('highlights_count', 0)}, "
+                f"time={highlight_result.get('processing_time', 0):.2f}s",
+                task_id,
+            )
+
+        except Exception as e:
+            import traceback
+
+            error_trace = traceback.format_exc()
+            log_with_timestamp(
+                "ERROR",
+                f"[HIGHLIGHT] Failed to extract highlights for task {task_id}: {e}",
+                task_id,
+            )
+            logger.error(f"[HIGHLIGHT] Traceback: {error_trace}")
 
     async def cancel_transcription(self, task_id: int) -> bool:
         """"""

@@ -1,5 +1,6 @@
 """高光提取服务 - 从播客转录中提取高光观点"""
 
+import asyncio
 import json
 import logging
 import time
@@ -345,7 +346,10 @@ class HighlightExtractionService:
         # Get episode with transcript
         stmt = (
             select(PodcastEpisode)
-            .options(selectinload(PodcastEpisode.subscription))
+            .options(
+                selectinload(PodcastEpisode.subscription),
+                selectinload(PodcastEpisode.transcript),
+            )
             .where(PodcastEpisode.id == episode_id)
         )
         result = await self.db.execute(stmt)
