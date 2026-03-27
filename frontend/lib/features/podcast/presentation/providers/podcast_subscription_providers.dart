@@ -13,6 +13,8 @@ final podcastSubscriptionProvider =
 
 class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
   late PodcastRepository _repository;
+  bool _isLoadingSubscriptions = false;
+  bool _isLoadingMoreSubscriptions = false;
 
   @override
   PodcastSubscriptionState build() {
@@ -27,17 +29,21 @@ class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
     String? status,
     bool forceRefresh = false,
   }) async {
-    // Check if data is fresh and skip refresh if not forced
-    if (!forceRefresh && page == 1 && state.isDataFresh()) {
-      logger.AppLogger.debug(
-        '[Playback] Using cached subscription data (fresh within 5 min)',
-      );
-      return;
-    }
-
-    state = state.copyWith(isLoading: true, clearError: true);
+    // Guard against concurrent invocation
+    if (_isLoadingSubscriptions) return;
+    _isLoadingSubscriptions = true;
 
     try {
+      // Check if data is fresh and skip refresh if not forced
+      if (!forceRefresh && page == 1 && state.isDataFresh()) {
+        logger.AppLogger.debug(
+          '[Playback] Using cached subscription data (fresh within 5 min)',
+        );
+        return;
+      }
+
+      state = state.copyWith(isLoading: true, clearError: true);
+
       final response = await _repository.listSubscriptions(
         page: page,
         size: size,
@@ -61,11 +67,17 @@ class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
     } catch (error) {
       state = state.copyWith(isLoading: false, error: error.toString());
       rethrow;
+    } finally {
+      _isLoadingSubscriptions = false;
     }
   }
 
   Future<void> loadMoreSubscriptions({int? categoryId, String? status}) async {
     if (state.isLoadingMore || !state.hasMore) return;
+
+    // Guard against concurrent invocation
+    if (_isLoadingMoreSubscriptions) return;
+    _isLoadingMoreSubscriptions = true;
 
     state = state.copyWith(isLoadingMore: true);
 
@@ -90,6 +102,8 @@ class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
       );
     } catch (error) {
       state = state.copyWith(isLoadingMore: false, error: error.toString());
+    } finally {
+      _isLoadingMoreSubscriptions = false;
     }
   }
 

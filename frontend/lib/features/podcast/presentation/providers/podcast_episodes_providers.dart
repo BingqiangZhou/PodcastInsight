@@ -14,12 +14,8 @@ final episodeDetailProvider =
       episodeId,
     ) async {
       final repository = ref.read(podcastRepositoryProvider);
-      try {
-        return await repository.getEpisode(episodeId);
-      } catch (error) {
-        logger.AppLogger.debug('Failed to load episode detail: $error');
-        return null;
-      }
+      // Let errors propagate so AsyncValue.when() can handle them via error callback
+      return await repository.getEpisode(episodeId);
     });
 
 // For Riverpod 3.0.3, we need to use a different approach for family providers
@@ -32,6 +28,8 @@ final podcastEpisodesProvider =
 class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
   late PodcastRepository _repository;
   static const Duration _episodesCacheExpiration = Duration(hours: 6);
+  int _loadRequestId = 0;
+  int _loadMoreRequestId = 0;
 
   @override
   PodcastEpisodesState build() {
@@ -104,6 +102,9 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
       '[Playback] Loading episodes for subscription $subscriptionId, page $page',
     );
 
+    // Assign a unique ID to this request so stale responses are discarded
+    final currentRequestId = ++_loadRequestId;
+
     if (page == 1) {
       final cacheKey = _episodesCacheKey(
         subscriptionId: subscriptionId,
@@ -167,6 +168,9 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
             : (normalizedStatus == 'unplayed' ? false : null),
       );
 
+      // Discard if a newer request was made while this one was in-flight
+      if (currentRequestId != _loadRequestId) return;
+
       logger.AppLogger.debug(
         '[Playback] Loaded ${response.episodes.length} episodes for subscription $subscriptionId',
       );
@@ -220,6 +224,9 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
     final currentState = state;
     if (currentState.isLoadingMore || !currentState.hasMore) return;
 
+    // Assign a unique ID to this request so stale responses are discarded
+    final currentRequestId = ++_loadMoreRequestId;
+
     final normalizedStatus = status?.trim().isEmpty ?? true ? null : status;
     final effectiveStatus = normalizedStatus ?? currentState.cachedStatus;
     final normalizedHasSummary = hasSummary == true ? true : null;
@@ -238,6 +245,9 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
             ? true
             : (effectiveStatus == 'unplayed' ? false : null),
       );
+
+      // Discard if a newer load-more request was made while this one was in-flight
+      if (currentRequestId != _loadMoreRequestId) return;
 
       state = state.copyWith(
         episodes: [...state.episodes, ...response.episodes],

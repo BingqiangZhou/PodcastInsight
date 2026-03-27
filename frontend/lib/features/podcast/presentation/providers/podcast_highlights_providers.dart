@@ -22,15 +22,11 @@ final selectedHighlightDateProvider =
 final episodeHighlightsProvider =
     FutureProvider.autoDispose.family<HighlightsListResponse?, int>((ref, episodeId) async {
   final repository = ref.read(podcastRepositoryProvider);
-  try {
-    return repository.getHighlights(
-      episodeId: episodeId,
-      perPage: 100,
-    );
-  } catch (error) {
-    logger.AppLogger.debug('Failed to load episode highlights: $error');
-    return null;
-  }
+  // Let errors propagate so AsyncValue.when() can handle them via error callback
+  return repository.getHighlights(
+    episodeId: episodeId,
+    perPage: 100,
+  );
 });
 
 /// 触发单集高光提取
