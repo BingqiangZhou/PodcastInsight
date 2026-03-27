@@ -12,6 +12,7 @@ import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/home/presentation/pages/home_page.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
@@ -198,6 +199,46 @@ Future<void> _pumpHomeShellWidget(
   required String route,
 }) async {
   final effectiveFeedNotifier = feedNotifier ?? TestPodcastFeedNotifier();
+  final tab = initialTab ?? 1;
+  final initialLocation = _tabRoute(tab);
+
+  final router = GoRouter(
+    navigatorKey: appNavigatorKey,
+    initialLocation: initialLocation,
+    observers: [appRouteObserver],
+    routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            HomeShellWidget(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/discover',
+                builder: (context, state) => const PodcastListPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/feed',
+                builder: (context, state) => const PodcastFeedPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => const ProfilePage(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
 
   await tester.pumpWidget(
     ProviderScope(
@@ -232,16 +273,35 @@ Future<void> _pumpHomeShellWidget(
           ),
         ),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        navigatorObservers: [appRouteObserver],
-        home: HomeShellWidget(initialTab: initialTab),
+        routerConfig: router,
+        builder: (context, child) => Stack(
+          fit: StackFit.expand,
+          children: [
+            child ?? const SizedBox.shrink(),
+            _RouteSyncBridge(router: router),
+          ],
+        ),
       ),
     ),
   );
 
   await tester.pumpAndSettle();
+}
+
+String _tabRoute(int tab) {
+  switch (tab) {
+    case 0:
+      return '/discover';
+    case 1:
+      return '/feed';
+    case 2:
+      return '/profile';
+    default:
+      return '/feed';
+  }
 }
 
 Future<GoRouter> _pumpHomePageRouterFlow(
@@ -252,13 +312,38 @@ Future<GoRouter> _pumpHomePageRouterFlow(
   final feedNotifier = TestPodcastFeedNotifier();
   final router = GoRouter(
     navigatorKey: appNavigatorKey,
-    initialLocation: '/home',
+    initialLocation: '/profile',
     observers: [appRouteObserver],
     routes: [
-      GoRoute(
-        path: '/home',
-        name: 'home',
-        builder: (context, state) => const HomeShellWidget(initialTab: 2),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            HomeShellWidget(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/discover',
+                builder: (context, state) => const PodcastListPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/feed',
+                builder: (context, state) => const PodcastFeedPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => const ProfilePage(),
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: '/podcast/episodes/:subscriptionId/:episodeId',
