@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/constants/cache_constants.dart';
@@ -42,7 +43,7 @@ abstract class CachedAsyncNotifier<T> extends AsyncNotifier<T> {
   bool get isFresh {
     final fetchTime = _lastFetchTime;
     if (fetchTime == null) return false;
-    return DateTime.now().difference(fetchTime) < cacheDuration;
+    return clock.now().difference(fetchTime) < cacheDuration;
   }
 
   /// Executes [fetcher] with cache-aware deduplication.
@@ -77,7 +78,7 @@ abstract class CachedAsyncNotifier<T> extends AsyncNotifier<T> {
     final request = () async {
       try {
         final data = await fetcher();
-        _lastFetchTime = DateTime.now();
+        _lastFetchTime = clock.now();
         state = AsyncValue.data(data);
         return data;
       } catch (error, stackTrace) {

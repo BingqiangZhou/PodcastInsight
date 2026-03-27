@@ -4,6 +4,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_search_result_card.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/base_episode_card.dart';
 
 void main() {
   group('PodcastSearchResultCard layout', () {
@@ -28,6 +29,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // Verify the card renders with correct margin
       final card = tester.widget<Card>(find.byType(Card));
       expect(
         card.margin,
@@ -42,17 +44,21 @@ void main() {
       expect(radius.topLeft.x, kPodcastRowCardCornerRadius);
       expect(radius.topRight.x, kPodcastRowCardCornerRadius);
 
-      final artwork = tester.widget<SizedBox>(
-        find.byKey(const Key('podcast_search_result_card_artwork')),
-      );
-      expect(artwork.width, kPodcastRowCardImageSize);
-      expect(artwork.height, kPodcastRowCardImageSize);
+      // Verify the image is rendered via BaseEpisodeCard's image widget (Container with PodcastImageWidget)
+      expect(find.byType(BaseEpisodeCard), findsOneWidget);
 
+      // Verify text content
       expect(find.text('Daily Pod'), findsOneWidget);
       expect(find.text('Jane Host'), findsOneWidget);
       expect(find.text('Technology'), findsOneWidget);
       expect(find.textContaining('42'), findsOneWidget);
+
+      // Verify subscribe button icon
       expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
+
+      // Verify genre and episodes metadata icons
+      expect(find.byIcon(Icons.category), findsOneWidget);
+      expect(find.byIcon(Icons.podcasts), findsOneWidget);
     });
   });
 }

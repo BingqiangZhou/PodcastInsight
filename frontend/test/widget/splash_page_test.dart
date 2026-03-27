@@ -21,9 +21,39 @@ GoRouter _router() {
     initialLocation: '/splash',
     routes: [
       GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const Scaffold(body: Text('home')),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return Scaffold(body: navigationShell);
+        },
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/discover',
+                builder: (context, state) =>
+                    const Scaffold(body: Text('discover')),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/feed',
+                builder: (context, state) =>
+                    const Scaffold(body: Text('feed')),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) =>
+                    const Scaffold(body: Text('profile')),
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: '/login',
@@ -60,6 +90,6 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     await tester.pumpAndSettle();
-    expect(find.text('home'), findsOneWidget);
+    expect(find.text('feed'), findsOneWidget);
   });
 }

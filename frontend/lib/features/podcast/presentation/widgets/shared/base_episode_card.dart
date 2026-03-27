@@ -121,6 +121,7 @@ class BaseEpisodeCard extends StatelessWidget {
         child: Padding(
           padding: config.cardPadding,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeaderRow(context, theme),

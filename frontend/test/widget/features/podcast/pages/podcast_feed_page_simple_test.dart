@@ -190,7 +190,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.play_arrow), findsWidgets);
+      // BaseEpisodeCard uses play_circle_outline icon
+      expect(find.byIcon(Icons.play_circle_outline), findsWidgets);
     });
 
     testWidgets('cards contain metadata icons', (WidgetTester tester) async {

@@ -17,9 +17,17 @@ void main() {
           podcastRepositoryProvider.overrideWithValue(repository),
         ],
       );
-      addTearDown(container.dispose);
-
       final provider = transcriptionProvider(2001);
+      final subscription = container.listen(
+        provider,
+        (_, __) {},
+        fireImmediately: true,
+      );
+      addTearDown(() {
+        subscription.close();
+        container.dispose();
+      });
+
       container.read(provider.notifier).loadTranscription();
       async.flushMicrotasks();
 

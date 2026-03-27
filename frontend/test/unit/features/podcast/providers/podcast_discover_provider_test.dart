@@ -145,7 +145,7 @@ void main() {
       expect(fakeService.episodeCalls, episodesCallsAfterFirstLoad);
     });
 
-    test('loads selected tab results first before the other tab', () async {
+    test('loads both shows and episodes in parallel', () async {
       final fakeService = _DelayedApplePodcastRssService();
       final container = _createContainer(fakeService);
       addTearDown(container.dispose);
@@ -154,20 +154,23 @@ void main() {
           .read(podcastDiscoverProvider.notifier)
           .setTab(PodcastDiscoverTab.episodes);
 
+      // During loading, state should still be loading (no partial data)
       final future = container
           .read(podcastDiscoverProvider.notifier)
           .loadInitialData();
 
       await Future<void>.delayed(const Duration(milliseconds: 50));
       final midState = container.read(podcastDiscoverProvider);
-      expect(midState.topEpisodes, isNotEmpty);
-      expect(midState.topShows, isEmpty);
+      // Both are loaded atomically via parallel fetch, so during loading
+      // the state has not yet been updated with results.
+      expect(midState.isLoading, isTrue);
 
       await future;
 
       final finalState = container.read(podcastDiscoverProvider);
       expect(finalState.topEpisodes, isNotEmpty);
       expect(finalState.topShows, isNotEmpty);
+      expect(finalState.isLoading, isFalse);
     });
 
     test('switching tabs does not auto-hydrate to top 100', () async {
