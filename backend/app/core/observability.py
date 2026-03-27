@@ -156,13 +156,25 @@ def get_circuit_breaker_metrics() -> dict[str, Any]:
 
 
 def get_rate_limit_metrics() -> dict[str, Any]:
-    """Get rate limiting statistics from Redis."""
+    """Get rate limiting statistics from the rate limit middleware.
+
+    The current RateLimitMiddleware (app.core.middleware.rate_limit) does not
+    expose aggregate request/rejection counters.  To populate real metrics the
+    following changes are needed (tracked as TODO):
+
+    TODO:
+    1. Add class-level counters to RateLimitMiddleware:
+       - _total_requests: int  (incremented on every checked request)
+       - _rejected_requests: int  (incremented when 429 is returned)
+    2. Expose a class method or module-level helper (e.g.
+       ``get_rate_limit_stats()``) that returns those counters.
+    3. Import and call that helper here instead of returning placeholders.
+    """
     try:
         from app.core.redis import get_shared_redis
 
         redis = get_shared_redis()
-        # These would need to be tracked in the rate limiter
-        # For now, return placeholder that can be extended
+        # Rate limiter does not yet expose stats counters; return placeholders
         return {
             "enabled": True,
             "total_requests": 0,

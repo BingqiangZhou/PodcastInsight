@@ -362,6 +362,7 @@ async def get_episode_transcript_endpoint(
 async def batch_transcribe_subscription_endpoint(
     subscription_id: int,
     skip_existing: bool = Body(True, description="Skip episodes already transcribed"),
+    max_episodes: int = Body(50, ge=1, le=200, description="Maximum episodes to transcribe in batch"),
     subscription_service: PodcastSubscriptionService = Depends(
         get_podcast_subscription_service
     ),
@@ -373,6 +374,7 @@ async def batch_transcribe_subscription_endpoint(
         result = await transcription_workflow.batch_transcribe_subscription(
             subscription_id=subscription_id,
             skip_existing=skip_existing,
+            max_episodes=max_episodes,
             subscription_lookup=subscription_service.get_subscription_details,
         )
         return build_batch_transcription_response(result)

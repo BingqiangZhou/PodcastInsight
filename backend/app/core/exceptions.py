@@ -246,11 +246,15 @@ async def custom_exception_handler(
     处理自定义异常
     """
     logger.error(
-        f"自定义异常: {exc.__class__.__name__} | "
-        f"路径: {request.url.path} | "
-        f"方法: {request.method} | "
-        f"消息: {exc.message} | "
-        f"状态码: {exc.status_code}",
+        "Custom exception raised",
+        extra={
+            "event": "custom_exception",
+            "exception_type": exc.__class__.__name__,
+            "path": request.url.path,
+            "method": request.method,
+            "exc_message": str(exc.message),
+            "status_code": exc.status_code,
+        },
     )
 
     # Build response content
@@ -275,10 +279,15 @@ async def http_exception_handler(
     处理 HTTP 异常
     """
     logger.error(
-        f"HTTP异常: {exc.status_code} | "
-        f"路径: {request.url.path} | "
-        f"方法: {request.method} | "
-        f"详情: {exc.detail}",
+        "HTTP exception raised",
+        extra={
+            "event": "http_exception",
+            "exception_type": exc.__class__.__name__,
+            "path": request.url.path,
+            "method": request.method,
+            "detail": str(exc.detail),
+            "status_code": exc.status_code,
+        },
     )
     return CustomJSONResponse(
         status_code=exc.status_code,
@@ -308,10 +317,14 @@ async def validation_exception_handler(
         )
 
     logger.error(
-        f"请求验证失败: {request.url.path} | "
-        f"方法: {request.method} | "
-        f"错误字段: {len(errors)}个 | "
-        f"错误详情: {errors}",
+        "Request validation failed",
+        extra={
+            "event": "validation_exception",
+            "path": request.url.path,
+            "method": request.method,
+            "error_count": len(errors),
+            "errors": errors,
+        },
     )
 
     return CustomJSONResponse(
@@ -332,10 +345,14 @@ async def general_exception_handler(
     处理通用异常
     """
     logger.error(
-        f"未处理异常: {exc.__class__.__name__} | "
-        f"路径: {request.url.path} | "
-        f"方法: {request.method} | "
-        f"消息: {exc!s}",
+        "Unhandled exception raised",
+        extra={
+            "event": "unhandled_exception",
+            "exception_type": exc.__class__.__name__,
+            "path": request.url.path,
+            "method": request.method,
+            "exc_message": str(exc),
+        },
         exc_info=True,
     )
 
@@ -357,10 +374,14 @@ async def circuit_open_exception_handler(
     处理熔断器打开异常 - 返回503服务不可用
     """
     logger.warning(
-        f"熔断器打开: {exc.__class__.__name__} | "
-        f"路径: {request.url.path} | "
-        f"方法: {request.method} | "
-        f"消息: {exc!s}",
+        "Circuit breaker open",
+        extra={
+            "event": "circuit_open",
+            "exception_type": exc.__class__.__name__,
+            "path": request.url.path,
+            "method": request.method,
+            "exc_message": str(exc),
+        },
     )
 
     return CustomJSONResponse(
@@ -384,10 +405,14 @@ async def database_connection_exception_handler(
     处理数据库连接异常 - 返回503服务不可用
     """
     logger.error(
-        f"数据库连接错误: {exc.__class__.__name__} | "
-        f"路径: {request.url.path} | "
-        f"方法: {request.method} | "
-        f"消息: {exc!s}",
+        "Database connection error",
+        extra={
+            "event": "database_connection_error",
+            "exception_type": exc.__class__.__name__,
+            "path": request.url.path,
+            "method": request.method,
+            "exc_message": str(exc),
+        },
         exc_info=True,
     )
 
@@ -412,10 +437,14 @@ async def redis_connection_exception_handler(
     处理Redis连接异常 - 返回503服务不可用
     """
     logger.error(
-        f"Redis连接错误: {exc.__class__.__name__} | "
-        f"路径: {request.url.path} | "
-        f"方法: {request.method} | "
-        f"消息: {exc!s}",
+        "Redis connection error",
+        extra={
+            "event": "redis_connection_error",
+            "exception_type": exc.__class__.__name__,
+            "path": request.url.path,
+            "method": request.method,
+            "exc_message": str(exc),
+        },
         exc_info=True,
     )
 
@@ -440,10 +469,14 @@ async def timeout_exception_handler(
     处理超时异常 - 返回504网关超时
     """
     logger.warning(
-        f"请求超时: {exc.__class__.__name__} | "
-        f"路径: {request.url.path} | "
-        f"方法: {request.method} | "
-        f"消息: {exc!s}",
+        "Request timeout",
+        extra={
+            "event": "request_timeout",
+            "exception_type": exc.__class__.__name__,
+            "path": request.url.path,
+            "method": request.method,
+            "exc_message": str(exc),
+        },
     )
 
     return CustomJSONResponse(

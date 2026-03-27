@@ -130,6 +130,7 @@ async def delete_subscription(
     success = await service.delete_subscription(subscription_id)
     if not success:
         raise HTTPException(status_code=404, detail="Subscription not found")
+    # TODO: Add a proper response model instead of raw dict
     return {"message": "Subscription deleted"}
 
 
@@ -210,6 +211,7 @@ async def mark_item_as_read(
     service: SubscriptionService = Depends(get_subscription_service),
 ):
     """Mark an item as read."""
+    # TODO: Add a proper response model instead of returning service result directly
     result = await service.mark_item_as_read(item_id)
     if not result:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -222,6 +224,7 @@ async def mark_item_as_unread(
     service: SubscriptionService = Depends(get_subscription_service),
 ):
     """Mark an item as unread."""
+    # TODO: Add a proper response model instead of returning service result directly
     result = await service.mark_item_as_unread(item_id)
     if not result:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -234,6 +237,7 @@ async def toggle_bookmark(
     service: SubscriptionService = Depends(get_subscription_service),
 ):
     """Toggle item bookmark status."""
+    # TODO: Add a proper response model instead of returning service result directly
     result = await service.toggle_bookmark(item_id)
     if not result:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -249,6 +253,7 @@ async def delete_item(
     success = await service.delete_item(item_id)
     if not success:
         raise HTTPException(status_code=404, detail="Item not found")
+    # TODO: Add a proper response model instead of raw dict
     return {"message": "Item deleted"}
 
 
@@ -257,6 +262,7 @@ async def get_unread_count(
     service: SubscriptionService = Depends(get_subscription_service),
 ):
     """Get total unread items count."""
+    # TODO: Add a proper response model (e.g. UnreadCountResponse) instead of raw dict
     count = await service.get_unread_count()
     return {"unread_count": count}
 
@@ -308,6 +314,7 @@ async def delete_category(
     success = await service.delete_category(category_id)
     if not success:
         raise HTTPException(status_code=404, detail="Category not found")
+    # TODO: Add a proper response model instead of raw dict
     return {"message": "Category deleted"}
 
 
@@ -323,6 +330,7 @@ async def add_subscription_to_category(
         raise HTTPException(
             status_code=404, detail="Subscription or category not found"
         )
+    # TODO: Add a proper response model instead of raw dict
     return {"message": "Subscription added to category"}
 
 
@@ -338,4 +346,5 @@ async def remove_subscription_from_category(
     )
     if not success:
         raise HTTPException(status_code=404, detail="Mapping not found")
+    # TODO: Add a proper response model instead of raw dict
     return {"message": "Subscription removed from category"}

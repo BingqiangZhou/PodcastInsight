@@ -9,9 +9,12 @@
 - Next: EC256 support planned for v1.3.0
 """
 
+import logging
 import secrets
 import time
 from datetime import UTC, datetime, timedelta
+
+logger = logging.getLogger(__name__)
 from pathlib import Path
 from typing import Any
 
@@ -258,8 +261,8 @@ def verify_token_optional(
         # Only return mock user in development mode
         if settings.ENVIRONMENT == "development":
             return {
-                "sub": "1",  # Mock user ID
-                "email": "test@example.com",
+                "sub": "dev-mock-00000000-0000-0000-000000000001",
+                "email": "dev-mock@internal.local",
                 "type": token_type,
                 "exp": int(time.time()) + 3600,  # 1 hour from now
             }
@@ -273,35 +276,48 @@ def verify_token_optional(
 
 
 async def get_token_from_request(
-    token: str | None = Query(None, description="Authentication token (for testing)"),
+    token: str | None = Query(None, description="Auth token (development only, deprecated - use Authorization header)"),
     authorization: str | None = Header(
         None, description="Bearer token in Authorization header"
     ),
 ) -> dict:
-    """Extract token from query parameter or Authorization header.
-    In development mode, allows token to be passed as query parameter and returns mock user for testing.
-    In production, requires valid authentication.
+    """Extract token from Authorization header.
+
+    Query parameter token is deprecated and only accepted in development mode.
+    In production, only the Authorization header is accepted.
 
     This function can be used directly as a FastAPI dependency.
     """
-    # Try to get token from Authorization header first
+    # Prefer Authorization header over query parameter
     if authorization:
         if authorization.startswith("Bearer "):
-            token = authorization[7:]  # Remove "Bearer " prefix
+            resolved_token = authorization[7:]  # Remove "Bearer " prefix
         else:
-            # If authorization header doesn't start with Bearer, treat it as raw token
-            token = authorization
+            resolved_token = authorization
+    elif token is not None:
+        # Query parameter provided (no Authorization header)
+        if settings.ENVIRONMENT != "development":
+            logger.warning("Query parameter token rejected in non-development environment")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Query parameter authentication not allowed in production",
+            )
+        logger.warning(
+            "DEPRECATED: Token passed via query parameter. Use Authorization header instead."
+        )
+        resolved_token = token
+    else:
+        resolved_token = None
 
     # If no token found, require authentication
-    # Note: For testing, use proper JWT tokens generated via the test endpoints
-    if token is None:
+    if resolved_token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required",
         )
 
     # Verify the token
-    return verify_token(token, token_type="access")
+    return verify_token(resolved_token, token_type="access")
 
 
 # === Type Safety Helpers ===

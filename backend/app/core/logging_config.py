@@ -77,9 +77,8 @@ class TimezoneFormatter(logging.Formatter):
         # 尝试解析如 UTC+8, UTC-5 格式
         if tz_str.startswith("UTC"):
             try:
-                sign = 1 if "+" in tz_str else -1
                 offset = int(tz_str.replace("UTC", "").replace("+", ""))
-                return sign * offset
+                return offset
             except ValueError:
                 pass
 
@@ -227,19 +226,22 @@ def get_log_files(log_dir: str = DEFAULT_LOG_DIR, app_name: str = "app") -> dict
     return result
 
 
-# 从环境变量读取配置
+# Read configuration from Settings
 def setup_logging_from_env(app_name: str = "app") -> None:
-    """从环境变量读取配置并设置日志
+    """Read logging configuration from application settings.
 
-    环境变量:
-        LOG_LEVEL: 日志级别 (默认: INFO)
-        LOG_DIR: 日志目录 (默认: logs)
-        LOG_RETENTION_DAYS: 日志保留天数 (默认: 30)
-        TZ: 时区 (默认: Asia/Shanghai)
+    Settings fields (with env variable fallbacks):
+        LOG_LEVEL: Log level (default: INFO)
+        LOG_DIR: Log directory (default: logs)
+        LOG_RETENTION_DAYS: Log retention days (default: 30)
+        TZ: Timezone (default: Asia/Shanghai)
     """
-    log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
-    log_dir = os.getenv("LOG_DIR", DEFAULT_LOG_DIR)
-    retention_days = int(os.getenv("LOG_RETENTION_DAYS", str(DEFAULT_RETENTION_DAYS)))
+    from app.core.config import get_settings
+
+    s = get_settings()
+    log_level = getattr(s, "LOG_LEVEL", DEFAULT_LOG_LEVEL)
+    log_dir = getattr(s, "LOG_DIR", DEFAULT_LOG_DIR)
+    retention_days = getattr(s, "LOG_RETENTION_DAYS", DEFAULT_RETENTION_DAYS)
     timezone = os.getenv("TZ", DEFAULT_TIMEZONE)
 
     setup_logging(

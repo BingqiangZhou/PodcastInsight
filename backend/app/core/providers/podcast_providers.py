@@ -33,9 +33,18 @@ from .base_providers import get_db_session_dependency, get_redis_client
 from .subscription_providers import get_subscription_repository
 
 
-# Lazy import repositories to avoid circular dependencies
+# Cached repository classes (populated on first call)
+_cached_repos: dict | None = None
+
+
 def _get_repositories():
-    """Lazy import repositories to avoid circular dependencies."""
+    """Lazy import repositories to avoid circular dependencies.
+
+    Results are cached after the first call to avoid repeated imports.
+    """
+    global _cached_repos
+    if _cached_repos is not None:
+        return _cached_repos
     from app.domains.podcast.repositories import (
         PodcastEpisodeRepository,
         PodcastPlaybackRepository,
@@ -45,7 +54,7 @@ def _get_repositories():
         PodcastSubscriptionRepository,
         PodcastSummaryRepository,
     )
-    return {
+    _cached_repos = {
         "episode": PodcastEpisodeRepository,
         "playback": PodcastPlaybackRepository,
         "queue": PodcastQueueRepository,
@@ -54,6 +63,7 @@ def _get_repositories():
         "subscription": PodcastSubscriptionRepository,
         "summary": PodcastSummaryRepository,
     }
+    return _cached_repos
 
 
 def get_podcast_subscription_repository(

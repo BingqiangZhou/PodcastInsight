@@ -10,7 +10,6 @@ Usage:
     await redis.cache_set("key", "value", ttl=3600)
 """
 
-import asyncio
 import logging
 from contextlib import suppress
 from time import perf_counter
@@ -110,7 +109,22 @@ class PodcastRedis(
     # === Key Deletion ===
 
     async def _delete_keys_nonblocking(self, *keys: str) -> int:
-        """Delete keys using UNLINK when available to reduce Redis main-thread blocking."""
+        """Delete keys using UNLINK when available to reduce Redis main-thread blocking.
+
+        Accepts the same positional layout as
+        ``CacheOperations._delete_keys_nonblocking(client, *keys)``.
+        When the first argument is not a string (i.e. a Redis client
+        object passed by the mixin), it is silently ignored so that
+        PodcastRedis can manage the client internally.
+        """
+        if not keys:
+            return 0
+
+        # Compatibility shim: CacheOperations passes client as the first
+        # positional argument.  Detect and skip it.
+        if keys and not isinstance(keys[0], str):
+            keys = keys[1:]
+
         if not keys:
             return 0
 
@@ -279,8 +293,19 @@ class PodcastRedis(
             )
         return result
 
-    async def cache_get_json(self, key: str) -> Any | None:
-        """Get and parse JSON from cache."""
+    async def cache_get_json(
+        self,
+        key: str,
+        _client: Any = None,
+        _record_lookup: Any = None,
+    ) -> Any | None:
+        """Get and parse JSON from cache.
+
+        Accepts optional *_client* and *_record_lookup* parameters for
+        compatibility with CacheOperations mixin internals. These are
+        ignored because PodcastRedis manages the client and metrics
+        recording internally.
+        """
         client = await self._get_client()
         started = perf_counter()
         data = await client.get(key)
@@ -296,8 +321,19 @@ class PodcastRedis(
         await self._record_cache_lookup(key, hit=False)
         return None
 
-    async def cache_set_json(self, key: str, value: Any, ttl: int = CacheTTL.DEFAULT) -> bool:
-        """Serialize and cache JSON value."""
+    async def cache_set_json(
+        self,
+        key: str,
+        value: Any,
+        _client: Any = None,
+        ttl: int = CacheTTL.DEFAULT,
+    ) -> bool:
+        """Serialize and cache JSON value.
+
+        Accepts optional *_client* parameter for compatibility with
+        CacheOperations mixin internals. It is ignored because
+        PodcastRedis manages the client internally.
+        """
         from app.core.redis.client import redis_json_default
         client = await self._get_client()
         started = perf_counter()
@@ -598,7 +634,7 @@ class PodcastRedis(
         await self._record_command_timing("EVAL", (perf_counter() - started) * 1000)
         return bool(result)
 
-    # === Anti-Stampede Cache ===
+    # === Anti-Stampede Cache (delegated to CacheOperations mixin) ===
 
     async def cache_get_with_lock(
         self,
@@ -608,69 +644,23 @@ class PodcastRedis(
         lock_timeout: int = 10,
         max_wait_time: float = 3.0,
     ) -> tuple[Any, bool]:
-        """Get cached value with distributed lock to prevent cache stampede."""
-        # Try to get from cache first
-        value = await self.cache_get_json(key)
-        if value is not None:
-            await self._record_cache_lookup(key, hit=True)
-            return value, True
+        """Get cached value with distributed lock to prevent cache stampede.
 
-        # Try to acquire lock
-        lock_key = f"lock:{key}"
+        Delegates to CacheOperations.cache_get_with_lock, providing the
+        PodcastRedis client and metrics callbacks.
+        """
         client = await self._get_client()
-        started = perf_counter()
-        lock_acquired = await client.set(lock_key, "1", nx=True, ex=lock_timeout)
-        await self._record_command_timing("SET_NX", (perf_counter() - started) * 1000)
-
-        if lock_acquired:
-            try:
-                value = await loader()
-                await self.cache_set_json(key, value, ttl=ttl)
-                await self._record_cache_lookup(key, hit=False)
-                return value, False
-            finally:
-                await self._delete_keys_nonblocking(lock_key)
-        else:
-            # Wait with exponential backoff
-            wait_start = perf_counter()
-            initial_delay = 0.05
-            max_delay = 0.5
-            attempt = 0
-
-            while (perf_counter() - wait_start) < max_wait_time:
-                delay = min(initial_delay * (2 ** attempt), max_delay)
-                await asyncio.sleep(delay)
-
-                value = await self.cache_get_json(key)
-                if value is not None:
-                    await self._record_cache_lookup(key, hit=True)
-                    return value, True
-
-                started = perf_counter()
-                lock_exists = await client.exists(lock_key)
-                await self._record_command_timing("EXISTS", (perf_counter() - started) * 1000)
-
-                if not lock_exists:
-                    started = perf_counter()
-                    lock_acquired = await client.set(lock_key, "1", nx=True, ex=lock_timeout)
-                    await self._record_command_timing("SET_NX", (perf_counter() - started) * 1000)
-
-                    if lock_acquired:
-                        try:
-                            value = await loader()
-                            await self.cache_set_json(key, value, ttl=ttl)
-                            await self._record_cache_lookup(key, hit=False)
-                            return value, False
-                        finally:
-                            await self._delete_keys_nonblocking(lock_key)
-
-                attempt += 1
-
-            # Fallback
-            value = await loader()
-            await self.cache_set_json(key, value, ttl=ttl)
-            await self._record_cache_lookup(key, hit=False)
-            return value, False
+        return await CacheOperations.cache_get_with_lock(
+            self,
+            key=key,
+            loader=loader,
+            client=client,
+            ttl=ttl,
+            lock_timeout=lock_timeout,
+            max_wait_time=max_wait_time,
+            record_timing=self._record_command_timing,
+            record_lookup=self._record_cache_lookup,
+        )
 
     async def cache_get_or_load(
         self,
@@ -679,29 +669,22 @@ class PodcastRedis(
         ttl: int = CacheTTL.DEFAULT,
         stale_ttl: int = CacheTTL.STALE_REFRESH,
     ) -> Any:
-        """Get cached value with stale-while-revalidate pattern."""
-        value = await self.cache_get_json(key)
-        if value is not None:
-            client = await self._get_client()
-            started = perf_counter()
-            ttl_remaining = await client.ttl(key)
-            await self._record_command_timing("TTL", (perf_counter() - started) * 1000)
-            if ttl_remaining > 0 and ttl_remaining < stale_ttl:
-                asyncio.create_task(self._background_refresh(key, loader, ttl))
-                await self._record_cache_lookup(key, hit=True)
-            return value
-        value = await loader()
-        await self.cache_set_json(key, value, ttl=ttl)
-        await self._record_cache_lookup(key, hit=False)
-        return value
+        """Get cached value with stale-while-revalidate pattern.
 
-    async def _background_refresh(self, key: str, loader: Any, ttl: int) -> None:
-        """Background cache refresh task."""
-        try:
-            value = await loader()
-            await self.cache_set_json(key, value, ttl=ttl)
-        except Exception as e:
-            logger.warning("Background cache refresh failed for key %s: %s", key, e)
+        Delegates to CacheOperations.cache_get_or_load, providing the
+        PodcastRedis client and metrics callbacks.
+        """
+        client = await self._get_client()
+        return await CacheOperations.cache_get_or_load(
+            self,
+            key=key,
+            loader=loader,
+            client=client,
+            ttl=ttl,
+            stale_ttl=stale_ttl,
+            record_timing=self._record_command_timing,
+            record_lookup=self._record_cache_lookup,
+        )
 
 
 # === Module-level Functions ===

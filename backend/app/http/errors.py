@@ -227,7 +227,13 @@ def create_error_response(
 
 
 def register_admin_http_exception_handler(app: FastAPI) -> None:
-    """Register admin-specific redirects and HTML error rendering."""
+    """Register admin-specific redirects and HTML error rendering.
+
+    This handler extends the global http_exception_handler from app.core.exceptions
+    with admin-specific behavior (redirects, HTML error pages). For non-admin routes,
+    it delegates to the global custom handler to ensure consistent JSON error responses.
+    """
+    from app.core.exceptions import http_exception_handler as global_http_exception_handler
 
     @app.exception_handler(HTTPException)
     async def custom_http_exception_handler(request, exc):
@@ -265,6 +271,5 @@ def register_admin_http_exception_handler(app: FastAPI) -> None:
                 status_code=exc.status_code,
             )
 
-        from fastapi.exception_handlers import http_exception_handler
-
-        return await http_exception_handler(request, exc)
+        # Delegate to the global custom handler for consistent JSON error responses
+        return await global_http_exception_handler(request, exc)

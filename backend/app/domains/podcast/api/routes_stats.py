@@ -21,13 +21,13 @@ router = APIRouter(prefix="")
 @router.get(
     "/stats",
     response_model=PodcastStatsResponse,
-    summary="获取播客统计信息",
+    summary="Get podcast statistics",
 )
 async def get_podcast_stats(
     request: Request,
     service: PodcastStatsService = Depends(get_podcast_stats_service),
 ):
-    """获取用户的播客收听统计。"""
+    """Get podcast listening statistics for the user."""
     stats = await service.get_user_stats()
     response_data = build_podcast_stats_response(stats)
 

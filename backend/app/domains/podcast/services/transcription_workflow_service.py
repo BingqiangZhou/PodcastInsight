@@ -307,6 +307,7 @@ class TranscriptionWorkflowService:
         subscription_id: int,
         *,
         skip_existing: bool,
+        max_episodes: int = 50,
         subscription_lookup: Callable[[int], Awaitable[Any | None]],
     ) -> BatchTranscriptionProjection:
         subscription = await subscription_lookup(subscription_id)
@@ -316,6 +317,7 @@ class TranscriptionWorkflowService:
             self.db,
             subscription_id,
             skip_existing=skip_existing,
+            max_episodes=max_episodes,
         )
 
     async def get_schedule_status(

@@ -134,7 +134,7 @@ class Settings(BaseSettings):
     CELERY_WORKER_MAX_TASKS_PER_CHILD: int = 500
 
     # Podcast Processing Limits
-    MAX_PODCAST_SUBSCRIPTIONS: int = 999999  # Per user (unlimited)
+    MAX_PODCAST_SUBSCRIPTIONS: int = 0  # Per user (0 = unlimited)
     MAX_PODCAST_EPISODE_DOWNLOAD_SIZE: int = 500 * 1024 * 1024  # 500MB
     RSS_POLL_INTERVAL_MINUTES: int = 60  # Default polling interval
 
@@ -173,6 +173,9 @@ class Settings(BaseSettings):
     TRANSCRIPTION_TEMP_DIR: str = "./temp/transcription"
     TRANSCRIPTION_STORAGE_DIR: str = "./storage/podcasts"
 
+    # Transcription Batch Limits
+    TRANSCRIPTION_BATCH_MAX_EPISODES: int = 50  # Max episodes per batch transcription request
+
     # Transcription Concurrency Control
     TRANSCRIPTION_MAX_THREADS: int = 4  # Maximum concurrent transcription requests
     TRANSCRIPTION_QUEUE_SIZE: int = 100  # Maximum queue size for pending tasks
@@ -183,6 +186,11 @@ class Settings(BaseSettings):
 
     # Admin Panel 2FA Configuration
     ADMIN_2FA_ENABLED: bool = True  # Admin panel 2FA toggle (default: enabled)
+
+    # Logging Configuration
+    LOG_LEVEL: str = "INFO"  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    LOG_DIR: str = "logs"  # Log file directory
+    LOG_RETENTION_DAYS: int = 30  # Number of days to retain log files
 
     # Assistant and Chat Configuration
     ASSISTANT_TITLE_TRUNCATION_LENGTH: int = (

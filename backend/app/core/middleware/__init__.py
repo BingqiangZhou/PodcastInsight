@@ -31,6 +31,7 @@ class PerformanceMetricsStore:
     """Process-wide request metrics store."""
 
     _max_latency_samples = 1024
+    _MAX_ENDPOINT_KEYS = 256
 
     def __init__(self):
         self.request_counts: dict[str, int] = {}
@@ -56,6 +57,13 @@ class PerformanceMetricsStore:
         duration_ms: float,
         status_code: int | None = None,
     ) -> None:
+        # Evict least-recently-used endpoint key when limit is exceeded
+        if (
+            key not in self.request_counts
+            and len(self.request_counts) >= self._MAX_ENDPOINT_KEYS
+        ):
+            self._evict_lru_key()
+
         self.request_counts[key] = self.request_counts.get(key, 0) + 1
 
         if key not in self.response_times:
@@ -90,6 +98,25 @@ class PerformanceMetricsStore:
 
     def track_error(self, key: str) -> None:
         self.error_counts[key] = self.error_counts.get(key, 0) + 1
+
+    def _evict_lru_key(self) -> None:
+        """Evict the least-recently-used endpoint key from all store dicts."""
+        if not self.request_counts:
+            return
+        # Use request_counts as the canonical key set; pick the key with the
+        # lowest count as a proxy for least-recently-used.
+        lru_key = min(self.request_counts, key=self.request_counts.get)
+        evicted = lru_key
+        self.request_counts.pop(evicted, None)
+        self.response_times.pop(evicted, None)
+        self.error_counts.pop(evicted, None)
+        self.status_counts.pop(evicted, None)
+        self.latency_samples.pop(evicted, None)
+        logger.warning(
+            "Metrics store exceeded %d endpoint keys, evicted LRU key: %s",
+            self._MAX_ENDPOINT_KEYS,
+            evicted,
+        )
 
     def get_metrics(self) -> dict:
         response_stats: dict[str, dict[str, float]] = {}

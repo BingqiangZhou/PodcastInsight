@@ -10,9 +10,7 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.types import ASGIApp
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +18,7 @@ logger = logging.getLogger(__name__)
 class QueryCounter:
     """Thread-local query counter for tracking queries per request."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._counters: dict[int, dict[str, Any]] = defaultdict(
             lambda: {"count": 0, "queries": [], "start_time": None}
         )
@@ -86,11 +84,13 @@ async def track_queries():
             )
 
 
-class QueryAnalysisMiddleware(BaseHTTPMiddleware):
-    """Middleware to analyze database query patterns per request.
+class QueryAnalysisMiddleware:
+    """Pure ASGI middleware to analyze database query patterns per request.
 
     Detects potential N+1 queries by tracking the number of database
     queries executed during each request.
+
+    Avoids BaseHTTPMiddleware overhead by working directly with ASGI scope.
     """
 
     def __init__(
@@ -99,8 +99,8 @@ class QueryAnalysisMiddleware(BaseHTTPMiddleware):
         warning_threshold: int = 10,
         critical_threshold: int = 50,
         exclude_paths: set[str] | None = None,
-    ):
-        super().__init__(app)
+    ) -> None:
+        self.app = app
         self.warning_threshold = warning_threshold
         self.critical_threshold = critical_threshold
         self.exclude_paths = exclude_paths or {
@@ -111,38 +111,44 @@ class QueryAnalysisMiddleware(BaseHTTPMiddleware):
             "/redoc",
         }
 
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        """Track queries during request processing."""
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """Track queries during request processing (pure ASGI)."""
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         # Skip excluded paths
-        path = request.url.path
+        path = scope.get("path", "")
         if any(path.startswith(excluded) for excluded in self.exclude_paths):
-            return await call_next(request)
+            await self.app(scope, receive, send)
+            return
 
         # Start tracking
         query_counter.start_request()
         start_time = time.time()
 
         try:
-            response = await call_next(request)
+            await self.app(scope, receive, send)
         finally:
             # Analyze query patterns
             stats = query_counter.end_request()
             duration = time.time() - start_time
             query_count = stats["count"]
+            method = scope.get("method", "UNKNOWN")
 
             # Log based on threshold
             if query_count >= self.critical_threshold:
                 logger.error(
                     "CRITICAL: Potential N+1 query pattern detected - "
                     "Path: %s %s, Queries: %d, Duration: %.2fs",
-                    request.method,
+                    method,
                     path,
                     query_count,
                     duration,
                     extra={
                         "query_count": query_count,
                         "path": path,
-                        "method": request.method,
+                        "method": method,
                         "duration_ms": round(duration * 1000, 2),
                         "sample_queries": stats["queries"][:5],  # First 5 queries
                     },
@@ -151,27 +157,25 @@ class QueryAnalysisMiddleware(BaseHTTPMiddleware):
                 logger.warning(
                     "WARNING: High query count - "
                     "Path: %s %s, Queries: %d, Duration: %.2fs",
-                    request.method,
+                    method,
                     path,
                     query_count,
                     duration,
                     extra={
                         "query_count": query_count,
                         "path": path,
-                        "method": request.method,
+                        "method": method,
                         "duration_ms": round(duration * 1000, 2),
                     },
                 )
             elif query_count > 0:
                 logger.debug(
                     "Request queries: %s %s - %d queries in %.2fs",
-                    request.method,
+                    method,
                     path,
                     query_count,
                     duration,
                 )
-
-        return response
 
 
 def setup_query_counter_hooks() -> None:

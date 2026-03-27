@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.domains.podcast.models import (
     PodcastEpisode,
@@ -95,6 +96,7 @@ class PodcastTranscriptionScheduleService:
         frequency: ScheduleFrequency = ScheduleFrequency.DAILY,
         limit: int | None = None,
         skip_existing: bool = True,
+        max_episodes: int = 50,
     ) -> list[BatchTranscriptionDetailProjection]:
         stmt = (
             select(PodcastEpisode)
@@ -105,6 +107,15 @@ class PodcastTranscriptionScheduleService:
             stmt = stmt.limit(limit)
 
         episodes = (await self.db.execute(stmt)).scalars().all()
+
+        # Enforce batch limit to prevent unbounded Celery task creation
+        max_episodes = min(max_episodes, settings.TRANSCRIPTION_BATCH_MAX_EPISODES)
+        if len(episodes) > max_episodes:
+            logger.warning(
+                "Batch transcription limited: %d -> %d episodes (max: %d)",
+                len(episodes), max_episodes, settings.TRANSCRIPTION_BATCH_MAX_EPISODES,
+            )
+            episodes = episodes[:max_episodes]
         if not episodes:
             return []
 
@@ -332,11 +343,13 @@ async def batch_transcribe_subscription(
     db: AsyncSession,
     subscription_id: int,
     skip_existing: bool = True,
+    max_episodes: int = 50,
 ) -> BatchTranscriptionProjection:
     scheduler = PodcastTranscriptionScheduleService(db)
     results = await scheduler.batch_schedule_transcription(
         subscription_id=subscription_id,
         skip_existing=skip_existing,
+        max_episodes=max_episodes,
     )
 
     return BatchTranscriptionProjection(

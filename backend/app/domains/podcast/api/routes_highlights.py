@@ -29,7 +29,7 @@ router = APIRouter(prefix="")
 )
 async def list_highlights(
     page: int = Query(1, ge=1, description="Page number"),
-    per_page: int = Query(20, ge=1, le=100, description="Items per page"),
+    size: int = Query(20, ge=1, le=100, description="Items per page"),
     episode_id: int | None = Query(None, description="Filter by episode ID"),
     min_score: float | None = Query(None, ge=0, le=10, description="Minimum overall score"),
     date_from: date | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
@@ -40,7 +40,7 @@ async def list_highlights(
     """Get highlights list with pagination and filtering."""
     result = await service.get_highlights(
         page=page,
-        per_page=per_page,
+        per_page=size,
         episode_id=episode_id,
         min_score=min_score,
         date_from=date_from,

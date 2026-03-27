@@ -4,49 +4,57 @@ Provides gzip compression for large responses and enforces payload size limits.
 """
 
 import logging
-from typing import Callable
+from typing import Any
 
-from fastapi import FastAPI, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
 
-class PayloadSizeLimitMiddleware(BaseHTTPMiddleware):
-    """Middleware to enforce request payload size limits.
+class PayloadSizeLimitMiddleware:
+    """Pure ASGI middleware to enforce request payload size limits.
 
     Prevents excessively large request bodies from being processed,
     protecting against DoS attacks and resource exhaustion.
+
+    Avoids BaseHTTPMiddleware overhead by working directly with ASGI scope.
     """
 
     def __init__(
         self,
-        app: FastAPI,
+        app: ASGIApp,
         max_content_length: int = 10 * 1024 * 1024,  # 10MB default
         exclude_paths: set[str] | None = None,
-    ):
-        super().__init__(app)
+    ) -> None:
+        self.app = app
         self.max_content_length = max_content_length
         self.exclude_paths = exclude_paths or {
             "/api/v1/health",
             "/metrics",
         }
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Check payload size before processing request."""
-        # Skip for non-body methods
-        if request.method not in ["POST", "PUT", "PATCH"]:
-            return await call_next(request)
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        # Only check methods that carry a body
+        method = scope.get("method", "")
+        if method not in ("POST", "PUT", "PATCH"):
+            await self.app(scope, receive, send)
+            return
 
         # Skip excluded paths
-        path = request.url.path
+        path = scope.get("path", "")
         if any(path.startswith(excluded) for excluded in self.exclude_paths):
-            return await call_next(request)
+            await self.app(scope, receive, send)
+            return
 
         # Check Content-Length header
-        content_length = request.headers.get("content-length")
+        headers = dict(scope.get("headers", []))
+        content_length = headers.get(b"content-length", b"").decode("latin-1")
         if content_length:
             try:
                 length = int(content_length)
@@ -55,33 +63,44 @@ class PayloadSizeLimitMiddleware(BaseHTTPMiddleware):
                         "Request payload too large: %d bytes (max: %d) - Path: %s %s",
                         length,
                         self.max_content_length,
-                        request.method,
+                        method,
                         path,
                     )
-                    return JSONResponse(
-                        status_code=413,
-                        content={
-                            "detail": "Request payload too large",
-                            "max_size_bytes": self.max_content_length,
-                            "message_en": "Request payload too large. Maximum size is 10MB.",
-                            "message_zh": "请求负载过大。最大限制为10MB。",
-                        },
-                    )
+                    await self._send_payload_too_large(send)
+                    return
             except ValueError:
                 pass  # Invalid Content-Length header, let it through
 
-        # Check for Transfer-Encoding: chunked (can't know size upfront)
-        transfer_encoding = request.headers.get("transfer-encoding", "").lower()
-        if "chunked" in transfer_encoding:
-            # For chunked uploads, we rely on the receiving endpoint to enforce limits
-            # This is common for file uploads which are streamed
-            pass
+        # Chunked transfers rely on the receiving endpoint to enforce limits
+        # This is common for file uploads which are streamed
+        await self.app(scope, receive, send)
 
-        return await call_next(request)
+    async def _send_payload_too_large(self, send: Send) -> None:
+        """Send 413 Payload Too Large response directly via ASGI."""
+        import orjson
+
+        body = orjson.dumps({
+            "detail": "Request payload too large",
+            "max_size_bytes": self.max_content_length,
+            "message_en": "Request payload too large. Maximum size is 10MB.",
+            "message_zh": "请求负载过大。最大限制为10MB。",
+        })
+
+        await send({
+            "type": "http.response.start",
+            "status": 413,
+            "headers": [
+                [b"content-type", b"application/json; charset=utf-8"],
+            ],
+        })
+        await send({
+            "type": "http.response.body",
+            "body": body,
+        })
 
 
 def configure_response_optimization(
-    app: FastAPI,
+    app: Any,
     compression_min_size: int = 1000,  # Compress responses > 1KB
     max_payload_size: int = 10 * 1024 * 1024,  # 10MB
 ) -> None:

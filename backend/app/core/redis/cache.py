@@ -23,7 +23,6 @@ class CacheOperations:
 
     async def cache_get(self, client: Any, key: str) -> str | None:
         """Get cached value."""
-        started = perf_counter()
         value = await client.get(key)
         # Note: timing recorded by caller
         return value
@@ -32,25 +31,21 @@ class CacheOperations:
         self, client: Any, key: str, value: str, ttl: int = CacheTTL.DEFAULT
     ) -> bool:
         """Set cached value with TTL."""
-        started = perf_counter()
         result = await client.setex(key, ttl, value)
         return result
 
     async def cache_delete(self, client: Any, key: str) -> bool:
         """Delete cached value."""
-        started = perf_counter()
         result = await client.delete(key)
         return result
 
     async def cache_hget(self, client: Any, key: str, field: str) -> str | None:
         """Get hash field."""
-        started = perf_counter()
         value = await client.hget(key, field)
         return value
 
     async def cache_hgetall(self, client: Any, key: str) -> dict[str, str]:
         """Get all hash fields."""
-        started = perf_counter()
         value = await client.hgetall(key)
         return value
 
@@ -58,10 +53,8 @@ class CacheOperations:
         self, client: Any, key: str, mapping: dict, ttl: int | None = None
     ) -> int:
         """Set hash fields with optional TTL."""
-        started = perf_counter()
         result = await client.hset(key, mapping=mapping)
         if ttl:
-            expire_started = perf_counter()
             await client.expire(key, ttl)
         return result
 
@@ -239,7 +232,6 @@ class CacheOperations:
         if not keys:
             return 0
 
-        started = perf_counter()
         try:
             result = await client.unlink(*keys)
             return int(result or 0)

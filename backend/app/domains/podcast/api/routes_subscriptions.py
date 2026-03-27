@@ -183,6 +183,7 @@ async def delete_subscription(
     success = await service.remove_subscription(subscription_id)
     if not success:
         raise HTTPException(status_code=404, detail="Subscription not found")
+    # TODO: Add a proper response model (e.g. ActionSuccessResponse) instead of raw dict
     return {"success": True, "message": "Subscription deleted"}
 
 
@@ -196,6 +197,7 @@ async def refresh_subscription(
 ):
     try:
         new_episodes = await service.refresh_subscription(subscription_id)
+        # TODO: Add a proper response model (e.g. RefreshResponse) instead of raw dict
         return {
             "success": True,
             "new_episodes": len(new_episodes),
@@ -222,6 +224,7 @@ async def reparse_subscription(
         result = await service.reparse_subscription(
             subscription_id, force_all=force_all
         )
+        # TODO: Add a proper response model (e.g. ReparseResponse) instead of raw dict
         return {"success": True, "result": result}
     except SubscriptionNotFoundError:
         raise HTTPException(status_code=404, detail="Subscription not found")

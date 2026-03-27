@@ -87,9 +87,9 @@ class PodcastSubscriptionService:
         if not success:
             raise ValueError(f"Cannot parse podcast: {error}")
 
-        # 2. Check subscription limit
+        # 2. Check subscription limit (0 means unlimited)
         existing_subs = await self.repo.get_user_subscriptions(self.user_id)
-        if len(existing_subs) >= settings.MAX_PODCAST_SUBSCRIPTIONS:
+        if settings.MAX_PODCAST_SUBSCRIPTIONS > 0 and len(existing_subs) >= settings.MAX_PODCAST_SUBSCRIPTIONS:
             raise ValueError(
                 f"Maximum subscription limit reached: {settings.MAX_PODCAST_SUBSCRIPTIONS}",
             )
