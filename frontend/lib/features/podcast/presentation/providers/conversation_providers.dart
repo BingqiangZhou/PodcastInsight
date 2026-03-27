@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/podcast_conversation_model.dart';
@@ -44,7 +45,7 @@ class SessionIdNotifier extends Notifier<int?> {
 // === State Classes ===
 
 /// Conversation state class
-class ConversationState {
+class ConversationState extends Equatable {
   final List<PodcastConversationMessage> messages;
   final bool isLoading;
   final bool isSending;
@@ -88,6 +89,16 @@ class ConversationState {
       sessionId: sessionId ?? this.sessionId,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        messages,
+        isLoading,
+        isSending,
+        errorMessage,
+        currentSendingTurn,
+        sessionId,
+      ];
 }
 
 // === Notifiers ===
@@ -175,6 +186,7 @@ class SessionListNotifier extends AsyncNotifier<List<ConversationSession>> {
 class ConversationNotifier extends Notifier<ConversationState> {
   final int episodeId;
   Completer<void>? _loadCompleter;
+  int? _loadingSessionId;
 
   ConversationNotifier(this.episodeId);
 
@@ -194,11 +206,19 @@ class ConversationNotifier extends Notifier<ConversationState> {
 
   /// Load conversation history from backend
   Future<void> _loadHistory(int? sessionId) async {
-    // Skip if a load is already in flight for this session
-    final completer = _loadCompleter;
-    if (completer != null && !completer.isCompleted) {
-      return;
+    if (sessionId == null) return;
+
+    // Cancel if session changed since last load started
+    if (_loadingSessionId != null && _loadingSessionId != sessionId) {
+      _loadCompleter?.completeError('Session changed');
+      _loadCompleter = null;
     }
+
+    // Skip if already loading the SAME session
+    final completer = _loadCompleter;
+    if (completer != null && !completer.isCompleted) return;
+
+    _loadingSessionId = sessionId;
     _loadCompleter = Completer<void>();
 
     try {
@@ -213,6 +233,7 @@ class ConversationNotifier extends Notifier<ConversationState> {
         isLoading: false,
         sessionId: sessionId,
       );
+      _loadCompleter?.complete();
     } catch (e) {
       state = ConversationState(
         messages: const [],
@@ -220,8 +241,10 @@ class ConversationNotifier extends Notifier<ConversationState> {
         errorMessage: e.toString(),
         sessionId: sessionId,
       );
+      _loadCompleter?.completeError(e);
     } finally {
-      _loadCompleter?.complete();
+      _loadCompleter = null;
+      _loadingSessionId = null;
     }
   }
 

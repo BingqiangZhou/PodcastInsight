@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,7 +16,7 @@ final podcastSearchDebounceDurationProvider = Provider<Duration>((ref) {
   return const Duration(milliseconds: 400);
 });
 
-class PodcastSearchState {
+class PodcastSearchState extends Equatable {
   final List<PodcastSearchResult> podcastResults;
   final List<ITunesPodcastEpisodeResult> episodeResults;
   final bool isLoading;
@@ -57,6 +58,18 @@ class PodcastSearchState {
       searchMode: searchMode ?? this.searchMode,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        podcastResults,
+        episodeResults,
+        isLoading,
+        hasSearched,
+        error,
+        currentQuery,
+        searchCountry,
+        searchMode,
+      ];
 }
 
 final iTunesSearchServiceProvider = Provider<ITunesSearchService>((ref) {

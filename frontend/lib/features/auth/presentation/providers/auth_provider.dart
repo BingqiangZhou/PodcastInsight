@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -54,7 +55,7 @@ final authProvider = NotifierProvider<AuthNotifier, AuthState>(
   AuthNotifier.new,
 );
 
-class AuthState {
+class AuthState extends Equatable {
   final User? user;
   final bool isLoading;
   final bool isAuthenticated;
@@ -94,6 +95,17 @@ class AuthState {
       fieldErrors: clearFieldErrors ? null : (fieldErrors ?? this.fieldErrors),
     );
   }
+
+  @override
+  List<Object?> get props => [
+        user,
+        isLoading,
+        isAuthenticated,
+        error,
+        isRefreshingToken,
+        currentOperation,
+        fieldErrors,
+      ];
 }
 
 enum AuthOperation {
