@@ -132,7 +132,7 @@ class _ProfileSubscriptionsPageState
   Widget _buildHeaderPanel(BuildContext context) {
     final l10n = context.l10n;
     final isMobile =
-        MediaQuery.sizeOf(context).width < AppBreakpoints.medium;
+        MediaQuery.sizeOf(context).width < Breakpoints.medium;
     return CompactHeaderPanel(
       title: l10n.profile_subscriptions,
       trailing: Row(

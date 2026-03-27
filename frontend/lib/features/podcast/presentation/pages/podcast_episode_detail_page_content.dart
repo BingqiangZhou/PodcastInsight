@@ -110,7 +110,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
 
   Widget _buildSummaryTabContent(PodcastEpisodeDetailResponse episode) {
     final isCompact =
-        MediaQuery.sizeOf(context).width < AppBreakpoints.medium;
+        MediaQuery.sizeOf(context).width < Breakpoints.medium;
 
     return ScrollableContentWrapper(
       key: _summaryKey,

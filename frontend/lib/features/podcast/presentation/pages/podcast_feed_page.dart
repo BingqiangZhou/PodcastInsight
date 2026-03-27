@@ -307,7 +307,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
-        final isMobile = screenWidth < AppBreakpoints.medium;
+        final isMobile = screenWidth < Breakpoints.medium;
 
         if (feedState.episodes.isEmpty) {
           return _buildEmptyFeedWithEntry(context, mobile: isMobile);
@@ -332,7 +332,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     required PodcastFeedState feedState,
     required double screenWidth,
   }) {
-    final isMobile = screenWidth < AppBreakpoints.medium;
+    final isMobile = screenWidth < Breakpoints.medium;
     final itemCount = feedState.episodes.length + (feedState.hasMore ? 1 : 0);
 
     if (isMobile) {

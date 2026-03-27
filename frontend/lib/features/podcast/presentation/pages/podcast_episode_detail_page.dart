@@ -270,7 +270,7 @@ class _PodcastEpisodeDetailPageState
       return;
     }
 
-    if (MediaQuery.sizeOf(context).width >= AppBreakpoints.medium) {
+    if (MediaQuery.sizeOf(context).width >= Breakpoints.medium) {
       return;
     }
 

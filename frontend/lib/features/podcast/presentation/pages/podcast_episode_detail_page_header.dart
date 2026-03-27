@@ -2,7 +2,7 @@ part of 'podcast_episode_detail_page.dart';
 
 extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   bool get _isCompactPhoneLayout =>
-      MediaQuery.sizeOf(context).width < AppBreakpoints.medium;
+      MediaQuery.sizeOf(context).width < Breakpoints.medium;
 
   bool get _isUltraCompactPhoneLayout => MediaQuery.sizeOf(context).width < 360;
 

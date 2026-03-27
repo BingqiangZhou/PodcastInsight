@@ -1,32 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// 应用程序响应式断点常量
-///
-/// 基于Material Design 3推荐断点实现
-class AppBreakpoints {
-  const AppBreakpoints._();
-
-  /// 小屏幕断点 - 移动设备
-  /// < 600dp width
-  static const double small = 0;
-
-  /// 中等屏幕断点 - 平板竖屏
-  /// >= 600dp width
-  static const double medium = 600;
-
-  /// 中大屏幕断点 - 平板横屏
-  /// >= 840dp width
-  static const double mediumLarge = 840;
-
-  /// 大屏幕断点 - 桌面
-  /// >= 1200dp width
-  static const double large = 1200;
-
-  /// 超大屏幕断点 - 大桌面
-  /// >= 1600dp width
-  static const double extraLarge = 1600;
-}
-
 /// 替代flutter_adaptive_scaffold的Breakpoints类
 class Breakpoints {
   const Breakpoints._();

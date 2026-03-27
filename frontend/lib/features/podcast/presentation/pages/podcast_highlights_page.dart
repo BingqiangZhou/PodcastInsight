@@ -148,7 +148,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   Widget _buildHeaderPanel(BuildContext context) {
     final isMobile =
-        MediaQuery.sizeOf(context).width < AppBreakpoints.medium;
+        MediaQuery.sizeOf(context).width < Breakpoints.medium;
     final l10n = context.l10n;
 
     return CompactHeaderPanel(
@@ -431,7 +431,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   Future<void> _showCalendarPanel() async {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final horizontalPadding =
-        screenWidth < AppBreakpoints.medium ? 12.0 : 16.0;
+        screenWidth < Breakpoints.medium ? 12.0 : 16.0;
 
     await showGeneralDialog<void>(
       context: context,

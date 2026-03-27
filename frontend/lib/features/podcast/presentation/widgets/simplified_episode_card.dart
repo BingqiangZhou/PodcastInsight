@@ -28,7 +28,7 @@ class SimplifiedEpisodeCard extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final isMobile =
-        MediaQuery.sizeOf(context).width < AppBreakpoints.medium;
+        MediaQuery.sizeOf(context).width < Breakpoints.medium;
     final titleTextStyle = theme.textTheme.titleMedium?.copyWith(
       fontWeight: FontWeight.w600,
       fontSize: 13,

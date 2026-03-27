@@ -40,10 +40,10 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        if (width < AppBreakpoints.medium) {
+        if (width < Breakpoints.medium) {
           return _buildMobileLayout(context, width);
         }
-        if (width < AppBreakpoints.mediumLarge) {
+        if (width < Breakpoints.mediumLarge) {
           return _buildTabletLayout(context);
         }
         return _buildDesktopLayout(context, expanded: desktopNavExpanded);
@@ -572,14 +572,14 @@ class ResponsiveContainer extends StatelessWidget {
     final resolvedPadding =
         padding ??
         EdgeInsets.fromLTRB(
-          width < AppBreakpoints.medium ? 16 : 24,
-          (width < AppBreakpoints.medium ? 12 : 20) + topPadding,
-          width < AppBreakpoints.medium ? 16 : 24,
+          width < Breakpoints.medium ? 16 : 24,
+          (width < Breakpoints.medium ? 12 : 20) + topPadding,
+          width < Breakpoints.medium ? 16 : 24,
           0,
         );
     final resolvedMaxWidth =
         maxWidth ??
-        (width < AppBreakpoints.medium
+        (width < Breakpoints.medium
             ? width
             : width < 900
             ? 920

@@ -12,9 +12,9 @@ class ResponsiveHelpers {
   static EdgeInsetsGeometry getResponsivePadding(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    if (screenWidth < AppBreakpoints.medium) {
+    if (screenWidth < Breakpoints.medium) {
       return const EdgeInsets.all(AppSpacing.lg); // 移动端
-    } else if (screenWidth < AppBreakpoints.mediumLarge) {
+    } else if (screenWidth < Breakpoints.mediumLarge) {
       return const EdgeInsets.all(AppSpacing.xl); // 平板端
     } else {
       return const EdgeInsets.all(AppSpacing.xxl); // 桌面端
@@ -27,9 +27,9 @@ class ResponsiveHelpers {
   ) {
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    if (screenWidth < AppBreakpoints.medium) {
+    if (screenWidth < Breakpoints.medium) {
       return const EdgeInsets.symmetric(horizontal: AppSpacing.lg); // 移动端
-    } else if (screenWidth < AppBreakpoints.mediumLarge) {
+    } else if (screenWidth < Breakpoints.mediumLarge) {
       return const EdgeInsets.symmetric(horizontal: AppSpacing.xl); // 平板端
     } else {
       return const EdgeInsets.symmetric(horizontal: AppSpacing.xxl); // 桌面端
@@ -40,9 +40,9 @@ class ResponsiveHelpers {
   static EdgeInsetsGeometry getResponsiveVerticalPadding(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    if (screenWidth < AppBreakpoints.medium) {
+    if (screenWidth < Breakpoints.medium) {
       return const EdgeInsets.symmetric(vertical: AppSpacing.sm); // 移动端
-    } else if (screenWidth < AppBreakpoints.mediumLarge) {
+    } else if (screenWidth < Breakpoints.mediumLarge) {
       return const EdgeInsets.symmetric(vertical: AppSpacing.md); // 平板端
     } else {
       return const EdgeInsets.symmetric(vertical: AppSpacing.lg); // 桌面端
@@ -53,12 +53,12 @@ class ResponsiveHelpers {
   static double getResponsiveMaxWidth(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    if (screenWidth < AppBreakpoints.medium) {
+    if (screenWidth < Breakpoints.medium) {
       return screenWidth; // 移动端全宽
-    } else if (screenWidth < AppBreakpoints.mediumLarge) {
-      return AppBreakpoints.mediumLarge; // 平板端限制宽度
+    } else if (screenWidth < Breakpoints.mediumLarge) {
+      return Breakpoints.mediumLarge; // 平板端限制宽度
     } else {
-      return AppBreakpoints.large; // 桌面端限制宽度
+      return Breakpoints.large; // 桌面端限制宽度
     }
   }
 }

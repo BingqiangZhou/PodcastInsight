@@ -115,7 +115,7 @@ class _PodcastDailyReportPageState
   Widget _buildHeaderPanel(BuildContext context) {
     final l10n = context.l10n;
     final isMobile =
-        MediaQuery.sizeOf(context).width < AppBreakpoints.medium;
+        MediaQuery.sizeOf(context).width < Breakpoints.medium;
     return CompactHeaderPanel(
       title: l10n.podcast_daily_report_title,
       trailing: isMobile
@@ -493,7 +493,7 @@ class _PodcastDailyReportPageState
   Future<void> _showCalendarPanel() async {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final horizontalPadding =
-        screenWidth < AppBreakpoints.medium ? 12.0 : 16.0;
+        screenWidth < Breakpoints.medium ? 12.0 : 16.0;
 
     await showGeneralDialog<void>(
       context: context,

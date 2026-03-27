@@ -223,10 +223,10 @@ PodcastPlayerSurfaceContext _resolveSurfaceContext(
 }
 
 PodcastPlayerLayoutMode resolvePodcastPlayerLayoutMode(double width) {
-  if (width < AppBreakpoints.medium) {
+  if (width < Breakpoints.medium) {
     return PodcastPlayerLayoutMode.mobile;
   }
-  if (width < AppBreakpoints.mediumLarge) {
+  if (width < Breakpoints.mediumLarge) {
     return PodcastPlayerLayoutMode.tablet;
   }
   return PodcastPlayerLayoutMode.desktop;
