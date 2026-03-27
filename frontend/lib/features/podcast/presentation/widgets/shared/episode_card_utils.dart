@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/time_formatter.dart';
+
 /// Shared utilities for episode card widgets.
 ///
 /// Provides common formatting and styling to reduce code duplication
@@ -9,14 +11,8 @@ class EpisodeCardUtils {
 
   /// Formats a DateTime to 'YYYY-MM-DD' format using local time.
   ///
-  /// Handles both UTC and local DateTime objects by converting to local time first.
-  static String formatDate(DateTime date) {
-    final localDate = date.isUtc ? date.toLocal() : date;
-    final year = localDate.year;
-    final month = localDate.month.toString().padLeft(2, '0');
-    final day = localDate.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
-  }
+  /// Delegates to [TimeFormatter.formatDate] for consistency across the app.
+  static String formatDate(DateTime date) => TimeFormatter.formatDate(date);
 
   /// Creates a compact icon button style suitable for episode action buttons.
   ///
