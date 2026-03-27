@@ -11,7 +11,7 @@ import '../../data/models/podcast_highlight_model.dart';
 import '../providers/podcast_highlights_providers.dart';
 import 'highlight_card.dart';
 import 'highlight_detail_sheet.dart';
-import 'podcast_empty_state.dart';
+import '../../../../shared/widgets/empty_state_widget.dart';
 import '../providers/transcription_providers.dart';
 import '../../data/models/podcast_transcription_model.dart';
 import '../services/content_image_share_service.dart';
@@ -827,7 +827,7 @@ class TranscriptDisplayWidgetState
 
   Widget _buildEmptyState(BuildContext context) {
     final l10n = context.l10n;
-    return PodcastEmptyState(
+    return EmptyStateWidget(
       icon: Icons.article_outlined,
       title: l10n.podcast_no_transcript,
       subtitle: l10n.podcast_click_to_transcribe,

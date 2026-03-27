@@ -11,7 +11,7 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/app_localizations_en.dart';
 import '../../../../core/utils/app_logger.dart' as logger;
 import '../../../../core/widgets/top_floating_notice.dart';
-import 'podcast_empty_state.dart';
+import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../core/utils/html_sanitizer.dart';
 import '../../data/models/podcast_episode_model.dart';
 
@@ -608,7 +608,7 @@ class ShownotesDisplayWidgetState
 
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
-    return PodcastEmptyState(
+    return EmptyStateWidget(
       icon: Icons.description_outlined,
       title: l10n.podcast_no_shownotes,
     );

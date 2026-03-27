@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
-class PodcastEmptyState extends StatelessWidget {
-  const PodcastEmptyState({
+/// Generic empty state widget with icon, title, and optional subtitle.
+///
+/// Can be used across any feature to display an empty/content-unavailable state
+/// with consistent styling.
+class EmptyStateWidget extends StatelessWidget {
+  const EmptyStateWidget({
     super.key,
     required this.icon,
     required this.title,
