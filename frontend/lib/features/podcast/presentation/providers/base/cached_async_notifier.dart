@@ -38,6 +38,7 @@ abstract class CachedAsyncNotifier<T> extends AsyncNotifier<T> {
 
   DateTime? _lastFetchTime;
   Future<T?>? _inFlightRequest;
+  bool _isDisposed = false;
 
   /// Whether the currently held data is still within the cache window.
   bool get isFresh {
@@ -88,7 +89,14 @@ abstract class CachedAsyncNotifier<T> extends AsyncNotifier<T> {
         if (previousData == null) {
           state = AsyncValue.error(error, stackTrace);
         } else {
-          state = AsyncValue.data(previousData);
+          // Briefly emit error so UI can react (e.g. show toast), then
+          // schedule fallback to stale data on the next microtask.
+          state = AsyncValue.error(error, stackTrace);
+          Future.microtask(() {
+            if (!_isDisposed) {
+              state = AsyncValue.data(previousData);
+            }
+          });
         }
         return previousData;
       } finally {
@@ -104,5 +112,10 @@ abstract class CachedAsyncNotifier<T> extends AsyncNotifier<T> {
   void resetCache() {
     _lastFetchTime = null;
     _inFlightRequest = null;
+  }
+
+  /// Mark the notifier as disposed to prevent state updates after disposal.
+  void markDisposed() {
+    _isDisposed = true;
   }
 }

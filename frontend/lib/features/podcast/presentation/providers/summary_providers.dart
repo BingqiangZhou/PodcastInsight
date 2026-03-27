@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/podcast_playback_model.dart';
@@ -20,15 +21,11 @@ final availableModelsProvider = FutureProvider<List<SummaryModelInfo>>((
   ref,
 ) async {
   final repository = ref.read(podcastRepositoryProvider);
-  try {
-    return await repository.getSummaryModels();
-  } catch (e) {
-    return [];
-  }
+  return await repository.getSummaryModels();
 });
 
 /// Summary state class
-class SummaryState {
+class SummaryState extends Equatable {
   static const Object _unset = Object();
 
   final String? summary;
@@ -86,6 +83,18 @@ class SummaryState {
           : errorMessage as String?,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        summary,
+        modelUsed,
+        processingTime,
+        wordCount,
+        generatedAt,
+        isLoading,
+        hidePersistedSummary,
+        errorMessage,
+      ];
 }
 
 /// Notifier for managing summary state
@@ -193,15 +202,18 @@ class SummaryNotifier extends Notifier<SummaryState> {
 
     _pollInFlight = true;
     try {
-      ref.invalidate(episodeDetailProvider(episodeId));
-      final episode = await ref.read(episodeDetailProvider(episodeId).future);
-      final summary = episode?.aiSummary;
-      final summaryStatus = episode?.summaryStatus;
+      // Read directly from the repository to check status without
+      // invalidating the provider, which would cause a full re-fetch
+      // and disrupt any UI watching the episode detail provider.
+      final repository = ref.read(podcastRepositoryProvider);
+      final episode = await repository.getEpisode(episodeId);
+      final summary = episode.aiSummary;
+      final summaryStatus = episode.summaryStatus;
       if (summaryStatus == 'summary_failed') {
         state = state.copyWith(
           isLoading: false,
           errorMessage:
-              episode?.summaryErrorMessage ?? 'Summary generation failed',
+              episode.summaryErrorMessage ?? 'Summary generation failed',
         );
         _stopPolling();
         return;
@@ -212,8 +224,8 @@ class SummaryNotifier extends Notifier<SummaryState> {
           summary.isNotEmpty) {
         updateSummary(
           summary,
-          modelUsed: episode?.summaryModelUsed,
-          processingTime: episode?.summaryProcessingTime,
+          modelUsed: episode.summaryModelUsed,
+          processingTime: episode.summaryProcessingTime,
         );
         return;
       }
