@@ -128,7 +128,6 @@ class _MiniDockBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final queueSheetOpen = ref.watch(podcastPlayerQueueSheetOpenProvider);
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
       child: Row(
@@ -163,28 +162,31 @@ class _MiniDockBody extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: _MiniProgressIndicator(
-                            progressColor: theme.colorScheme.primary,
-                            progressTrackColor:
-                                theme.colorScheme.surfaceContainerHighest,
+                  // Isolate progress repaints (500ms ticks) from the rest of the dock.
+                  RepaintBoundary(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: _MiniProgressIndicator(
+                              progressColor: theme.colorScheme.primary,
+                              progressTrackColor:
+                                  theme.colorScheme.surfaceContainerHighest,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      _MiniProgressText(
-                        textStyle:
-                            theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                            ) ??
-                            const TextStyle(),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        _MiniProgressText(
+                          textStyle:
+                              theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ) ??
+                              const TextStyle(),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -202,15 +204,25 @@ class _MiniDockBody extends ConsumerWidget {
             playTooltip: playTooltip,
           ),
           const SizedBox(width: 6),
-          IconButton(
-            key: showPrimaryKeys
-                ? const Key('podcast_bottom_player_mini_playlist')
-                : const ValueKey('podcast_bottom_player_mini_playlist_overlay'),
-            tooltip: listTooltip,
-            onPressed: queueSheetOpen
-                ? null
-                : () => _showQueueSheet(context, ref),
-            icon: const Icon(Icons.playlist_play_rounded),
+          // Queue button: isolated Consumer so the dock body does not
+          // rebuild when queue-sheet state changes.
+          Consumer(
+            builder: (context, ref, _) {
+              final queueSheetOpen =
+                  ref.watch(podcastPlayerQueueSheetOpenProvider);
+              return IconButton(
+                key: showPrimaryKeys
+                    ? const Key('podcast_bottom_player_mini_playlist')
+                    : const ValueKey(
+                        'podcast_bottom_player_mini_playlist_overlay',
+                      ),
+                tooltip: listTooltip,
+                onPressed: queueSheetOpen
+                    ? null
+                    : () => _showQueueSheet(context, ref),
+                icon: const Icon(Icons.playlist_play_rounded),
+              );
+            },
           ),
         ],
       ),

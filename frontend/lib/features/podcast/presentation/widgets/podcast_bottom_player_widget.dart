@@ -44,20 +44,37 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final PodcastEpisodeModel? episode =
-        episodeOverride ?? ref.watch(audioCurrentEpisodeProvider);
-    final PodcastPlayerHostLayout layout =
-        layoutOverride ?? ref.watch(podcastPlayerHostLayoutProvider);
-    final bool isExpanded =
-        isExpandedOverride ?? ref.watch(podcastPlayerExpandedProvider);
-    if (episode == null || !layout.miniPlayerVisible) {
+    // Early-exit gate: watch only what is needed to decide visibility.
+    // Using .select() avoids rebuilding when unrelated fields change.
+    final bool hasEpisode = episodeOverride != null ||
+        ref.watch(
+          audioCurrentEpisodeProvider.select((e) => e != null),
+        );
+    if (!hasEpisode) {
       return const SizedBox.shrink();
     }
+
+    final bool miniPlayerVisible = layoutOverride?.miniPlayerVisible ??
+        ref.watch(
+          podcastPlayerHostLayoutProvider
+              .select((l) => l.miniPlayerVisible),
+        );
+    if (!miniPlayerVisible) {
+      return const SizedBox.shrink();
+    }
+
+    // Now read the full data needed for building the dock.
+    final PodcastEpisodeModel? episode =
+        episodeOverride ?? ref.read(audioCurrentEpisodeProvider);
+    final PodcastPlayerHostLayout layout =
+        layoutOverride ?? ref.read(podcastPlayerHostLayoutProvider);
+    final bool isExpanded =
+        isExpandedOverride ?? ref.watch(podcastPlayerExpandedProvider);
 
     final spec =
         viewportSpec ?? resolvePodcastPlayerViewportSpec(context, layout);
     final dock = _PodcastMiniDock(
-      episode: episode,
+      episode: episode!,
       viewportSpec: spec,
       applySafeArea: applySafeArea,
     );

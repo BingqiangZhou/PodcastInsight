@@ -5,53 +5,61 @@ class _TransportRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final queueSheetOpen = ref.watch(podcastPlayerQueueSheetOpenProvider);
-        final l10n = AppLocalizations.of(context);
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RepaintBoundary(
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Speed chip: isolated Consumer — only rebuilds when rate changes.
+        Consumer(
+          builder: (context, ref, _) {
+            return RepaintBoundary(
               child: _PlaybackSpeedChip(
                 speed: ref.watch(audioPlaybackRateProvider),
                 onTap: () => _showSpeedSelector(context, ref),
               ),
-            ),
-            const SizedBox(width: 8),
-            const RepaintBoundary(
-              child: _SkipButton(
-                keyValue: 'podcast_bottom_player_rewind_10',
-                deltaMs: -10000,
-                icon: Icons.replay_10_rounded,
-                tooltipLocalizationKey: _TooltipKey.rewind10,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const RepaintBoundary(
-              child: _PlayPauseButtonLarge(),
-            ),
-            const SizedBox(width: 10),
-            const RepaintBoundary(
-              child: _SkipButton(
-                keyValue: 'podcast_bottom_player_forward_30',
-                deltaMs: 30000,
-                icon: Icons.forward_30_rounded,
-                tooltipLocalizationKey: _TooltipKey.forward30,
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+        // Skip/play-pause: static buttons — no progress watch.
+        const RepaintBoundary(
+          child: _SkipButton(
+            keyValue: 'podcast_bottom_player_rewind_10',
+            deltaMs: -10000,
+            icon: Icons.replay_10_rounded,
+            tooltipLocalizationKey: _TooltipKey.rewind10,
+          ),
+        ),
+        const SizedBox(width: 10),
+        const RepaintBoundary(
+          child: _PlayPauseButtonLarge(),
+        ),
+        const SizedBox(width: 10),
+        const RepaintBoundary(
+          child: _SkipButton(
+            keyValue: 'podcast_bottom_player_forward_30',
+            deltaMs: 30000,
+            icon: Icons.forward_30_rounded,
+            tooltipLocalizationKey: _TooltipKey.forward30,
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Queue button: isolated Consumer — only rebuilds when sheet state changes.
+        Consumer(
+          builder: (context, ref, _) {
+            final queueSheetOpen =
+                ref.watch(podcastPlayerQueueSheetOpenProvider);
+            return IconButton(
               key: const Key('podcast_bottom_player_playlist'),
               tooltip: l10n?.podcast_player_list ?? 'List',
               onPressed: queueSheetOpen
                   ? null
                   : () => _showQueueSheet(context, ref),
               icon: const Icon(Icons.playlist_play_rounded),
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -132,7 +140,6 @@ class _SkipButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final progress = ref.watch(audioMiniProgressProvider);
     final tooltip = switch (tooltipLocalizationKey) {
       _TooltipKey.rewind10 => l10n?.podcast_player_rewind_10 ?? 'Rewind 10s',
       _TooltipKey.forward30 => l10n?.podcast_player_forward_30 ?? 'Forward 30s',
@@ -143,6 +150,9 @@ class _SkipButton extends ConsumerWidget {
       tooltip: tooltip,
       iconSize: 30,
       onPressed: () {
+        // Use ref.read to avoid rebuilding on every progress tick (500ms).
+        // Position is only needed at tap time, not reactively.
+        final progress = ref.read(audioMiniProgressProvider);
         final next = (progress.positionMs + deltaMs).clamp(
           0,
           progress.durationMs,
