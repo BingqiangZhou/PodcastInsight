@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.31.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.30.0...v0.31.0) - 2026-03-27 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.31.0))
+
+### ⚙️ Miscellaneous Tasks
+
+- Add .worktrees/ to .gitignore ([8c34912](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8c3491272385f5f7df1ec187b5670e0ad84e8e4e))
+
+### ⚡ Performance
+
+- *(frontend)* Optimize network, theme, state management, and caching ([7cbfa4a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7cbfa4ad7cfbbf49fc031ca48a70cff1b5356518))
+- *(frontend)* Add debounce, fix stream leak, add autoDispose, remove dead dep ([88be730](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/88be730ab41a130af417adbf7cb845f50b0d6428))
+- *(frontend)* Optimize MediaQuery usage, ETag cache memory, conversation dedup, and fix broken tests ([c56ecf8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c56ecf89b48690b34fb5173159f14febd7dc9539))
+
+### 🐛 Bug Fixes
+
+- *(redis)* Add wrapper methods for sorted set operations to fix missing client parameter ([08905c5](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/08905c5dae6159009cb6280b298961cad9adf754))
+- *(redis)* Add release_lock wrapper to fix missing client parameter ([2adf8b3](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2adf8b3124eb5dd503d891a44f4bfc10146b3d68))
+- *(podcast)* Resolve highlight extraction failures after transcription ([057ec4b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/057ec4b5bd4f6d8dd49fd7095089668ea55d89a6))
+- *(router)* Fix auth refresh cascade, dead provider, and navigation anti-patterns ([a136976](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a136976c1d9fe52c21b0614c36a623b1d4399fe7))
+- *(celery)* Harden task retry logic and improve error observability ([0025e76](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0025e76aeb6d73253033973bcea272270ed2eaa5))
+- *(podcast)* Add missing joinedload for transcript relationship to prevent MissingGreenlet errors ([f1f7752](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f1f77523b6877b002c5e5f7981b92ca5d0e724ca))
+
+### 🚜 Refactor
+
+- *(backend)* Apply typed exceptions, migrate transcript_content, and consolidate architecture ([2f2f15b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2f2f15b9d1705a51e8a477bb1b8782e5b48edefc))
+- *(backend)* Convert middlewares to pure ASGI, harden security, and improve observability ([c4c8be2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c4c8be22c31473536f5a3e5183d494d295853947))
+
+
+
 ## [0.30.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.29.0...v0.30.0) - 2026-03-24 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.30.0))
 
 ### ⚙️ Miscellaneous Tasks
