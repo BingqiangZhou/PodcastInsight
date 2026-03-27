@@ -9,6 +9,7 @@ import '../../../../core/utils/time_formatter.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/podcast_highlight_model.dart';
 import '../../data/repositories/podcast_repository.dart';
+import 'base/cached_async_notifier.dart';
 import 'podcast_core_providers.dart';
 
 /// 选中的高光日期
@@ -257,9 +258,8 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
 
 /// 高光可用日期 Notifier
 class HighlightDatesNotifier
-    extends AsyncNotifier<HighlightDatesResponse?> {
+    extends CachedAsyncNotifier<HighlightDatesResponse?> {
   late PodcastRepository _repository;
-  DateTime? _lastLoadedAt;
 
   @override
   FutureOr<HighlightDatesResponse?> build() {
@@ -267,43 +267,19 @@ class HighlightDatesNotifier
     return null;
   }
 
-  bool _isFresh() {
-    if (_lastLoadedAt == null) {
-      return false;
-    }
-    final cacheDuration = CacheConstants.defaultListCacheDuration;
-    return DateTime.now().difference(_lastLoadedAt!) < cacheDuration;
-  }
-
   Future<HighlightDatesResponse?> load({
     bool forceRefresh = false,
-  }) async {
-    final previousData = state.value;
-    if (!forceRefresh && previousData != null && _isFresh()) {
-      return previousData;
-    }
-
-    if (previousData == null) {
-      state = const AsyncValue.loading();
-    }
-
-    try {
-      final data = await _repository.getHighlightDates();
-      _lastLoadedAt = DateTime.now();
-      state = AsyncValue.data(data);
-      return data;
-    } catch (error, stackTrace) {
-      logger.AppLogger.debug('Failed to load highlight dates: $error');
-      if (error is AuthenticationException) {
-        ref.read(authProvider.notifier).checkAuthStatus();
-      }
-      if (previousData == null) {
-        state = AsyncValue.error(error, stackTrace);
-      } else {
-        state = AsyncValue.data(previousData);
-      }
-      return previousData;
-    }
+  }) {
+    return runWithCache(
+      forceRefresh: forceRefresh,
+      fetcher: () => _repository.getHighlightDates(),
+      onError: (error, _) {
+        logger.AppLogger.debug('Failed to load highlight dates: $error');
+        if (error is AuthenticationException) {
+          ref.read(authProvider.notifier).checkAuthStatus();
+        }
+      },
+    );
   }
 
   Future<void> ensureMonthCoverage(DateTime date) async {
@@ -330,9 +306,8 @@ class HighlightDatesNotifier
 
 /// 高光统计 Notifier
 class HighlightStatsNotifier
-    extends AsyncNotifier<HighlightStatsResponse?> {
+    extends CachedAsyncNotifier<HighlightStatsResponse?> {
   late PodcastRepository _repository;
-  DateTime? _lastLoadedAt;
 
   @override
   FutureOr<HighlightStatsResponse?> build() {
@@ -340,42 +315,18 @@ class HighlightStatsNotifier
     return null;
   }
 
-  bool _isFresh() {
-    if (_lastLoadedAt == null) {
-      return false;
-    }
-    final cacheDuration = CacheConstants.defaultListCacheDuration;
-    return DateTime.now().difference(_lastLoadedAt!) < cacheDuration;
-  }
-
   Future<HighlightStatsResponse?> load({
     bool forceRefresh = false,
-  }) async {
-    final previousData = state.value;
-    if (!forceRefresh && previousData != null && _isFresh()) {
-      return previousData;
-    }
-
-    if (previousData == null) {
-      state = const AsyncValue.loading();
-    }
-
-    try {
-      final data = await _repository.getHighlightStats();
-      _lastLoadedAt = DateTime.now();
-      state = AsyncValue.data(data);
-      return data;
-    } catch (error, stackTrace) {
-      logger.AppLogger.debug('Failed to load highlight stats: $error');
-      if (error is AuthenticationException) {
-        ref.read(authProvider.notifier).checkAuthStatus();
-      }
-      if (previousData == null) {
-        state = AsyncValue.error(error, stackTrace);
-      } else {
-        state = AsyncValue.data(previousData);
-      }
-      return previousData;
-    }
+  }) {
+    return runWithCache(
+      forceRefresh: forceRefresh,
+      fetcher: () => _repository.getHighlightStats(),
+      onError: (error, _) {
+        logger.AppLogger.debug('Failed to load highlight stats: $error');
+        if (error is AuthenticationException) {
+          ref.read(authProvider.notifier).checkAuthStatus();
+        }
+      },
+    );
   }
 }

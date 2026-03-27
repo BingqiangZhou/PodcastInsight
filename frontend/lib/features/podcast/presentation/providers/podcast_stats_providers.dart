@@ -9,6 +9,7 @@ import '../../data/models/podcast_episode_model.dart';
 import '../../data/models/podcast_playback_model.dart';
 import '../../data/models/profile_stats_model.dart';
 import '../../data/repositories/podcast_repository.dart';
+import 'base/cached_async_notifier.dart';
 import 'podcast_core_providers.dart';
 
 // === Stats Provider ===
@@ -25,10 +26,8 @@ final profileStatsProvider =
     AsyncNotifierProvider<ProfileStatsNotifier, ProfileStatsModel?>(
       ProfileStatsNotifier.new,
     );
-class ProfileStatsNotifier extends AsyncNotifier<ProfileStatsModel?> {
+class ProfileStatsNotifier extends CachedAsyncNotifier<ProfileStatsModel?> {
   late final PodcastRepository _repository;
-  DateTime? _lastLoadedAt;
-  Future<ProfileStatsModel?>? _inFlightRequest;
 
   @override
   FutureOr<ProfileStatsModel?> build() async {
@@ -36,60 +35,26 @@ class ProfileStatsNotifier extends AsyncNotifier<ProfileStatsModel?> {
     return load(forceRefresh: false);
   }
 
-  bool _isFresh() {
-    if (_lastLoadedAt == null) return false;
-    final cacheDuration = CacheConstants.defaultListCacheDuration;
-    return DateTime.now().difference(_lastLoadedAt!) < cacheDuration;
-  }
-
   /// Reset the notifier state completely.
   /// Called when switching servers or on login to ensure clean state.
   void reset() {
-    _lastLoadedAt = null;
-    _inFlightRequest = null;
+    resetCache();
     state = const AsyncValue.data(null);
   }
 
   Future<ProfileStatsModel?> load({bool forceRefresh = false}) async {
     final hasError = state.hasError;
     final isLoading = state.isLoading;
-    final previousData = state.value;
 
     // If has error or loading, skip cache check and continue to fetch
-    if (!forceRefresh && !hasError && !isLoading && previousData != null && _isFresh()) {
-      return previousData;
-    }
-
-    final inFlight = _inFlightRequest;
-    if (inFlight != null) {
-      return inFlight;
-    }
-
-    if (previousData == null) {
-      state = const AsyncValue.loading();
-    }
-
-    final request = () async {
-      try {
-        final data = await _repository.getProfileStats();
-        _lastLoadedAt = DateTime.now();
-        state = AsyncValue.data(data);
-        return data;
-      } catch (error, stackTrace) {
+    final effectiveForce = forceRefresh || hasError || isLoading;
+    return runWithCache(
+      forceRefresh: effectiveForce,
+      fetcher: () => _repository.getProfileStats(),
+      onError: (error, _) {
         logger.AppLogger.debug('Failed to load profile stats: $error');
-        if (previousData == null) {
-          state = AsyncValue.error(error, stackTrace);
-        } else {
-          state = AsyncValue.data(previousData);
-        }
-        return previousData;
-      } finally {
-        _inFlightRequest = null;
-      }
-    }();
-
-    _inFlightRequest = request;
-    return request;
+      },
+    );
   }
 }
 
@@ -111,10 +76,8 @@ final playbackHistoryLiteProvider =
       PlaybackHistoryLiteResponse?
     >(PlaybackHistoryLiteNotifier.new);
 class PlaybackHistoryLiteNotifier
-    extends AsyncNotifier<PlaybackHistoryLiteResponse?> {
+    extends CachedAsyncNotifier<PlaybackHistoryLiteResponse?> {
   late final PodcastRepository _repository;
-  DateTime? _lastLoadedAt;
-  Future<PlaybackHistoryLiteResponse?>? _inFlightRequest;
 
   @override
   FutureOr<PlaybackHistoryLiteResponse?> build() async {
@@ -122,62 +85,25 @@ class PlaybackHistoryLiteNotifier
     return load(forceRefresh: false);
   }
 
-  bool _isFresh() {
-    if (_lastLoadedAt == null) return false;
-    final cacheDuration = CacheConstants.defaultListCacheDuration;
-    return DateTime.now().difference(_lastLoadedAt!) < cacheDuration;
-  }
-
   /// Reset the notifier state completely.
   /// Called when switching servers or on login to ensure clean state.
   void reset() {
-    _lastLoadedAt = null;
-    _inFlightRequest = null;
+    resetCache();
     state = const AsyncValue.data(null);
   }
 
   Future<PlaybackHistoryLiteResponse?> load({bool forceRefresh = false}) async {
     final hasError = state.hasError;
     final isLoading = state.isLoading;
-    final previousData = state.value;
 
     // If has error or loading, skip cache check and continue to fetch
-    if (!forceRefresh && !hasError && !isLoading && previousData != null && _isFresh()) {
-      return previousData;
-    }
-
-    final inFlight = _inFlightRequest;
-    if (inFlight != null) {
-      return inFlight;
-    }
-
-    if (previousData == null) {
-      state = const AsyncValue.loading();
-    }
-
-    final request = () async {
-      try {
-        final data = await _repository.getPlaybackHistoryLite(
-          page: 1,
-          size: 100,
-        );
-        _lastLoadedAt = DateTime.now();
-        state = AsyncValue.data(data);
-        return data;
-      } catch (error, stackTrace) {
+    final effectiveForce = forceRefresh || hasError || isLoading;
+    return runWithCache(
+      forceRefresh: effectiveForce,
+      fetcher: () => _repository.getPlaybackHistoryLite(page: 1, size: 100),
+      onError: (error, _) {
         logger.AppLogger.debug('Failed to load playback history lite: $error');
-        if (previousData == null) {
-          state = AsyncValue.error(error, stackTrace);
-        } else {
-          state = AsyncValue.data(previousData);
-        }
-        return previousData;
-      } finally {
-        _inFlightRequest = null;
-      }
-    }();
-
-    _inFlightRequest = request;
-    return request;
+      },
+    );
   }
 }
