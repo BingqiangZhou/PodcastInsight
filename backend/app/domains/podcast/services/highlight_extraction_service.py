@@ -19,6 +19,7 @@ from app.domains.podcast.models import (
     EpisodeHighlight,
     HighlightExtractionTask,
     PodcastEpisode,
+    PodcastEpisodeTranscript,
 )
 
 
@@ -353,7 +354,7 @@ class HighlightExtractionService:
         if not episode:
             raise ValueError(f"Episode {episode_id} not found")
 
-        if not episode.transcript_content or not episode.transcript_content.strip():
+        if not episode.transcript or not episode.transcript.transcript_content or not episode.transcript.transcript_content.strip():
             raise ValidationError(
                 f"No transcript content available for episode {episode_id}"
             )
@@ -412,7 +413,7 @@ class HighlightExtractionService:
                 "description": episode.description or "",
             }
             highlights = await self.extract_highlights(
-                transcript=episode.transcript_content,
+                transcript=episode.transcript.transcript_content,
                 episode_info=episode_info,
                 model_name=model_name,
             )
@@ -622,8 +623,12 @@ class HighlightExtractionService:
             select(PodcastEpisode.id)
             .where(
                 and_(
-                    PodcastEpisode.transcript_content.is_not(None),
-                    PodcastEpisode.transcript_content != "",
+                    PodcastEpisode.transcript.has(
+                        PodcastEpisodeTranscript.transcript_content.is_not(None),
+                    ),
+                    PodcastEpisode.transcript.has(
+                        PodcastEpisodeTranscript.transcript_content != "",
+                    ),
                     ~PodcastEpisode.id.in_(non_claimable_subquery),
                 ),
             )

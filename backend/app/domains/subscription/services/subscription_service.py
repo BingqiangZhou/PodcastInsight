@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.exceptions import SubscriptionNotFoundError
 from app.domains.subscription.models import (
     Subscription,
     SubscriptionItem,

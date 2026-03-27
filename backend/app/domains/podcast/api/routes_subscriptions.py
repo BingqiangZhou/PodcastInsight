@@ -6,6 +6,8 @@ All endpoints here are mounted under:
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 
+from app.core.exceptions import SubscriptionNotFoundError
+
 from app.core.etag import build_conditional_etag_response
 from app.core.providers import (
     get_podcast_schedule_service,
@@ -199,8 +201,10 @@ async def refresh_subscription(
             "new_episodes": len(new_episodes),
             "message": f"Updated, found {len(new_episodes)} new episodes",
         }
+    except SubscriptionNotFoundError:
+        raise HTTPException(status_code=404, detail="Subscription not found")
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -219,8 +223,10 @@ async def reparse_subscription(
             subscription_id, force_all=force_all
         )
         return {"success": True, "result": result}
+    except SubscriptionNotFoundError:
+        raise HTTPException(status_code=404, detail="Subscription not found")
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

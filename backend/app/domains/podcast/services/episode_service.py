@@ -373,7 +373,7 @@ class PodcastEpisodeService:
             item_link=episode.item_link,
             subscription_image_url=subscription_image_url,
             transcript_url=episode.transcript_url,
-            transcript_content=episode.transcript_content,
+            transcript_content=episode.transcript.transcript_content if episode.transcript else None,
             ai_summary=cleaned_summary,
             summary_version=episode.summary_version,
             ai_confidence_score=episode.ai_confidence_score,

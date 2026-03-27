@@ -9,6 +9,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import EpisodeNotFoundError
 from app.core.redis import PodcastRedis, get_shared_redis
 from app.domains.podcast.models import PodcastEpisode, PodcastPlaybackState
 from app.domains.podcast.playback_queue_projections import (
@@ -69,13 +70,13 @@ class PodcastPlaybackService:
             Updated playback state dict
 
         Raises:
-            ValueError: If episode not found
+            EpisodeNotFoundError: If episode not found
 
         """
         # Get episode to verify access
         episode = await self.repo.get_episode_by_id(episode_id, self.user_id)
         if not episode:
-            raise ValueError("Episode not found")
+            raise EpisodeNotFoundError("Episode not found")
 
         playback = await self.repo.update_playback_progress(
             self.user_id,

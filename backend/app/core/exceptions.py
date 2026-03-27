@@ -1,4 +1,10 @@
-"""Custom exception handlers.
+"""Custom exception hierarchy.
+
+Convention:
+- Service/Repository layer: Raise BaseCustomError subclasses for business errors.
+  These are caught by the global exception handler and return structured JSON responses.
+- Route layer: Use bilingual HTTPException helpers from app.http.errors for user-facing messages.
+- NEVER use bare ValueError/string comparison for control flow.
 
 自定义异常处理器
 """
@@ -173,6 +179,63 @@ class FileProcessingError(BaseCustomError):
         **kwargs,
     ):
         super().__init__(message, 422, "FILE_PROCESSING_ERROR", **kwargs)
+
+
+# ── Domain-specific exceptions ─────────────────────────────────────────────
+
+
+class EpisodeNotFoundError(NotFoundError):
+    """Raised when a podcast episode is not found."""
+
+    pass
+
+
+class QueueLimitExceededError(BadRequestError):
+    """Raised when playback queue limit is exceeded."""
+
+    pass
+
+
+class EpisodeNotInQueueError(BadRequestError):
+    """Raised when episode is not in the playback queue."""
+
+    pass
+
+
+class InvalidReorderPayloadError(BadRequestError):
+    """Raised when queue reorder payload is invalid."""
+
+    pass
+
+
+class SubscriptionNotFoundError(NotFoundError):
+    """Raised when a subscription is not found."""
+
+    pass
+
+
+class TranscriptionTaskNotFoundError(NotFoundError):
+    """Raised when a transcription task is not found."""
+
+    pass
+
+
+class ConversationNotFoundError(NotFoundError):
+    """Raised when a conversation session is not found."""
+
+    pass
+
+
+class TranscriptionAlreadyExistsError(ConflictError):
+    """Raised when transcription already exists for an episode."""
+
+    pass
+
+
+class TranscriptionInProgressError(ConflictError):
+    """Raised when transcription is already in progress."""
+
+    pass
 
 
 async def custom_exception_handler(

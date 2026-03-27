@@ -12,7 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import worker_db_session
 from app.core.exceptions import ValidationError
-from app.domains.podcast.models import PodcastEpisode, TranscriptionTask
+from app.domains.podcast.models import (
+    PodcastEpisode,
+    PodcastEpisodeTranscript,
+    TranscriptionTask,
+)
 from app.domains.podcast.repositories import PodcastSummaryRepository
 from app.domains.podcast.services.summary_generation_service import (
     PodcastSummaryGenerationService,
@@ -79,7 +83,7 @@ class SummaryWorkflowService:
         episode = await self.repo.get_episode_by_id(episode_id)
         if not episode:
             raise ValueError(f"Episode {episode_id} not found")
-        if not episode.transcript_content:
+        if not episode.transcript or not episode.transcript.transcript_content:
             raise ValidationError(
                 f"No transcript content available for episode {episode_id}"
             )
@@ -268,8 +272,12 @@ class SummaryWorkflowService:
                 and_(
                     PodcastEpisode.ai_summary.is_(None),
                     PodcastEpisode.status.in_(["pending_summary", "summary_failed"]),
-                    PodcastEpisode.transcript_content.is_not(None),
-                    PodcastEpisode.transcript_content != "",
+                    PodcastEpisode.transcript.has(
+                        PodcastEpisodeTranscript.transcript_content.is_not(None),
+                    ),
+                    PodcastEpisode.transcript.has(
+                        PodcastEpisodeTranscript.transcript_content != "",
+                    ),
                     or_(
                         TranscriptionTask.id.is_(None),
                         ~TranscriptionTask.status.in_(["pending", "in_progress"]),

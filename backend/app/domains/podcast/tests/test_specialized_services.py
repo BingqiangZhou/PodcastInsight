@@ -530,7 +530,7 @@ def _build_mock_episode(
     episode.image_url = None
     episode.item_link = None
     episode.transcript_url = None
-    episode.transcript_content = None
+    episode.transcript = None
     episode.ai_summary = ai_summary
     episode.summary_version = "1.0"
     episode.ai_confidence_score = 0.9

@@ -54,7 +54,6 @@ class PodcastEpisode(Base):
 
     # 转录文本
     transcript_url = Column(String(500))
-    transcript_content = Column("transcript_content_deprecated", Text)
 
     # AI总结
     ai_summary = Column(Text)
@@ -89,7 +88,7 @@ class PodcastEpisode(Base):
         "metadata",
         JSON,
         nullable=True,
-        default={},
+        default=dict,
     )  # Renamed to avoid SQLAlchemy reserved attribute
     created_at = Column(
         DateTime(timezone=True),
@@ -165,13 +164,6 @@ class PodcastEpisodeTranscript(Base):
 
     def __repr__(self):
         return f"<PodcastEpisodeTranscript(episode_id={self.episode_id}, word_count={self.transcript_word_count})>"
-
-
-Subscription.podcast_episodes = relationship(
-    "PodcastEpisode",
-    back_populates="subscription",
-    cascade="all, delete-orphan",
-)
 
 
 class PodcastDailyReport(Base):

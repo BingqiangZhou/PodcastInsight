@@ -11,7 +11,7 @@ def test_subscription_routes_use_new_podcast_prefix() -> None:
     paths = _route_paths()
 
     assert "/api/v1/subscriptions/podcasts" in paths
-    assert "/api/v1/subscriptions/podcasts/bulk" in paths
+    assert "/api/v1/subscriptions/podcasts/bulk-delete" in paths
     assert "/api/v1/subscriptions/podcasts/bulk-delete" in paths
     assert "/api/v1/subscriptions/podcasts/{subscription_id}" in paths
     assert "/api/v1/subscriptions/podcasts/{subscription_id}/refresh" in paths

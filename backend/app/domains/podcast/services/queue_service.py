@@ -5,6 +5,7 @@ from time import perf_counter
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import EpisodeNotFoundError
 from app.domains.podcast.playback_queue_projections import (
     PodcastQueueItemProjection,
     PodcastQueueProjection,
@@ -39,7 +40,7 @@ class PodcastQueueService:
         started_at = perf_counter()
         episode = await self.repo.get_episode_by_id(episode_id, self.user_id)
         if not episode:
-            raise ValueError("EPISODE_NOT_FOUND")
+            raise EpisodeNotFoundError("Episode not found")
 
         queue = await self.repo.add_or_move_to_tail(
             user_id=self.user_id,
@@ -72,7 +73,7 @@ class PodcastQueueService:
         started_at = perf_counter()
         episode = await self.repo.get_episode_by_id(episode_id, self.user_id)
         if not episode:
-            raise ValueError("EPISODE_NOT_FOUND")
+            raise EpisodeNotFoundError("Episode not found")
 
         queue = await self.repo.activate_episode(
             user_id=self.user_id,

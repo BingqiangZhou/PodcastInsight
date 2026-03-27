@@ -21,6 +21,7 @@ from app.core.redis import get_shared_redis
 from app.domains.podcast.integration.secure_rss_parser import SecureRSSParser
 from app.domains.podcast.models import (
     PodcastEpisode,
+    PodcastEpisodeTranscript,
     PodcastPlaybackState,
     TranscriptionTask,
 )
@@ -634,8 +635,12 @@ class PodcastTaskOrchestrationService:
             PodcastEpisode.audio_url.is_not(None),
             PodcastEpisode.audio_url != "",
             or_(
-                PodcastEpisode.transcript_content.is_(None),
-                PodcastEpisode.transcript_content == "",
+                ~PodcastEpisode.transcript.has(
+                    PodcastEpisodeTranscript.transcript_content.is_not(None),
+                ),
+                PodcastEpisode.transcript.has(
+                    PodcastEpisodeTranscript.transcript_content == "",
+                ),
             ),
             or_(
                 TranscriptionTask.id.is_(None),

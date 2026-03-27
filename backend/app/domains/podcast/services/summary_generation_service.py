@@ -232,7 +232,7 @@ class PodcastSummaryGenerationService:
             if not episode:
                 raise ValidationError(f"Episode {episode_id} not found")
 
-            transcript_content = episode.transcript_content
+            transcript_content = episode.transcript.transcript_content if episode.transcript else None
             if not transcript_content:
                 raise ValidationError(
                     f"No transcript content available for episode {episode_id}",

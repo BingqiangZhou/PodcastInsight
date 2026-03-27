@@ -63,7 +63,7 @@ class Subscription(Base):
     source_type = Column(String(50), nullable=False)
     source_url = Column(String(500), nullable=False)
     image_url = Column(String(500), nullable=True)
-    config = Column(JSON, nullable=True, default={})
+    config = Column(JSON, nullable=True, default=dict)
     status = Column(String(20), default=SubscriptionStatus.ACTIVE)
     last_fetched_at = Column(DateTime(timezone=True), nullable=True)
     latest_item_published_at = Column(
@@ -91,6 +91,11 @@ class Subscription(Base):
         "SubscriptionCategory",
         secondary="subscription_category_mappings",
         back_populates="subscriptions",
+    )
+    podcast_episodes = relationship(
+        "PodcastEpisode",
+        back_populates="subscription",
+        cascade="all, delete-orphan",
     )
 
     __table_args__ = (
@@ -291,8 +296,8 @@ class SubscriptionItem(Base):
     author = Column(String(255), nullable=True)
     source_url = Column(String(500), nullable=True)
     image_url = Column(String(500), nullable=True)
-    tags = Column(JSON, nullable=True, default=[])
-    metadata_json = Column("metadata", JSON, nullable=True, default={})
+    tags = Column(JSON, nullable=True, default=list)
+    metadata_json = Column("metadata", JSON, nullable=True, default=dict)
     published_at = Column(DateTime(timezone=True), nullable=True)
     read_at = Column(DateTime(timezone=True), nullable=True)
     bookmarked = Column(Boolean, default=False)

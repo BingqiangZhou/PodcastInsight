@@ -13,6 +13,12 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import joinedload
 
+from app.core.exceptions import (
+    EpisodeNotInQueueError,
+    InvalidReorderPayloadError,
+    QueueLimitExceededError,
+    SubscriptionNotFoundError,
+)
 from app.domains.podcast.models import (
     PodcastEpisode,
     PodcastPlaybackState,
@@ -116,7 +122,7 @@ class PodcastPlaybackQueueRepositoryMixin:
             result = await self.db.execute(stmt)
             user_sub = result.scalar_one_or_none()
             if user_sub is None:
-                raise ValueError("SUBSCRIPTION_NOT_FOUND")
+                raise SubscriptionNotFoundError("Subscription not found")
 
             user_sub.playback_rate_preference = playback_rate
             await self.db.commit()
@@ -140,7 +146,7 @@ class PodcastPlaybackQueueRepositoryMixin:
             sub_result = await self.db.execute(sub_stmt)
             user_sub = sub_result.scalar_one_or_none()
             if user_sub is None:
-                raise ValueError("SUBSCRIPTION_NOT_FOUND")
+                raise SubscriptionNotFoundError("Subscription not found")
             user_sub.playback_rate_preference = None
 
         await self.db.commit()
@@ -427,7 +433,7 @@ class PodcastPlaybackQueueRepositoryMixin:
         changed = False
 
         if existing is None and len(ordered_items) >= max_items:
-            raise ValueError("QUEUE_LIMIT_EXCEEDED")
+            raise QueueLimitExceededError("Queue has reached its limit")
 
         tail_position = ordered_items[-1].position if ordered_items else 0
 
@@ -529,7 +535,7 @@ class PodcastPlaybackQueueRepositoryMixin:
         changed = False
 
         if existing is None and len(ordered_items) >= max_items:
-            raise ValueError("QUEUE_LIMIT_EXCEEDED")
+            raise QueueLimitExceededError("Queue has reached its limit")
 
         if existing is None:
             head_position = ordered_items[0].position if ordered_items else 0
@@ -585,11 +591,11 @@ class PodcastPlaybackQueueRepositoryMixin:
 
         current_ids = [item.episode_id for item in ordered_items]
         if len(set(ordered_episode_ids)) != len(ordered_episode_ids):
-            raise ValueError("INVALID_REORDER_PAYLOAD")
+            raise InvalidReorderPayloadError("Invalid reorder payload")
         if set(current_ids) != set(ordered_episode_ids):
-            raise ValueError("INVALID_REORDER_PAYLOAD")
+            raise InvalidReorderPayloadError("Invalid reorder payload")
         if len(current_ids) != len(ordered_episode_ids):
-            raise ValueError("INVALID_REORDER_PAYLOAD")
+            raise InvalidReorderPayloadError("Invalid reorder payload")
 
         changed = current_ids != ordered_episode_ids
         desired_current = ordered_episode_ids[0] if ordered_episode_ids else None
@@ -633,7 +639,7 @@ class PodcastPlaybackQueueRepositoryMixin:
             None,
         )
         if target is None:
-            raise ValueError("EPISODE_NOT_IN_QUEUE")
+            raise EpisodeNotInQueueError("Episode not in queue")
 
         changed = False
         head_item = ordered_items[0] if ordered_items else None

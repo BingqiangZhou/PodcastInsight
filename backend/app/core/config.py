@@ -128,8 +128,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
 
     # Celery
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+    CELERY_BROKER_URL: str = "redis://localhost:6379/1"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
     CELERY_WORKER_PREFETCH_MULTIPLIER: int = 4
     CELERY_WORKER_MAX_TASKS_PER_CHILD: int = 500
 

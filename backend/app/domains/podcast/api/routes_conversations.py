@@ -5,6 +5,8 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.core.exceptions import EpisodeNotFoundError
+
 from app.core.providers import (
     get_conversation_service,
     get_podcast_episode_service,
@@ -227,8 +229,8 @@ async def send_conversation_message(
         )
 
         return build_conversation_send_response(response)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+    except EpisodeNotFoundError:
+        raise HTTPException(status_code=404, detail="Episode not found")
     except HTTPException:
         raise
     except Exception as exc:

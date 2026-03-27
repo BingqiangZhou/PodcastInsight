@@ -2,6 +2,12 @@
 
 from fastapi import APIRouter, Depends, status
 
+from app.core.exceptions import (
+    EpisodeNotFoundError,
+    EpisodeNotInQueueError,
+    InvalidReorderPayloadError,
+    QueueLimitExceededError,
+)
 from app.core.providers import get_podcast_queue_service
 from app.domains.podcast.api.response_assemblers import build_queue_response
 from app.domains.podcast.schemas import (
@@ -37,24 +43,18 @@ async def add_queue_item(
 ):
     try:
         return build_queue_response(await service.add_to_queue(request.episode_id))
-    except ValueError as exc:
-        if str(exc) == "EPISODE_NOT_FOUND":
-            raise bilingual_http_exception(
-                "Episode not found",
-                "未找到该单集",
-                status.HTTP_404_NOT_FOUND,
-            ) from exc
-        if str(exc) == "QUEUE_LIMIT_EXCEEDED":
-            raise bilingual_http_exception(
-                "Queue has reached its limit",
-                "播放队列已达到上限",
-                status.HTTP_400_BAD_REQUEST,
-            ) from exc
+    except EpisodeNotFoundError:
         raise bilingual_http_exception(
-            "Failed to add episode",
-            "加入队列失败",
+            "Episode not found",
+            "未找到该单集",
+            status.HTTP_404_NOT_FOUND,
+        )
+    except QueueLimitExceededError:
+        raise bilingual_http_exception(
+            "Queue has reached its limit",
+            "播放队列已达到上限",
             status.HTTP_400_BAD_REQUEST,
-        ) from exc
+        )
 
 
 @router.delete(
@@ -80,18 +80,12 @@ async def reorder_queue_items(
 ):
     try:
         return build_queue_response(await service.reorder_queue(request.episode_ids))
-    except ValueError as exc:
-        if str(exc) == "INVALID_REORDER_PAYLOAD":
-            raise bilingual_http_exception(
-                "Invalid reorder payload",
-                "重排参数无效",
-                status.HTTP_400_BAD_REQUEST,
-            ) from exc
+    except InvalidReorderPayloadError:
         raise bilingual_http_exception(
-            "Failed to reorder queue",
-            "重排队列失败",
+            "Invalid reorder payload",
+            "重排参数无效",
             status.HTTP_400_BAD_REQUEST,
-        ) from exc
+        )
 
 
 @router.post(
@@ -105,18 +99,12 @@ async def set_queue_current(
 ):
     try:
         return build_queue_response(await service.set_current(request.episode_id))
-    except ValueError as exc:
-        if str(exc) == "EPISODE_NOT_IN_QUEUE":
-            raise bilingual_http_exception(
-                "Episode not in queue",
-                "该单集不在队列中",
-                status.HTTP_400_BAD_REQUEST,
-            ) from exc
+    except EpisodeNotInQueueError:
         raise bilingual_http_exception(
-            "Failed to set current",
-            "设置当前播放失败",
+            "Episode not in queue",
+            "该单集不在队列中",
             status.HTTP_400_BAD_REQUEST,
-        ) from exc
+        )
 
 
 @router.post(
@@ -130,24 +118,18 @@ async def activate_queue_episode(
 ):
     try:
         return build_queue_response(await service.activate_episode(request.episode_id))
-    except ValueError as exc:
-        if str(exc) == "EPISODE_NOT_FOUND":
-            raise bilingual_http_exception(
-                "Episode not found",
-                "未找到该单集",
-                status.HTTP_404_NOT_FOUND,
-            ) from exc
-        if str(exc) == "QUEUE_LIMIT_EXCEEDED":
-            raise bilingual_http_exception(
-                "Queue has reached its limit",
-                "播放队列已达到上限",
-                status.HTTP_400_BAD_REQUEST,
-            ) from exc
+    except EpisodeNotFoundError:
         raise bilingual_http_exception(
-            "Failed to activate episode",
-            "激活播放队列失败",
+            "Episode not found",
+            "未找到该单集",
+            status.HTTP_404_NOT_FOUND,
+        )
+    except QueueLimitExceededError:
+        raise bilingual_http_exception(
+            "Queue has reached its limit",
+            "播放队列已达到上限",
             status.HTTP_400_BAD_REQUEST,
-        ) from exc
+        )
 
 
 @router.post(

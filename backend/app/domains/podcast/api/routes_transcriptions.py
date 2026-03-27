@@ -4,6 +4,12 @@ import logging
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 
+from app.core.exceptions import (
+    EpisodeNotFoundError,
+    SubscriptionNotFoundError,
+    TranscriptionTaskNotFoundError,
+)
+
 from app.core.providers import (
     get_podcast_episode_service,
     get_podcast_subscription_service,
@@ -77,11 +83,11 @@ async def start_transcription(
             start_result["task"],
             start_result["episode"],
         )
-    except ValueError as exc:
+    except EpisodeNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(exc),
-        ) from exc
+            detail="Episode not found",
+        )
     except Exception as exc:
         logger.error(
             "Failed to start transcription for episode %s: %s", episode_id, exc
@@ -220,11 +226,11 @@ async def delete_transcription(
             "message": "Transcription task deleted successfully",
             "episode_id": episode_id,
         }
-    except ValueError as exc:
+    except TranscriptionTaskNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(exc),
-        ) from exc
+            detail="Transcription task not found",
+        )
     except Exception as exc:
         logger.error(
             "Failed to delete transcription for episode %s: %s", episode_id, exc
@@ -255,11 +261,11 @@ async def get_transcription_status(
             episode_lookup=episode_service.get_episode_by_id,
         )
         return PodcastTranscriptionStatusResponse(**payload)
-    except ValueError as exc:
+    except TranscriptionTaskNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(exc),
-        ) from exc
+            detail="Transcription task not found",
+        )
     except PermissionError as exc:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -300,6 +306,8 @@ async def schedule_episode_transcription_endpoint(
             episode_lookup=episode_service.get_episode_by_id,
         )
         return build_transcription_schedule_response(result)
+    except EpisodeNotFoundError:
+        raise HTTPException(status_code=404, detail="Episode not found")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HTTPException:
@@ -333,8 +341,8 @@ async def get_episode_transcript_endpoint(
             episode_lookup=episode_service.get_episode_by_id,
         )
         return build_episode_transcript_response(result)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except EpisodeNotFoundError:
+        raise HTTPException(status_code=404, detail="Episode not found")
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
@@ -368,8 +376,8 @@ async def batch_transcribe_subscription_endpoint(
             subscription_lookup=subscription_service.get_subscription_details,
         )
         return build_batch_transcription_response(result)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except SubscriptionNotFoundError:
+        raise HTTPException(status_code=404, detail="Subscription not found")
     except Exception as exc:
         logger.error(
             "Failed to batch transcribe subscription %s: %s", subscription_id, exc
@@ -398,8 +406,8 @@ async def get_transcription_schedule_status(
             episode_lookup=episode_service.get_episode_by_id,
         )
         return build_transcription_schedule_status_response(result)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except EpisodeNotFoundError:
+        raise HTTPException(status_code=404, detail="Episode not found")
     except Exception as exc:
         logger.error(
             "Failed to get transcription status for episode %s: %s",
@@ -431,8 +439,8 @@ async def cancel_transcription_endpoint(
             episode_lookup=episode_service.get_episode_by_id,
         )
         return build_transcription_cancel_response(result)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except EpisodeNotFoundError:
+        raise HTTPException(status_code=404, detail="Episode not found")
     except Exception as exc:
         logger.error(
             "Failed to cancel transcription for episode %s: %s", episode_id, exc
@@ -465,8 +473,8 @@ async def check_and_transcribe_new_episodes(
             subscription_lookup=subscription_service.get_subscription_details,
         )
         return build_check_new_episodes_response(result)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except SubscriptionNotFoundError:
+        raise HTTPException(status_code=404, detail="Subscription not found")
     except Exception as exc:
         logger.error(
             "Failed to check new episodes for subscription %s: %s", subscription_id, exc

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ValidationError
 from app.domains.podcast.models import (
     PodcastEpisode,
+    PodcastEpisodeTranscript,
     TranscriptionStatus,
     TranscriptionTask,
 )
@@ -159,8 +160,12 @@ class PodcastTranscriptionScheduleService:
                     PodcastEpisode.subscription_id == subscription_id,
                     PodcastEpisode.published_at >= cutoff_time,
                     or_(
-                        PodcastEpisode.transcript_content.is_(None),
-                        PodcastEpisode.transcript_content == "",
+                        ~PodcastEpisode.transcript.has(
+                            PodcastEpisodeTranscript.transcript_content.is_not(None),
+                        ),
+                        PodcastEpisode.transcript.has(
+                            PodcastEpisodeTranscript.transcript_content == "",
+                        ),
                     ),
                 ),
             )
@@ -225,10 +230,10 @@ class PodcastTranscriptionScheduleService:
                 episode_id=episode_id,
                 episode_title=episode.title,
                 status="not_started",
-                has_transcript=episode.transcript_content is not None,
+                has_transcript=(episode.transcript is not None and episode.transcript.transcript_content is not None),
                 transcript_preview=(
-                    episode.transcript_content[:100] + "..."
-                    if episode.transcript_content
+                    episode.transcript.transcript_content[:100] + "..."
+                    if episode.transcript and episode.transcript.transcript_content
                     else None
                 ),
             )
@@ -292,8 +297,8 @@ class PodcastTranscriptionScheduleService:
 
     async def get_transcript_from_existing(self, episode_id: int) -> str | None:
         episode = await self._get_episode(episode_id)
-        if episode and episode.transcript_content:
-            return episode.transcript_content
+        if episode and episode.transcript and episode.transcript.transcript_content:
+            return episode.transcript.transcript_content
 
         task = await self._get_existing_transcription_task(episode_id)
         if (

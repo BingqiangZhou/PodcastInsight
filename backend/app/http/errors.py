@@ -1,4 +1,9 @@
-"""Shared HTTP exception helpers."""
+"""Bilingual HTTP error helpers for route handlers.
+
+Convention:
+- Route layer uses these helpers for user-facing bilingual error messages.
+- Service layer should raise typed exceptions from app.core.exceptions instead.
+"""
 
 from typing import Any
 

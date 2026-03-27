@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from app.core.exceptions import EpisodeNotFoundError
 from app.domains.podcast.services.queue_service import PodcastQueueService
 
 
@@ -83,7 +84,7 @@ async def test_get_queue_serializes_snapshot(service, mock_repo):
 async def test_add_to_queue_requires_accessible_episode(service, mock_repo):
     mock_repo.get_episode_by_id.return_value = None
 
-    with pytest.raises(ValueError, match="EPISODE_NOT_FOUND"):
+    with pytest.raises(EpisodeNotFoundError):
         await service.add_to_queue(999)
 
 
@@ -101,7 +102,7 @@ async def test_reorder_queue_propagates_payload(service, mock_repo):
 async def test_activate_episode_requires_accessible_episode(service, mock_repo):
     mock_repo.get_episode_by_id.return_value = None
 
-    with pytest.raises(ValueError, match="EPISODE_NOT_FOUND"):
+    with pytest.raises(EpisodeNotFoundError):
         await service.activate_episode(999)
 
 

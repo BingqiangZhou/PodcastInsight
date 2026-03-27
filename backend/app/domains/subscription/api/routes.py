@@ -1,9 +1,6 @@
 """Subscription API routes."""
 
-from typing import Any
-
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
 
 from app.domains.subscription.api.dependencies import get_subscription_service
 from app.domains.subscription.api.response_assemblers import (
@@ -12,7 +9,13 @@ from app.domains.subscription.api.response_assemblers import (
     assemble_paginated_subscription_response,
     assemble_subscription_response,
 )
-from app.domains.subscription.api.routes_podcasts import router as podcast_router
+from app.domains.subscription.api.schemas import (
+    BatchSubscriptionResponse,
+    CategoryCreate,
+    CategoryResponse,
+    CategoryUpdate,
+    FetchResponse,
+)
 from app.domains.subscription.services import SubscriptionService
 from app.shared.schemas import (
     PaginatedResponse,
@@ -24,54 +27,6 @@ from app.shared.schemas import (
 
 
 router = APIRouter()
-
-
-# Additional request/response models
-class CategoryCreate(BaseModel):
-    """Request model for creating a category."""
-
-    name: str = Field(..., min_length=1, max_length=100)
-    description: str | None = None
-    color: str | None = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
-
-
-class CategoryResponse(BaseModel):
-    """Response model for category."""
-
-    id: int
-    name: str
-    description: str | None
-    color: str | None
-    created_at: str
-
-
-class CategoryUpdate(BaseModel):
-    """Request model for updating a category."""
-
-    name: str | None = Field(None, min_length=1, max_length=100)
-    description: str | None = None
-    color: str | None = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
-
-
-class FetchResponse(BaseModel):
-    """Response model for fetch operation."""
-
-    subscription_id: int
-    status: str
-    new_items: int | None = None
-    updated_items: int | None = None
-    total_items: int | None = None
-    error: str | None = None
-
-
-class BatchSubscriptionResponse(BaseModel):
-    """Response model for batch subscription creation."""
-
-    results: list[dict[str, Any]]
-    total_requested: int
-    success_count: int
-    skipped_count: int
-    error_count: int
 
 
 # Subscription endpoints
@@ -137,11 +92,6 @@ async def create_subscriptions_batch(
         skipped_count=skipped_count,
         error_count=error_count,
     )
-
-
-# Include podcast sub-router BEFORE /{subscription_id} routes
-# to prevent "podcasts" from being matched as a subscription_id
-router.include_router(podcast_router)
 
 
 @router.get("/{subscription_id}", response_model=SubscriptionResponse)

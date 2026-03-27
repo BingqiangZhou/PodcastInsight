@@ -5,21 +5,11 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.shared.schemas import BaseSchema, TimestampedSchema
 
-# === Base Schemas ===
-
-
-class PodcastBaseSchema(BaseModel):
-    """播客基础schema"""
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class PodcastTimestampedSchema(PodcastBaseSchema):
-    """带时间戳的播客schema"""
-
-    created_at: datetime
-    updated_at: datetime | None = None
+# Backward-compatible aliases
+PodcastBaseSchema = BaseSchema
+PodcastTimestampedSchema = TimestampedSchema
 
 
 # === Subscription相关 ===

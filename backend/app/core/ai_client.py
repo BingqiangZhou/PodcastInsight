@@ -2,6 +2,10 @@
 
 This module provides common functionality for AI model invocations,
 including retry logic, error handling, and response validation.
+
+Note: This client uses raw aiohttp instead of the openai SDK because the system
+supports multiple OpenAI-compatible providers (not just OpenAI). The raw HTTP
+approach allows configurable base URLs for any compatible endpoint.
 """
 
 import asyncio

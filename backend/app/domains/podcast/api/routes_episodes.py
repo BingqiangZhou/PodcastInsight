@@ -6,7 +6,11 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.core.config import settings
-from app.core.exceptions import ValidationError
+from app.core.exceptions import (
+    EpisodeNotFoundError,
+    SubscriptionNotFoundError,
+    ValidationError,
+)
 from app.core.providers import (
     get_podcast_episode_service,
     get_podcast_playback_service,
@@ -340,7 +344,7 @@ async def generate_summary(
             "鐢熸垚鎬荤粨鍓嶉渶瑕佸厛瀹屾垚杞綍",
             status.HTTP_400_BAD_REQUEST,
         ) from exc
-    except ValueError as exc:
+    except EpisodeNotFoundError:
         raise bilingual_http_exception(
             "Episode not found",
             "鏈壘鍒拌鍗曢泦",
@@ -375,18 +379,12 @@ async def update_playback_progress(
         return build_playback_state_response(
             payload=result,
         )
-    except ValueError as exc:
-        if str(exc) == "Episode not found":
-            raise bilingual_http_exception(
-                "Episode not found",
-                "未找到该单集",
-                status.HTTP_404_NOT_FOUND,
-            ) from exc
+    except EpisodeNotFoundError:
         raise bilingual_http_exception(
-            "Failed to update playback progress",
-            "更新播放进度失败",
-            status.HTTP_400_BAD_REQUEST,
-        ) from exc
+            "Episode not found",
+            "未找到该单集",
+            status.HTTP_404_NOT_FOUND,
+        )
     except Exception as exc:
         logger.error("Failed to update playback progress for episode %s: %s", episode_id, exc, exc_info=True)
         raise bilingual_http_exception(
@@ -410,8 +408,8 @@ async def get_playback_state(
         if not playback:
             raise HTTPException(status_code=404, detail="Playback record not found")
         return build_existing_playback_state_response(playback)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except EpisodeNotFoundError:
+        raise HTTPException(status_code=404, detail="Episode not found")
 
 
 @router.get(
@@ -447,31 +445,18 @@ async def apply_playback_rate_preference(
             subscription_id=request.subscription_id,
         )
         return build_effective_playback_rate_response(result)
-    except ValueError as exc:
-        code = str(exc)
-        if code == "SUBSCRIPTION_ID_REQUIRED":
-            raise bilingual_http_exception(
-                "subscription_id is required when apply_to_subscription is true",
-                "当 apply_to_subscription 为 true 时必须提供 subscription_id",
-                status.HTTP_400_BAD_REQUEST,
-            ) from exc
-        if code == "SUBSCRIPTION_NOT_FOUND":
-            raise bilingual_http_exception(
-                "Subscription not found",
-                "未找到订阅",
-                status.HTTP_404_NOT_FOUND,
-            ) from exc
-        if code == "USER_NOT_FOUND":
-            raise bilingual_http_exception(
-                "User not found",
-                "未找到用户",
-                status.HTTP_404_NOT_FOUND,
-            ) from exc
+    except SubscriptionNotFoundError:
+        raise bilingual_http_exception(
+            "Subscription not found",
+            "未找到订阅",
+            status.HTTP_404_NOT_FOUND,
+        )
+    except ValueError:
         raise bilingual_http_exception(
             "Failed to apply playback preference",
             "应用播放偏好失败",
             status.HTTP_400_BAD_REQUEST,
-        ) from exc
+        )
     except Exception as exc:
         logger.error("Failed to apply playback rate preference: %s", exc)
         raise bilingual_http_exception(

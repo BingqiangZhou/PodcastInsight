@@ -10,6 +10,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.exceptions import SubscriptionNotFoundError
 from app.core.redis import (
     PodcastRedis,
     get_shared_redis,
@@ -359,14 +360,14 @@ class PodcastSubscriptionService:
             List of new episodes
 
         Raises:
-            ValueError: If subscription not found or refresh fails
+            SubscriptionNotFoundError: If subscription not found
 
         """
         # Import here to avoid circular dependency
 
         sub = await self.repo.get_subscription_by_id(self.user_id, subscription_id)
         if not sub:
-            raise ValueError("Subscription not found")
+            raise SubscriptionNotFoundError("Subscription not found")
 
         # Parse RSS feed
         success, feed, error = await self.parser.fetch_and_parse_feed(sub.source_url)
@@ -450,7 +451,7 @@ class PodcastSubscriptionService:
         """
         sub = await self.repo.get_subscription_by_id(self.user_id, subscription_id)
         if not sub:
-            raise ValueError("Subscription not found")
+            raise SubscriptionNotFoundError("Subscription not found")
 
         logger.info(
             f"User {self.user_id} starting re-parse of subscription: {sub.title}",

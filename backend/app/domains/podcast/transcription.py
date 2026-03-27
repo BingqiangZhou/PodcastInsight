@@ -26,6 +26,7 @@ from app.domains.ai.models import ModelType
 from app.domains.ai.repositories import AIModelConfigRepository
 from app.domains.podcast.models import (
     PodcastEpisode,
+    PodcastEpisodeTranscript,
     TranscriptionStatus,
     TranscriptionStep,
     TranscriptionTask,
@@ -2059,8 +2060,24 @@ class PodcastTranscriptionService:
             await session.execute(stmt)
 
             # ?
+            # Create or update transcript record in dedicated table
+            transcript_stmt = select(PodcastEpisodeTranscript).where(
+                PodcastEpisodeTranscript.episode_id == task.episode_id
+            )
+            transcript_row_result = await session.execute(transcript_stmt)
+            transcript_row = transcript_row_result.scalar_one_or_none()
+            word_count = len(full_transcript.split())
+            if transcript_row:
+                transcript_row.transcript_content = full_transcript
+                transcript_row.transcript_word_count = word_count
+            else:
+                session.add(PodcastEpisodeTranscript(
+                    episode_id=task.episode_id,
+                    transcript_content=full_transcript,
+                    transcript_word_count=word_count,
+                ))
+
             episode_update = {
-                "transcript_content": full_transcript,
                 "transcript_url": f"file://{transcript_path}",
                 "status": "pending_summary",
             }

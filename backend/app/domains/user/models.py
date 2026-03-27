@@ -43,8 +43,8 @@ class User(Base):
     is_superuser = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
-    settings = Column(JSON, nullable=True, default={})
-    preferences = Column(JSON, nullable=True, default={})
+    settings = Column(JSON, nullable=True, default=dict)
+    preferences = Column(JSON, nullable=True, default=dict)
     default_playback_rate = Column(Float, nullable=False, default=1.0)
     api_key = Column(String(255), unique=True, nullable=True)
 

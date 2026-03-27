@@ -90,7 +90,7 @@ class BackgroundTaskRun(Base):
     finished_at = Column(DateTime(timezone=True), nullable=True)
     duration_ms = Column(Integer, nullable=True)
     error_message = Column(Text, nullable=True)
-    metadata_json = Column("metadata", JSON, nullable=True, default={})
+    metadata_json = Column("metadata", JSON, nullable=True, default=dict)
 
     __table_args__ = (
         Index("idx_task_queue_started", "queue_name", "started_at"),

@@ -11,6 +11,7 @@ from .routes_highlights import router as highlights_router
 from .routes_queue import router as queue_router
 from .routes_reports import router as reports_router
 from .routes_stats import router as stats_router
+from .routes_subscriptions import router as podcast_subscription_router
 from .routes_transcriptions import router as transcriptions_router
 
 
@@ -22,5 +23,6 @@ router.include_router(stats_router)
 router.include_router(transcriptions_router)
 router.include_router(conversations_router)
 router.include_router(highlights_router)
+router.include_router(podcast_subscription_router)
 
 __all__ = ["router"]
