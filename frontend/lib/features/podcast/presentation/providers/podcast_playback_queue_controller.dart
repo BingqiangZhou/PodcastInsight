@@ -98,10 +98,11 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
   }
 
   bool _hasFreshQueueState() {
-    if (_lastQueueRefreshAt == null) {
+    final lastRefresh = _lastQueueRefreshAt;
+    if (lastRefresh == null) {
       return false;
     }
-    return DateTime.now().difference(_lastQueueRefreshAt!) <
+    return DateTime.now().difference(lastRefresh) <
         _queueRefreshThrottle;
   }
 
