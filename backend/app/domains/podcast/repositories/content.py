@@ -447,7 +447,10 @@ class PodcastContentRepositoryMixin:
 
         stmt = (
             select(PodcastEpisode)
-            .options(joinedload(PodcastEpisode.subscription))
+            .options(
+                joinedload(PodcastEpisode.subscription),
+                joinedload(PodcastEpisode.transcript),
+            )
             .where(PodcastEpisode.id == episode_id)
         )
         if user_id:

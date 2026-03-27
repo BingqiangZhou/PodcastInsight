@@ -111,7 +111,10 @@ class PodcastFeedRepositoryMixin:
             select(PodcastEpisode)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
-            .options(joinedload(PodcastEpisode.subscription))
+            .options(
+                joinedload(PodcastEpisode.subscription),
+                joinedload(PodcastEpisode.transcript),
+            )
             .where(and_(*self._active_user_subscription_filters(user_id)))
         )
 
@@ -366,7 +369,10 @@ class PodcastFeedRepositoryMixin:
             select(PodcastEpisode)
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
-            .options(joinedload(PodcastEpisode.subscription))
+            .options(
+                joinedload(PodcastEpisode.subscription),
+                joinedload(PodcastEpisode.transcript),
+            )
             .where(and_(*self._active_user_subscription_filters(user_id)))
         )
         total = await self._get_feed_total_count(user_id)
@@ -423,7 +429,10 @@ class PodcastFeedRepositoryMixin:
             )
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
-            .options(joinedload(PodcastEpisode.subscription))
+            .options(
+                joinedload(PodcastEpisode.subscription),
+                joinedload(PodcastEpisode.transcript),
+            )
             .where(and_(*self._active_user_subscription_filters(user_id)))
         )
 
@@ -476,7 +485,10 @@ class PodcastFeedRepositoryMixin:
             )
             .join(Subscription, PodcastEpisode.subscription_id == Subscription.id)
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
-            .options(joinedload(PodcastEpisode.subscription))
+            .options(
+                joinedload(PodcastEpisode.subscription),
+                joinedload(PodcastEpisode.transcript),
+            )
             .where(and_(*self._active_user_subscription_filters(user_id)))
         )
         query = base_query
