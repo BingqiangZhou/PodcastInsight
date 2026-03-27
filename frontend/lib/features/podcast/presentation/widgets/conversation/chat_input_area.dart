@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/localization/app_localizations.dart';
 import '../../../../../core/localization/app_localizations_extension.dart';
 
 /// Input area for the conversation chat with a text field and send button.
