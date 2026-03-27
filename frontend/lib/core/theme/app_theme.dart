@@ -17,6 +17,23 @@ class AppTheme {
   AppTheme._();
 
   // ============================================================
+  // CACHED FONT METADATA / 缓存字体元数据
+  // These are resolved once and reused across all theme builds.
+  // ============================================================
+
+  /// Cached font family name for Plus Jakarta Sans.
+  static final String _jakartaFontFamily =
+      GoogleFonts.plusJakartaSans().fontFamily!;
+
+  /// A base TextStyle that only carries the Outfit font family.
+  /// Used with merge() to avoid repeated GoogleFonts.outfit() calls.
+  static final TextStyle _outfitBase = GoogleFonts.outfit();
+
+  /// A base TextStyle that only carries the Plus Jakarta Sans font family.
+  /// Used with merge() to avoid repeated GoogleFonts.plusJakartaSans() calls.
+  static final TextStyle _jakartaBase = GoogleFonts.plusJakartaSans();
+
+  // ============================================================
   // RESPONSIVE HELPERS (re-exported from ResponsiveHelpers)
   // 响应式助手（从 ResponsiveHelpers 重新导出）
   // ============================================================
@@ -39,11 +56,17 @@ class AppTheme {
 
   // ============================================================
   // THEME ACCESSORS / 主题访问器
+  // Cached so they are only built once per brightness.
   // ============================================================
 
-  static ThemeData get lightTheme => _buildTheme(Brightness.light);
+  static ThemeData? _cachedLightTheme;
+  static ThemeData? _cachedDarkTheme;
 
-  static ThemeData get darkTheme => _buildTheme(Brightness.dark);
+  static ThemeData get lightTheme =>
+      _cachedLightTheme ??= _buildTheme(Brightness.light);
+
+  static ThemeData get darkTheme =>
+      _cachedDarkTheme ??= _buildTheme(Brightness.dark);
 
   static ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
@@ -67,7 +90,7 @@ class AppTheme {
           ? AppColors.darkBackground
           : AppColors.lightBackground,
       textTheme: googleTextTheme,
-      fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+      fontFamily: _jakartaFontFamily,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
@@ -85,8 +108,8 @@ class AppTheme {
               ? Brightness.light
               : Brightness.dark,
         ),
-        titleTextStyle: GoogleFonts.outfit(
-          textStyle: textTheme.titleLarge?.copyWith(
+        titleTextStyle: _withOutfit(
+          textTheme.titleLarge?.copyWith(
             color: scheme.onSurface,
             fontWeight: FontWeight.w600,
           ),
@@ -109,9 +132,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(extension.panelRadius),
           side: BorderSide(color: scheme.outlineVariant),
         ),
-        titleTextStyle: GoogleFonts.outfit(
-          textStyle: textTheme.headlineSmall,
-        ),
+        titleTextStyle: _withOutfit(textTheme.headlineSmall),
       ),
       dividerTheme: DividerThemeData(
         color: scheme.outlineVariant.withValues(alpha: 0.5),
@@ -124,13 +145,13 @@ class AppTheme {
         fillColor: isDark
             ? scheme.surfaceContainerHighest
             : scheme.surface,
-        hintStyle: GoogleFonts.plusJakartaSans(
-          textStyle: textTheme.bodyMedium?.copyWith(
+        hintStyle: _withJakarta(
+          textTheme.bodyMedium?.copyWith(
             color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
           ),
         ),
-        labelStyle: GoogleFonts.plusJakartaSans(
-          textStyle: textTheme.labelMedium?.copyWith(
+        labelStyle: _withJakarta(
+          textTheme.labelMedium?.copyWith(
             color: scheme.onSurfaceVariant,
           ),
         ),
@@ -162,11 +183,11 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        labelStyle: GoogleFonts.plusJakartaSans(
-          textStyle: textTheme.labelMedium?.copyWith(color: scheme.onSurface),
+        labelStyle: _withJakarta(
+          textTheme.labelMedium?.copyWith(color: scheme.onSurface),
         ),
-        secondaryLabelStyle: GoogleFonts.plusJakartaSans(
-          textStyle: textTheme.labelMedium?.copyWith(
+        secondaryLabelStyle: _withJakarta(
+          textTheme.labelMedium?.copyWith(
             color: scheme.primary,
             fontWeight: FontWeight.w600,
           ),
@@ -174,8 +195,8 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: scheme.surface,
-        contentTextStyle: GoogleFonts.plusJakartaSans(
-          textStyle: textTheme.bodyMedium?.copyWith(
+        contentTextStyle: _withJakarta(
+          textTheme.bodyMedium?.copyWith(
             color: scheme.onSurface,
           ),
         ),
@@ -206,8 +227,8 @@ class AppTheme {
         height: 72,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return GoogleFonts.plusJakartaSans(
-            textStyle: textTheme.labelSmall?.copyWith(
+          return _withJakarta(
+            textTheme.labelSmall?.copyWith(
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
             ),
@@ -229,14 +250,14 @@ class AppTheme {
         indicatorColor: scheme.primary.withValues(alpha: isDark ? 0.18 : 0.12),
         selectedIconTheme: IconThemeData(color: scheme.onPrimaryContainer),
         unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
-        selectedLabelTextStyle: GoogleFonts.plusJakartaSans(
-          textStyle: textTheme.labelMedium?.copyWith(
+        selectedLabelTextStyle: _withJakarta(
+          textTheme.labelMedium?.copyWith(
             color: scheme.onSurface,
             fontWeight: FontWeight.w600,
           ),
         ),
-        unselectedLabelTextStyle: GoogleFonts.plusJakartaSans(
-          textStyle: textTheme.labelMedium?.copyWith(
+        unselectedLabelTextStyle: _withJakarta(
+          textTheme.labelMedium?.copyWith(
             color: scheme.onSurfaceVariant,
           ),
         ),
@@ -248,8 +269,8 @@ class AppTheme {
           radius: extension.buttonRadius,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-          textStyle: GoogleFonts.plusJakartaSans(
-            textStyle: textTheme.labelLarge?.copyWith(
+          textStyle: _withJakarta(
+            textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -262,8 +283,8 @@ class AppTheme {
           radius: extension.buttonRadius,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-          textStyle: GoogleFonts.plusJakartaSans(
-            textStyle: textTheme.labelLarge?.copyWith(
+          textStyle: _withJakarta(
+            textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -278,8 +299,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(extension.buttonRadius),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          textStyle: GoogleFonts.plusJakartaSans(
-            textStyle: textTheme.labelLarge?.copyWith(
+          textStyle: _withJakarta(
+            textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -292,8 +313,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(extension.buttonRadius),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          textStyle: GoogleFonts.plusJakartaSans(
-            textStyle: textTheme.labelLarge?.copyWith(
+          textStyle: _withJakarta(
+            textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -514,50 +535,37 @@ class AppTheme {
     );
   }
 
-  /// Build typography with Outfit + Plus Jakarta Sans
+  /// Apply Outfit font family to a [TextStyle] using the cached base.
+  /// Avoids calling GoogleFonts.outfit() on every theme build.
+  static TextStyle _withOutfit(TextStyle? base) {
+    return _outfitBase.merge(base);
+  }
+
+  /// Apply Plus Jakarta Sans font family to a [TextStyle] using the cached base.
+  /// Avoids calling GoogleFonts.plusJakartaSans() on every theme build.
+  static TextStyle _withJakarta(TextStyle? base) {
+    return _jakartaBase.merge(base);
+  }
+
+  /// Build typography with Outfit + Plus Jakarta Sans.
+  /// Uses cached font family references instead of repeated GoogleFonts calls.
   static TextTheme _buildGoogleTextTheme(TextTheme baseTheme) {
     return baseTheme.copyWith(
       // Display & Headings - Outfit
-      displaySmall: GoogleFonts.outfit(
-        textStyle: baseTheme.displaySmall,
-      ),
-      headlineLarge: GoogleFonts.outfit(
-        textStyle: baseTheme.headlineLarge,
-      ),
-      headlineMedium: GoogleFonts.outfit(
-        textStyle: baseTheme.headlineMedium,
-      ),
-      headlineSmall: GoogleFonts.outfit(
-        textStyle: baseTheme.headlineSmall,
-      ),
-      titleLarge: GoogleFonts.outfit(
-        textStyle: baseTheme.titleLarge,
-      ),
+      displaySmall: _withOutfit(baseTheme.displaySmall),
+      headlineLarge: _withOutfit(baseTheme.headlineLarge),
+      headlineMedium: _withOutfit(baseTheme.headlineMedium),
+      headlineSmall: _withOutfit(baseTheme.headlineSmall),
+      titleLarge: _withOutfit(baseTheme.titleLarge),
       // Body & Labels - Plus Jakarta Sans
-      titleMedium: GoogleFonts.plusJakartaSans(
-        textStyle: baseTheme.titleMedium,
-      ),
-      titleSmall: GoogleFonts.plusJakartaSans(
-        textStyle: baseTheme.titleSmall,
-      ),
-      bodyLarge: GoogleFonts.plusJakartaSans(
-        textStyle: baseTheme.bodyLarge,
-      ),
-      bodyMedium: GoogleFonts.plusJakartaSans(
-        textStyle: baseTheme.bodyMedium,
-      ),
-      bodySmall: GoogleFonts.plusJakartaSans(
-        textStyle: baseTheme.bodySmall,
-      ),
-      labelLarge: GoogleFonts.plusJakartaSans(
-        textStyle: baseTheme.labelLarge,
-      ),
-      labelMedium: GoogleFonts.plusJakartaSans(
-        textStyle: baseTheme.labelMedium,
-      ),
-      labelSmall: GoogleFonts.plusJakartaSans(
-        textStyle: baseTheme.labelSmall,
-      ),
+      titleMedium: _withJakarta(baseTheme.titleMedium),
+      titleSmall: _withJakarta(baseTheme.titleSmall),
+      bodyLarge: _withJakarta(baseTheme.bodyLarge),
+      bodyMedium: _withJakarta(baseTheme.bodyMedium),
+      bodySmall: _withJakarta(baseTheme.bodySmall),
+      labelLarge: _withJakarta(baseTheme.labelLarge),
+      labelMedium: _withJakarta(baseTheme.labelMedium),
+      labelSmall: _withJakarta(baseTheme.labelSmall),
     );
   }
 }

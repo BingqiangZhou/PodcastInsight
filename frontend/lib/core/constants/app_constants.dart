@@ -4,17 +4,6 @@ class AppConstants {
   static const String localeKey = 'locale';
 }
 
-class ApiConstants {
-  static const Map<String, String> headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
-
-  static const Duration connectTimeout = Duration(seconds: 300);
-  static const Duration receiveTimeout = Duration(seconds: 300);
-  static const Duration sendTimeout = Duration(seconds: 300);
-}
-
 // App Update Constants / 应用更新常量
 class AppUpdateConstants {
   // GitHub Configuration / GitHub 配置

@@ -9,9 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'etag_interceptor.dart';
 import 'token_refresh_service.dart';
 
-// Import the new AppConfig with dynamic baseUrl support
+// Import AppConfig and ApiConstants from the canonical config file
 import '../../core/app/config/app_config.dart' as config;
-import '../constants/app_constants.dart' as constants;
 import 'exceptions/network_exceptions.dart';
 import '../utils/app_logger.dart' as logger;
 
@@ -217,6 +216,9 @@ class DioClient {
   // Retry options
   final RetryOptions _retryOptions;
 
+  // In-memory token cache to avoid secure storage I/O on every request
+  String? _cachedAccessToken;
+
   // Retry tracking for in-flight requests
   final Map<String, int> _retryAttempts = {};
 
@@ -236,16 +238,10 @@ class DioClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: '',
-        headers: constants.ApiConstants.headers,
-        connectTimeout: Duration(
-          milliseconds: constants.ApiConstants.connectTimeout.inMilliseconds,
-        ),
-        receiveTimeout: Duration(
-          milliseconds: constants.ApiConstants.receiveTimeout.inMilliseconds,
-        ),
-        sendTimeout: Duration(
-          milliseconds: constants.ApiConstants.sendTimeout.inMilliseconds,
-        ),
+        headers: config.ApiConstants.headers,
+        connectTimeout: config.AppConfig.connectionTimeout,
+        receiveTimeout: config.AppConfig.receiveTimeout,
+        sendTimeout: config.AppConfig.sendTimeout,
       ),
     );
 
@@ -374,9 +370,26 @@ class DioClient {
 
     // Only add token if not already set
     if (!options.headers.containsKey('Authorization')) {
-      final token = await _secureStorage.read(
-        key: config.AppConstants.accessTokenKey,
-      );
+      // Use in-memory cache first to avoid slow platform channel calls
+      String? token = _cachedAccessToken;
+
+      if (token == null) {
+        // Cache miss: fall back to secure storage and cache the result
+        token = await _secureStorage.read(
+          key: config.AppConstants.accessTokenKey,
+        );
+        if (token != null) {
+          _cachedAccessToken = token;
+          logger.AppLogger.debug(
+            '[AUTH] Token loaded from secure storage and cached',
+          );
+        }
+      } else {
+        logger.AppLogger.debug(
+          '[AUTH] Token served from in-memory cache',
+        );
+      }
+
       if (token != null) {
         options.headers['Authorization'] = 'Bearer $token';
         logger.AppLogger.debug(
@@ -639,6 +652,8 @@ class DioClient {
       final refreshResult = await _tokenRefreshService.refreshToken();
       final newAccessToken = refreshResult.accessToken;
       if (refreshResult.success && newAccessToken != null) {
+        // Update in-memory cache with the refreshed token
+        _cachedAccessToken = newAccessToken;
         try {
           final response = await _retryRequest(
             error.requestOptions,
@@ -689,6 +704,7 @@ class DioClient {
           logger.AppLogger.debug(
             '[AUTH] ?Token refresh failed due to invalid session, clearing tokens',
           );
+          _cachedAccessToken = null;
           await _tokenRefreshService.clearTokens();
           handler.reject(
             DioException(
@@ -843,6 +859,17 @@ class DioClient {
   /// Refresh the session token
   Future<TokenRefreshResult> refreshSessionToken() {
     return _tokenRefreshService.refreshToken();
+  }
+
+  /// Clear the in-memory access token cache.
+  ///
+  /// Should be called on logout to ensure the next request does not use
+  /// a stale cached token. The secure storage fallback is still available
+  /// for robustness, but the cache will be empty until a fresh token is
+  /// read or refreshed.
+  void clearTokenCache() {
+    _cachedAccessToken = null;
+    logger.AppLogger.debug('[DioClient] In-memory token cache cleared');
   }
 
   // Request cancellation support

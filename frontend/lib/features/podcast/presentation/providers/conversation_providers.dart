@@ -1,77 +1,38 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/podcast_conversation_model.dart';
-import 'episode_provider_cache.dart';
 import 'podcast_providers.dart';
 
 // === Providers ===
+// All three providers use family.autoDispose for automatic lifecycle management.
+// Each episode ID gets its own notifier instance that is cleaned up when no
+// longer watched.
 
-// Conversation state providers for each episode (Messages)
-final conversationStateProviders =
-  <int, NotifierProvider<ConversationNotifier, ConversationState>>{};
+/// Episode-scoped conversation (messages) provider.
+final conversationProvider = NotifierProvider.autoDispose
+    .family<ConversationNotifier, ConversationState, int>(
+  (int episodeId) => ConversationNotifier(episodeId),
+);
 
-/// Get or create a conversation state provider for a specific episode
-NotifierProvider<ConversationNotifier, ConversationState> getConversationProvider(
-    int episodeId) {
-  return getOrCreateEpisodeScopedProvider(
-    conversationStateProviders,
-    episodeId,
-    () => NotifierProvider.autoDispose<ConversationNotifier, ConversationState>(
-        () => ConversationNotifier(episodeId)),
-  );
-}
+/// Episode-scoped session list provider.
+final sessionListProvider = AsyncNotifierProvider.autoDispose
+    .family<SessionListNotifier, List<ConversationSession>, int>(
+  (int episodeId) => SessionListNotifier(episodeId),
+);
 
-// Session List Providers
-final sessionListProviders = <int,
-  AsyncNotifierProvider<SessionListNotifier, List<ConversationSession>>>{};
-
-AsyncNotifierProvider<SessionListNotifier, List<ConversationSession>>
-    getSessionListProvider(int episodeId) {
-  return getOrCreateEpisodeScopedProvider(
-    sessionListProviders,
-    episodeId,
-    () => AsyncNotifierProvider.autoDispose<SessionListNotifier, List<ConversationSession>>(
-        () => SessionListNotifier(episodeId)),
-  );
-}
-
-// Current Session ID Providers
-final currentSessionIdProviders =
-  <int, NotifierProvider<SessionIdNotifier, int?>>{};
-
-NotifierProvider<SessionIdNotifier, int?> getCurrentSessionIdProvider(
-    int episodeId) {
-  return getOrCreateEpisodeScopedProvider(
-    currentSessionIdProviders,
-    episodeId,
-    () => NotifierProvider.autoDispose<SessionIdNotifier, int?>(
-        () => SessionIdNotifier(episodeId)),
-  );
-}
-
-/// Explicitly release conversation-related provider cache for an episode.
-///
-/// This is a best-effort cleanup to prevent key accumulation in long-running
-/// sessions when widgets are recreated across many episode IDs.
-void releaseConversationProviders(int episodeId) {
-  releaseEpisodeScopedProvider(conversationStateProviders, episodeId);
-  releaseEpisodeScopedProvider(sessionListProviders, episodeId);
-  releaseEpisodeScopedProvider(currentSessionIdProviders, episodeId);
-}
+/// Episode-scoped current session ID provider.
+final currentSessionIdProvider = NotifierProvider.autoDispose
+    .family<SessionIdNotifier, int?, int>(
+  (int episodeId) => SessionIdNotifier(episodeId),
+);
 
 class SessionIdNotifier extends Notifier<int?> {
-  SessionIdNotifier([this.episodeId]);
+  SessionIdNotifier(this.episodeId);
 
-  final int? episodeId;
+  final int episodeId;
 
   @override
   int? build() {
-    ref.onDispose(() {
-      final id = episodeId;
-      if (id != null) {
-        releaseEpisodeScopedProvider(currentSessionIdProviders, id);
-      }
-    });
     return null;
   }
 
@@ -132,25 +93,22 @@ class SessionListNotifier extends AsyncNotifier<List<ConversationSession>> {
 
   @override
   Future<List<ConversationSession>> build() async {
-    ref.onDispose(() {
-      releaseEpisodeScopedProvider(sessionListProviders, episodeId);
-    });
     return _loadSessions();
   }
 
   Future<List<ConversationSession>> _loadSessions() async {
     final repository = ref.read(podcastRepositoryProvider);
     final response = await repository.getConversationSessions(episodeId: episodeId);
-    
+
     // Automatically set current session if not set and we have sessions
-    final currentSessionId = ref.read(getCurrentSessionIdProvider(episodeId));
+    final currentSessionId = ref.read(currentSessionIdProvider(episodeId));
     if (currentSessionId == null && response.sessions.isNotEmpty) {
        // Defer the state update to avoid build-phase modification issues
        Future(() {
-         ref.read(getCurrentSessionIdProvider(episodeId).notifier).set(response.sessions.first.id);
+         ref.read(currentSessionIdProvider(episodeId).notifier).set(response.sessions.first.id);
        });
     }
-    
+
     return response.sessions;
   }
 
@@ -167,13 +125,13 @@ class SessionListNotifier extends AsyncNotifier<List<ConversationSession>> {
         episodeId: episodeId,
         title: title,
       );
-      
+
       // Refresh list
       await refresh();
-      
+
       // Switch to new session
-      ref.read(getCurrentSessionIdProvider(episodeId).notifier).set(session.id);
-      
+      ref.read(currentSessionIdProvider(episodeId).notifier).set(session.id);
+
       return session;
     } catch (e) {
       // Handle error (maybe show toast via a provider or throw)
@@ -186,18 +144,18 @@ class SessionListNotifier extends AsyncNotifier<List<ConversationSession>> {
       final repository = ref.read(podcastRepositoryProvider);
       await repository.deleteConversationSession(
           episodeId: episodeId, sessionId: sessionId);
-          
+
       // Refresh list
       await refresh();
-      
+
       // If deleted session was active, switch to another or null
-      final currentSessionId = ref.read(getCurrentSessionIdProvider(episodeId));
+      final currentSessionId = ref.read(currentSessionIdProvider(episodeId));
       if (currentSessionId == sessionId) {
         final sessions = state.value ?? [];
         if (sessions.isNotEmpty) {
-           ref.read(getCurrentSessionIdProvider(episodeId).notifier).set(sessions.first.id);
+           ref.read(currentSessionIdProvider(episodeId).notifier).set(sessions.first.id);
         } else {
-           ref.read(getCurrentSessionIdProvider(episodeId).notifier).set(null);
+           ref.read(currentSessionIdProvider(episodeId).notifier).set(null);
         }
       }
     } catch (e) {
@@ -214,16 +172,12 @@ class ConversationNotifier extends Notifier<ConversationState> {
 
   @override
   ConversationState build() {
-    ref.onDispose(() {
-      releaseEpisodeScopedProvider(conversationStateProviders, episodeId);
-    });
-
     // Watch current session ID to reload on change
-    final sessionId = ref.watch(getCurrentSessionIdProvider(episodeId));
-    
+    final sessionId = ref.watch(currentSessionIdProvider(episodeId));
+
     // Load conversation history when building or when session changes
     _loadHistory(sessionId);
-    
+
     return ConversationState(
       isLoading: true,
       sessionId: sessionId,
@@ -257,14 +211,14 @@ class ConversationNotifier extends Notifier<ConversationState> {
   /// Refresh conversation history
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    final sessionId = ref.read(getCurrentSessionIdProvider(episodeId));
+    final sessionId = ref.read(currentSessionIdProvider(episodeId));
     await _loadHistory(sessionId);
   }
 
   /// Send a message to AI
   Future<void> sendMessage(String message, {String? modelName}) async {
     // Current session
-    final sessionId = ref.read(getCurrentSessionIdProvider(episodeId));
+    final sessionId = ref.read(currentSessionIdProvider(episodeId));
 
     // Optimistically add user message to state
     final userTurn = state.messages.length;
@@ -294,7 +248,8 @@ class ConversationNotifier extends Notifier<ConversationState> {
         ),
       );
 
-      // 发送成功后从服务器重新加载完整对话历史，确保用户消息和AI回复都正确显示
+      // Send succeeded, reload full conversation history from server to ensure
+      // both user message and AI reply are correctly displayed.
       final historyResponse = await repository.getConversationHistory(
         episodeId: episodeId,
         sessionId: sessionId, // This might be null if a default session was created
@@ -302,9 +257,9 @@ class ConversationNotifier extends Notifier<ConversationState> {
 
       // Store the session ID if it was returned (implies new session created/assigned)
       if (sessionId == null && historyResponse.sessionId != null) {
-          ref.read(getCurrentSessionIdProvider(episodeId).notifier).set(historyResponse.sessionId);
+          ref.read(currentSessionIdProvider(episodeId).notifier).set(historyResponse.sessionId);
           // Refresh session list to show new session
-          ref.read(getSessionListProvider(episodeId).notifier).refresh();
+          ref.read(sessionListProvider(episodeId).notifier).refresh();
       }
 
       state = ConversationState(
@@ -330,13 +285,13 @@ class ConversationNotifier extends Notifier<ConversationState> {
 
   /// Clear conversation history for current session
   Future<void> clearHistory() async {
-    final sessionId = ref.read(getCurrentSessionIdProvider(episodeId));
+    final sessionId = ref.read(currentSessionIdProvider(episodeId));
     state = state.copyWith(isLoading: true);
 
     try {
       final repository = ref.read(podcastRepositoryProvider);
       await repository.clearConversationHistory(
-        episodeId: episodeId, 
+        episodeId: episodeId,
         sessionId: sessionId,
       );
 
@@ -356,7 +311,7 @@ class ConversationNotifier extends Notifier<ConversationState> {
   /// Start a new chat (convenience method)
   Future<void> startNewChat() async {
       // Create a new session
-      final sessionListNotifier = ref.read(getSessionListProvider(episodeId).notifier);
+      final sessionListNotifier = ref.read(sessionListProvider(episodeId).notifier);
       await sessionListNotifier.createSession();
       // createSession handles switching
   }

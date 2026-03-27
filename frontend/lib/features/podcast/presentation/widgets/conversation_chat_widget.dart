@@ -101,7 +101,7 @@ class ConversationChatWidgetState
   void dispose() {
     _conversationSubscription?.close();
     _pendingScrollTimer?.cancel();
-    releaseConversationProviders(widget.episodeId);
+    // No manual release needed - autoDispose handles cleanup
     _messageController.removeListener(_onMessageInputChanged);
     _inputTextNotifier.dispose();
     _messageController.dispose();
@@ -118,7 +118,7 @@ class ConversationChatWidgetState
       final currentVersion = _episodeVersion;
 
       _conversationSubscription?.close();
-      releaseConversationProviders(oldWidget.episodeId);
+      // No manual release needed - autoDispose handles cleanup
 
       // Use addPostFrameCallback to ensure execution after current frame completes
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -132,7 +132,7 @@ class ConversationChatWidgetState
   void _bindConversationListener() {
     _conversationSubscription?.close();
     _conversationSubscription = ref.listenManual<ConversationState>(
-      getConversationProvider(widget.episodeId),
+      conversationProvider(widget.episodeId),
       (previous, next) {
         _syncSelectedMessageIds(next.messages);
         if (next.messages.length > (previous?.messages.length ?? 0)) {
@@ -166,7 +166,7 @@ class ConversationChatWidgetState
     if (message.isEmpty) return;
 
     final notifier = ref.read(
-      getConversationProvider(widget.episodeId).notifier,
+      conversationProvider(widget.episodeId).notifier,
     );
     notifier.sendMessage(message, modelName: _selectedModel?.name);
 
@@ -370,7 +370,7 @@ class ConversationChatWidgetState
 
     if (confirmed == true && mounted) {
       await ref
-          .read(getConversationProvider(widget.episodeId).notifier)
+          .read(conversationProvider(widget.episodeId).notifier)
           .startNewChat();
       if (!mounted) {
         return;
@@ -383,7 +383,7 @@ class ConversationChatWidgetState
   @override
   Widget build(BuildContext context) {
     final conversationState = ref.watch(
-      getConversationProvider(widget.episodeId),
+      conversationProvider(widget.episodeId),
     );
 
     return Scaffold(
@@ -406,9 +406,9 @@ class ConversationChatWidgetState
 
   Widget _buildSessionsDrawer(BuildContext context) {
     final l10n = context.l10n;
-    final sessionsAsync = ref.watch(getSessionListProvider(widget.episodeId));
+    final sessionsAsync = ref.watch(sessionListProvider(widget.episodeId));
     final currentSessionId = ref.watch(
-      getCurrentSessionIdProvider(widget.episodeId),
+      currentSessionIdProvider(widget.episodeId),
     );
 
     return Drawer(
@@ -520,7 +520,7 @@ class ConversationChatWidgetState
                           if (confirm == true) {
                             ref
                                 .read(
-                                  getSessionListProvider(
+                                  sessionListProvider(
                                     widget.episodeId,
                                   ).notifier,
                                 )
@@ -532,7 +532,7 @@ class ConversationChatWidgetState
                       onTap: () {
                         ref
                             .read(
-                              getCurrentSessionIdProvider(
+                              currentSessionIdProvider(
                                 widget.episodeId,
                               ).notifier,
                             )
@@ -694,7 +694,7 @@ class ConversationChatWidgetState
                                 ? null
                                 : () => ref
                                       .read(
-                                        getConversationProvider(
+                                        conversationProvider(
                                           widget.episodeId,
                                         ).notifier,
                                       )

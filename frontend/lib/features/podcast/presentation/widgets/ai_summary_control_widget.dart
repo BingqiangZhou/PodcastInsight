@@ -57,12 +57,12 @@ class _AISummaryControlWidgetState
   }
 
   void _generateSummary() {
-    final provider = getSummaryProvider(widget.episodeId);
+    final provider = summaryProvider(widget.episodeId);
     ref.read(provider.notifier).generateSummary(model: _resolvedModelName());
   }
 
   Future<void> _regenerateSummary() async {
-    final provider = getSummaryProvider(widget.episodeId);
+    final provider = summaryProvider(widget.episodeId);
     final response = await ref
         .read(provider.notifier)
         .regenerateSummary(model: _resolvedModelName());
@@ -97,7 +97,7 @@ class _AISummaryControlWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final provider = getSummaryProvider(widget.episodeId);
+    final provider = summaryProvider(widget.episodeId);
     final summaryState = ref.watch(provider);
     final availableModelsAsync = ref.watch(availableModelsProvider);
 
@@ -462,7 +462,7 @@ class _AISummaryControlWidgetState
             iconSize: 16,
             icon: const Icon(Icons.close),
             onPressed: () {
-              final provider = getSummaryProvider(widget.episodeId);
+              final provider = summaryProvider(widget.episodeId);
               ref.read(provider.notifier).clearError();
             },
           ),

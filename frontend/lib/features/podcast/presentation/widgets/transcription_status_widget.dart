@@ -163,7 +163,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     );
 
     try {
-      final provider = getTranscriptionProvider(episodeId);
+      final provider = transcriptionProvider(episodeId);
       await ref.read(provider.notifier).startTranscription();
 
       // Show success feedback
@@ -956,7 +956,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
   Future<void> _deleteTranscription(WidgetRef ref) async {
     try {
-      final provider = getTranscriptionProvider(episodeId);
+      final provider = transcriptionProvider(episodeId);
       await ref.read(provider.notifier).deleteTranscription();
     } catch (e) {
       // Error will be handled by the provider
@@ -971,7 +971,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
   Future<void> _retryTranscription(WidgetRef ref) async {
     // Show retry feedback
     try {
-      final provider = getTranscriptionProvider(episodeId);
+      final provider = transcriptionProvider(episodeId);
       await ref.read(provider.notifier).startTranscription();
     } catch (e) {
       // Error will be handled by the provider

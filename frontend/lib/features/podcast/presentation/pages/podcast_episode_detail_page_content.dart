@@ -80,8 +80,8 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildTranscriptContent(PodcastEpisodeDetailResponse episode) {
-    final transcriptionProvider = getTranscriptionProvider(widget.episodeId);
-    final transcriptionState = ref.watch(transcriptionProvider);
+    final tProvider = transcriptionProvider(widget.episodeId);
+    final transcriptionState = ref.watch(tProvider);
     final highlightsState = ref.watch(episodeHighlightsProvider(widget.episodeId));
 
     return transcriptionState.when(
@@ -211,11 +211,11 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     PodcastEpisodeDetailResponse episode, {
     bool compact = false,
   }) {
-    final provider = getSummaryProvider(widget.episodeId);
+    final provider = summaryProvider(widget.episodeId);
     final summaryState = ref.watch(provider);
     final summaryNotifier = ref.read(provider.notifier);
-    final transcriptionProvider = getTranscriptionProvider(widget.episodeId);
-    final transcriptionState = ref.watch(transcriptionProvider);
+    final tProvider = transcriptionProvider(widget.episodeId);
+    final transcriptionState = ref.watch(tProvider);
 
     final episodeTranscript = episode.transcriptContent;
     final hasEpisodeTranscript =

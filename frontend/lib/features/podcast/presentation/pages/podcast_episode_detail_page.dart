@@ -93,7 +93,6 @@ class _PodcastEpisodeDetailPageState
   @override
   void dispose() {
     _transcriptionNoticeSubscription?.close();
-    _releaseEpisodeScopedProviders(widget.episodeId);
     _pageController.dispose();
     _scrollOffset.dispose();
     _showScrollToTopButton.dispose();
@@ -101,16 +100,11 @@ class _PodcastEpisodeDetailPageState
     super.dispose();
   }
 
-  void _releaseEpisodeScopedProviders(int episodeId) {
-    releaseSummaryProvider(episodeId);
-    releaseTranscriptionProvider(episodeId);
-  }
-
   void _bindTranscriptionNoticeListener() {
     _transcriptionNoticeSubscription?.close();
     _transcriptionNoticeSubscription = ref
         .listenManual<AsyncValue<PodcastTranscriptionResponse?>>(
-          getTranscriptionProvider(widget.episodeId),
+          transcriptionProvider(widget.episodeId),
           (previous, next) {
             if (!mounted) {
               return;
@@ -225,10 +219,9 @@ class _PodcastEpisodeDetailPageState
 
   Future<void> _loadTranscriptionStatus() async {
     try {
-      final transcriptionProvider = getTranscriptionProvider(widget.episodeId);
       // Automatically check/start transcription if missing
       await ref
-          .read(transcriptionProvider.notifier)
+          .read(transcriptionProvider(widget.episodeId).notifier)
           .checkOrStartTranscription();
     } catch (error) {
       logger.AppLogger.debug(
@@ -376,7 +369,7 @@ class _PodcastEpisodeDetailPageState
       _shownotesAnchors = const <ShownotesAnchor>[];
 
       _bindTranscriptionNoticeListener();
-      _releaseEpisodeScopedProviders(oldWidget.episodeId);
+      // No manual provider release needed - family.autoDispose handles cleanup
 
       // Reload data for the new episode
       WidgetsBinding.instance.addPostFrameCallback((_) {
