@@ -31,10 +31,10 @@ dependencies:
 
   # Local Storage
   shared_preferences: ^2.5.4
-  connectivity_plus: ^6.1.0
+  connectivity_plus: ^7.0.0
 
   # UI Components
-  google_fonts: ^6.2.1
+  google_fonts: ^8.0.2
   shimmer: ^3.0.0
   flutter_markdown_plus: ^1.0.7
   flutter_widget_from_html: ^0.17.1
