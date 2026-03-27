@@ -35,7 +35,7 @@ class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
       return;
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final response = await _repository.listSubscriptions(
@@ -52,6 +52,7 @@ class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
         currentPage: page,
         total: response.total,
         isLoading: false,
+        clearError: true,
         lastRefreshTime: DateTime.now(), // Record refresh time
       );
       logger.AppLogger.debug(
@@ -85,6 +86,7 @@ class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
         currentPage: state.nextPage ?? 1,
         total: response.total,
         isLoadingMore: false,
+        clearError: true,
       );
     } catch (error) {
       state = state.copyWith(isLoadingMore: false, error: error.toString());

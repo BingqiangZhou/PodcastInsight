@@ -405,7 +405,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       position: snapshot.positionMs,
       duration: snapshot.durationMs,
       playbackRate: resolvedPlaybackRate,
-      error: null,
+      clearError: true,
     );
     return true;
   }
@@ -539,6 +539,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
           isPlaying: playbackState.playing,
           isLoading: false,
           processingState: processingState,
+          clearError: true,
         );
       }
       _schedulePersistLastPlaybackSnapshot(immediate: !playbackState.playing);
@@ -875,7 +876,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         position: resumePositionMs,
         duration: durationMs,
         playbackRate: resolvedPlaybackRate,
-        error: null,
+        clearError: true,
       );
 
       logger.AppLogger.debug(
@@ -945,7 +946,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         position: resumePositionMs,
         duration: durationMs,
         playbackRate: resolvedPlaybackRate,
-        error: null,
+        clearError: true,
       );
       try {
         await setAudioSpeed(resolvedPlaybackRate);
@@ -1101,6 +1102,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         currentQueueEpisodeId: source == PlaySource.queue
             ? (queueEpisodeId ?? episodeForPlayback.id)
             : null,
+        clearError: true,
       );
 
       if (!ref.mounted || _isDisposed) {
@@ -1124,7 +1126,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         isLoading: true,
         isPlaying: false, // Keep false until actually playing
         duration: durationMs, // Convert seconds to milliseconds
-        error: null,
+        clearError: true,
       );
       _schedulePersistLastPlaybackSnapshot(immediate: true);
 
@@ -1204,6 +1206,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
             isLoading: false,
             position: resumePositionMs,
             playbackRate: targetPlaybackRate,
+            clearError: true,
           );
           _schedulePersistLastPlaybackSnapshot(immediate: true);
         }

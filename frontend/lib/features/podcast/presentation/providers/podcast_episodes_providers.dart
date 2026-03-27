@@ -133,7 +133,7 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
           currentPage: 1,
           total: cachedResponse.total,
           isLoading: true,
-          error: null,
+          clearError: true,
           cachedSubscriptionId: subscriptionId,
           cachedStatus: normalizedStatus,
           cachedHasSummary: normalizedHasSummary,
@@ -142,7 +142,7 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
         state = state.copyWith(
           isLoading: true,
           episodes: shouldClearImmediately ? [] : state.episodes,
-          error: null,
+          clearError: true,
         );
       }
       if (state.episodes.isEmpty) {
@@ -180,6 +180,7 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
         currentPage: page,
         total: response.total,
         isLoading: false,
+        clearError: true,
         cachedSubscriptionId: subscriptionId,
         cachedStatus: normalizedStatus,
         cachedHasSummary: normalizedHasSummary,
@@ -245,6 +246,7 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
             ? state.nextPage! + 1
             : null,
         isLoadingMore: false,
+        clearError: true,
       );
     } catch (error) {
       state = state.copyWith(isLoadingMore: false, error: error.toString());

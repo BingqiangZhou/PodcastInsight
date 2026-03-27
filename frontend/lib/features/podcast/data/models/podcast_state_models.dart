@@ -123,6 +123,7 @@ class PodcastEpisodesState extends Equatable {
     bool? isLoading,
     bool? isLoadingMore,
     String? error,
+    bool clearError = false,
     int? cachedSubscriptionId,
     String? cachedStatus,
     bool? cachedHasSummary,
@@ -136,7 +137,7 @@ class PodcastEpisodesState extends Equatable {
       total: total ?? this.total,
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      error: error ?? this.error,
+      error: clearError ? null : (error ?? this.error),
       cachedSubscriptionId: cachedSubscriptionId ?? this.cachedSubscriptionId,
       cachedStatus: cachedStatus ?? this.cachedStatus,
       cachedHasSummary: cachedHasSummary ?? this.cachedHasSummary,
@@ -208,6 +209,7 @@ class PodcastSubscriptionState extends Equatable {
     bool? isLoading,
     bool? isLoadingMore,
     String? error,
+    bool clearError = false,
     Set<String>? subscribingFeedUrls,
     DateTime? lastRefreshTime,
   }) {
@@ -219,7 +221,7 @@ class PodcastSubscriptionState extends Equatable {
       total: total ?? this.total,
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      error: error ?? this.error,
+      error: clearError ? null : (error ?? this.error),
       subscribingFeedUrls: subscribingFeedUrls ?? this.subscribingFeedUrls,
       lastRefreshTime: lastRefreshTime ?? this.lastRefreshTime,
     );

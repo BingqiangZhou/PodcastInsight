@@ -56,6 +56,7 @@ class AudioPlayerState extends Equatable {
     double? playbackRate,
     ProcessingState? processingState,
     String? error,
+    bool clearError = false,
     DateTime? sleepTimerEndTime,
     bool? sleepTimerAfterEpisode,
     String? sleepTimerRemainingLabel,
@@ -79,7 +80,7 @@ class AudioPlayerState extends Equatable {
       duration: duration ?? this.duration,
       playbackRate: playbackRate ?? this.playbackRate,
       processingState: processingState ?? this.processingState,
-      error: error ?? this.error,
+      error: clearError ? null : (error ?? this.error),
       sleepTimerEndTime: clearSleepTimer
           ? null
           : (sleepTimerEndTime ?? this.sleepTimerEndTime),
