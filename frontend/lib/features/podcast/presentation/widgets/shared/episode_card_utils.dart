@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/time_formatter.dart';
+import '../../../../../core/utils/time_formatter.dart';
 
 /// Shared utilities for episode card widgets.
 ///

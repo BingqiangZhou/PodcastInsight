@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/resource_cleanup_mixin.dart';
+import '../../../../core/localization/app_localizations_extension.dart';
 import '../../../../core/widgets/top_floating_notice.dart';
 import '../../data/models/podcast_conversation_model.dart';
 import '../../data/models/podcast_playback_model.dart';
