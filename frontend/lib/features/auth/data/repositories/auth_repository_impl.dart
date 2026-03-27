@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 
 import '../../domain/models/auth_request.dart';
@@ -20,7 +19,7 @@ class AuthRepositoryImpl implements AuthRepository {
   );
 
   @override
-  Future<Either<AppException, AuthResponse>> login(LoginRequest request) async {
+  Future<AuthResponse> login(LoginRequest request) async {
     try {
       final authResponse = await _remoteDatasource.login(request);
 
@@ -28,21 +27,21 @@ class AuthRepositoryImpl implements AuthRepository {
       await _secureStorage.saveAccessToken(authResponse.accessToken);
       await _secureStorage.saveRefreshToken(authResponse.refreshToken);
 
-      return Right(authResponse);
+      return authResponse;
     } on DioException catch (e) {
       if (e.error is AppException) {
-        return Left(e.error as AppException);
+        throw e.error as AppException;
       }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
-    } on AppException catch (e) {
-      return Left(e);
+      throw UnknownException(e.message ?? 'Unknown Dio error');
+    } on AppException {
+      rethrow;
     } catch (e) {
-      return Left(UnknownException(e.toString()));
+      throw UnknownException(e.toString());
     }
   }
 
   @override
-  Future<Either<AppException, AuthResponse>> register(RegisterRequest request) async {
+  Future<AuthResponse> register(RegisterRequest request) async {
     try {
       final authResponse = await _remoteDatasource.register(request);
 
@@ -50,27 +49,27 @@ class AuthRepositoryImpl implements AuthRepository {
       await _secureStorage.saveAccessToken(authResponse.accessToken);
       await _secureStorage.saveRefreshToken(authResponse.refreshToken);
 
-      return Right(authResponse);
+      return authResponse;
     } on DioException catch (e) {
       if (e.error is AppException) {
-        return Left(e.error as AppException);
+        throw e.error as AppException;
       }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
+      throw UnknownException(e.message ?? 'Unknown Dio error');
     } on AppException catch (e) {
       logger.AppLogger.debug('=== Repository Accepts AppException ===');
       logger.AppLogger.debug('Exception type: ${e.runtimeType}');
       logger.AppLogger.debug('Exception message: ${e.message}');
-      return Left(e);
+      rethrow;
     } catch (e) {
       logger.AppLogger.debug('=== Repository Falls to UnknownException ===');
       logger.AppLogger.debug('Error type: ${e.runtimeType}');
       logger.AppLogger.debug('Error: $e');
-      return Left(UnknownException(e.toString()));
+      throw UnknownException(e.toString());
     }
   }
 
   @override
-  Future<Either<AppException, RefreshTokenResponse>> refreshToken(String refreshToken) async {
+  Future<RefreshTokenResponse> refreshToken(String refreshToken) async {
     try {
       final authResponse = await _remoteDatasource.refreshToken(refreshToken);
 
@@ -78,7 +77,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _secureStorage.saveAccessToken(authResponse.accessToken);
       await _secureStorage.saveRefreshToken(authResponse.refreshToken);
 
-      final refreshResponse = RefreshTokenResponse(
+      return RefreshTokenResponse(
         accessToken: authResponse.accessToken,
         refreshToken: authResponse.refreshToken,
         tokenType: authResponse.tokenType,
@@ -86,22 +85,20 @@ class AuthRepositoryImpl implements AuthRepository {
         expiresAt: authResponse.expiresAt,
         serverTime: authResponse.serverTime,
       );
-
-      return Right(refreshResponse);
     } on DioException catch (e) {
       if (e.error is AppException) {
-        return Left(e.error as AppException);
+        throw e.error as AppException;
       }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
-    } on AppException catch (e) {
-      return Left(e);
+      throw UnknownException(e.message ?? 'Unknown Dio error');
+    } on AppException {
+      rethrow;
     } catch (e) {
-      return Left(UnknownException(e.toString()));
+      throw UnknownException(e.toString());
     }
   }
 
   @override
-  Future<Either<AppException, void>> logout(String? refreshToken) async {
+  Future<void> logout(String? refreshToken) async {
     try {
       // Use provided token or get from storage
       final token = refreshToken ?? await _secureStorage.getRefreshToken();
@@ -113,73 +110,69 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Clear tokens from secure storage
       await _secureStorage.clearTokens();
-
-      return const Right(null);
     } on DioException catch (e) {
       await _secureStorage.clearTokens();
       if (e.error is AppException) {
-        return Left(e.error as AppException);
+        throw e.error as AppException;
       }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
-    } on AppException catch (e) {
+      throw UnknownException(e.message ?? 'Unknown Dio error');
+    } on AppException {
       // Even if logout fails, clear local tokens
       await _secureStorage.clearTokens();
-      return Left(e);
+      rethrow;
     } catch (e) {
       // Even if logout fails, clear local tokens
       await _secureStorage.clearTokens();
-      return Left(UnknownException(e.toString()));
+      throw UnknownException(e.toString());
     }
   }
 
   @override
-  Future<Either<AppException, User>> getCurrentUser() async {
+  Future<User> getCurrentUser() async {
     try {
       final user = await _remoteDatasource.getCurrentUser();
-      return Right(user);
+      return user;
     } on DioException catch (e) {
       if (e.error is AppException) {
-        return Left(e.error as AppException);
+        throw e.error as AppException;
       }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
-    } on AppException catch (e) {
-      return Left(e);
+      throw UnknownException(e.message ?? 'Unknown Dio error');
+    } on AppException {
+      rethrow;
     } catch (e) {
-      return Left(UnknownException(e.toString()));
+      throw UnknownException(e.toString());
     }
   }
 
   @override
-  Future<Either<AppException, void>> forgotPassword(ForgotPasswordRequest request) async {
+  Future<void> forgotPassword(ForgotPasswordRequest request) async {
     try {
       await _remoteDatasource.forgotPassword(request);
-      return const Right(null);
     } on DioException catch (e) {
       if (e.error is AppException) {
-        return Left(e.error as AppException);
+        throw e.error as AppException;
       }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
-    } on AppException catch (e) {
-      return Left(e);
+      throw UnknownException(e.message ?? 'Unknown Dio error');
+    } on AppException {
+      rethrow;
     } catch (e) {
-      return Left(UnknownException(e.toString()));
+      throw UnknownException(e.toString());
     }
   }
 
   @override
-  Future<Either<AppException, void>> resetPassword(ResetPasswordRequest request) async {
+  Future<void> resetPassword(ResetPasswordRequest request) async {
     try {
       await _remoteDatasource.resetPassword(request);
-      return const Right(null);
     } on DioException catch (e) {
       if (e.error is AppException) {
-        return Left(e.error as AppException);
+        throw e.error as AppException;
       }
-      return Left(UnknownException(e.message ?? 'Unknown Dio error'));
-    } on AppException catch (e) {
-      return Left(e);
+      throw UnknownException(e.message ?? 'Unknown Dio error');
+    } on AppException {
+      rethrow;
     } catch (e) {
-      return Left(UnknownException(e.toString()));
+      throw UnknownException(e.toString());
     }
   }
 }

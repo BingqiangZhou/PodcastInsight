@@ -202,36 +202,33 @@ class AuthNotifier extends Notifier<AuthState> {
           }
         }
 
-        final result = await _authRepository.getCurrentUser();
-        result.fold(
-          (error) {
-            if (error is AuthenticationException) {
-              // For authentication errors, clear state and let router handle redirect
-              // Don't show error message, just navigate to login
-              _handleAuthError();
-              state = state.copyWith(
-                isLoading: false,
-                error: null, // Don't show error message
-                currentOperation: null,
-              );
-            } else {
-              // For other errors, show error message
-              String userMessage = _getErrorMessage(error);
-              state = state.copyWith(
-                isLoading: false,
-                error: userMessage,
-                currentOperation: null,
-              );
-            }
-          },
-          (user) => state = state.copyWith(
+        try {
+          final user = await _authRepository.getCurrentUser();
+          state = state.copyWith(
             user: user,
             isAuthenticated: true,
             isLoading: false,
             error: null,
             currentOperation: null,
-          ),
-        );
+          );
+        } on AuthenticationException {
+          // For authentication errors, clear state and let router handle redirect
+          // Don't show error message, just navigate to login
+          _handleAuthError();
+          state = state.copyWith(
+            isLoading: false,
+            error: null, // Don't show error message
+            currentOperation: null,
+          );
+        } on AppException catch (error) {
+          // For other errors, show error message
+          String userMessage = _getErrorMessage(error);
+          state = state.copyWith(
+            isLoading: false,
+            error: userMessage,
+            currentOperation: null,
+          );
+        }
         // Enable auto-refresh on successful auth check
         _enableAutoRefresh();
       } else {
@@ -264,62 +261,61 @@ class AuthNotifier extends Notifier<AuthState> {
       rememberMe: rememberMe,
     );
 
-    final result = await _authRepository.login(request);
-    result.fold(
-      (error) {
-        String userMessage = _getErrorMessage(error);
-        Map<String, String>? fieldErrors = _getFieldErrors(error);
+    try {
+      final authResponse = await _authRepository.login(request);
 
+      // Save token expiry - prioritize server's UTC expires_at, fall back to expiresIn
+      if (authResponse.expiresAt != null) {
+        // Use server's UTC expiration time
+        await _secureStorage.saveTokenExpiry(authResponse.expiresAt!);
+        logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: ${authResponse.expiresAt}');
+      } else if (authResponse.expiresIn > 0) {
+        // Fall back to relative expiresIn, convert to UTC
+        final expiryUtc = DateTime.now().toUtc().add(
+          Duration(seconds: authResponse.expiresIn),
+        );
+        await _secureStorage.saveTokenExpiry(expiryUtc);
+        logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
+      }
+
+      // Fetch user info after successful login
+      try {
+        final user = await _authRepository.getCurrentUser();
         state = state.copyWith(
+          user: user,
+          isAuthenticated: true,
           isLoading: false,
-          error: userMessage,
-          fieldErrors: fieldErrors,
+          error: null,
           currentOperation: null,
         );
-      },
-      (authResponse) async {
-        // Save token expiry - prioritize server's UTC expires_at, fall back to expiresIn
-        if (authResponse.expiresAt != null) {
-          // Use server's UTC expiration time
-          await _secureStorage.saveTokenExpiry(authResponse.expiresAt!);
-          logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: ${authResponse.expiresAt}');
-        } else if (authResponse.expiresIn > 0) {
-          // Fall back to relative expiresIn, convert to UTC
-          final expiryUtc = DateTime.now().toUtc().add(
-            Duration(seconds: authResponse.expiresIn),
-          );
-          await _secureStorage.saveTokenExpiry(expiryUtc);
-          logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
-        }
-
-        // Fetch user info after successful login
-        final userResult = await _authRepository.getCurrentUser();
-        userResult.fold(
-          (error) {
-            // Even if user fetch fails, login was successful
-            state = state.copyWith(
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-              currentOperation: null,
-            );
-            // Enable auto-refresh
-            _enableAutoRefresh();
-          },
-          (user) {
-            state = state.copyWith(
-              user: user,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-              currentOperation: null,
-            );
-            // Enable auto-refresh
-            _enableAutoRefresh();
-          },
+      } catch (_) {
+        // Even if user fetch fails, login was successful
+        state = state.copyWith(
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+          currentOperation: null,
         );
-      },
-    );
+      }
+      // Enable auto-refresh
+      _enableAutoRefresh();
+    } on AppException catch (error) {
+      String userMessage = _getErrorMessage(error);
+      Map<String, String>? fieldErrors = _getFieldErrors(error);
+
+      state = state.copyWith(
+        isLoading: false,
+        error: userMessage,
+        fieldErrors: fieldErrors,
+        currentOperation: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        currentOperation: null,
+      );
+    }
   }
 
   Future<void> register({
@@ -342,77 +338,76 @@ class AuthNotifier extends Notifier<AuthState> {
       rememberMe: rememberMe,
     );
 
-    final result = await _authRepository.register(request);
-    result.fold(
-      (error) {
-        // Debug logging
-        logger.AppLogger.debug('=== Register Error Debug ===');
-        logger.AppLogger.debug('Error type: ${error.runtimeType}');
-        logger.AppLogger.debug('Error message: ${error.message}');
-        logger.AppLogger.debug('Error statusCode: ${error.statusCode}');
+    try {
+      final authResponse = await _authRepository.register(request);
 
-        if (error is ValidationException) {
-          logger.AppLogger.debug('Field errors: ${error.fieldErrors}');
-          logger.AppLogger.debug('Error details: ${error.details}');
-        }
+      // Save token expiry - prioritize server's UTC expires_at, fall back to expiresIn
+      if (authResponse.expiresAt != null) {
+        // Use server's UTC expiration time
+        await _secureStorage.saveTokenExpiry(authResponse.expiresAt!);
+        logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: ${authResponse.expiresAt}');
+      } else if (authResponse.expiresIn > 0) {
+        // Fall back to relative expiresIn, convert to UTC
+        final expiryUtc = DateTime.now().toUtc().add(
+          Duration(seconds: authResponse.expiresIn),
+        );
+        await _secureStorage.saveTokenExpiry(expiryUtc);
+        logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
+      }
 
-        String userMessage = _getErrorMessage(error);
-        Map<String, String>? fieldErrors = _getFieldErrors(error);
-
-        logger.AppLogger.debug('User message: $userMessage');
-        logger.AppLogger.debug('Field errors: $fieldErrors');
-        logger.AppLogger.debug('========================');
-
+      // Fetch user info after successful registration
+      try {
+        final user = await _authRepository.getCurrentUser();
         state = state.copyWith(
+          user: user,
+          isAuthenticated: true,
           isLoading: false,
-          error: userMessage,
-          fieldErrors: fieldErrors,
+          error: null,
           currentOperation: null,
         );
-      },
-      (authResponse) async {
-        // Save token expiry - prioritize server's UTC expires_at, fall back to expiresIn
-        if (authResponse.expiresAt != null) {
-          // Use server's UTC expiration time
-          await _secureStorage.saveTokenExpiry(authResponse.expiresAt!);
-          logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: ${authResponse.expiresAt}');
-        } else if (authResponse.expiresIn > 0) {
-          // Fall back to relative expiresIn, convert to UTC
-          final expiryUtc = DateTime.now().toUtc().add(
-            Duration(seconds: authResponse.expiresIn),
-          );
-          await _secureStorage.saveTokenExpiry(expiryUtc);
-          logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
-        }
-
-        // Fetch user info after successful registration
-        final userResult = await _authRepository.getCurrentUser();
-        userResult.fold(
-          (error) {
-            // Even if user fetch fails, registration was successful
-            state = state.copyWith(
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-              currentOperation: null,
-            );
-            // Enable auto-refresh
-            _enableAutoRefresh();
-          },
-          (user) {
-            state = state.copyWith(
-              user: user,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-              currentOperation: null,
-            );
-            // Enable auto-refresh
-            _enableAutoRefresh();
-          },
+      } catch (_) {
+        // Even if user fetch fails, registration was successful
+        state = state.copyWith(
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+          currentOperation: null,
         );
-      },
-    );
+      }
+      // Enable auto-refresh
+      _enableAutoRefresh();
+    } on AppException catch (error) {
+      // Debug logging
+      logger.AppLogger.debug('=== Register Error Debug ===');
+      logger.AppLogger.debug('Error type: ${error.runtimeType}');
+      logger.AppLogger.debug('Error message: ${error.message}');
+      logger.AppLogger.debug('Error statusCode: ${error.statusCode}');
+
+      if (error is ValidationException) {
+        logger.AppLogger.debug('Field errors: ${error.fieldErrors}');
+        logger.AppLogger.debug('Error details: ${error.details}');
+      }
+
+      String userMessage = _getErrorMessage(error);
+      Map<String, String>? fieldErrors = _getFieldErrors(error);
+
+      logger.AppLogger.debug('User message: $userMessage');
+      logger.AppLogger.debug('Field errors: $fieldErrors');
+      logger.AppLogger.debug('========================');
+
+      state = state.copyWith(
+        isLoading: false,
+        error: userMessage,
+        fieldErrors: fieldErrors,
+        currentOperation: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        currentOperation: null,
+      );
+    }
   }
 
   Future<void> logout() async {
@@ -426,22 +421,15 @@ class AuthNotifier extends Notifier<AuthState> {
 
     final currentUserId = state.user?.id;
     final refreshToken = await _secureStorage.getRefreshToken();
-    final result = await _authRepository.logout(refreshToken);
-    await result.fold(
-      (error) async {
-        // Even if logout API fails, clear local state
-        await _clearAuthState();
-        await _clearPlaybackSnapshot(currentUserId);
-        ref.read(dioClientProvider).clearETagCache();
-        state = state.copyWith(isLoading: false, currentOperation: null);
-      },
-      (_) async {
-        await _clearAuthState();
-        await _clearPlaybackSnapshot(currentUserId);
-        ref.read(dioClientProvider).clearETagCache();
-        state = const AuthState(isAuthenticated: false, isLoading: false);
-      },
-    );
+    try {
+      await _authRepository.logout(refreshToken);
+    } catch (_) {
+      // Even if logout API fails, clear local state
+    }
+    await _clearAuthState();
+    await _clearPlaybackSnapshot(currentUserId);
+    ref.read(dioClientProvider).clearETagCache();
+    state = const AuthState(isAuthenticated: false, isLoading: false);
   }
 
   Future<void> refreshToken() async {
@@ -603,24 +591,27 @@ class AuthNotifier extends Notifier<AuthState> {
 
     final request = ForgotPasswordRequest(email: email);
 
-    final result = await _authRepository.forgotPassword(request);
-    result.fold(
-      (error) {
-        String userMessage = _getErrorMessage(error);
-        state = state.copyWith(
-          isLoading: false,
-          error: userMessage,
-          currentOperation: null,
-        );
-      },
-      (_) {
-        state = state.copyWith(
-          isLoading: false,
-          error: null,
-          currentOperation: null,
-        );
-      },
-    );
+    try {
+      await _authRepository.forgotPassword(request);
+      state = state.copyWith(
+        isLoading: false,
+        error: null,
+        currentOperation: null,
+      );
+    } on AppException catch (error) {
+      String userMessage = _getErrorMessage(error);
+      state = state.copyWith(
+        isLoading: false,
+        error: userMessage,
+        currentOperation: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        currentOperation: null,
+      );
+    }
   }
 
   Future<void> resetPassword({
@@ -639,27 +630,30 @@ class AuthNotifier extends Notifier<AuthState> {
       newPassword: newPassword,
     );
 
-    final result = await _authRepository.resetPassword(request);
-    result.fold(
-      (error) {
-        String userMessage = _getErrorMessage(error);
-        Map<String, String>? fieldErrors = _getFieldErrors(error);
+    try {
+      await _authRepository.resetPassword(request);
+      state = state.copyWith(
+        isLoading: false,
+        error: null,
+        currentOperation: null,
+      );
+    } on AppException catch (error) {
+      String userMessage = _getErrorMessage(error);
+      Map<String, String>? fieldErrors = _getFieldErrors(error);
 
-        state = state.copyWith(
-          isLoading: false,
-          error: userMessage,
-          fieldErrors: fieldErrors,
-          currentOperation: null,
-        );
-      },
-      (_) {
-        state = state.copyWith(
-          isLoading: false,
-          error: null,
-          currentOperation: null,
-        );
-      },
-    );
+      state = state.copyWith(
+        isLoading: false,
+        error: userMessage,
+        fieldErrors: fieldErrors,
+        currentOperation: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        currentOperation: null,
+      );
+    }
   }
 
   // === Auto Token Refresh Methods ===
