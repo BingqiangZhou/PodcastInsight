@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.34.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.33.0...v0.34.0) - 2026-03-28 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.34.0))
+
+### 🐛 Bug Fixes
+
+- *(frontend)* Move flutter_native_splash back to dependencies for Android build ([d97960f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d97960f9b4053397bbdb2b38e88791adc2bf6fb6))
+
+### 🚜 Refactor
+
+- *(backend)* Simplify core infrastructure and remove unused abstractions ([492280e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/492280eed9990a27ac27f0e5126a7295d5cbd18b))
+
+
+
 ## [0.33.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.32.0...v0.33.0) - 2026-03-28 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.33.0))
 
 ### ⚡ Performance
