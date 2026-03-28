@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.34.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.34.0...v0.34.1) - 2026-03-28 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.34.1))
+
+### 🐛 Bug Fixes
+
+- *(android)* Add dontwarn rule for bnd annotations to fix R8 minification ([4235852](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/42358528cf0dad9aad221755b0cefc8ecb304e54))
+
+
+
 ## [0.34.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.33.0...v0.34.0) - 2026-03-28 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.34.0))
 
 ### 🐛 Bug Fixes
