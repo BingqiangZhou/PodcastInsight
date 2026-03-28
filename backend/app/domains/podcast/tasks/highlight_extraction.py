@@ -14,6 +14,7 @@ from app.domains.podcast.tasks.handlers_highlight import (
 )
 from app.domains.podcast.tasks.runtime import log_task_run, run_async, worker_session
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,7 +103,7 @@ def extract_pending_highlights(self):
             finished_at=datetime.now(UTC),
         )
         return result
-    except SoftTimeLimitExceeded as exc:
+    except SoftTimeLimitExceeded:
         logger.warning("Highlight extraction soft timeout exceeded")
         log_task_run(
             task_name=task_name,

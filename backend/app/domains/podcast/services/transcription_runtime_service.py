@@ -461,7 +461,6 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
 
     async def cleanup_old_temp_files(self, days: int = 7):
         import os
-        import shutil
 
         from sqlalchemy import and_
 

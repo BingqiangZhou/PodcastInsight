@@ -14,7 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.cache_ttl import CacheTTL
 from app.core.redis import PodcastRedis, get_shared_redis
-from app.domains.subscription.models import Subscription, SubscriptionStatus, UserSubscription
+from app.domains.subscription.models import (
+    Subscription,
+    SubscriptionStatus,
+    UserSubscription,
+)
 from app.domains.user.models import User, UserStatus
 
 
@@ -52,7 +56,6 @@ class CacheWarmupService:
         Returns:
             Dictionary containing warm-up statistics.
         """
-        import asyncio
 
         logger.info("Starting prioritized cache warm-up...")
         start_time = datetime.now(UTC)
@@ -76,7 +79,7 @@ class CacheWarmupService:
                         task_name,
                         task_duration,
                     )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning(
                     "Cache warm-up task '%s' timed out after %.1fs (continuing)",
                     task_name,

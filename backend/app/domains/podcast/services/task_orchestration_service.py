@@ -37,7 +37,6 @@ from app.domains.subscription.models import (
     SubscriptionStatus,
     UserSubscription,
 )
-from app.domains.user.models import User, UserStatus
 
 
 logger = logging.getLogger(__name__)

@@ -3,9 +3,10 @@
 from datetime import date, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.shared.schemas import BaseSchema, TimestampedSchema
+
 
 # Backward-compatible aliases
 PodcastBaseSchema = BaseSchema

@@ -18,9 +18,10 @@ from app.domains.podcast.models import (
 )
 from app.domains.podcast.repositories.base import _get_subscription_models
 
+
 # Use TYPE_CHECKING to avoid runtime dependency on subscription domain
 if TYPE_CHECKING:
-    from app.domains.subscription.models import Subscription, UserSubscription
+    pass
 
 
 logger = logging.getLogger(__name__)

@@ -7,6 +7,7 @@ import logging
 from time import perf_counter
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 

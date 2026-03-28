@@ -16,6 +16,7 @@ from redis.retry import Retry
 
 from app.core.config import settings
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -88,7 +89,7 @@ class RedisClientManager:
             async with asyncio.timeout(timeout):
                 await client.ping()
             return True
-        except (TimeoutError, asyncio.TimeoutError):
+        except TimeoutError:
             logger.warning("Redis ping timed out after %.1f seconds", timeout)
             return False
         except Exception as e:
@@ -116,11 +117,6 @@ class RedisClientManager:
             self._client = new_client
             self._client_loop_token = current_loop_token
             self._last_health_check_at = perf_counter()
-
-            # Initialize metrics buffer for batched recording
-            from app.core.redis.metrics import _metrics_buffer
-            _metrics_buffer.start_flush_task(new_client)
-
             return self._client
 
         now = perf_counter()

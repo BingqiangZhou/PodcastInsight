@@ -7,15 +7,11 @@ Uses Redis for distributed rate limiting across multiple instances.
 import asyncio
 import logging
 import time
-from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

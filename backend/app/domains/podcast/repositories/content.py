@@ -15,9 +15,10 @@ from app.core.datetime_utils import sanitize_published_date
 from app.domains.podcast.models import PodcastEpisode
 from app.domains.podcast.repositories.base import _get_subscription_models
 
+
 # Use TYPE_CHECKING to avoid runtime dependency on subscription domain
 if TYPE_CHECKING:
-    from app.domains.subscription.models import Subscription, UserSubscription
+    pass
 
 
 class PodcastContentRepositoryMixin:

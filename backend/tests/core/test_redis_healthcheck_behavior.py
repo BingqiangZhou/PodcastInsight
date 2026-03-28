@@ -3,8 +3,6 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.core.redis import PodcastRedis
-from app.core.redis.client import RedisClientManager
-from app.core.redis.client import RedisClientManager
 
 
 class _FakeRedisClient:
@@ -56,7 +54,7 @@ async def test_cache_get_skips_ping_within_health_check_interval(monkeypatch):
     assert client.get_calls == 1
 
     monkeypatch.setattr(
-        "app.core.redis.perf_counter",
+        "app.core.redis.client.perf_counter",
         lambda: redis._last_health_check_at + 1.0,
     )
     assert await redis.cache_get("podcast:test:1") == "cached-value"

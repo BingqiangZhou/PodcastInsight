@@ -25,7 +25,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
-from app.domains.subscription.models import Subscription
 
 
 class PodcastEpisode(Base):

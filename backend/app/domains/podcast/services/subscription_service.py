@@ -21,7 +21,6 @@ from app.core.redis import (
 from app.domains.podcast.integration.secure_rss_parser import SecureRSSParser
 from app.domains.podcast.models import PodcastEpisode
 from app.domains.podcast.repositories import PodcastSubscriptionRepository
-from app.domains.podcast.schemas import PodcastSubscriptionCreate
 from app.domains.podcast.services.subscription_metadata import (
     extract_subscription_metadata,
 )

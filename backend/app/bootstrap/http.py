@@ -9,12 +9,8 @@ from fastapi.responses import JSONResponse
 from app.core.config import get_settings
 from app.core.database import check_db_readiness, get_db_pool_snapshot
 from app.core.exceptions import setup_exception_handlers
-from app.core.middleware import (
-    RequestObservabilityMiddleware,
-    get_performance_middleware,
-)
+from app.core.middleware import RequestObservabilityMiddleware
 from app.core.middleware.rate_limit import RateLimitConfig, setup_rate_limiting
-from app.core.observability import ObservabilityThresholds, build_observability_snapshot
 from app.core.redis import get_redis_runtime_metrics, get_shared_redis
 from app.http.errors import register_admin_http_exception_handler
 
@@ -25,20 +21,6 @@ logger = logging.getLogger(__name__)
 def configure_middlewares(app: FastAPI) -> None:
     """Register middleware stack."""
     settings = get_settings()
-
-    # Query analysis middleware (for N+1 detection) - added first, executes last
-    if settings.ENVIRONMENT == "development":
-        from app.core.middleware.query_analysis import (
-            QueryAnalysisMiddleware,
-            setup_query_counter_hooks,
-        )
-
-        app.add_middleware(
-            QueryAnalysisMiddleware,
-            warning_threshold=10,
-            critical_threshold=50,
-        )
-        logger.info("Query analysis middleware enabled for development")
 
     # Rate limiting middleware (added early, executes late)
     rate_limit_config = RateLimitConfig(
@@ -67,9 +49,8 @@ def configure_middlewares(app: FastAPI) -> None:
         setup_rate_limiting(app, redis_client=None, config=rate_limit_config)
         logger.info("Rate limiting middleware enabled with in-memory backend")
 
-    app.state.performance_metrics_store = get_performance_middleware(app)
     app.add_middleware(RequestObservabilityMiddleware, slow_threshold=5.0)
-    logger.debug("Request observability middleware enabled")
+    logger.debug("Request logging middleware enabled")
 
     app.add_middleware(
         CORSMiddleware,
@@ -104,37 +85,19 @@ def configure_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(CSRFException, csrf_exception_handler)
 
 
+async def _build_metrics_payload() -> dict:
+    """Build metrics payload from DB pool, Redis, and system info."""
+    db_pool = get_db_pool_snapshot()
+    redis_runtime = await get_redis_runtime_metrics()
+    return {
+        "db_pool": db_pool,
+        "redis_runtime": redis_runtime,
+    }
+
+
 def register_internal_routes(app: FastAPI) -> None:
     """Register health, root, and metrics routes."""
     settings = get_settings()
-    observability_thresholds = ObservabilityThresholds(
-        api_p95_ms=settings.OBS_ALERT_API_P95_MS,
-        api_error_rate=settings.OBS_ALERT_API_ERROR_RATE,
-        db_pool_occupancy_ratio=settings.OBS_ALERT_DB_POOL_OCCUPANCY_RATIO,
-        redis_command_avg_ms=settings.OBS_ALERT_REDIS_COMMAND_AVG_MS,
-        redis_command_max_ms=settings.OBS_ALERT_REDIS_COMMAND_MAX_MS,
-        redis_cache_hit_rate_min=settings.OBS_ALERT_REDIS_CACHE_HIT_RATE_MIN,
-        redis_cache_lookups_min=settings.OBS_ALERT_REDIS_CACHE_LOOKUPS_MIN,
-    )
-
-    async def build_metrics_payload() -> dict:
-        middleware = get_performance_middleware(app)
-        if not middleware:
-            return {"error": "Performance monitoring not enabled"}
-
-        metrics = middleware.get_metrics()
-        db_pool = get_db_pool_snapshot()
-        redis_runtime = await get_redis_runtime_metrics()
-        observability = build_observability_snapshot(
-            performance_metrics=metrics,
-            db_pool=db_pool,
-            redis_runtime=redis_runtime,
-            thresholds=observability_thresholds,
-        )
-        metrics["db_pool"] = db_pool
-        metrics["redis_runtime"] = redis_runtime
-        metrics["observability"] = observability
-        return metrics
 
     @app.get("/")
     async def root():
@@ -173,7 +136,7 @@ def register_internal_routes(app: FastAPI) -> None:
 
     @app.get("/metrics", include_in_schema=False)
     async def get_metrics():
-        return await build_metrics_payload()
+        return await _build_metrics_payload()
 
     @app.get("/metrics/prometheus", include_in_schema=False)
     async def get_prometheus_metrics():
@@ -184,7 +147,13 @@ def register_internal_routes(app: FastAPI) -> None:
 
     @app.get("/metrics/summary", include_in_schema=False)
     async def get_metrics_summary():
-        payload = await build_metrics_payload()
-        if "error" in payload:
-            return payload
-        return payload["observability"]
+        """Simplified metrics summary (DB pool + Redis runtime)."""
+        payload = await _build_metrics_payload()
+        from app.core.observability import build_observability_snapshot
+
+        observability = build_observability_snapshot(
+            performance_metrics={"summary": {}},
+            db_pool=payload["db_pool"],
+            redis_runtime=payload["redis_runtime"],
+        )
+        return observability

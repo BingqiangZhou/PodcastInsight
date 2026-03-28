@@ -6,9 +6,8 @@ All endpoints here are mounted under:
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 
-from app.core.exceptions import SubscriptionNotFoundError
-
 from app.core.etag import build_conditional_etag_response
+from app.core.exceptions import SubscriptionNotFoundError
 from app.core.providers import (
     get_podcast_schedule_service,
     get_podcast_subscription_service,

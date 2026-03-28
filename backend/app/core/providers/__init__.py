@@ -9,6 +9,15 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.providers.admin_providers import (
+    get_admin_apikeys_service,
+    get_admin_dashboard_context,
+    get_admin_settings_service,
+    get_admin_setup_auth_service,
+    get_admin_subscriptions_service,
+    get_admin_users_audit_service,
+)
+from app.core.providers.ai_providers import get_ai_model_config_service
 from app.core.providers.auth_providers import (
     get_authentication_service,
     get_current_active_user,
@@ -50,8 +59,22 @@ from app.core.providers.subscription_providers import (
     get_subscription_repository,
     get_subscription_service,
 )
+from app.domains.user.models import User as _User
+
+
+# ── Annotated type aliases for concise injection ────────────────────────────
+# Usage: def my_route(db: CurrentDb, user: CurrentActiveUser):
+#   instead of: def my_route(db: AsyncSession = Depends(get_db_session_dependency), user: User = Depends(get_current_active_user)):
+
+CurrentDb = Annotated[AsyncSession, Depends(get_db_session_dependency)]
+CurrentUser = Annotated[_User, Depends(get_current_user)]
+CurrentActiveUser = Annotated[_User, Depends(get_current_active_user)]
 
 __all__ = [
+    # Annotated aliases
+    "CurrentDb",
+    "CurrentUser",
+    "CurrentActiveUser",
     # Base providers
     "get_db_session_dependency",
     "get_redis_client",
@@ -64,6 +87,15 @@ __all__ = [
     "get_token_user_id",
     "get_user_repository",
     "oauth2_scheme",
+    # Admin providers
+    "get_admin_apikeys_service",
+    "get_admin_dashboard_context",
+    "get_admin_settings_service",
+    "get_admin_setup_auth_service",
+    "get_admin_subscriptions_service",
+    "get_admin_users_audit_service",
+    # AI providers
+    "get_ai_model_config_service",
     # Subscription providers
     "get_subscription_repository",
     "get_subscription_service",
@@ -90,77 +122,3 @@ __all__ = [
     "get_summary_workflow_service",
     "get_transcription_workflow_service",
 ]
-
-# Admin providers are imported lazily to avoid circular dependencies
-def get_admin_apikeys_service(
-    db: AsyncSession = Depends(get_db_session_dependency),
-):
-    """Lazily import admin service to avoid circular dependencies."""
-    from app.core.providers.admin_providers import get_admin_apikeys_service as _get
-
-    return _get(db)
-
-
-def get_admin_dashboard_context(
-    db: AsyncSession = Depends(get_db_session_dependency),
-):
-    """Lazily import admin service to avoid circular dependencies."""
-    from app.core.providers.admin_providers import get_admin_dashboard_context as _get
-
-    return _get(db)
-
-
-def get_admin_settings_service(
-    db: AsyncSession = Depends(get_db_session_dependency),
-):
-    """Lazily import admin service to avoid circular dependencies."""
-    from app.core.providers.admin_providers import get_admin_settings_service as _get
-
-    return _get(db)
-
-
-def get_admin_setup_auth_service(
-    db: AsyncSession = Depends(get_db_session_dependency),
-):
-    """Lazily import admin service to avoid circular dependencies."""
-    from app.core.providers.admin_providers import get_admin_setup_auth_service as _get
-
-    return _get(db)
-
-
-def get_admin_subscriptions_service(
-    db: AsyncSession = Depends(get_db_session_dependency),
-):
-    """Lazily import admin service to avoid circular dependencies."""
-    from app.core.providers.admin_providers import get_admin_subscriptions_service as _get
-
-    return _get(db)
-
-
-def get_admin_users_audit_service(
-    db: AsyncSession = Depends(get_db_session_dependency),
-):
-    """Lazily import admin service to avoid circular dependencies."""
-    from app.core.providers.admin_providers import get_admin_users_audit_service as _get
-
-    return _get(db)
-
-
-def get_ai_model_config_service(
-    db: AsyncSession = Depends(get_db_session_dependency),
-):
-    """Lazily import AI service to avoid circular dependencies."""
-    from app.core.providers.ai_providers import get_ai_model_config_service as _get
-
-    return _get(db)
-
-
-__all__.extend([
-    "get_admin_apikeys_service",
-    "get_admin_dashboard_context",
-    "get_admin_settings_service",
-    "get_admin_setup_auth_service",
-    "get_admin_subscriptions_service",
-    "get_admin_users_audit_service",
-    "get_ai_model_config_service",
-])

@@ -41,12 +41,6 @@ _worker_runtimes: dict[
     tuple[int | None, async_sessionmaker[AsyncSession], AsyncEngine],
 ] = {}
 
-# Read replica engine and session factory (optional)
-_read_engine: AsyncEngine | None = None
-_read_session_factory: async_sessionmaker[AsyncSession] | None = None
-_read_engine_url: str | None = None
-_read_engine_lock = threading.Lock()
-
 
 def _pool_metric(pool: Any, attr: str, default: int = 0) -> int:
     """Safely read optional pool metrics across different SQLAlchemy pool types."""
@@ -65,35 +59,27 @@ def _pool_metric(pool: Any, attr: str, default: int = 0) -> int:
         return default
 
 
-def _build_engine_kwargs(database_url: str, is_read_replica: bool = False) -> dict[str, Any]:
+def _build_engine_kwargs(database_url: str) -> dict[str, Any]:
     settings = get_settings()
     common: dict[str, Any] = {
-        "echo": settings.DATABASE_ECHO,  # SQL query logging (enable in development)
+        "echo": settings.DATABASE_ECHO,
         "future": True,
         "pool_pre_ping": True,
     }
 
     if database_url.startswith("postgresql+asyncpg://"):
-        # Use read replica pool settings if available, otherwise use primary settings
-        pool_size = (
-            settings.DATABASE_READ_POOL_SIZE if is_read_replica and settings.DATABASE_READ_POOL_SIZE else settings.DATABASE_POOL_SIZE
-        )
-        max_overflow = (
-            settings.DATABASE_READ_MAX_OVERFLOW if is_read_replica and settings.DATABASE_READ_MAX_OVERFLOW else settings.DATABASE_MAX_OVERFLOW
-        )
-
         common.update(
             {
-                "pool_size": pool_size,
-                "max_overflow": max_overflow,
+                "pool_size": settings.DATABASE_POOL_SIZE,
+                "max_overflow": settings.DATABASE_MAX_OVERFLOW,
                 "pool_recycle": settings.DATABASE_RECYCLE,
                 "pool_timeout": settings.DATABASE_POOL_TIMEOUT,
-                "isolation_level": "READ COMMITTED" if not is_read_replica else "READ ONLY",
+                "isolation_level": "READ COMMITTED",
                 "connect_args": {
                     "server_settings": {
-                        "application_name": f"personal-ai-assistant{'-read' if is_read_replica else ''}",
+                        "application_name": "personal-ai-assistant",
                         "client_encoding": "utf8",
-                        "statement_timeout": str(settings.DATABASE_STATEMENT_TIMEOUT),  # Prevent long-running queries
+                        "statement_timeout": str(settings.DATABASE_STATEMENT_TIMEOUT),
                     },
                     "timeout": settings.DATABASE_CONNECT_TIMEOUT,
                 },
@@ -147,59 +133,6 @@ def get_async_session_factory() -> async_sessionmaker[AsyncSession]:
             expire_on_commit=False,
         )
     return _session_factory
-
-
-def get_read_engine() -> AsyncEngine:
-    """Get or create the read replica async SQLAlchemy engine.
-
-    If READ_DATABASE_URL is not configured, returns the primary engine.
-    This allows the application to function without a read replica.
-    """
-    global _read_engine, _read_engine_url
-
-    settings = get_settings()
-    read_url = settings.READ_DATABASE_URL or settings.require_database_url()
-
-    # If read URL equals primary URL, use primary engine
-    if read_url == settings.require_database_url():
-        return get_engine()
-
-    # Fast path: check without lock
-    if _read_engine is not None and _read_engine_url == read_url:
-        return _read_engine
-
-    # Slow path: acquire lock and create engine
-    with _read_engine_lock:
-        # Double-check after acquiring lock
-        if _read_engine is not None and _read_engine_url == read_url:
-            return _read_engine
-
-        _read_engine = create_async_engine(read_url, **_build_engine_kwargs(read_url, is_read_replica=True))
-        _read_engine_url = read_url
-        return _read_engine
-
-
-def get_read_session_factory() -> async_sessionmaker[AsyncSession]:
-    """Get or create the read replica async session factory lazily.
-
-    If READ_DATABASE_URL is not configured, returns the primary session factory.
-    """
-    global _read_session_factory
-
-    engine = get_read_engine()
-    if _read_session_factory is None or _read_session_factory.kw["bind"] != engine:
-        _read_session_factory = async_sessionmaker(
-            engine,
-            class_=AsyncSession,
-            expire_on_commit=False,
-        )
-    return _read_session_factory
-
-
-def is_read_replica_configured() -> bool:
-    """Check if a separate read replica database is configured."""
-    settings = get_settings()
-    return bool(settings.READ_DATABASE_URL and settings.READ_DATABASE_URL != settings.DATABASE_URL)
 
 
 def create_isolated_session_factory(
@@ -311,33 +244,6 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
-async def get_read_db_session() -> AsyncGenerator[AsyncSession, None]:
-    """Yield a request-scoped database session from the read replica.
-
-    This function provides a read-only database session that routes queries
-    to a read replica when READ_DATABASE_URL is configured. If no read replica
-    is configured, it falls back to the primary database.
-
-    Use this for read-heavy operations that don't require write access or
-    transactional consistency with writes.
-
-    Example:
-        ```python
-        @router.get("/episodes")
-        async def list_episodes(read_db: AsyncSession = Depends(get_read_db_session)):
-            # This query runs on the read replica if configured
-            result = await read_db.execute(select(PodcastEpisode))
-            return result.scalars().all()
-        ```
-    """
-    session_factory = get_read_session_factory()
-    async with session_factory() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
-
-
 async def warmup_connection_pool(engine: AsyncEngine, target_size: int | None = None) -> None:
     """Pre-populate connection pool on startup to reduce initial latency.
 
@@ -395,7 +301,7 @@ async def init_db(run_metadata_sync: bool = False) -> None:
     try:
         async with asyncio.timeout(settings.DATABASE_POOL_WAKEUP_TIMEOUT):
             await warmup_connection_pool(engine, settings.DATABASE_POOL_SIZE)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.warning(
             "Connection pool warmup timed out after %ds (continuing with cold pool)",
             settings.DATABASE_POOL_WAKEUP_TIMEOUT,
@@ -446,16 +352,9 @@ async def init_db(run_metadata_sync: bool = False) -> None:
 
 async def close_db() -> None:
     """Dispose the lazily-created engines if they exist."""
-    global _engine, _session_factory, _engine_url, _read_engine, _read_session_factory, _read_engine_url
+    global _engine, _session_factory, _engine_url
 
     await close_worker_db_runtimes()
-
-    # Close read replica engine first
-    if _read_engine is not None:
-        await _read_engine.dispose()
-        _read_engine = None
-        _read_session_factory = None
-        _read_engine_url = None
 
     if _engine is None:
         return
@@ -469,7 +368,7 @@ async def close_db() -> None:
 
 
 async def check_db_health() -> dict[str, Any]:
-    """Return runtime DB health metrics including read replica if configured."""
+    """Return runtime DB health metrics."""
     if not is_database_configured():
         return {
             "status": "not_configured",
@@ -507,35 +406,6 @@ async def check_db_health() -> dict[str, Any]:
         health_info["status"] = "unhealthy"
         health_info["error"] = str(exc)
 
-    # Check read replica health if configured
-    if is_read_replica_configured():
-        read_engine = get_read_engine()
-        read_url = str(read_engine.url)
-        if read_engine.url.password:
-            read_url = read_url.replace(read_engine.url.password, "***")
-        read_pool = read_engine.pool
-
-        read_health_info = {
-            "connection_url": read_url,
-            "pool_size": _pool_metric(read_pool, "size"),
-            "checked_out": _pool_metric(read_pool, "checkedout"),
-            "overflow": _pool_metric(read_pool, "overflow"),
-        }
-
-        start_time = time.time()
-        try:
-            async with read_engine.connect() as conn:
-                result = await conn.execute(text("SELECT 1 as ping"))
-                read_health_info["connect_time_ms"] = round((time.time() - start_time) * 1000, 2)
-                read_health_info["status"] = "healthy"
-                read_health_info["query_result"] = result.scalar()
-        except Exception as exc:
-            logger.error("Read replica health check failed: %s", exc)
-            read_health_info["status"] = "unhealthy"
-            read_health_info["error"] = str(exc)
-
-        health_info["read_replica"] = read_health_info
-
     return health_info
 
 
@@ -555,20 +425,6 @@ async def check_db_readiness(timeout_seconds: float = 1.5) -> dict[str, Any]:
         logger.error("Database readiness check failed: %s", exc)
         return {"status": "unhealthy", "error": str(exc)}
 
-    # Check read replica if configured (non-blocking)
-    if is_read_replica_configured():
-        read_engine = get_read_engine()
-        try:
-            async with asyncio.timeout(timeout_seconds):
-                async with read_engine.connect() as conn:
-                    await conn.execute(text("SELECT 1"))
-            return {"status": "healthy", "read_replica": "connected"}
-        except TimeoutError:
-            return {"status": "healthy", "read_replica": "timeout"}
-        except Exception as exc:
-            logger.warning("Read replica readiness check failed (continuing with primary): %s", exc)
-            return {"status": "healthy", "read_replica": "unavailable"}
-
     return {"status": "healthy"}
 
 
@@ -584,7 +440,6 @@ def get_db_pool_snapshot() -> dict[str, Any]:
             "status": "not_configured",
         }
 
-    settings = get_settings()
     engine = get_engine()
     pool = engine.pool
     pool_size = _pool_metric(pool, "size")
@@ -601,8 +456,8 @@ def get_db_pool_snapshot() -> dict[str, Any]:
 
     occupancy_ratio = checked_out / capacity if capacity > 0 else 0.0
 
-    # Log warning if pool occupancy is high
-    if occupancy_ratio > settings.OBS_ALERT_DB_POOL_OCCUPANCY_RATIO:
+    # Log warning if pool occupancy is high (>90%)
+    if occupancy_ratio > 0.9:
         logger.warning(
             "DB pool occupancy high: %.2f%% (%d/%d connections)",
             occupancy_ratio * 100,

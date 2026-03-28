@@ -9,7 +9,6 @@ and follows the architecture defined in security.py.
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any
 
 import aiohttp
 from defusedxml.ElementTree import fromstring

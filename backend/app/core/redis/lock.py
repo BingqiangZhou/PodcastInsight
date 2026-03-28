@@ -3,7 +3,6 @@
 Distributed lock implementation for coordination across processes.
 """
 
-import secrets
 from time import perf_counter
 from typing import Any
 

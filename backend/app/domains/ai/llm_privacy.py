@@ -18,7 +18,7 @@ import hashlib
 import logging
 import re
 from collections import defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 

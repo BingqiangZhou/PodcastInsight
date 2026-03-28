@@ -14,10 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.redis import PodcastRedis, get_shared_redis
 from app.domains.podcast.models import PodcastEpisode, PodcastPlaybackState
 
+
 # Use TYPE_CHECKING to avoid runtime dependency on subscription domain
 # This maintains clean domain boundaries while providing type hints
 if TYPE_CHECKING:
-    from app.domains.subscription.models import Subscription, UserSubscription
+    pass
 
 
 def _get_subscription_models():

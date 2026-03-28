@@ -7,7 +7,8 @@ import logging
 from typing import Any
 
 from fastapi.middleware.gzip import GZipMiddleware
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
+from starlette.types import ASGIApp, Receive, Scope, Send
+
 
 logger = logging.getLogger(__name__)
 

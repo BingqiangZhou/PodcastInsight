@@ -11,6 +11,7 @@ import orjson
 
 from app.core.cache_ttl import CacheTTL
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -250,6 +251,7 @@ NULL_VALUE_MARKER = _NULL_VALUE_MARKER
 
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
+
 
 T = TypeVar("T")
 

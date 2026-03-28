@@ -6,7 +6,6 @@ database connections, cache operations, and API requests.
 
 import logging
 from contextlib import asynccontextmanager
-from typing import Any
 
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
@@ -14,9 +13,9 @@ from prometheus_client import (
     Gauge,
     Histogram,
     generate_latest,
-    start_http_server,
 )
 from starlette.responses import Response
+
 
 logger = logging.getLogger(__name__)
 

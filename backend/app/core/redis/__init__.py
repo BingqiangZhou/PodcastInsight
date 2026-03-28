@@ -1,94 +1,71 @@
-"""Redis Helper - Modular Structure.
-
-This package provides a unified interface to Redis operations through the PodcastRedis class.
-The modules are organized by functionality:
+"""Redis cache with distributed lock, rate limiting, and sorted sets.
 
 Usage:
-    from app.core.redis import PodcastRedis, get_redis, get_shared_redis
+    from app.core.redis import AppCache, get_shared_redis
 
-    redis = await get_redis()
+    redis = get_shared_redis()
     await redis.cache_set("key", "value", ttl=3600)
 """
 
 import logging
-from contextlib import suppress
-from time import perf_counter
+import secrets
 from typing import Any
 
 import orjson
 
-from redis import asyncio as aioredis
-
-from app.core.config import settings
 from app.core.cache_ttl import CacheTTL
-
-from app.core.redis.client import RedisClientManager
-from app.core.redis.cache import CacheOperations
-from app.core.redis.podcast_cache import PodcastCacheOperations
-from app.core.redis.lock import LockOperations
-from app.core.redis.rate_limit import RateLimitOperations
-from app.core.redis.metrics import MetricsOperations, _METRICS_COMMANDS_KEY, _METRICS_CACHE_KEY, _METRICS_CACHE_PENETRATION_KEY
-from app.core.redis.sorted_set import SortedSetOperations
-from app.core.redis.penetration import PenetrationOperations, _NULL_VALUE_MARKER, _NULL_CACHE_TTL
 from app.core.redis.cache import (
+    CacheOperations,
     safe_cache_get,
-    safe_cache_write,
     safe_cache_invalidate,
+    safe_cache_write,
 )
+from app.core.redis.client import RedisClientManager
+from app.core.redis.lock import LockOperations
+from app.core.redis.podcast_cache import PodcastCacheOperations
+from app.core.redis.rate_limit import RateLimitOperations
+from app.core.redis.sorted_set import SortedSetOperations
+
 
 logger = logging.getLogger(__name__)
 
+# Null value cache constants (kept from penetration module)
+_NULL_VALUE_MARKER = "__NULL__"
+_NULL_CACHE_TTL = 60
+
 # Shared instance for process-level reuse
-_shared_redis: "PodcastRedis | None" = None
+_shared_redis: "AppCache | None" = None
 
 
 class _DeferredScript:
-    """Deferred Lua script that gets the client when executed.
+    """Deferred Lua script that gets the client when executed."""
 
-    This handles the case where register_script is called before
-    the Redis client is initialized (e.g., during middleware setup).
-    """
-
-    def __init__(self, redis_helper: "PodcastRedis", script: str):
+    def __init__(self, redis_helper: "AppCache", script: str):
         self._redis = redis_helper
         self._script = script
         self._cached_script = None
 
     async def __call__(self, keys: list[str] = None, args: list[Any] = None):
-        """Execute the script with the given keys and arguments."""
         if self._cached_script is None:
             client = await self._redis._get_client()
             self._cached_script = client.register_script(self._script)
         return await self._cached_script(keys=keys, args=args)
 
 
-class PodcastRedis(
+class AppCache(
     RedisClientManager,
     CacheOperations,
     PodcastCacheOperations,
     LockOperations,
     RateLimitOperations,
-    MetricsOperations,
     SortedSetOperations,
-    PenetrationOperations,
 ):
-    """Simple Redis wrapper for podcast features with distributed metrics.
+    """Unified Redis cache with distributed lock, rate limiting, and sorted sets."""
 
-    This class combines all operation mixins into a unified interface.
-    """
-
-    # Import static methods from mixins (only true static methods)
     _hash_search_query = PodcastCacheOperations._hash_search_query
-    _cache_namespace = MetricsOperations._cache_namespace
 
     def __init__(self):
-        # Initialize all mixin classes
         RedisClientManager.__init__(self)
-        # Other mixins don't need initialization
-
-    # Delegate _get_client to RedisClientManager
-    async def _get_client(self) -> aioredis.Redis:
-        return await RedisClientManager._get_client(self)
 
     # === Key Scanning ===
 
@@ -96,10 +73,8 @@ class PodcastRedis(
         """Scan for keys matching a pattern."""
         client = await self._get_client()
         keys: list[str] = []
-        started = perf_counter()
         async for key in client.scan_iter(match=pattern):
             keys.append(key)
-        await self._record_command_timing("SCAN_ITER", (perf_counter() - started) * 1000)
         return keys
 
     async def scan_keys(self, pattern: str) -> list[str]:
@@ -109,43 +84,27 @@ class PodcastRedis(
     # === Key Deletion ===
 
     async def _delete_keys_nonblocking(self, *keys: str) -> int:
-        """Delete keys using UNLINK when available to reduce Redis main-thread blocking.
-
-        Accepts the same positional layout as
-        ``CacheOperations._delete_keys_nonblocking(client, *keys)``.
-        When the first argument is not a string (i.e. a Redis client
-        object passed by the mixin), it is silently ignored so that
-        PodcastRedis can manage the client internally.
-        """
+        """Delete keys using UNLINK when available."""
         if not keys:
             return 0
-
-        # Compatibility shim: CacheOperations passes client as the first
-        # positional argument.  Detect and skip it.
+        # Compatibility shim: CacheOperations passes client as first arg
         if keys and not isinstance(keys[0], str):
             keys = keys[1:]
-
         if not keys:
             return 0
 
         client = await self._get_client()
-        started = perf_counter()
         try:
-            result = await client.unlink(*keys)
-            await self._record_command_timing("UNLINK", (perf_counter() - started) * 1000)
-            return int(result or 0)
+            return int(await client.unlink(*keys) or 0)
         except Exception:
-            # Fall back to DEL for Redis deployments without UNLINK support.
-            fallback_started = perf_counter()
-            result = await client.delete(*keys)
-            await self._record_command_timing(
-                "DEL", (perf_counter() - fallback_started) * 1000
-            )
-            return int(result or 0)
+            return int(await client.delete(*keys) or 0)
 
     async def delete_keys(self, *keys: str) -> int:
         """Delete one or more keys."""
         return await self._delete_keys_nonblocking(*keys)
+
+    # Alias used by some mixin delegates
+    _delete_keys = _delete_keys_nonblocking
 
     # === Pipeline Support ===
 
@@ -154,9 +113,7 @@ class PodcastRedis(
         return self._PipelineContextManager(self)
 
     class _PipelineContextManager:
-        """Context manager for Redis pipeline operations."""
-
-        def __init__(self, redis_helper: "PodcastRedis"):
+        def __init__(self, redis_helper: "AppCache"):
             self._redis = redis_helper
             self._client = None
             self._pipe = None
@@ -171,541 +128,295 @@ class PodcastRedis(
                 await self._pipe.execute()
 
         def __getattr__(self, name):
-            """Delegate attribute access to the pipeline."""
             return getattr(self._pipe, name)
 
     # === Raw Client Access ===
 
     async def incr(self, key: str) -> int:
-        """Increment the value of a key by 1."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await client.incr(key)
-        await self._record_command_timing("INCR", (perf_counter() - started) * 1000)
-        return int(result or 0)
+        return int(await client.incr(key) or 0)
 
     async def expire(self, key: str, seconds: int) -> bool:
-        """Set a key's time to live in seconds."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await client.expire(key, seconds)
-        await self._record_command_timing("EXPIRE", (perf_counter() - started) * 1000)
-        return bool(result)
+        return bool(await client.expire(key, seconds))
 
     async def get(self, key: str) -> str | None:
-        """Get the value of a key (raw access)."""
         return await self.cache_get(key)
 
     async def setex(self, key: str, ttl: int, value: str) -> bool:
-        """Set key with expiry (raw access)."""
         return await self.cache_set(key, value, ttl=ttl)
 
     async def ttl(self, key: str) -> int:
-        """Get the time to live for a key in seconds."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await client.ttl(key)
-        await self._record_command_timing("TTL", (perf_counter() - started) * 1000)
-        return int(result or -1)
+        return int(await client.ttl(key) or -1)
 
     async def get_ttl(self, key: str) -> int:
-        """Get key TTL in seconds."""
         return await self.ttl(key)
 
     # === Lua Script Support ===
 
     def register_script(self, script: str):
-        """Register a Lua script for execution.
-
-        This is a synchronous wrapper that returns a Script object
-        which can be used to execute the script later.
-
-        Args:
-            script: The Lua script content.
-
-        Returns:
-            A Script object that can be called to execute the script.
-        """
-        # Get the client synchronously - this is safe because register_script
-        # just creates a Script object that will be executed later
         if self._client is None:
-            # Client not initialized yet - return a deferred script
-            # that will get the client when executed
             return _DeferredScript(self, script)
-
         return self._client.register_script(script)
 
-    # === Wrapper Methods for Mixin Integration ===
-    # These methods wrap mixin methods to provide a clean API
+    # === Core Cache Operations (delegated to CacheOperations mixin) ===
 
     async def cache_get(self, key: str) -> str | None:
-        """Get cached value."""
         client = await self._get_client()
-        started = perf_counter()
-        value = await CacheOperations.cache_get(self, client, key)
-        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
-        return value
+        return await CacheOperations.cache_get(self, client, key)
 
     async def cache_set(self, key: str, value: str, ttl: int = CacheTTL.DEFAULT) -> bool:
-        """Set cached value with TTL."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await CacheOperations.cache_set(self, client, key, value, ttl)
-        await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
-        return result
+        return await CacheOperations.cache_set(self, client, key, value, ttl)
 
     async def cache_delete(self, key: str) -> bool:
-        """Delete cached value."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await CacheOperations.cache_delete(self, client, key)
-        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
-        return result
+        return await CacheOperations.cache_delete(self, client, key)
 
     async def cache_hget(self, key: str, field: str) -> str | None:
-        """Get hash field."""
         client = await self._get_client()
-        started = perf_counter()
-        value = await CacheOperations.cache_hget(self, client, key, field)
-        await self._record_command_timing("HGET", (perf_counter() - started) * 1000)
-        return value
+        return await CacheOperations.cache_hget(self, client, key, field)
 
     async def cache_hgetall(self, key: str) -> dict[str, str]:
-        """Get all hash fields."""
         client = await self._get_client()
-        started = perf_counter()
-        value = await CacheOperations.cache_hgetall(self, client, key)
-        await self._record_command_timing("HGETALL", (perf_counter() - started) * 1000)
-        return value
+        return await CacheOperations.cache_hgetall(self, client, key)
 
     async def cache_hset(self, key: str, mapping: dict, ttl: int | None = None) -> int:
-        """Set hash fields with optional TTL."""
         client = await self._get_client()
-        started = perf_counter()
         result = await CacheOperations.cache_hset(self, client, key, mapping, ttl)
-        await self._record_command_timing("HSET", (perf_counter() - started) * 1000)
         if ttl:
-            expire_started = perf_counter()
             await client.expire(key, ttl)
-            await self._record_command_timing(
-                "EXPIRE",
-                (perf_counter() - expire_started) * 1000,
-            )
         return result
 
-    async def cache_get_json(
-        self,
-        key: str,
-        _client: Any = None,
-        _record_lookup: Any = None,
-    ) -> Any | None:
-        """Get and parse JSON from cache.
-
-        Accepts optional *_client* and *_record_lookup* parameters for
-        compatibility with CacheOperations mixin internals. These are
-        ignored because PodcastRedis manages the client and metrics
-        recording internally.
-        """
+    async def cache_get_json(self, key: str, _client: Any = None, _record_lookup: Any = None) -> Any | None:
         client = await self._get_client()
-        started = perf_counter()
         data = await client.get(key)
-        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
         if data:
             try:
-                value = orjson.loads(data)
-                await self._record_cache_lookup(key, hit=True)
-                return value
+                return orjson.loads(data)
             except orjson.JSONDecodeError:
-                await self._record_cache_lookup(key, hit=False)
                 return None
-        await self._record_cache_lookup(key, hit=False)
         return None
 
-    async def cache_set_json(
-        self,
-        key: str,
-        value: Any,
-        _client: Any = None,
-        ttl: int = CacheTTL.DEFAULT,
-    ) -> bool:
-        """Serialize and cache JSON value.
-
-        Accepts optional *_client* parameter for compatibility with
-        CacheOperations mixin internals. It is ignored because
-        PodcastRedis manages the client internally.
-        """
+    async def cache_set_json(self, key: str, value: Any, _client: Any = None, ttl: int = CacheTTL.DEFAULT) -> bool:
         from app.core.redis.client import redis_json_default
         client = await self._get_client()
-        started = perf_counter()
         try:
             json_str = orjson.dumps(value, default=redis_json_default).decode('utf-8')
-            result = await client.setex(key, ttl, json_str)
-            await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
-            return bool(result)
+            return bool(await client.setex(key, ttl, json_str))
         except (TypeError, ValueError):
             return False
+
+    # === Anti-Stampede Cache ===
+
+    async def cache_get_with_lock(
+        self, key: str, loader: Any, ttl: int = CacheTTL.DEFAULT,
+        lock_timeout: int = 10, max_wait_time: float = 3.0,
+    ) -> tuple[Any, bool]:
+        client = await self._get_client()
+        return await CacheOperations.cache_get_with_lock(
+            self, key=key, loader=loader, client=client,
+            ttl=ttl, lock_timeout=lock_timeout, max_wait_time=max_wait_time,
+            record_timing=None, record_lookup=None,
+        )
+
+    async def cache_get_or_load(
+        self, key: str, loader: Any, ttl: int = CacheTTL.DEFAULT,
+        stale_ttl: int = CacheTTL.STALE_REFRESH,
+    ) -> Any:
+        client = await self._get_client()
+        return await CacheOperations.cache_get_or_load(
+            self, key=key, loader=loader, client=client,
+            ttl=ttl, stale_ttl=stale_ttl,
+            record_timing=None, record_lookup=None,
+        )
 
     # === Stats Cache Invalidation ===
 
     async def invalidate_user_stats(self, user_id: int) -> None:
-        """Invalidate user stats cache."""
         client = await self._get_client()
-        key = f"podcast:stats:{user_id}"
-        started = perf_counter()
-        await client.delete(key)
-        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
+        await client.delete(f"podcast:stats:{user_id}")
 
     async def invalidate_profile_stats(self, user_id: int) -> None:
-        """Invalidate profile stats cache."""
         client = await self._get_client()
-        key = f"podcast:stats:profile:{user_id}"
-        started = perf_counter()
-        await client.delete(key)
-        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
+        await client.delete(f"podcast:stats:profile:{user_id}")
 
-    # === User Stats Wrapper Methods ===
+    # === User Stats ===
 
     async def get_user_stats(self, user_id: int) -> dict | None:
-        """Get cached user statistics."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await PodcastCacheOperations.get_user_stats(
+        return await PodcastCacheOperations.get_user_stats(
             self, client, user_id, cache_get_json_func=self.cache_get_json
         )
-        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
-        return result
 
     async def set_user_stats(self, user_id: int, stats: dict) -> bool:
-        """Cache user statistics."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await PodcastCacheOperations.set_user_stats(
+        return await PodcastCacheOperations.set_user_stats(
             self, client, user_id, stats, cache_set_json_func=self.cache_set_json
         )
-        await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
-        return result
 
     async def get_profile_stats(self, user_id: int) -> dict | None:
-        """Get cached profile statistics."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await PodcastCacheOperations.get_profile_stats(
+        return await PodcastCacheOperations.get_profile_stats(
             self, client, user_id, cache_get_json_func=self.cache_get_json
         )
-        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
-        return result
 
     async def set_profile_stats(self, user_id: int, stats: dict) -> bool:
-        """Cache profile statistics."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await PodcastCacheOperations.set_profile_stats(
+        return await PodcastCacheOperations.set_profile_stats(
             self, client, user_id, stats, cache_set_json_func=self.cache_set_json
         )
-        await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
-        return result
 
-    # === Subscription List Wrapper Methods ===
+    # === Subscription List ===
 
-    async def get_subscription_list(
-        self,
-        user_id: int,
-        page: int,
-        size: int,
-        filters: dict[str, Any] | None = None
-    ) -> dict | None:
-        """Get cached subscription list."""
+    async def get_subscription_list(self, user_id: int, page: int, size: int, filters: dict[str, Any] | None = None) -> dict | None:
         client = await self._get_client()
-        started = perf_counter()
-        result = await PodcastCacheOperations.get_subscription_list(
-            self, client, user_id, page, size, filters=filters,
-            cache_get_json_func=self.cache_get_json
+        return await PodcastCacheOperations.get_subscription_list(
+            self, client, user_id, page, size, filters=filters, cache_get_json_func=self.cache_get_json
         )
-        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
-        return result
 
-    async def set_subscription_list(
-        self,
-        user_id: int,
-        page: int,
-        size: int,
-        data: dict,
-        filters: dict[str, Any] | None = None
-    ) -> bool:
-        """Cache subscription list."""
+    async def set_subscription_list(self, user_id: int, page: int, size: int, data: dict, filters: dict[str, Any] | None = None) -> bool:
         client = await self._get_client()
-        started = perf_counter()
-        result = await PodcastCacheOperations.set_subscription_list(
+        return await PodcastCacheOperations.set_subscription_list(
             self, client, user_id, page, size, data, filters=filters,
-            cache_set_json_func=self.cache_set_json,
-            expire_func=self._record_command_timing
+            cache_set_json_func=self.cache_set_json, expire_func=None,
         )
-        await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
-        return result
 
     async def invalidate_subscription_list(self, user_id: int) -> None:
-        """Invalidate all subscription list caches for a user."""
         client = await self._get_client()
-        started = perf_counter()
         await PodcastCacheOperations.invalidate_subscription_list(
-            self, client, user_id,
-            scan_keys_func=self.scan_keys,
-            delete_keys_func=self._delete_keys
+            self, client, user_id, scan_keys_func=self.scan_keys, delete_keys_func=self._delete_keys
         )
-        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
 
-    # === Episode List Wrapper Methods ===
+    # === Episode List ===
 
-    async def get_episode_list(
-        self, subscription_id: int, page: int, size: int
-    ) -> dict | None:
-        """Get cached episode list."""
+    async def get_episode_list(self, subscription_id: int, page: int, size: int) -> dict | None:
         client = await self._get_client()
-        started = perf_counter()
-        result = await PodcastCacheOperations.get_episode_list(
-            self, client, subscription_id, page, size,
-            cache_get_json_func=self.cache_get_json
+        return await PodcastCacheOperations.get_episode_list(
+            self, client, subscription_id, page, size, cache_get_json_func=self.cache_get_json
         )
-        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
-        return result
 
-    async def set_episode_list(
-        self, subscription_id: int, page: int, size: int, data: dict
-    ) -> bool:
-        """Cache episode list."""
+    async def set_episode_list(self, subscription_id: int, page: int, size: int, data: dict) -> bool:
         client = await self._get_client()
-        started = perf_counter()
-        result = await PodcastCacheOperations.set_episode_list(
+        return await PodcastCacheOperations.set_episode_list(
             self, client, subscription_id, page, size, data,
-            cache_set_json_func=self.cache_set_json,
-            expire_func=self._record_command_timing
+            cache_set_json_func=self.cache_set_json, expire_func=None,
         )
-        await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
-        return result
 
     async def invalidate_episode_list(self, subscription_id: int) -> None:
-        """Invalidate all episode list caches for a subscription."""
         client = await self._get_client()
-        started = perf_counter()
         await PodcastCacheOperations.invalidate_episode_list(
-            self, client, subscription_id,
-            scan_keys_func=self.scan_keys,
-            delete_keys_func=self._delete_keys
+            self, client, subscription_id, scan_keys_func=self.scan_keys, delete_keys_func=self._delete_keys
         )
-        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
 
     # === User Progress ===
 
     async def set_user_progress(self, user_id: int, episode_id: int, progress: float) -> None:
-        """Set user progress (30 days TTL)."""
         client = await self._get_client()
-        key = f"podcast:progress:{user_id}:{episode_id}"
-        started = perf_counter()
-        await client.setex(key, CacheTTL.PLAYBACK_PROGRESS, str(progress))
-        await self._record_command_timing("SETEX", (perf_counter() - started) * 1000)
+        await client.setex(f"podcast:progress:{user_id}:{episode_id}", CacheTTL.PLAYBACK_PROGRESS, str(progress))
 
     async def get_user_progress(self, user_id: int, episode_id: int) -> float | None:
-        """Get user listening progress."""
         client = await self._get_client()
-        key = f"podcast:progress:{user_id}:{episode_id}"
-        started = perf_counter()
-        progress = await client.get(key)
-        await self._record_command_timing("GET", (perf_counter() - started) * 1000)
+        progress = await client.get(f"podcast:progress:{user_id}:{episode_id}")
         return float(progress) if progress else None
 
     # === Episode Metadata ===
 
     async def set_episode_metadata(self, episode_id: int, metadata: dict) -> None:
-        """Cache episode metadata (24 hours TTL)."""
         client = await self._get_client()
         key = f"podcast:meta:{episode_id}"
-        started = perf_counter()
         await client.hset(key, mapping=metadata)
         await client.expire(key, CacheTTL.EPISODE_METADATA)
-        await self._record_command_timing("HSET", (perf_counter() - started) * 1000)
 
     # === Sorted Set Operations ===
 
     async def sorted_set_add(self, key: str, member: str, score: float) -> int:
-        """Add or update one member in a sorted set."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await SortedSetOperations.sorted_set_add(self, client, key, member, score)
-        await self._record_command_timing("ZADD", (perf_counter() - started) * 1000)
-        return result
+        return await SortedSetOperations.sorted_set_add(self, client, key, member, score)
 
     async def sorted_set_remove(self, key: str, *members: str) -> int:
-        """Remove one or more members from a sorted set."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await SortedSetOperations.sorted_set_remove(self, client, key, *members)
-        await self._record_command_timing("ZREM", (perf_counter() - started) * 1000)
-        return result
+        return await SortedSetOperations.sorted_set_remove(self, client, key, *members)
 
     async def sorted_set_cardinality(self, key: str) -> int:
-        """Return the number of members in a sorted set."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await SortedSetOperations.sorted_set_cardinality(self, client, key)
-        await self._record_command_timing("ZCARD", (perf_counter() - started) * 1000)
-        return result
+        return await SortedSetOperations.sorted_set_cardinality(self, client, key)
 
-    async def sorted_set_range_by_score(
-        self, key: str, min_score: float | str, max_score: float | str
-    ) -> list[str]:
-        """Return sorted-set members whose scores fall within the inclusive range."""
+    async def sorted_set_range_by_score(self, key: str, min_score: float | str, max_score: float | str) -> list[str]:
         client = await self._get_client()
-        started = perf_counter()
-        result = await SortedSetOperations.sorted_set_range_by_score(
-            self, client, key, min_score, max_score
-        )
-        await self._record_command_timing("ZRANGEBYSCORE", (perf_counter() - started) * 1000)
-        return result
+        return await SortedSetOperations.sorted_set_range_by_score(self, client, key, min_score, max_score)
 
-    async def sorted_set_remove_by_score(
-        self, key: str, min_score: float | str, max_score: float | str
-    ) -> int:
-        """Remove sorted-set members whose scores fall within the inclusive range."""
+    async def sorted_set_remove_by_score(self, key: str, min_score: float | str, max_score: float | str) -> int:
         client = await self._get_client()
-        started = perf_counter()
-        result = await SortedSetOperations.sorted_set_remove_by_score(
-            self, client, key, min_score, max_score
-        )
-        await self._record_command_timing("ZREMRANGEBYSCORE", (perf_counter() - started) * 1000)
-        return result
+        return await SortedSetOperations.sorted_set_remove_by_score(self, client, key, min_score, max_score)
 
     # === Distributed Lock ===
 
-    async def acquire_lock(
-        self, lock_name: str, expire: int = CacheTTL.LOCK_TIMEOUT, value: str = "1"
-    ) -> bool:
-        """Acquire distributed lock. Returns True if lock acquired."""
+    async def acquire_lock(self, lock_name: str, expire: int = CacheTTL.LOCK_TIMEOUT, value: str = "1") -> bool:
         client = await self._get_client()
-        key = f"podcast:lock:{lock_name}"
-        started = perf_counter()
-        result = await client.set(key, value, ex=expire, nx=True)
-        await self._record_command_timing("SET", (perf_counter() - started) * 1000)
-        return bool(result)
+        return bool(await client.set(f"podcast:lock:{lock_name}", value, ex=expire, nx=True))
 
     async def release_lock(self, lock_name: str) -> None:
-        """Release distributed lock."""
         client = await self._get_client()
-        key = f"podcast:lock:{lock_name}"
-        started = perf_counter()
-        await client.delete(key)
-        await self._record_command_timing("DEL", (perf_counter() - started) * 1000)
+        await client.delete(f"podcast:lock:{lock_name}")
 
     async def set_if_not_exists(self, key: str, value: str, *, ttl: int | None = None) -> bool:
-        """Set a key only if it does not already exist. Returns True if set."""
         client = await self._get_client()
-        started = perf_counter()
-        result = await client.set(key, value, ex=ttl, nx=True)
-        await self._record_command_timing("SET", (perf_counter() - started) * 1000)
-        return bool(result)
+        return bool(await client.set(key, value, ex=ttl, nx=True))
 
-    async def acquire_owned_lock(
-        self, lock_name: str, *, expire: int = CacheTTL.LOCK_TIMEOUT
-    ) -> str | None:
-        """Acquire a lock and return its owner token when successful."""
-        import secrets
+    async def acquire_owned_lock(self, lock_name: str, *, expire: int = CacheTTL.LOCK_TIMEOUT) -> str | None:
         client = await self._get_client()
         token = secrets.token_urlsafe(16)
-        key = f"podcast:lock:{lock_name}"
-        started = perf_counter()
-        acquired = await client.set(key, token, ex=expire, nx=True)
-        await self._record_command_timing("SET", (perf_counter() - started) * 1000)
+        acquired = await client.set(f"podcast:lock:{lock_name}", token, ex=expire, nx=True)
         return token if acquired else None
 
     async def release_owned_lock(self, lock_name: str, token: str) -> bool:
-        """Release a lock only when the stored token matches the caller token."""
         client = await self._get_client()
-        started = perf_counter()
         result = await client.eval(
-            """
-            if redis.call("get", KEYS[1]) == ARGV[1] then
-                return redis.call("del", KEYS[1])
-            end
-            return 0
-            """,
-            1,
-            f"podcast:lock:{lock_name}",
-            token,
+            'if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) end return 0',
+            1, f"podcast:lock:{lock_name}", token,
         )
-        await self._record_command_timing("EVAL", (perf_counter() - started) * 1000)
         return bool(result)
 
-    # === Anti-Stampede Cache (delegated to CacheOperations mixin) ===
+    # === Stub for removed metrics ===
 
-    async def cache_get_with_lock(
-        self,
-        key: str,
-        loader: Any,
-        ttl: int = CacheTTL.DEFAULT,
-        lock_timeout: int = 10,
-        max_wait_time: float = 3.0,
-    ) -> tuple[Any, bool]:
-        """Get cached value with distributed lock to prevent cache stampede.
+    async def get_runtime_metrics(self, client: Any = None) -> dict[str, Any]:
+        """Return empty metrics (batched metrics system removed)."""
+        return {
+            "commands": {"total": 0, "errors": 0, "avg_ms": 0.0, "max_ms": 0.0},
+            "cache": {"hits": 0, "misses": 0, "hit_rate": 0.0},
+        }
 
-        Delegates to CacheOperations.cache_get_with_lock, providing the
-        PodcastRedis client and metrics callbacks.
-        """
-        client = await self._get_client()
-        return await CacheOperations.cache_get_with_lock(
-            self,
-            key=key,
-            loader=loader,
-            client=client,
-            ttl=ttl,
-            lock_timeout=lock_timeout,
-            max_wait_time=max_wait_time,
-            record_timing=self._record_command_timing,
-            record_lookup=self._record_cache_lookup,
-        )
+    async def _record_command_timing(self, command: str, duration_ms: float) -> None:
+        """No-op stub (metrics recording removed)."""
 
-    async def cache_get_or_load(
-        self,
-        key: str,
-        loader: Any,
-        ttl: int = CacheTTL.DEFAULT,
-        stale_ttl: int = CacheTTL.STALE_REFRESH,
-    ) -> Any:
-        """Get cached value with stale-while-revalidate pattern.
+    async def _record_cache_lookup(self, key: str, hit: bool) -> None:
+        """No-op stub (metrics recording removed)."""
 
-        Delegates to CacheOperations.cache_get_or_load, providing the
-        PodcastRedis client and metrics callbacks.
-        """
-        client = await self._get_client()
-        return await CacheOperations.cache_get_or_load(
-            self,
-            key=key,
-            loader=loader,
-            client=client,
-            ttl=ttl,
-            stale_ttl=stale_ttl,
-            record_timing=self._record_command_timing,
-            record_lookup=self._record_cache_lookup,
-        )
+
+# Backward-compatible alias
+PodcastRedis = AppCache
 
 
 # === Module-level Functions ===
 
-
-async def get_redis() -> PodcastRedis:
-    """Create a Redis helper through the runtime/provider layer."""
-    return PodcastRedis()
+async def get_redis() -> AppCache:
+    """Create a Redis helper."""
+    return AppCache()
 
 
 async def get_redis_runtime_metrics() -> dict[str, Any]:
-    """Get distributed Redis command and cache metrics from Redis storage."""
-    redis = await get_redis()
-    return await redis.get_runtime_metrics(await redis._get_client())
+    """Get Redis runtime metrics (stub - metrics system removed)."""
+    redis = get_shared_redis()
+    return await redis.get_runtime_metrics()
 
 
-def get_shared_redis() -> PodcastRedis:
+def get_shared_redis() -> AppCache:
     """Return a process-level shared Redis helper."""
     global _shared_redis
     if _shared_redis is None:
-        _shared_redis = PodcastRedis()
+        _shared_redis = AppCache()
     return _shared_redis
 
 
@@ -718,20 +429,15 @@ async def close_shared_redis() -> None:
     _shared_redis = None
 
 
-# Export all public symbols for backward compatibility
 __all__ = [
+    "AppCache",
     "PodcastRedis",
     "get_redis",
     "get_shared_redis",
     "close_shared_redis",
     "get_redis_runtime_metrics",
-    # Export constants from submodules
-    "_METRICS_COMMANDS_KEY",
-    "_METRICS_CACHE_KEY",
-    "_METRICS_CACHE_PENETRATION_KEY",
     "_NULL_VALUE_MARKER",
     "_NULL_CACHE_TTL",
-    # Safe cache helpers
     "safe_cache_get",
     "safe_cache_write",
     "safe_cache_invalidate",

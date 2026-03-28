@@ -3,11 +3,11 @@
 Handles datetime serialization, ensuring timestamps include timezone info.
 """
 
-import orjson
 from datetime import UTC, datetime
 from json import JSONEncoder
 from typing import Any
 
+import orjson
 from fastapi.responses import JSONResponse
 
 

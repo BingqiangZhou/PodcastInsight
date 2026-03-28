@@ -12,6 +12,7 @@ import orjson
 
 from app.core.cache_ttl import CacheTTL
 
+
 logger = logging.getLogger(__name__)
 
 

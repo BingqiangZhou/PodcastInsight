@@ -8,7 +8,12 @@ from fastapi import FastAPI
 
 from app.bootstrap.cache_warming import execute_cache_warmup
 from app.core.config import get_settings
-from app.core.database import check_db_readiness, close_db, get_async_session_factory, init_db
+from app.core.database import (
+    check_db_readiness,
+    close_db,
+    get_async_session_factory,
+    init_db,
+)
 from app.core.http_client import close_shared_http_session
 from app.core.logging_config import setup_logging_from_env
 from app.core.redis import close_shared_redis, get_shared_redis
@@ -27,7 +32,6 @@ async def verify_critical_services() -> dict[str, bool]:
         Dictionary with service names and their health status.
     """
     checks = {}
-    settings = get_settings()
 
     # Database connectivity
     try:
@@ -39,7 +43,7 @@ async def verify_critical_services() -> dict[str, bool]:
                     "Database health check failed: %s",
                     db_status.get("error", "Unknown error"),
                 )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         checks["database"] = False
         logger.error("Database health check timed out after 5 seconds")
     except Exception as exc:
@@ -56,7 +60,7 @@ async def verify_critical_services() -> dict[str, bool]:
                     "Redis health check failed: %s",
                     redis_status.get("error", "Unknown error"),
                 )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         checks["redis"] = False
         logger.error("Redis health check timed out after 3 seconds")
     except Exception as exc:
@@ -87,16 +91,6 @@ async def application_lifespan(app: FastAPI):
 
     # Initialize database
     await init_db()
-
-    # Setup query counter hooks for N+1 detection (development only)
-    if settings.ENVIRONMENT == "development":
-        try:
-            from app.core.middleware.query_analysis import setup_query_counter_hooks
-
-            setup_query_counter_hooks()
-            logger.info("Query counter hooks configured for N+1 detection")
-        except Exception as exc:
-            logger.warning("Failed to setup query counter hooks: %s", exc)
 
     # Verify critical services are healthy
     logger.info("Verifying critical services health...")

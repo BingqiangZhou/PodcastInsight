@@ -233,7 +233,9 @@ def register_admin_http_exception_handler(app: FastAPI) -> None:
     with admin-specific behavior (redirects, HTML error pages). For non-admin routes,
     it delegates to the global custom handler to ensure consistent JSON error responses.
     """
-    from app.core.exceptions import http_exception_handler as global_http_exception_handler
+    from app.core.exceptions import (
+        http_exception_handler as global_http_exception_handler,
+    )
 
     @app.exception_handler(HTTPException)
     async def custom_http_exception_handler(request, exc):

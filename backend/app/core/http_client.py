@@ -126,7 +126,7 @@ async def http_request_with_retry(
 
             return response
 
-        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+        except (TimeoutError, aiohttp.ClientError) as exc:
             last_exception = exc
             if attempt < max_retries:
                 delay = min(initial_delay * (exponential_base ** attempt), max_delay)

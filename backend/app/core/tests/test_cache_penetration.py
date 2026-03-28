@@ -6,9 +6,9 @@ Tests for null value caching to prevent cache penetration attacks.
 import pytest
 
 from app.core.redis import (
-    PodcastRedis,
     _NULL_CACHE_TTL,
     _NULL_VALUE_MARKER,
+    PodcastRedis,
 )
 
 
