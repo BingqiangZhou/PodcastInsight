@@ -278,8 +278,13 @@ async def http_exception_handler(
 
     处理 HTTP 异常
     """
-    logger.error(
-        "HTTP exception raised",
+    log_func = logger.warning if exc.status_code < 500 else logger.error
+    log_func(
+        "HTTP exception raised: %s %s -> %s [%s]",
+        request.method,
+        request.url.path,
+        exc.status_code,
+        exc.detail,
         extra={
             "event": "http_exception",
             "exception_type": exc.__class__.__name__,
