@@ -3,7 +3,7 @@ description: Personal AI Assistant Mobile Application
 
 publish_to: 'none'
 
-version: 0.32.0+91
+version: 0.33.0+92
 
 environment:
   sdk: '>=3.8.0 <4.0.0'

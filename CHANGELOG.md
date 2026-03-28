@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.33.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.32.0...v0.33.0) - 2026-03-28 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.33.0))
+
+### ⚡ Performance
+
+- *(frontend)* UI rendering optimizations ([c7dcbbe](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c7dcbbee12acb10e4bb3306ec2518e85fc3701f8))
+- *(frontend)* Isolate bottom player rebuilds with select() and Consumer splitting ([d7b40a3](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d7b40a3fdb5ff64a586d4c68d01f9890a3e1a2ea))
+
+### 🐛 Bug Fixes
+
+- *(frontend)* Replace force-unwrap in playback queue controller ([7d19ac7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7d19ac76f3e4c8c42c78b35b11b70d1b3053eba4))
+- *(frontend)* Null safety improvements in podcast providers ([21ba189](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/21ba18996a7e4a3001deedefb75fb896148857fb))
+- *(frontend)* Clean up auth event stream dead code ([2f93483](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2f934838799a4992439141656787cd10c6d12c50))
+- *(frontend)* Network reliability improvements in dio_client ([b39f119](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b39f1191c16696e9295a166c13df7a529ab9ab0d))
+- *(frontend)* Resolve merge conflict in conversation_providers race condition fix ([422e5d4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/422e5d4f24b6eb09dce17ba27bc1c11b4c82f543))
+- *(frontend)* Error signaling in CachedAsyncNotifier + summary provider fixes ([fe0520e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/fe0520e22bc8a45ce732506a4873708cba52a529))
+- *(frontend)* Add clearError to copyWith in 3 state classes ([1dbc657](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1dbc657a6a9fc2f7ff27faa0854532d766a8197c))
+- *(frontend)* Resolve merge conflict in podcast_subscription_providers ([6330c19](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6330c1974cc1e90165a7af44444de63ac8b7f79d))
+
+### 📚 Documentation
+
+- Update AGENTS.md and CLAUDE.md with new commands and structure ([1e08a5b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1e08a5b2435a47c4ad6452e28986cd98e4b3c1d5))
+- Add frontend stability agent team design and deep scan report ([ce60b53](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ce60b5307ae815ed476333b00142804f2bb0e587))
+
+
+
 ## [0.32.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.31.0...v0.32.0) - 2026-03-27 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.32.0))
 
 ### ⚙️ Miscellaneous Tasks
