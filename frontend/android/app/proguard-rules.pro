@@ -52,6 +52,7 @@
 -keep class org.apache.tika.** { *; }
 -keep class com.fasterxml.woodstox.** { *; }
 -keep class org.codehaus.stax2.** { *; }
+-dontwarn aQute.bnd.annotation.**
 
 # Keep native methods
 -keepclasseswithmembernames class * {
