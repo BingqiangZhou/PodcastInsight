@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.37.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.36.0...v0.37.0) - 2026-04-02 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.37.0))
+
+### 🐛 Bug Fixes
+
+- *(profile)* Improve edit profile dialog responsive layout ([3323314](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/332331484b570ec049b74a2b5bd6c6620ac2baf2))
+
+### 🚀 Features
+
+- *(settings)* Add font preview page for comparing typography combinations ([05dc166](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/05dc166cc3279ec6b75c293ee0ad6ca9342aeb82))
+- *(theme)* Migrate typography to Space Grotesk + Inter with named style helpers ([594a802](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/594a802add47ef274df752fefa94846d19fff308))
+- *(settings)* Add unified Appearance page with theme mode and font selection ([32411cf](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/32411cf5fc7c38e536bb9c265280a10b10ee99d6))
+- *(settings)* Add font reset button and fix font persistence ([30a88f2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/30a88f2d0e8c9d4d4a2b38c38da286212d361502))
+
+### 🚜 Refactor
+
+- *(core)* Replace hardcoded text styles with theme references in core and shared widgets ([6b66b53](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6b66b5303430696d4faec4c9d73b525936ee37ba))
+- *(podcast)* Replace hardcoded text styles in transcript and transcription widgets ([03693fd](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/03693fd7ed79cdf90615a7caa4dde7c57ba2f257))
+- *(podcast)* Normalize text styles across remaining podcast presentation files ([be3c376](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/be3c37670f57077eb3e7de38fbee5c9af1694eee))
+- Normalize text styles in auth, profile and settings features ([38b215f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/38b215f3fe6e58a105832f5ff6fe1780e1f34397))
+- *(settings)* Replace font card list with dropdown selector and add more font combinations ([1172013](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/117201361ab595ee553e803a636e2539fcb09391))
+
+
+
 ## [0.36.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.35.0...v0.36.0) - 2026-04-02 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.36.0))
 
 ### ⚙️ Miscellaneous Tasks
