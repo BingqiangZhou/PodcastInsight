@@ -41,7 +41,32 @@ class AudioDownloadService {
   Future<void> download({
     required int episodeId,
     required String audioUrl,
+    String? title,
+    String? subscriptionTitle,
+    String? imageUrl,
+    String? subscriptionImageUrl,
+    int? subscriptionId,
+    int? audioDuration,
+    DateTime? publishedAt,
   }) async {
+    // Cache episode metadata for the downloads page
+    if (title != null) {
+      await _db.episodeCacheDao.upsertEpisode(
+        EpisodesCacheCompanion.insert(
+          id: episodeId,
+          subscriptionId: subscriptionId ?? 0,
+          title: title,
+          audioUrl: audioUrl,
+          imageUrl: Value(imageUrl),
+          audioDuration: Value(audioDuration),
+          subscriptionTitle: Value(subscriptionTitle),
+          subscriptionImageUrl: Value(subscriptionImageUrl),
+          publishedAt: publishedAt ?? DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+
     // Check existing task
     final existing = await _dao.getByEpisodeId(episodeId);
     if (existing != null && existing.status == 'completed') {

@@ -397,6 +397,13 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
             ref.read(downloadManagerProvider).download(
                   episodeId: addedItem.episodeId,
                   audioUrl: addedItem.audioUrl,
+                  title: addedItem.title,
+                  subscriptionTitle: addedItem.subscriptionTitle,
+                  imageUrl: addedItem.imageUrl,
+                  subscriptionImageUrl: addedItem.subscriptionImageUrl,
+                  subscriptionId: addedItem.podcastId,
+                  audioDuration: addedItem.duration,
+                  publishedAt: addedItem.publishedAt,
                 );
           } catch (e) {
             logger.AppLogger.debug(

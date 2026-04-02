@@ -799,9 +799,20 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   void _startDownload(PodcastEpisodeDetailResponse episode) {
+    final sub = episode.subscription;
+    final podcastTitle = sub?['title'] as String? ??
+        sub?['name'] as String? ??
+        episode.metadata?['podcast_title'] as String?;
     ref.read(downloadManagerProvider).download(
           episodeId: episode.id,
           audioUrl: episode.audioUrl,
+          title: episode.title,
+          subscriptionTitle: podcastTitle,
+          imageUrl: episode.imageUrl,
+          subscriptionImageUrl: episode.subscriptionImageUrl,
+          subscriptionId: episode.subscriptionId,
+          audioDuration: episode.audioDuration,
+          publishedAt: episode.publishedAt,
         );
   }
 

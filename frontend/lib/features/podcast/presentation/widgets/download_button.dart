@@ -14,12 +14,26 @@ class DownloadButton extends ConsumerWidget {
   final int episodeId;
   final String audioUrl;
   final double size;
+  final String? title;
+  final String? subscriptionTitle;
+  final String? imageUrl;
+  final String? subscriptionImageUrl;
+  final int? subscriptionId;
+  final int? audioDuration;
+  final DateTime? publishedAt;
 
   const DownloadButton({
     super.key,
     required this.episodeId,
     required this.audioUrl,
     this.size = 20,
+    this.title,
+    this.subscriptionTitle,
+    this.imageUrl,
+    this.subscriptionImageUrl,
+    this.subscriptionId,
+    this.audioDuration,
+    this.publishedAt,
   });
 
   @override
@@ -102,6 +116,13 @@ class DownloadButton extends ConsumerWidget {
     ref.read(downloadManagerProvider).download(
           episodeId: episodeId,
           audioUrl: audioUrl,
+          title: title,
+          subscriptionTitle: subscriptionTitle,
+          imageUrl: imageUrl,
+          subscriptionImageUrl: subscriptionImageUrl,
+          subscriptionId: subscriptionId,
+          audioDuration: audioDuration,
+          publishedAt: publishedAt,
         );
   }
 

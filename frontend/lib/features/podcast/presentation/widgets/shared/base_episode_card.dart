@@ -38,6 +38,12 @@ class EpisodeCardConfig {
     this.showDownloadButton = false,
     this.episodeId,
     this.audioUrl,
+    this.episodeTitle,
+    this.subscriptionTitle,
+    this.subscriptionImageUrl,
+    this.subscriptionId,
+    this.audioDuration,
+    this.publishedAt,
     this.heroTag,
   });
 
@@ -71,6 +77,12 @@ class EpisodeCardConfig {
   final bool showDownloadButton;
   final int? episodeId;
   final String? audioUrl;
+  final String? episodeTitle;
+  final String? subscriptionTitle;
+  final String? subscriptionImageUrl;
+  final int? subscriptionId;
+  final int? audioDuration;
+  final DateTime? publishedAt;
 
   /// Optional Hero tag for shared element transitions to detail pages.
   /// When provided, the image will be wrapped in a Hero widget.
@@ -340,6 +352,13 @@ class BaseEpisodeCard extends StatelessWidget {
             episodeId: config.episodeId!,
             audioUrl: config.audioUrl!,
             size: config.dense ? 16 : 18,
+            title: config.episodeTitle,
+            subscriptionTitle: config.subscriptionTitle,
+            imageUrl: config.imageUrl,
+            subscriptionImageUrl: config.subscriptionImageUrl,
+            subscriptionId: config.subscriptionId,
+            audioDuration: config.audioDuration,
+            publishedAt: config.publishedAt,
           ),
           const SizedBox(width: 4),
         ],
