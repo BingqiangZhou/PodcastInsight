@@ -10,6 +10,7 @@ import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
+import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
@@ -625,7 +626,7 @@ class _QueueListState extends ConsumerState<_QueueList> {
   }
 }
 
-class _QueueListItem extends StatelessWidget {
+class _QueueListItem extends ConsumerWidget {
   const _QueueListItem({
     required this.item,
     required this.index,
@@ -643,7 +644,7 @@ class _QueueListItem extends StatelessWidget {
   final Future<void> Function()? onRemove;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final cardColors = isCurrent
         ? [
@@ -732,6 +733,7 @@ class _QueueListItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
+                _QueueItemDownloadIndicator(episodeId: item.episodeId),
                 IconButton(
                   key: Key('queue_item_remove_${item.episodeId}'),
                   tooltip: AppLocalizations.of(context)?.delete ?? 'Delete',
@@ -972,6 +974,56 @@ class _EqualizerBadge extends StatelessWidget {
               .toList(),
         ),
       ),
+    );
+  }
+}
+
+/// Compact download status indicator for queue items.
+class _QueueItemDownloadIndicator extends ConsumerWidget {
+  const _QueueItemDownloadIndicator({required this.episodeId});
+
+  final int episodeId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final asyncTask = ref.watch(episodeDownloadStatusProvider(episodeId));
+
+    return asyncTask.when(
+      data: (task) {
+        if (task == null) {
+          // Not downloaded — show cloud icon to indicate streaming
+          return Icon(
+            Icons.cloud_outlined,
+            size: 14,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          );
+        }
+
+        return switch (task.status) {
+          'pending' || 'downloading' => SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          'completed' => Icon(
+              Icons.download_done,
+              size: 14,
+              color: theme.colorScheme.primary,
+            ),
+          'failed' => Icon(
+              Icons.error_outline,
+              size: 14,
+              color: theme.colorScheme.error,
+            ),
+          _ => const SizedBox.shrink(),
+        };
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

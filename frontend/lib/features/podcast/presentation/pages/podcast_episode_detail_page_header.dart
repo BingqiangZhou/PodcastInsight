@@ -232,6 +232,8 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              _buildDownloadButton(episode),
+              const SizedBox(width: 8),
               _buildQueueButton(),
               const SizedBox(width: 8),
               _buildBackButton(),
@@ -266,6 +268,8 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
         ),
         const SizedBox(height: 8),
         _buildQueueButton(),
+        const SizedBox(height: 8),
+        _buildDownloadButton(episode),
       ],
     );
   }
@@ -692,6 +696,121 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       Duration(milliseconds: milliseconds),
       padHours: false,
     );
+  }
+  Widget _buildDownloadButton(PodcastEpisodeDetailResponse episode) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final asyncTask = ref.watch(episodeDownloadStatusProvider(episode.id));
+        final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+
+        return asyncTask.when(
+          data: (task) {
+            if (task == null) {
+              return HeaderCapsuleActionButton(
+                tooltip: l10n.download_button_download,
+                icon: Icons.download_outlined,
+                onPressed: () => _startDownload(episode),
+                circular: true,
+                density: _isCompactPhoneLayout
+                    ? HeaderCapsuleActionButtonDensity.compact
+                    : HeaderCapsuleActionButtonDensity.regular,
+                style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
+              );
+            }
+
+            return switch (task.status) {
+              'pending' => HeaderCapsuleActionButton(
+                  tooltip: l10n.download_button_downloading,
+                  icon: Icons.downloading,
+                  onPressed: () => _cancelDownload(episode.id),
+                  circular: true,
+                  density: _isCompactPhoneLayout
+                      ? HeaderCapsuleActionButtonDensity.compact
+                      : HeaderCapsuleActionButtonDensity.regular,
+                  style: HeaderCapsuleActionButtonStyle.primaryTinted,
+                ),
+              'downloading' => HeaderCapsuleActionButton(
+                  tooltip:
+                      '${(task.progress * 100).toStringAsFixed(0)}% — ${l10n.download_button_cancel}',
+                  icon: Icons.downloading,
+                  onPressed: () => _cancelDownload(episode.id),
+                  circular: true,
+                  isLoading: true,
+                  density: _isCompactPhoneLayout
+                      ? HeaderCapsuleActionButtonDensity.compact
+                      : HeaderCapsuleActionButtonDensity.regular,
+                  style: HeaderCapsuleActionButtonStyle.primaryTinted,
+                ),
+              'completed' => HeaderCapsuleActionButton(
+                  tooltip: l10n.download_button_delete,
+                  icon: Icons.download_done,
+                  onPressed: () => _deleteDownload(episode.id),
+                  circular: true,
+                  density: _isCompactPhoneLayout
+                      ? HeaderCapsuleActionButtonDensity.compact
+                      : HeaderCapsuleActionButtonDensity.regular,
+                  style: HeaderCapsuleActionButtonStyle.primaryTinted,
+                ),
+              'failed' => HeaderCapsuleActionButton(
+                  tooltip: l10n.download_button_retry,
+                  icon: Icons.error_outline,
+                  onPressed: () => _startDownload(episode),
+                  circular: true,
+                  density: _isCompactPhoneLayout
+                      ? HeaderCapsuleActionButtonDensity.compact
+                      : HeaderCapsuleActionButtonDensity.regular,
+                  style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
+                ),
+              _ => HeaderCapsuleActionButton(
+                  tooltip: l10n.download_button_download,
+                  icon: Icons.download_outlined,
+                  onPressed: () => _startDownload(episode),
+                  circular: true,
+                  density: _isCompactPhoneLayout
+                      ? HeaderCapsuleActionButtonDensity.compact
+                      : HeaderCapsuleActionButtonDensity.regular,
+                  style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
+                ),
+            };
+          },
+          loading: () => HeaderCapsuleActionButton(
+            tooltip: l10n.download_button_download,
+            icon: Icons.download_outlined,
+            onPressed: null,
+            circular: true,
+            density: _isCompactPhoneLayout
+                ? HeaderCapsuleActionButtonDensity.compact
+                : HeaderCapsuleActionButtonDensity.regular,
+            style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
+          ),
+          error: (_, __) => HeaderCapsuleActionButton(
+            tooltip: l10n.download_button_download,
+            icon: Icons.download_outlined,
+            onPressed: () => _startDownload(episode),
+            circular: true,
+            density: _isCompactPhoneLayout
+                ? HeaderCapsuleActionButtonDensity.compact
+                : HeaderCapsuleActionButtonDensity.regular,
+            style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
+          ),
+        );
+      },
+    );
+  }
+
+  void _startDownload(PodcastEpisodeDetailResponse episode) {
+    ref.read(downloadManagerProvider).download(
+          episodeId: episode.id,
+          audioUrl: episode.audioUrl,
+        );
+  }
+
+  void _cancelDownload(int episodeId) {
+    ref.read(downloadManagerProvider).cancel(episodeId);
+  }
+
+  void _deleteDownload(int episodeId) {
+    ref.read(downloadManagerProvider).delete(episodeId);
   }
 }
 

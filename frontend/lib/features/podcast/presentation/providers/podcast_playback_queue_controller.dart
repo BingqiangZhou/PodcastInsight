@@ -387,6 +387,24 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
           }
         }
 
+        // Auto-download the added episode
+        final addedItem = queue.items.cast<PodcastQueueItemModel?>().firstWhere(
+              (item) => item?.episodeId == episodeId,
+              orElse: () => null,
+            );
+        if (addedItem != null && addedItem.audioUrl.isNotEmpty) {
+          try {
+            ref.read(downloadManagerProvider).download(
+                  episodeId: addedItem.episodeId,
+                  audioUrl: addedItem.audioUrl,
+                );
+          } catch (e) {
+            logger.AppLogger.debug(
+              '[Queue] Auto-download failed for episode $episodeId: $e',
+            );
+          }
+        }
+
         return queue;
       } catch (error, stackTrace) {
         _setErrorStateIfNeeded(error, stackTrace);
@@ -407,6 +425,15 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
   }
 
   Future<PodcastQueueModel> removeFromQueue(int episodeId) async {
+    // Auto-cleanup: delete the download for the removed episode
+    try {
+      ref.read(downloadManagerProvider).delete(episodeId);
+    } catch (e) {
+      logger.AppLogger.debug(
+        '[Queue] Auto-cleanup download failed for episode $episodeId: $e',
+      );
+    }
+
     final previousQueue = state.value;
     if (previousQueue != null) {
       final optimistic = _buildOptimisticRemovedQueue(previousQueue, episodeId);

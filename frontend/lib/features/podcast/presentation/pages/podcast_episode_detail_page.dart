@@ -15,6 +15,7 @@ import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
+import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/core/utils/html_sanitizer.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';

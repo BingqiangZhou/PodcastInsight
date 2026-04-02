@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/download_button.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/episode_card_utils.dart';
 
@@ -34,6 +35,9 @@ class EpisodeCardConfig {
     this.showSubscribeAction = false,
     this.isSubscribed = false,
     this.isSubscribing = false,
+    this.showDownloadButton = false,
+    this.episodeId,
+    this.audioUrl,
     this.heroTag,
   });
 
@@ -64,6 +68,9 @@ class EpisodeCardConfig {
   final bool showSubscribeAction;
   final bool isSubscribed;
   final bool isSubscribing;
+  final bool showDownloadButton;
+  final int? episodeId;
+  final String? audioUrl;
 
   /// Optional Hero tag for shared element transitions to detail pages.
   /// When provided, the image will be wrapped in a Hero widget.
@@ -156,6 +163,7 @@ class BaseEpisodeCard extends StatelessWidget {
       config.showDate ||
       config.showDuration ||
       config.showQueueButton ||
+      config.showDownloadButton ||
       config.showSubscribeAction ||
       (additionalMetadata != null && additionalMetadata!.isNotEmpty);
 
@@ -323,6 +331,17 @@ class BaseEpisodeCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
+        if (config.showDownloadButton &&
+            config.episodeId != null &&
+            config.audioUrl != null &&
+            config.audioUrl!.isNotEmpty) ...[
+          DownloadButton(
+            episodeId: config.episodeId!,
+            audioUrl: config.audioUrl!,
+            size: config.dense ? 16 : 18,
+          ),
+          const SizedBox(width: 4),
+        ],
         if (config.showQueueButton)
           IconButton(
             tooltip: config.isAddingToQueue
