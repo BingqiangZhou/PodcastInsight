@@ -136,6 +136,7 @@ class BaseEpisodeCard extends StatelessWidget {
           child: Padding(
           padding: config.cardPadding,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeaderRow(context, theme),
@@ -143,7 +144,7 @@ class BaseEpisodeCard extends StatelessWidget {
                   config.description != null &&
                   config.description!.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                _buildDescription(context, theme),
+                Flexible(child: _buildDescription(context, theme)),
                 const SizedBox(height: 4),
               ] else if (config.showDescription) ...[
                 const SizedBox(height: 4),

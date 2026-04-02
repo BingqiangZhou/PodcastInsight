@@ -6,6 +6,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/services/audio_download_service.dart';
 import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/core/database/app_database.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
 
 /// Page for managing downloaded podcast episodes.
 class PodcastDownloadsPage extends ConsumerWidget {
@@ -136,6 +137,12 @@ class _DownloadTaskTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final service = ref.read(downloadManagerProvider);
+    final episodeAsync = ref.watch(episodeCacheMetaProvider(task.episodeId));
+
+    final episodeTitle = episodeAsync.asData?.value?.title;
+    final podcastTitle = episodeAsync.asData?.value?.subscriptionTitle;
+    final imageUrl = episodeAsync.asData?.value?.subscriptionImageUrl ??
+        episodeAsync.asData?.value?.imageUrl;
 
     return Dismissible(
       key: ValueKey(task.id),
@@ -148,21 +155,63 @@ class _DownloadTaskTile extends ConsumerWidget {
         child: Icon(Icons.delete, color: theme.colorScheme.onError),
       ),
       child: ListTile(
-        leading: _StatusIcon(task: task),
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (imageUrl != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: PodcastImageWidget(
+                  imageUrl: imageUrl,
+                  width: 44,
+                  height: 44,
+                  iconSize: 22,
+                ),
+              )
+            else
+              _StatusIcon(task: task),
+          ],
+        ),
         title: Text(
-          'Episode #${task.episodeId}',
-          style: theme.textTheme.bodyMedium,
+          episodeTitle ?? 'Episode #${task.episodeId}',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: task.status == 'downloading'
-            ? LinearProgressIndicator(value: task.progress)
-            : Text(
-                _statusText(task, l10n),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
+        subtitle: podcastTitle != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    podcastTitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  task.status == 'downloading'
+                      ? LinearProgressIndicator(value: task.progress)
+                      : Text(
+                          _statusText(task, l10n),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                ],
+              )
+            : task.status == 'downloading'
+                ? LinearProgressIndicator(value: task.progress)
+                : Text(
+                    _statusText(task, l10n),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
         trailing: _trailingAction(task, service, l10n),
       ),
     );

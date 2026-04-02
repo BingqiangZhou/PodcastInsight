@@ -29,3 +29,12 @@ final episodeDownloadStatusProvider =
   final db = ref.watch(appDatabaseProvider);
   return db.downloadDao.watchByEpisodeId(episodeId);
 });
+
+/// Fetches cached episode metadata for a given episode ID.
+///
+/// Returns null if the episode is not in the local cache.
+final episodeCacheMetaProvider =
+    FutureProvider.family<EpisodesCacheData?, int>((ref, episodeId) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.episodeCacheDao.getById(episodeId);
+});
