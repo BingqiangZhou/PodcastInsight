@@ -28,9 +28,8 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final titleStyle = theme.textTheme.titleMedium?.copyWith(
+    final titleStyle = theme.textTheme.titleSmall?.copyWith(
       fontWeight: FontWeight.w600,
-      fontSize: 13,
     );
     final titleFontSize = titleStyle?.fontSize ?? 13;
     final titleLineHeightFactor = titleStyle?.height ?? 1.0;

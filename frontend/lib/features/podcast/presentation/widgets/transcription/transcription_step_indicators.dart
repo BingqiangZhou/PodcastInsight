@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/transcription/transcription_step_mapper.dart';
 
 class TranscriptionStepDescriptor {
@@ -134,10 +135,9 @@ class _TranscriptionStepIndicator extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 10,
-            color: iconColor,
-            fontWeight: status == TranscriptionStepStatus.current
+          style: AppTheme.navLabel(
+            iconColor,
+            weight: status == TranscriptionStepStatus.current
                 ? FontWeight.w600
                 : FontWeight.w500,
           ),

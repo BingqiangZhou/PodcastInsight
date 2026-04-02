@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 
 /// Shared utilities for episode card widgets.
@@ -52,10 +53,9 @@ class EpisodeCardUtils {
         SizedBox(width: spacing),
         Text(
           formatDate(date),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontSize: 11,
-          ),
+          style: AppTheme.metaSmall(
+            theme.colorScheme.onSurfaceVariant,
+          ).copyWith(fontWeight: FontWeight.w400),
         ),
       ],
     );
@@ -81,10 +81,9 @@ class EpisodeCardUtils {
         SizedBox(width: spacing),
         Text(
           formattedDuration,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontSize: 11,
-          ),
+          style: AppTheme.metaSmall(
+            theme.colorScheme.onSurfaceVariant,
+          ).copyWith(fontWeight: FontWeight.w400),
         ),
       ],
     );

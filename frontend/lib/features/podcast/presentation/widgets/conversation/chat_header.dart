@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
 
@@ -299,9 +300,9 @@ class _ModelSelectorState extends State<_ModelSelector> {
                         ),
                         child: Text(
                           l10n.podcast_default_model,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: theme.colorScheme.primary,
+                          style: AppTheme.navLabel(
+                            theme.colorScheme.primary,
+                            weight: FontWeight.w600,
                           ),
                         ),
                       ),

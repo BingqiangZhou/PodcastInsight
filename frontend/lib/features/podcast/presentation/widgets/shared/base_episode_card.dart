@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/download_button.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/episode_card_utils.dart';
@@ -403,11 +404,11 @@ class BaseEpisodeCard extends StatelessWidget {
           config.subscriptionBadgeText ?? '',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: badgeTextColor,
-            fontWeight: FontWeight.bold,
-            fontSize: config.dense ? 10 : 11,
-          ),
+          style: (config.dense
+                  ? AppTheme.navLabel(badgeTextColor, weight: FontWeight.w700)
+                  : AppTheme.metaSmall(badgeTextColor).copyWith(
+                      fontWeight: FontWeight.w700,
+                    )),
         ),
       ),
     );

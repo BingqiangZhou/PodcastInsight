@@ -72,8 +72,7 @@ class _CountrySelectorDropdownState
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Text(
               l10n.podcast_country_label,
-              style: TextStyle(
-                fontSize: 20,
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: theme.brightness == Brightness.dark
                     ? Colors.white

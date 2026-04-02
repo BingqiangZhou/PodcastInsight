@@ -136,7 +136,7 @@ class _SessionListTile extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: isSelected ? Theme.of(context).colorScheme.primary : null,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
         ),
       ),
       subtitle: Text(

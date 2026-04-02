@@ -141,7 +141,9 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                     ),
                     title: Text(
                       l10n.player_cancel_timer,
-                      style: TextStyle(color: theme.colorScheme.error),
+                      style: TextStyle(
+                            color: theme.colorScheme.error,
+                          ),
                     ),
                     onTap: () {
                       Navigator.of(

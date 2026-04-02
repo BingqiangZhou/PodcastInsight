@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_score_indicator.dart';
@@ -141,11 +142,7 @@ class _HighlightDetailContent extends StatelessWidget {
           Expanded(
             child: SelectableText(
               highlight.originalText,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontSize: 15,
-                height: 1.6,
-                color: scheme.onSurface,
-              ),
+              style: AppTheme.transcriptBody(scheme.onSurface),
             ),
           ),
         ],

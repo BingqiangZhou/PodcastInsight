@@ -653,32 +653,32 @@ class ContentImageShareService {
             ),
             h1: _shareTextStyle(
               theme.textTheme.headlineSmall,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Colors.black,
             ),
             h2: _shareTextStyle(
               theme.textTheme.titleLarge,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Colors.black,
             ),
             h3: _shareTextStyle(
               theme.textTheme.titleMedium,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Colors.black,
             ),
             h4: _shareTextStyle(
               theme.textTheme.titleSmall,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Colors.black,
             ),
             h5: _shareTextStyle(
               theme.textTheme.titleSmall,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Colors.black,
             ),
             h6: _shareTextStyle(
               theme.textTheme.titleSmall,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Colors.black,
             ),
             listBullet: _shareTextStyle(
@@ -687,7 +687,7 @@ class ContentImageShareService {
             ),
             strong: _shareTextStyle(
               theme.textTheme.bodyLarge,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Colors.black,
             ),
             em: _shareTextStyle(

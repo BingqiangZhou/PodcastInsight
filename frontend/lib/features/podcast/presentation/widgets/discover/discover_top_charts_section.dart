@@ -26,7 +26,7 @@ class DiscoverTopChartsSection extends ConsumerWidget {
     final titleStyle = Theme.of(context)
         .textTheme
         .titleLarge
-        ?.copyWith(fontWeight: FontWeight.bold);
+        ?.copyWith(fontWeight: FontWeight.w700);
     final subtitleColor = Theme.of(context).colorScheme.onSurfaceVariant;
     final countryName = _countryDisplayName(state.country, l10n);
 

@@ -151,7 +151,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
               Text(
                 text,
                 style: theme.textTheme.titleSmall?.copyWith(
-                  fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: isSelected
                       ? theme.colorScheme.onSurface
@@ -201,7 +200,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
               Text(
                 l10n.podcast_tab_chat,
                 style: theme.textTheme.titleSmall?.copyWith(
-                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.secondary,
                 ),
@@ -224,7 +222,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
     final colorScheme = Theme.of(context).colorScheme;
     final textStyle = DefaultTextStyle.of(context).style.copyWith(
       color: isSelected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
-      fontSize: isCompact ? 12 : 13,
       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
       decoration: TextDecoration.none,
       decorationColor: Colors.transparent,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
@@ -149,7 +150,9 @@ class _AISummaryControlWidgetState
           Expanded(
             child: Text(
               l10n.podcast_summary_transcription_required,
-              style: TextStyle(color: scheme.onSurface),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurface,
+              ),
             ),
           ),
         ],
@@ -351,7 +354,9 @@ class _AISummaryControlWidgetState
         const SizedBox(width: 4),
         Text(
           text,
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
         ),
       ],
     );
@@ -400,9 +405,9 @@ class _AISummaryControlWidgetState
                       ),
                       child: Text(
                         l10n.podcast_default_model,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: scheme.primary,
+                        style: AppTheme.navLabel(
+                          scheme.primary,
+                          weight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -428,7 +433,9 @@ class _AISummaryControlWidgetState
       child: Center(
         child: Text(
           l10n.podcast_generating_summary,
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
         ),
       ),
     );
@@ -452,7 +459,7 @@ class _AISummaryControlWidgetState
           Expanded(
             child: Text(
               message,
-              style: TextStyle(color: scheme.error, fontSize: 13),
+              style: AppTheme.caption(scheme.error),
             ),
           ),
           IconButton(

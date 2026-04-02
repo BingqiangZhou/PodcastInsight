@@ -35,7 +35,9 @@ class PodcastEmptyState extends StatelessWidget {
               title,
               style:
                   titleStyle ??
-                  TextStyle(fontSize: 16, color: scheme.onSurfaceVariant),
+                  theme.textTheme.bodyLarge?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
@@ -44,8 +46,7 @@ class PodcastEmptyState extends StatelessWidget {
                 subtitle!,
                 style:
                     subtitleStyle ??
-                    TextStyle(
-                      fontSize: 14,
+                    theme.textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
                     ),
                 textAlign: TextAlign.center,

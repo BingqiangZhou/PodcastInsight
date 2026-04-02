@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 
 /// Widget for displaying the three-dimensional score of a highlight.
 ///
@@ -116,10 +117,9 @@ class _ScoreRow extends StatelessWidget {
           width: labelWidth,
           child: Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 11,
-            ),
+            style: AppTheme.metaSmall(
+              theme.colorScheme.onSurfaceVariant,
+            ).copyWith(fontWeight: FontWeight.w400),
           ),
         ),
         const SizedBox(width: 8),
@@ -140,9 +140,7 @@ class _ScoreRow extends StatelessWidget {
           child: Text(
             scoreText,
             textAlign: TextAlign.right,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: color,
-              fontSize: 11,
+            style: AppTheme.metaSmall(color).copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),

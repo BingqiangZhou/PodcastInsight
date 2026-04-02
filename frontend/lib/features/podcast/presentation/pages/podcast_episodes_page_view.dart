@@ -20,7 +20,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
               child: Text(
                 widget.podcastTitle ?? l10n.podcast_episodes,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
