@@ -457,14 +457,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   void _showEditProfileDialog(BuildContext context) {
     final l10n = context.l10n;
-    _showConstrainedDialog<void>(
-      context,
+    showDialog<void>(
+      context: context,
       builder: (dialogContext) {
+        final dialogWidth = ResponsiveDialogHelper.maxWidth(dialogContext);
+        final isMobile = dialogContext.isMobile;
         return AlertDialog(
-          insetPadding: ResponsiveDialogHelper.insetPadding(),
+          insetPadding: isMobile ? ResponsiveDialogHelper.insetPadding() : null,
           title: Text(l10n.profile_edit_profile),
           content: SizedBox(
-            width: double.maxFinite,
+            width: dialogWidth,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
