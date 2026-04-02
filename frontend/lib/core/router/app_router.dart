@@ -21,6 +21,7 @@ import 'package:personal_ai_assistant/features/profile/presentation/pages/profil
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_history_page.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_cache_management_page.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_subscriptions_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_downloads_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
@@ -270,6 +271,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       state: state,
                       child: const _PlayerAwareRouteFrame(
                         child: ProfileSubscriptionsPage(),
+                      ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'downloads',
+                    name: 'profile-downloads',
+                    parentNavigatorKey: appNavigatorKey,
+                    pageBuilder: (context, state) => _buildModalPage(
+                      state: state,
+                      child: const _PlayerAwareRouteFrame(
+                        child: PodcastDownloadsPage(),
                       ),
                     ),
                   ),

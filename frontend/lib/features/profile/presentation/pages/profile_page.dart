@@ -248,6 +248,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         tileKey: const Key('profile_clear_cache_item'),
         onTap: () => context.push('/profile/cache'),
       ),
+      _SettingsItemConfig(
+        icon: Icons.download,
+        title: l10n.profile_downloads,
+        subtitle: l10n.profile_downloads_subtitle,
+        onTap: () => context.push('/profile/downloads'),
+      ),
     ];
 
     final aboutItems = <_SettingsItemConfig>[

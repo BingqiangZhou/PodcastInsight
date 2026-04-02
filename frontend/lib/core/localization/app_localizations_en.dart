@@ -1783,4 +1783,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get session_delete_failed => 'Failed to delete conversation';
+
+  @override
+  String get download_button_download => 'Download';
+
+  @override
+  String get download_button_downloading => 'Downloading';
+
+  @override
+  String get download_button_downloaded => 'Downloaded';
+
+  @override
+  String get download_button_failed => 'Failed';
+
+  @override
+  String get download_button_cancel => 'Cancel download';
+
+  @override
+  String get download_button_delete => 'Delete download';
+
+  @override
+  String get download_button_retry => 'Retry download';
+
+  @override
+  String get profile_downloads => 'Downloads';
+
+  @override
+  String get profile_downloads_subtitle => 'Manage downloaded episodes';
+
+  @override
+  String get downloads_page_title => 'Downloads';
+
+  @override
+  String get downloads_empty => 'No downloads yet';
+
+  @override
+  String get downloads_empty_subtitle => 'Downloaded episodes will appear here';
+
+  @override
+  String get downloads_delete_all => 'Delete all';
+
+  @override
+  String get downloads_delete_confirm => 'Delete all downloads?';
+
+  @override
+  String get downloads_delete_confirm_message =>
+      'This will remove all downloaded audio files. This action cannot be undone.';
+
+  @override
+  String get downloads_active_title => 'Active downloads';
+
+  @override
+  String get downloads_completed_title => 'Downloaded';
 }

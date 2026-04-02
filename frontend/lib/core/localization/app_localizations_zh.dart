@@ -1710,4 +1710,55 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get session_delete_failed => '删除对话失败';
+
+  @override
+  String get download_button_download => '下载';
+
+  @override
+  String get download_button_downloading => '下载中';
+
+  @override
+  String get download_button_downloaded => '已下载';
+
+  @override
+  String get download_button_failed => '下载失败';
+
+  @override
+  String get download_button_cancel => '取消下载';
+
+  @override
+  String get download_button_delete => '删除下载';
+
+  @override
+  String get download_button_retry => '重新下载';
+
+  @override
+  String get profile_downloads => '下载管理';
+
+  @override
+  String get profile_downloads_subtitle => '管理已下载的剧集';
+
+  @override
+  String get downloads_page_title => '下载管理';
+
+  @override
+  String get downloads_empty => '暂无下载';
+
+  @override
+  String get downloads_empty_subtitle => '下载的剧集将显示在这里';
+
+  @override
+  String get downloads_delete_all => '全部删除';
+
+  @override
+  String get downloads_delete_confirm => '删除全部下载？';
+
+  @override
+  String get downloads_delete_confirm_message => '将移除所有已下载的音频文件，此操作不可撤销。';
+
+  @override
+  String get downloads_active_title => '正在下载';
+
+  @override
+  String get downloads_completed_title => '已下载';
 }

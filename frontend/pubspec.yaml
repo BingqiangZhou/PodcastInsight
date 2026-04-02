@@ -33,6 +33,12 @@ dependencies:
   shared_preferences: ^2.5.4
   connectivity_plus: ">=7.0.0 <7.1.0"
 
+  # Local Database
+  drift: ^2.31.0
+  drift_flutter: ^0.2.8
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
   # UI Components
   google_fonts: ^8.0.2
   shimmer: ^3.0.0
@@ -80,6 +86,7 @@ dev_dependencies:
   riverpod_generator: ^4.0.3
   retrofit_generator: ^10.2.1
   json_serializable: ^6.13.0
+  drift_dev: ^2.20.3
 
   # Linting & Testing
   flutter_lints: ^6.0.0

@@ -20,6 +20,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/playback_progress_policy.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
+import 'package:personal_ai_assistant/core/services/download_provider.dart';
 
 part 'podcast_playback_helpers.dart';
 part 'podcast_playback_queue_controller.dart';
@@ -1143,9 +1144,22 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       );
 
       try {
+        // Check for local offline download before using CDN URL
+        final downloadService = ref.read(downloadManagerProvider);
+        final localPath = await downloadService.getLocalPath(
+          episodeForPlayback.id,
+        );
+        final audioUrl = localPath != null ? 'file://$localPath' : episodeForPlayback.audioUrl;
+
+        if (localPath != null) {
+          logger.AppLogger.debug(
+            '[Playback] Using offline download: $localPath',
+          );
+        }
+
         await setAudioEpisode(
           id: episodeForPlayback.id.toString(),
-          url: episodeForPlayback.audioUrl,
+          url: audioUrl,
           title: episodeForPlayback.title,
           artist: episodeForPlayback.subscriptionTitle ?? 'Unknown Podcast',
           artUri:

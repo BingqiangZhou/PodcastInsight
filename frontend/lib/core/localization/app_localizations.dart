@@ -3307,6 +3307,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to delete conversation'**
   String get session_delete_failed;
+
+  /// Download button label
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get download_button_download;
+
+  /// Downloading state label
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading'**
+  String get download_button_downloading;
+
+  /// Downloaded state label
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded'**
+  String get download_button_downloaded;
+
+  /// Download failed state label
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get download_button_failed;
+
+  /// Cancel download tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel download'**
+  String get download_button_cancel;
+
+  /// Delete download tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Delete download'**
+  String get download_button_delete;
+
+  /// Retry download tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Retry download'**
+  String get download_button_retry;
+
+  /// Downloads menu item in profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get profile_downloads;
+
+  /// Subtitle for downloads menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Manage downloaded episodes'**
+  String get profile_downloads_subtitle;
+
+  /// Downloads page title
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get downloads_page_title;
+
+  /// Empty state for downloads page
+  ///
+  /// In en, this message translates to:
+  /// **'No downloads yet'**
+  String get downloads_empty;
+
+  /// Subtitle for empty downloads state
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded episodes will appear here'**
+  String get downloads_empty_subtitle;
+
+  /// Delete all downloads button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all'**
+  String get downloads_delete_all;
+
+  /// Confirmation to delete all downloads
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all downloads?'**
+  String get downloads_delete_confirm;
+
+  /// Message for delete all confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove all downloaded audio files. This action cannot be undone.'**
+  String get downloads_delete_confirm_message;
+
+  /// Section title for active downloads
+  ///
+  /// In en, this message translates to:
+  /// **'Active downloads'**
+  String get downloads_active_title;
+
+  /// Section title for completed downloads
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded'**
+  String get downloads_completed_title;
 }
 
 class _AppLocalizationsDelegate

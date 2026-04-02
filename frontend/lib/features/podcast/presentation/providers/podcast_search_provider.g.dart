@@ -42,7 +42,7 @@ final class PodcastSearchNotifierProvider
 }
 
 String _$podcastSearchNotifierHash() =>
-    r'6477cc99eadf0bbb0253936a54074b03bc64773a';
+    r'c58ba1e24be702e955d7f45b12e83c438b0cabcd';
 
 abstract class _$PodcastSearchNotifier extends $Notifier<PodcastSearchState> {
   PodcastSearchState build();

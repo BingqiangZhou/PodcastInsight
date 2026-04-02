@@ -45,7 +45,7 @@ final class ConnectivityNotifierProvider
 }
 
 String _$connectivityNotifierHash() =>
-    r'64b3aaf2c0f71dd1f98fae8a60983757a2e1081c';
+    r'1ce9d4d284614719e4e4ffa3b5c3f3e5b50510f5';
 
 /// Provider for network connectivity monitoring
 

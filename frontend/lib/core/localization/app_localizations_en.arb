@@ -2331,5 +2331,73 @@
     "session_delete_failed":  "Failed to delete conversation",
     "@session_delete_failed":  {
                                    "description":  "Error when deleting a chat session fails"
-                               }
+                               },
+    "download_button_download":  "Download",
+    "@download_button_download":  {
+                                        "description":  "Download button label"
+                                    },
+    "download_button_downloading":  "Downloading",
+    "@download_button_downloading":  {
+                                           "description":  "Downloading state label"
+                                       },
+    "download_button_downloaded":  "Downloaded",
+    "@download_button_downloaded":  {
+                                          "description":  "Downloaded state label"
+                                      },
+    "download_button_failed":  "Failed",
+    "@download_button_failed":  {
+                                       "description":  "Download failed state label"
+                                   },
+    "download_button_cancel":  "Cancel download",
+    "@download_button_cancel":  {
+                                        "description":  "Cancel download tooltip"
+                                    },
+    "download_button_delete":  "Delete download",
+    "@download_button_delete":  {
+                                        "description":  "Delete download tooltip"
+                                    },
+    "download_button_retry":  "Retry download",
+    "@download_button_retry":  {
+                                       "description":  "Retry download tooltip"
+                                   },
+    "profile_downloads":  "Downloads",
+    "@profile_downloads":  {
+                                   "description":  "Downloads menu item in profile page"
+                               },
+    "profile_downloads_subtitle":  "Manage downloaded episodes",
+    "@profile_downloads_subtitle":  {
+                                            "description":  "Subtitle for downloads menu item"
+                                        },
+    "downloads_page_title":  "Downloads",
+    "@downloads_page_title":  {
+                                      "description":  "Downloads page title"
+                                  },
+    "downloads_empty":  "No downloads yet",
+    "@downloads_empty":  {
+                                 "description":  "Empty state for downloads page"
+                             },
+    "downloads_empty_subtitle":  "Downloaded episodes will appear here",
+    "@downloads_empty_subtitle":  {
+                                          "description":  "Subtitle for empty downloads state"
+                                      },
+    "downloads_delete_all":  "Delete all",
+    "@downloads_delete_all":  {
+                                      "description":  "Delete all downloads button"
+                                  },
+    "downloads_delete_confirm":  "Delete all downloads?",
+    "@downloads_delete_confirm":  {
+                                          "description":  "Confirmation to delete all downloads"
+                                      },
+    "downloads_delete_confirm_message":  "This will remove all downloaded audio files. This action cannot be undone.",
+    "@downloads_delete_confirm_message":  {
+                                                 "description":  "Message for delete all confirmation dialog"
+                                             },
+    "downloads_active_title":  "Active downloads",
+    "@downloads_active_title":  {
+                                        "description":  "Section title for active downloads"
+                                    },
+    "downloads_completed_title":  "Downloaded",
+    "@downloads_completed_title":  {
+                                           "description":  "Section title for completed downloads"
+                                       }
 }
