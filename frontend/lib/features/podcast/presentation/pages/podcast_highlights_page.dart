@@ -498,7 +498,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     final datesAsync = panelRef.watch(highlightDatesProvider);
     final selectedDate = panelRef.watch(selectedHighlightDateProvider);
     final highlightDateKeys = <String>{
-      for (final item in datesAsync.value?.dates ?? const [])
+      for (final item in datesAsync.value?.dates ?? const <DateTime>[])
         EpisodeCardUtils.formatDate(item),
     };
     final now = _toDateOnly(DateTime.now());

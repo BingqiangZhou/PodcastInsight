@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
@@ -73,12 +74,12 @@ void main() {
 
 Widget _buildTestApp(
   _FakeSummaryRepository repository, {
-  Object? summaryOverride,
+  Override? summaryOverride,
 }) {
   return ProviderScope(
     overrides: [
       podcastRepositoryProvider.overrideWithValue(repository),
-      ...?(summaryOverride == null ? null : [summaryOverride as dynamic]),
+      if (summaryOverride != null) summaryOverride,
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,

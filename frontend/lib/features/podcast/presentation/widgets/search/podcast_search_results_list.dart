@@ -86,11 +86,14 @@ class PodcastSearchResultsList extends ConsumerWidget {
       itemCount: searchState.episodeResults.length,
       itemBuilder: (context, index) {
         final episode = searchState.episodeResults[index];
-        return _EpisodeSearchResultItem(
-          episode: episode,
-          isDense: isDense,
-          onTap: () => onEpisodeTap(episode),
-          onPlay: () => onEpisodePlay(episode),
+        return RepaintBoundary(
+          key: ValueKey('episode_result_${episode.trackId}'),
+          child: _EpisodeSearchResultItem(
+            episode: episode,
+            isDense: isDense,
+            onTap: () => onEpisodeTap(episode),
+            onPlay: () => onEpisodePlay(episode),
+          ),
         );
       },
     );
@@ -110,13 +113,16 @@ class PodcastSearchResultsList extends ConsumerWidget {
       itemCount: searchState.podcastResults.length,
       itemBuilder: (context, index) {
         final result = searchState.podcastResults[index];
-        return _PodcastSearchResultItem(
-          result: result,
-          isDense: isDense,
-          searchCountry: searchState.searchCountry,
-          normalizedSubscribedFeedUrls: normalizedSubscribedFeedUrls,
-          normalizedSubscribingFeedUrls: normalizedSubscribingFeedUrls,
-          onSubscribe: onPodcastSubscribe,
+        return RepaintBoundary(
+          key: ValueKey('podcast_result_${result.feedUrl}'),
+          child: _PodcastSearchResultItem(
+            result: result,
+            isDense: isDense,
+            searchCountry: searchState.searchCountry,
+            normalizedSubscribedFeedUrls: normalizedSubscribedFeedUrls,
+            normalizedSubscribingFeedUrls: normalizedSubscribingFeedUrls,
+            onSubscribe: onPodcastSubscribe,
+          ),
         );
       },
     );

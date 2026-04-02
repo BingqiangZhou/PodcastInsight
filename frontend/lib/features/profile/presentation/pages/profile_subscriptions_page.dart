@@ -370,79 +370,82 @@ class _ProfileSubscriptionsPageState
     PodcastSubscriptionModel subscription,
     AppLocalizations l10n,
   ) {
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(kPodcastRowCardCornerRadius),
-        side: BorderSide.none,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          context.push(
-            '/podcast/episodes/${subscription.id}',
-            extra: subscription,
-          );
-        },
-        borderRadius: BorderRadius.circular(kPodcastRowCardCornerRadius),
-        child: SizedBox(
-          key: ValueKey('profile_subscription_card_content_${subscription.id}'),
-          height: kPodcastRowCardTargetHeight,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: kPodcastRowCardHorizontalPadding,
-              vertical: 6,
-            ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    kPodcastRowCardImageRadius,
+    return RepaintBoundary(
+      key: ValueKey('subscription_card_${subscription.id}'),
+      child: Card(
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kPodcastRowCardCornerRadius),
+          side: BorderSide.none,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            context.push(
+              '/podcast/episodes/${subscription.id}',
+              extra: subscription,
+            );
+          },
+          borderRadius: BorderRadius.circular(kPodcastRowCardCornerRadius),
+          child: SizedBox(
+            key: ValueKey('profile_subscription_card_content_${subscription.id}'),
+            height: kPodcastRowCardTargetHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: kPodcastRowCardHorizontalPadding,
+                vertical: 6,
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      kPodcastRowCardImageRadius,
+                    ),
+                    child: PodcastImageWidget(
+                      imageUrl: subscription.imageUrl,
+                      width: kPodcastRowCardImageSize,
+                      height: kPodcastRowCardImageSize,
+                      iconSize: 24,
+                      iconColor: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
-                  child: PodcastImageWidget(
-                    imageUrl: subscription.imageUrl,
-                    width: kPodcastRowCardImageSize,
-                    height: kPodcastRowCardImageSize,
-                    iconSize: 24,
-                    iconColor: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: kPodcastRowCardHorizontalGap),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        subscription.title,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                  const SizedBox(width: kPodcastRowCardHorizontalGap),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          subscription.title,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subscription.description != null
-                            ? EpisodeDescriptionHelper.stripHtmlTags(
-                                subscription.description!,
-                              )
-                            : l10n.podcast_description,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        const SizedBox(height: 4),
+                        Text(
+                          subscription.description != null
+                              ? EpisodeDescriptionHelper.stripHtmlTags(
+                                  subscription.description!,
+                                )
+                              : l10n.podcast_description,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  size: 24,
-                ),
-              ],
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    size: 24,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

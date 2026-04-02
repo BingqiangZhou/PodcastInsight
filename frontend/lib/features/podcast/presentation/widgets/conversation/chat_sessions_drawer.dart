@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/localization/app_localizations.dart';
 import '../../../../../core/localization/app_localizations_extension.dart';
+import '../../../../podcast/data/models/podcast_conversation_model.dart';
 import '../../providers/conversation_providers.dart';
 
 /// Drawer showing conversation session history.
@@ -116,7 +117,7 @@ class _SessionListTile extends ConsumerWidget {
     required this.episodeId,
   });
 
-  final dynamic session;
+  final ConversationSession session;
   final bool isSelected;
   final int episodeId;
 

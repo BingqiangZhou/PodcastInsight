@@ -560,7 +560,9 @@ class _PodcastDailyReportPageState
     final reportDatesAsync = panelRef.watch(dailyReportDatesProvider);
     final selectedDate = panelRef.watch(selectedDailyReportDateProvider);
     final reportDateKeys = <String>{
-      for (final item in reportDatesAsync.value?.dates ?? const [])
+      for (final item
+          in reportDatesAsync.value?.dates ??
+              const <PodcastDailyReportDateItem>[])
         EpisodeCardUtils.formatDate(item.reportDate),
     };
     final now = _toDateOnly(DateTime.now());
