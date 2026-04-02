@@ -76,7 +76,7 @@ class SelectedHighlightDateNotifier extends Notifier<DateTime?> {
 
 /// 高光列表 Notifier
 class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
   DateTime? _lastLoadedAt;
   DateTime? _lastDate;
   Future<HighlightsListResponse?>? _inFlightRequest;
@@ -85,7 +85,6 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
 
   @override
   FutureOr<HighlightsListResponse?> build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return null;
   }
 
@@ -254,11 +253,10 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
 /// 高光可用日期 Notifier
 class HighlightDatesNotifier
     extends CachedAsyncNotifier<HighlightDatesResponse?> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
 
   @override
   FutureOr<HighlightDatesResponse?> build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return null;
   }
 
@@ -302,11 +300,10 @@ class HighlightDatesNotifier
 /// 高光统计 Notifier
 class HighlightStatsNotifier
     extends CachedAsyncNotifier<HighlightStatsResponse?> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
 
   @override
   FutureOr<HighlightStatsResponse?> build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return null;
   }
 

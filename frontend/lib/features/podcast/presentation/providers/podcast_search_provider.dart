@@ -79,12 +79,11 @@ final iTunesSearchServiceProvider = Provider<ITunesSearchService>((ref) {
 @riverpod
 class PodcastSearchNotifier extends _$PodcastSearchNotifier {
   utils.DebounceTimer? _debounce;
-  late final Duration _debounceDuration;
+  Duration get _debounceDuration => ref.read(podcastSearchDebounceDurationProvider);
   int _activeSearchRequestId = 0;
 
   @override
   PodcastSearchState build() {
-    _debounceDuration = ref.read(podcastSearchDebounceDurationProvider);
     ref.onDispose(() {
       _debounce?.cancel();
     });

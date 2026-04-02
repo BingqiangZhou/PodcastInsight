@@ -155,8 +155,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
               const SizedBox(height: 14),
-              const StatusBadge(
-                label: 'Personal AI Workspace',
+              StatusBadge(
+                label: l10n.auth_brand_name,
                 icon: Icons.auto_awesome,
               ),
             ],

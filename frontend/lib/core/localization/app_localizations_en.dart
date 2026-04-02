@@ -1688,4 +1688,64 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get podcast_highlights_empty_subtitle =>
       'Extract key insights from this episode';
+
+  @override
+  String get auth_brand_name => 'Personal AI Workspace';
+
+  @override
+  String get auth_agree_prefix => 'I agree to the ';
+
+  @override
+  String auth_reset_email_sent_to(String email) {
+    return 'We\'ve sent a password reset link to\n$email';
+  }
+
+  @override
+  String get auth_check_email_fallback =>
+      'Please check your email and click the link to reset your password';
+
+  @override
+  String get auth_resend_email => 'Didn\'t receive the email? Resend';
+
+  @override
+  String get auth_invalid_reset_link =>
+      'Invalid reset link. Please request a new password reset.';
+
+  @override
+  String get auth_password_reset_success =>
+      'Your password has been successfully reset. You can now login with your new password.';
+
+  @override
+  String get auth_new_password_instruction =>
+      'Your new password must be different from\nprevious used passwords';
+
+  @override
+  String get podcast_report_label => 'Report';
+
+  @override
+  String get podcast_queue_loading_title => 'Loading';
+
+  @override
+  String get podcast_queue_loading_subtitle => 'Please wait...';
+
+  @override
+  String get profile_subscriptions_subtitle => 'Subscribed shows';
+
+  @override
+  String profile_subscriptions_count(int count) {
+    return '$count subscribed shows';
+  }
+
+  @override
+  String podcast_episode_number(int number) {
+    return 'EP $number';
+  }
+
+  @override
+  String get podcast_summary_task_added => 'Summary task added to task list';
+
+  @override
+  String connection_error_prefix(String error) {
+    return 'Connection error: $error';
+  }
 }

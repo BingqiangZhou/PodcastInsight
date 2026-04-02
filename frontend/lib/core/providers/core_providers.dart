@@ -57,12 +57,11 @@ class ServerConfigState {
 }
 
 class ServerConfigNotifier extends Notifier<ServerConfigState> {
-  late final LocalStorageService _storageService;
+  LocalStorageService get _storageService => ref.read(localStorageServiceProvider);
 
   @override
   ServerConfigState build() {
     // Get initial server URL from AppConfig
-    _storageService = ref.read(localStorageServiceProvider);
     final initialUrl = AppConfig.serverBaseUrl;
     return ServerConfigState(serverUrl: initialUrl);
   }

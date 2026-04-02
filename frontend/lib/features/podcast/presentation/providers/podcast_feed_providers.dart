@@ -15,12 +15,11 @@ final podcastFeedProvider =
     );
 
 class PodcastFeedNotifier extends Notifier<PodcastFeedState> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
   Future<void>? _inFlightInitialLoad;
 
   @override
   PodcastFeedState build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return const PodcastFeedState();
   }
 

@@ -2243,5 +2243,49 @@
     "podcast_highlights_empty_subtitle":  "Extract key insights from this episode",
     "@podcast_highlights_empty_subtitle":  {
                                                 "description":  "Subtitle for empty highlights state"
-                                            }
+                                            },
+    "auth_brand_name":  "Personal AI Workspace",
+    "auth_agree_prefix":  "I agree to the ",
+    "auth_reset_email_sent_to":  "We've sent a password reset link to\n{email}",
+    "@auth_reset_email_sent_to":  {
+                                      "placeholders":  {
+                                                           "email":  {
+                                                                         "type":  "String"
+                                                                     }
+                                                       }
+                                  },
+    "auth_check_email_fallback":  "Please check your email and click the link to reset your password",
+    "auth_resend_email":  "Didn't receive the email? Resend",
+    "auth_invalid_reset_link":  "Invalid reset link. Please request a new password reset.",
+    "auth_password_reset_success":  "Your password has been successfully reset. You can now login with your new password.",
+    "auth_new_password_instruction":  "Your new password must be different from\nprevious used passwords",
+    "podcast_report_label":  "Report",
+    "podcast_queue_loading_title":  "Loading",
+    "podcast_queue_loading_subtitle":  "Please wait...",
+    "profile_subscriptions_subtitle":  "Subscribed shows",
+    "profile_subscriptions_count":  "{count} subscribed shows",
+    "@profile_subscriptions_count":  {
+                                         "placeholders":  {
+                                                              "count":  {
+                                                                            "type":  "int"
+                                                                        }
+                                                            }
+                                     },
+    "podcast_episode_number":  "EP {number}",
+    "@podcast_episode_number":  {
+                                    "placeholders":  {
+                                                         "number":  {
+                                                                        "type":  "int"
+                                                                    }
+                                                       }
+                                },
+    "podcast_summary_task_added":  "Summary task added to task list",
+    "connection_error_prefix":  "Connection error: {error}",
+    "@connection_error_prefix":  {
+                                     "placeholders":  {
+                                                          "error":  {
+                                                                        "type":  "String"
+                                                                    }
+                                                        }
+                                 }
 }

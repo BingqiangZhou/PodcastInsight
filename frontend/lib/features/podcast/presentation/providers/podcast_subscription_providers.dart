@@ -12,13 +12,12 @@ final podcastSubscriptionProvider =
     );
 
 class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
   bool _isLoadingSubscriptions = false;
   bool _isLoadingMoreSubscriptions = false;
 
   @override
   PodcastSubscriptionState build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return const PodcastSubscriptionState();
   }
 

@@ -237,7 +237,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'We\'ve sent a password reset link to\n${_emailController.text.trim()}',
+                            l10n?.auth_reset_email_sent_to(
+                                      _emailController.text.trim(),
+                                    ) ??
+                                'We\'ve sent a password reset link to\n${_emailController.text.trim()}',
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurface
@@ -247,7 +250,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            _fallbackCheckEmailMessage,
+                            l10n?.auth_check_email_fallback ??
+                                _fallbackCheckEmailMessage,
                             key: const Key('forgot_password_success_message'),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
@@ -287,7 +291,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                         ref.read(authProvider.notifier).clearError();
                       },
                       child: Text(
-                        _fallbackResendEmail,
+                        l10n?.auth_resend_email ?? _fallbackResendEmail,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),

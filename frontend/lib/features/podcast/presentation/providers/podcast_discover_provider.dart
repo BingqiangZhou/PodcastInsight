@@ -174,7 +174,7 @@ final podcastDiscoverProvider =
     );
 
 class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
-  late final ApplePodcastRssService _rssService;
+  ApplePodcastRssService get _rssService => ref.read(applePodcastRssServiceProvider);
   Future<void>? _inFlightLoad;
   PodcastCountry? _inFlightLoadCountry;
   Future<void>? _inFlightShowsLoadMore;
@@ -183,7 +183,12 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
 
   @override
   PodcastDiscoverState build() {
-    _rssService = ref.read(applePodcastRssServiceProvider);
+    // Reset in-flight tracking on rebuild to avoid stale futures
+    _inFlightLoad = null;
+    _inFlightLoadCountry = null;
+    _inFlightShowsLoadMore = null;
+    _inFlightEpisodesLoadMore = null;
+
     final selectedCountry = ref.read(countrySelectorProvider).selectedCountry;
 
     ref.listen<CountrySelectorState>(countrySelectorProvider, (previous, next) {

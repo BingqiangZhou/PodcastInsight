@@ -68,7 +68,8 @@ class QueuedRequest {
         body: json['body'] as Map<String, dynamic>?,
         timestamp: DateTime.parse(json['timestamp'] as String),
         retryCount: json['retryCount'] as int? ?? 0,
-        headers: json['headers'] as Map<String, String>?,
+        headers: (json['headers'] as Map<String, dynamic>?)
+              ?.map((k, v) => MapEntry(k, v as String)),
       );
 }
 

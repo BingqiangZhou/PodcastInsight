@@ -2198,5 +2198,49 @@
     "podcast_transcript_view_full":  "全文",
     "podcast_transcript_view_highlights":  "高亮",
     "podcast_highlights_empty_title":  "暂无高亮",
-    "podcast_highlights_empty_subtitle":  "从本期播客中提取关键见解"
+    "podcast_highlights_empty_subtitle":  "从本期播客中提取关键见解",
+    "auth_brand_name":  "个人 AI 工作空间",
+    "auth_agree_prefix":  "我同意 ",
+    "auth_reset_email_sent_to":  "密码重置链接已发送至\n{email}",
+    "@auth_reset_email_sent_to":  {
+                                      "placeholders":  {
+                                                           "email":  {
+                                                                         "type":  "String"
+                                                                     }
+                                                       }
+                                  },
+    "auth_check_email_fallback":  "请检查您的邮箱并点击链接重置密码",
+    "auth_resend_email":  "没有收到邮件？重新发送",
+    "auth_invalid_reset_link":  "重置链接无效，请重新申请密码重置。",
+    "auth_password_reset_success":  "密码重置成功，您现在可以使用新密码登录。",
+    "auth_new_password_instruction":  "新密码必须与之前使用过的密码不同",
+    "podcast_report_label":  "举报",
+    "podcast_queue_loading_title":  "加载中",
+    "podcast_queue_loading_subtitle":  "请稍候...",
+    "profile_subscriptions_subtitle":  "已订阅的播客",
+    "profile_subscriptions_count":  "{count} 个订阅",
+    "@profile_subscriptions_count":  {
+                                         "placeholders":  {
+                                                              "count":  {
+                                                                            "type":  "int"
+                                                                        }
+                                                            }
+                                     },
+    "podcast_episode_number":  "第 {number} 集",
+    "@podcast_episode_number":  {
+                                    "placeholders":  {
+                                                         "number":  {
+                                                                        "type":  "int"
+                                                                    }
+                                                       }
+                                },
+    "podcast_summary_task_added":  "总结已进入任务列表",
+    "connection_error_prefix":  "连接错误: {error}",
+    "@connection_error_prefix":  {
+                                     "placeholders":  {
+                                                          "error":  {
+                                                                        "type":  "String"
+                                                                    }
+                                                        }
+                                 }
 }

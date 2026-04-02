@@ -61,11 +61,10 @@ class AppUpdateState {
 /// App Update Notifier / 应用更新通知器
 @riverpod
 class AppUpdate extends _$AppUpdate {
-  late final AppUpdateService _updateService;
+  AppUpdateService get _updateService => ref.read(appUpdateServiceProvider);
 
   @override
   AppUpdateState build() {
-    _updateService = ref.watch(appUpdateServiceProvider);
     // Initialize with sync version, will be updated asynchronously
     final state = AppUpdateState(
       currentVersion: AppUpdateService.getCurrentVersionSync(),
@@ -209,11 +208,10 @@ Future<AppUpdateState> autoUpdateCheck(Ref ref) async {
 /// ```
 @riverpod
 class ManualUpdateCheck extends _$ManualUpdateCheck {
-  late final AppUpdateService _updateService;
+  AppUpdateService get _updateService => ref.read(appUpdateServiceProvider);
 
   @override
   AppUpdateState build() {
-    _updateService = ref.watch(appUpdateServiceProvider);
     // Initialize with sync version, will be updated asynchronously
     final state = AppUpdateState(
       currentVersion: AppUpdateService.getCurrentVersionSync(),

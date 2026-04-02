@@ -352,7 +352,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
             if (_isDisposed || !mounted) return;
             setState(() {
               _connectionStatus = ConnectionStatus.failed;
-              _connectionMessage = '连接错误: $e';
+              _connectionMessage = context.l10n.connection_error_prefix(e.toString());
             });
           },
         );

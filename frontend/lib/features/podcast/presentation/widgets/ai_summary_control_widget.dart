@@ -69,12 +69,9 @@ class _AISummaryControlWidgetState
     if (!mounted || response == null) {
       return;
     }
-    final languageCode = Localizations.localeOf(context).languageCode;
     showTopFloatingNotice(
       context,
-      message: languageCode == 'zh'
-          ? '总结已进入任务列表'
-          : 'Summary task added to task list',
+      message: context.l10n.podcast_summary_task_added,
       extraTopOffset: 72,
     );
   }

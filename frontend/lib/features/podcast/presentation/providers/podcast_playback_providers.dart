@@ -96,7 +96,7 @@ class _TimerManager {
 }
 
 class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
   bool _isDisposed = false;
   bool _isPlayingEpisode = false;
   bool _isRestoringLastPlayed = false;
@@ -228,7 +228,6 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
   @override
   AudioPlayerState build() {
-    _repository = ref.read(podcastRepositoryProvider);
     _isDisposed = false;
     _playbackRateSelectionCache = null;
     _disposeManagedResources();

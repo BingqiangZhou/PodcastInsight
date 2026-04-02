@@ -120,16 +120,14 @@ enum AuthOperation {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
-  late final AuthRepository _authRepository;
-  late final SecureStorageService _secureStorage;
+  AuthRepository get _authRepository => ref.read(authRepositoryProvider);
+  SecureStorageService get _secureStorage => ref.read(secureStorageProvider);
   Timer? _tokenRefreshTimer;
   StreamSubscription<AuthEvent>? _authEventSubscription;
   AppLifecycleListener? _lifecycleListener;
 
   @override
   AuthState build() {
-    _authRepository = ref.read(authRepositoryProvider);
-    _secureStorage = ref.read(secureStorageProvider);
 
     // Listen to auth events from DioClient
     _authEventSubscription = AuthEventNotifier.instance.authEventStream.listen((

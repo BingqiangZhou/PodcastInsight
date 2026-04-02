@@ -81,9 +81,9 @@ class PodcastQueueSheet extends ConsumerWidget {
         queueOperation: queueOperation,
         queueSyncing: queueSyncing,
         onRefresh: () => notifier.loadQueue(),
-        body: const _QueueLoadingState(
-          title: 'Loading queue',
-          subtitle: 'Fetching the latest playback order.',
+        body: _QueueLoadingState(
+          title: l10n?.podcast_queue_loading_title ?? 'Loading',
+          subtitle: l10n?.podcast_queue_loading_subtitle ?? 'Please wait...',
         ),
       );
     } else if (queue != null) {

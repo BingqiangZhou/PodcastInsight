@@ -152,7 +152,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
         key: const Key('library_daily_report_entry_tile'),
         tooltip: l10n.podcast_daily_report_open,
         icon: Icons.summarize_outlined,
-        label: const Text('Report'),
+        label: Text(l10n.podcast_report_label),
         trailingIcon: Icons.chevron_right,
         onPressed: () =>
             PodcastNavigation.goToDailyReport(context, source: 'library'),

@@ -49,12 +49,11 @@ class ConnectivityState {
 /// Provider for network connectivity monitoring
 @riverpod
 class ConnectivityNotifier extends _$ConnectivityNotifier {
-  late final Connectivity _connectivity;
+  Connectivity get _connectivity => Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   @override
   ConnectivityState build() {
-    _connectivity = Connectivity();
 
     // Start listening to connectivity changes
     _startMonitoring();

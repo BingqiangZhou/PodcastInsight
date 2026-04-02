@@ -103,7 +103,9 @@ class ShownotesDisplayWidgetState
   @override
   void initState() {
     super.initState();
-    _refreshShownotesCache();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshShownotesCache();
+    });
   }
 
   @override

@@ -18,11 +18,10 @@ final podcastStatsProvider =
     );
 
 class PodcastStatsNotifier extends CachedAsyncNotifier<PodcastStatsResponse?> {
-  late final PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
 
   @override
   FutureOr<PodcastStatsResponse?> build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return load(forceRefresh: false);
   }
 
@@ -52,11 +51,10 @@ final profileStatsProvider =
       ProfileStatsNotifier.new,
     );
 class ProfileStatsNotifier extends CachedAsyncNotifier<ProfileStatsModel?> {
-  late final PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
 
   @override
   FutureOr<ProfileStatsModel?> build() async {
-    _repository = ref.read(podcastRepositoryProvider);
     return load(forceRefresh: false);
   }
 
@@ -90,11 +88,10 @@ final playbackHistoryProvider =
 
 class PlaybackHistoryNotifier
     extends CachedAsyncNotifier<PodcastEpisodeListResponse?> {
-  late final PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
 
   @override
   FutureOr<PodcastEpisodeListResponse?> build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return load(forceRefresh: false);
   }
 
@@ -126,11 +123,10 @@ final playbackHistoryLiteProvider =
     >(PlaybackHistoryLiteNotifier.new);
 class PlaybackHistoryLiteNotifier
     extends CachedAsyncNotifier<PlaybackHistoryLiteResponse?> {
-  late final PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
 
   @override
   FutureOr<PlaybackHistoryLiteResponse?> build() async {
-    _repository = ref.read(podcastRepositoryProvider);
     return load(forceRefresh: false);
   }
 

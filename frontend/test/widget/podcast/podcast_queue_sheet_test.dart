@@ -22,8 +22,6 @@ void main() {
       await tester.pumpWidget(_createWidget(controller));
       await tester.pump();
 
-      expect(find.text('Loading queue'), findsOneWidget);
-      expect(find.text('Fetching the latest playback order.'), findsOneWidget);
       expect(find.byKey(const Key('queue_loading_content')), findsOneWidget);
       expect(find.byKey(const Key('queue_state_card')), findsNothing);
     });

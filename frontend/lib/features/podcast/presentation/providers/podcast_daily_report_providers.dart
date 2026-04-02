@@ -36,7 +36,7 @@ class SelectedDailyReportDateNotifier extends Notifier<DateTime?> {
 }
 
 class DailyReportNotifier extends AsyncNotifier<PodcastDailyReportResponse?> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
   DateTime? _lastLoadedAt;
   DateTime? _lastDate;
   Future<PodcastDailyReportResponse?>? _inFlightRequest;
@@ -44,7 +44,6 @@ class DailyReportNotifier extends AsyncNotifier<PodcastDailyReportResponse?> {
 
   @override
   FutureOr<PodcastDailyReportResponse?> build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return null;
   }
 
@@ -148,7 +147,7 @@ class DailyReportNotifier extends AsyncNotifier<PodcastDailyReportResponse?> {
 
 class DailyReportDatesNotifier
     extends AsyncNotifier<PodcastDailyReportDatesResponse?> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
   DateTime? _lastLoadedAt;
   int _lastSize = _defaultPageSize;
   int _nextPage = 1;
@@ -163,7 +162,6 @@ class DailyReportDatesNotifier
 
   @override
   FutureOr<PodcastDailyReportDatesResponse?> build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return null;
   }
 

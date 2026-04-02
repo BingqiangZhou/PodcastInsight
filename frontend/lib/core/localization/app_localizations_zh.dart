@@ -1621,4 +1621,60 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get podcast_highlights_empty_subtitle => '从本期播客中提取关键见解';
+
+  @override
+  String get auth_brand_name => '个人 AI 工作空间';
+
+  @override
+  String get auth_agree_prefix => '我同意 ';
+
+  @override
+  String auth_reset_email_sent_to(String email) {
+    return '密码重置链接已发送至\n$email';
+  }
+
+  @override
+  String get auth_check_email_fallback => '请检查您的邮箱并点击链接重置密码';
+
+  @override
+  String get auth_resend_email => '没有收到邮件？重新发送';
+
+  @override
+  String get auth_invalid_reset_link => '重置链接无效，请重新申请密码重置。';
+
+  @override
+  String get auth_password_reset_success => '密码重置成功，您现在可以使用新密码登录。';
+
+  @override
+  String get auth_new_password_instruction => '新密码必须与之前使用过的密码不同';
+
+  @override
+  String get podcast_report_label => '举报';
+
+  @override
+  String get podcast_queue_loading_title => '加载中';
+
+  @override
+  String get podcast_queue_loading_subtitle => '请稍候...';
+
+  @override
+  String get profile_subscriptions_subtitle => '已订阅的播客';
+
+  @override
+  String profile_subscriptions_count(int count) {
+    return '$count 个订阅';
+  }
+
+  @override
+  String podcast_episode_number(int number) {
+    return '第 $number 集';
+  }
+
+  @override
+  String get podcast_summary_task_added => '总结已进入任务列表';
+
+  @override
+  String connection_error_prefix(String error) {
+    return '连接错误: $error';
+  }
 }

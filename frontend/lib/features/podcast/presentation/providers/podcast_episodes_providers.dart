@@ -26,14 +26,13 @@ final podcastEpisodesProvider =
     );
 
 class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
-  late PodcastRepository _repository;
+  PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
   static const Duration _episodesCacheExpiration = Duration(hours: 6);
   int _loadRequestId = 0;
   int _loadMoreRequestId = 0;
 
   @override
   PodcastEpisodesState build() {
-    _repository = ref.read(podcastRepositoryProvider);
     return const PodcastEpisodesState();
   }
 

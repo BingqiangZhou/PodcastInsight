@@ -34,7 +34,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
     if (token == null || token.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showErrorDialog(
-          'Invalid reset link. Please request a new password reset.',
+          context.l10n.auth_invalid_reset_link,
           context,
         );
       });
@@ -75,7 +75,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
 
     if (token == null || token.isEmpty) {
       _showErrorDialog(
-        'Invalid reset link. Please request a new password reset.',
+        context.l10n.auth_invalid_reset_link,
         context,
       );
       return;
@@ -145,7 +145,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your password has been successfully reset. You can now login with your new password.',
+                    l10n.auth_password_reset_success,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(
                         context,
@@ -223,7 +223,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Your new password must be different from\nprevious used passwords',
+                          l10n.auth_new_password_instruction,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: Theme.of(

@@ -3145,6 +3145,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Extract key insights from this episode'**
   String get podcast_highlights_empty_subtitle;
+
+  /// No description provided for @auth_brand_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal AI Workspace'**
+  String get auth_brand_name;
+
+  /// No description provided for @auth_agree_prefix.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the '**
+  String get auth_agree_prefix;
+
+  /// No description provided for @auth_reset_email_sent_to.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve sent a password reset link to\n{email}'**
+  String auth_reset_email_sent_to(String email);
+
+  /// No description provided for @auth_check_email_fallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check your email and click the link to reset your password'**
+  String get auth_check_email_fallback;
+
+  /// No description provided for @auth_resend_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive the email? Resend'**
+  String get auth_resend_email;
+
+  /// No description provided for @auth_invalid_reset_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid reset link. Please request a new password reset.'**
+  String get auth_invalid_reset_link;
+
+  /// No description provided for @auth_password_reset_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password has been successfully reset. You can now login with your new password.'**
+  String get auth_password_reset_success;
+
+  /// No description provided for @auth_new_password_instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new password must be different from\nprevious used passwords'**
+  String get auth_new_password_instruction;
+
+  /// No description provided for @podcast_report_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get podcast_report_label;
+
+  /// No description provided for @podcast_queue_loading_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get podcast_queue_loading_title;
+
+  /// No description provided for @podcast_queue_loading_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait...'**
+  String get podcast_queue_loading_subtitle;
+
+  /// No description provided for @profile_subscriptions_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribed shows'**
+  String get profile_subscriptions_subtitle;
+
+  /// No description provided for @profile_subscriptions_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} subscribed shows'**
+  String profile_subscriptions_count(int count);
+
+  /// No description provided for @podcast_episode_number.
+  ///
+  /// In en, this message translates to:
+  /// **'EP {number}'**
+  String podcast_episode_number(int number);
+
+  /// No description provided for @podcast_summary_task_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary task added to task list'**
+  String get podcast_summary_task_added;
+
+  /// No description provided for @connection_error_prefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection error: {error}'**
+  String connection_error_prefix(String error);
 }
 
 class _AppLocalizationsDelegate

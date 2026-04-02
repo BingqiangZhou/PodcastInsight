@@ -365,7 +365,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       Expanded(
                         child: Text.rich(
                           TextSpan(
-                            text: 'I agree to the ',
+                            text: l10n.auth_agree_prefix,
                             style: Theme.of(context).textTheme.bodyMedium,
                             children: [
                               WidgetSpan(

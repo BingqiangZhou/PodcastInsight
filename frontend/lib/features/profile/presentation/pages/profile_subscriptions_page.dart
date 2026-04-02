@@ -194,7 +194,7 @@ class _ProfileSubscriptionsPageState
       return _buildPanelScaffold(
         context,
         title: l10n.profile_subscriptions,
-        subtitle: 'Manage subscribed shows and browse your library.',
+        subtitle: l10n.profile_subscriptions_subtitle,
         child: LoadingStatusContent(
           key: const Key('profile_subscriptions_loading_content'),
           title: l10n.loading,
@@ -209,7 +209,7 @@ class _ProfileSubscriptionsPageState
       return _buildPanelScaffold(
         context,
         title: l10n.profile_subscriptions,
-        subtitle: 'Manage subscribed shows and browse your library.',
+        subtitle: l10n.profile_subscriptions_subtitle,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -240,7 +240,7 @@ class _ProfileSubscriptionsPageState
       return _buildPanelScaffold(
         context,
         title: l10n.profile_subscriptions,
-        subtitle: 'Manage subscribed shows and browse your library.',
+        subtitle: l10n.profile_subscriptions_subtitle,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -285,7 +285,7 @@ class _ProfileSubscriptionsPageState
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
             child: AppSectionHeader(
               title: l10n.profile_subscriptions,
-              subtitle: '$total subscribed shows',
+              subtitle: l10n.profile_subscriptions_count(total),
               hideTitle: true,
             ),
           ),

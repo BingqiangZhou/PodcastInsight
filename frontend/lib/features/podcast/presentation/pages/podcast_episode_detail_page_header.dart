@@ -65,7 +65,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
         _buildSourceLinkChip(episode, l10n),
       if (episode.episodeNumber != null)
         StatusBadge(
-          label: 'EP ${episode.episodeNumber}',
+          label: l10n.podcast_episode_number(episode.episodeNumber!),
           icon: Icons.radio_outlined,
         ),
       if (episode.explicit)
