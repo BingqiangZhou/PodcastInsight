@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_en.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/shared/widgets/empty_state_widget.dart';
@@ -134,12 +135,9 @@ class ShownotesDisplayWidgetState
     }
 
     final theme = Theme.of(context);
-    final titleStyle = TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.bold,
+    final titleStyle = theme.textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.w700,
       color: theme.colorScheme.onSurface,
-      fontFamily: theme.textTheme.titleLarge?.fontFamily,
-      fontFamilyFallback: theme.textTheme.titleLarge?.fontFamilyFallback,
     );
 
     return Padding(
@@ -509,11 +507,7 @@ class ShownotesDisplayWidgetState
   Widget _buildHtmlBody(BuildContext context, String html) {
     return HtmlWidget(
       html,
-      textStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-        fontSize: 15,
-        height: 1.65,
-        color: Theme.of(context).colorScheme.onSurface,
-      ),
+      textStyle: AppTheme.transcriptBody(Theme.of(context).colorScheme.onSurface),
       onTapUrl: (url) async {
         try {
           final uri = Uri.parse(url);
@@ -546,7 +540,9 @@ class ShownotesDisplayWidgetState
               const SizedBox(height: 8),
               Text(
                 'Failed to render shownotes',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
             ],
           ),
@@ -626,9 +622,8 @@ class ShownotesDisplayWidgetState
           children: [
             Text(
               'Shownotes',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
                 color: theme.colorScheme.onSurface,
               ),
             ),

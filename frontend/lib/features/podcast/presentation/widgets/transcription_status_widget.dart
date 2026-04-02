@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 
@@ -78,9 +79,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             // Title
             Text(
               l10n.transcription_start_title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
                 color: scheme.onSurface,
               ),
             ),
@@ -91,8 +91,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             Text(
               l10n.transcription_start_desc,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
+              style: theme.textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
                 height: 1.5,
               ),
@@ -137,8 +136,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                   Flexible(
                     child: Text(
                       l10n.transcription_auto_hint,
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: theme.textTheme.labelMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
                     ),
@@ -188,7 +186,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
   Widget _buildPendingState(BuildContext context) {
     final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
         // 根据可用宽度确定组件尺寸
@@ -238,9 +237,9 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     // Title - 响应式字体大小
                     Text(
                       l10n.transcription_pending_title,
-                      style: TextStyle(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontSize: titleFontSize,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: scheme.onSurface,
                       ),
                     ),
@@ -251,7 +250,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     Text(
                       l10n.transcription_pending_desc,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         fontSize: descriptionFontSize,
                         color: scheme.onSurfaceVariant,
                         height: 1.5,
@@ -272,7 +271,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     PodcastTranscriptionResponse transcription,
   ) {
     final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final progress = transcription.progressPercentage;
     final statusText = transcription.getLocalizedStatusDescription(context);
     final currentStep = transcriptionCurrentStepNumber(progress);
@@ -315,7 +315,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                       width: progressContainerSize,
                       height: progressContainerSize,
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
+                        color: scheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           progressContainerSize / 2,
                         ),
@@ -330,11 +330,11 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                             child: CircularProgressIndicator(
                               value: progress / 100,
                               strokeWidth: progressStrokeWidth,
-                              backgroundColor: Colors.blue.withValues(
+                              backgroundColor: scheme.primary.withValues(
                                 alpha: 0.2,
                               ),
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.blue,
+                                scheme.primary,
                               ),
                             ),
                           ),
@@ -344,17 +344,17 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                             children: [
                               Text(
                                 '${progress.toStringAsFixed(0)}%',
-                                style: TextStyle(
+                                style: theme.textTheme.titleLarge?.copyWith(
                                   fontSize: percentageFontSize,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                  fontWeight: FontWeight.w700,
+                                  color: scheme.primary,
                                 ),
                               ),
                               Text(
                                 l10n.transcription_progress_complete,
-                                style: TextStyle(
+                                style: AppTheme.monoStyle(
                                   fontSize: labelFontSize,
-                                  color: Colors.blue.withValues(alpha: 0.8),
+                                  color: scheme.primary.withValues(alpha: 0.8),
                                 ),
                               ),
                             ],
@@ -383,7 +383,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                           Flexible(
                             child: Text(
                               statusText,
-                              style: TextStyle(
+                              style: theme.textTheme.titleMedium?.copyWith(
                                 fontSize: statusFontSize,
                                 fontWeight: FontWeight.w600,
                                 color: scheme.primary,
@@ -460,9 +460,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 debugMsg,
-                                style: TextStyle(
-                                  fontSize: isSmallScreen ? 10 : 11,
-                                  fontFamily: 'monospace',
+                                style: AppTheme.monoStyle(
+                                  fontSize: isSmallScreen ? 10.0 : 11.0,
                                   color: scheme.secondary,
                                 ),
                                 maxLines: 2,
@@ -496,8 +495,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                                   l10n.transcription_duration_label(
                                     _formatDuration(durationSeconds),
                                   ),
-                                  style: TextStyle(
-                                    fontSize: isSmallScreen ? 11 : 12,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    fontSize: isSmallScreen ? 11.0 : null,
                                     color: scheme.onSurfaceVariant,
                                   ),
                                 ),
@@ -515,8 +514,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                                   l10n.transcription_words_label(
                                     (wordCount / 1000).toStringAsFixed(1),
                                   ),
-                                  style: TextStyle(
-                                    fontSize: isSmallScreen ? 11 : 12,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    fontSize: isSmallScreen ? 11.0 : null,
                                     color: scheme.onSurfaceVariant,
                                   ),
                                 ),
@@ -541,6 +540,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     PodcastTranscriptionResponse transcription,
     WidgetRef ref,
   ) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final wordCount = transcription.wordCount ?? 0;
     final duration = transcription.durationSeconds ?? 0;
     final completedAt = transcription.completedAt;
@@ -573,10 +574,9 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             // Title
             Text(
               context.l10n.transcription_complete_title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: scheme.onSurface,
               ),
             ),
 
@@ -586,9 +586,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             Text(
               context.l10n.transcription_complete_desc,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -646,9 +645,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                 AppLocalizations.of(
                   context,
                 )!.transcription_completed_at(TimeFormatter.formatFullDateTime(completedAt)),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -708,6 +706,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     PodcastTranscriptionResponse transcription,
     WidgetRef ref,
   ) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final errorMessage =
         transcription.errorMessage ??
         context.l10n.transcription_unknown_error;
@@ -742,10 +742,9 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             // Title
             Text(
               context.l10n.transcription_failed_title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: scheme.onSurface,
               ),
             ),
 
@@ -755,9 +754,8 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             Text(
               friendlyMessage,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -783,11 +781,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       suggestion,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.orange.shade700,
-                        height: 1.4,
-                      ),
+                      style: AppTheme.caption(Colors.orange.shade700),
                     ),
                   ),
                 ],
@@ -801,24 +795,22 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                 tilePadding: EdgeInsets.zero,
                 title: Text(
                   context.l10n.transcription_technical_details,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
+                      color: scheme.surface,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       errorMessage,
-                      style: TextStyle(
+                      style: AppTheme.monoStyle(
                         fontSize: 11,
-                        fontFamily: 'monospace',
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: scheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -931,23 +923,23 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     String label,
     IconData icon,
   ) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Column(
       children: [
-        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        Icon(icon, size: 20, color: scheme.primary),
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: scheme.onSurface,
           ),
         ),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: scheme.onSurfaceVariant,
           ),
         ),
       ],

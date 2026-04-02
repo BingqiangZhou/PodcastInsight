@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/debounce.dart';
 import 'package:personal_ai_assistant/core/utils/text_processing_cache.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -482,7 +483,8 @@ class TranscriptDisplayWidgetState
 
   Widget _buildEmptyHighlightsState(BuildContext context) {
     final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return Center(
       child: Column(
@@ -496,17 +498,14 @@ class TranscriptDisplayWidgetState
           const SizedBox(height: 16),
           Text(
             l10n.podcast_highlights_empty_title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+            style: theme.textTheme.titleMedium?.copyWith(
               color: scheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             l10n.podcast_highlights_empty_subtitle,
-            style: TextStyle(
-              fontSize: 14,
+            style: theme.textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
           ),
@@ -623,11 +622,7 @@ class TranscriptDisplayWidgetState
                 ],
               );
             },
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.6,
-              color: scheme.onSurface,
-            ),
+            style: AppTheme.transcriptBody(scheme.onSurface),
           ),
         ],
       ),
@@ -636,7 +631,8 @@ class TranscriptDisplayWidgetState
 
   Widget _buildSearchResults(BuildContext context) {
     final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     if (_searchResults.isEmpty) {
       return Center(
         child: Column(
@@ -650,8 +646,7 @@ class TranscriptDisplayWidgetState
             const SizedBox(height: 16),
             Text(
               l10n.podcast_transcript_no_match,
-              style: TextStyle(
-                fontSize: 16,
+              style: theme.textTheme.titleMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
             ),
@@ -683,7 +678,8 @@ class TranscriptDisplayWidgetState
     int index,
   ) {
     final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final selectionKey = 'search_$index';
     final isSelected = _selectedTranscriptSegments.containsKey(selectionKey);
     final query = _searchController.text;
@@ -703,10 +699,8 @@ class TranscriptDisplayWidgetState
             children: [
               Text(
                 l10n.podcast_transcript_match(index + 1),
-                style: TextStyle(
-                  fontSize: 12,
+                style: theme.textTheme.labelMedium?.copyWith(
                   color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
                 ),
               ),
               const Spacer(),
@@ -764,11 +758,7 @@ class TranscriptDisplayWidgetState
     if (query.isEmpty) {
       return TextSpan(
         text: text,
-        style: TextStyle(
-          fontSize: 15,
-          height: 1.6,
-          color: scheme.onSurface,
-        ),
+        style: AppTheme.transcriptBody(scheme.onSurface),
       );
     }
 
@@ -786,11 +776,7 @@ class TranscriptDisplayWidgetState
         spans.add(
           TextSpan(
             text: text.substring(start, index),
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.6,
-              color: scheme.onSurface,
-            ),
+            style: AppTheme.transcriptBody(scheme.onSurface),
           ),
         );
       }
@@ -799,11 +785,8 @@ class TranscriptDisplayWidgetState
       spans.add(
         TextSpan(
           text: text.substring(index, index + query.length),
-          style: TextStyle(
-            fontSize: 15,
-            height: 1.6,
-            color: scheme.primary,
-            fontWeight: FontWeight.bold,
+          style: AppTheme.transcriptBody(scheme.primary).copyWith(
+            fontWeight: FontWeight.w700,
             backgroundColor: scheme.primary.withValues(alpha: 0.2),
           ),
         ),
@@ -817,11 +800,7 @@ class TranscriptDisplayWidgetState
       spans.add(
         TextSpan(
           text: text.substring(start),
-          style: TextStyle(
-            fontSize: 15,
-            height: 1.6,
-            color: scheme.onSurface,
-          ),
+          style: AppTheme.transcriptBody(scheme.onSurface),
         ),
       );
     }
@@ -945,6 +924,8 @@ class FormattedTranscriptWidget extends ConsumerWidget {
     BuildContext context,
     TranscriptDialogueSegment segment,
   ) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -961,23 +942,18 @@ class FormattedTranscriptWidget extends ConsumerWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.1),
+                      color: scheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.3),
+                        color: scheme.primary.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
                     child: Text(
                       segment.speaker!,
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: scheme.primary,
                       ),
                     ),
                   ),
@@ -986,11 +962,8 @@ class FormattedTranscriptWidget extends ConsumerWidget {
                 if (segment.timestamp != null)
                   Text(
                     segment.timestamp!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
                     ),
                   ),
               ],
@@ -1000,11 +973,7 @@ class FormattedTranscriptWidget extends ConsumerWidget {
           // Text content
           SelectableText(
             segment.text,
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.6,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+            style: AppTheme.transcriptBody(scheme.onSurface),
           ),
         ],
       ),
