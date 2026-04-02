@@ -76,7 +76,7 @@ class EpisodeCardSkeleton extends StatelessWidget {
     final titleFontSize = titleFont?.fontSize ?? 14;
     final titleHeight = titleFont?.height ?? 1.0;
     final coverSize = 2 * (titleFontSize * titleHeight);
-    final coverRadius = 8;
+    final coverRadius = 8.0;
 
     return ShimmerLoading(
       child: Card(
