@@ -4,48 +4,41 @@ All notable changes to this project will be documented in this file.
 
 
 
-## [0.34.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.34.0...v0.34.1) - 2026-03-28 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.34.1))
-
-### 🐛 Bug Fixes
-
-- *(android)* Add dontwarn rule for bnd annotations to fix R8 minification ([4235852](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/42358528cf0dad9aad221755b0cefc8ecb304e54))
-
-
-
-## [0.34.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.33.0...v0.34.0) - 2026-03-28 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.34.0))
-
-### 🐛 Bug Fixes
-
-- *(frontend)* Move flutter_native_splash back to dependencies for Android build ([d97960f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d97960f9b4053397bbdb2b38e88791adc2bf6fb6))
-
-### 🚜 Refactor
-
-- *(backend)* Simplify core infrastructure and remove unused abstractions ([492280e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/492280eed9990a27ac27f0e5126a7295d5cbd18b))
-
-
-
-## [0.33.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.32.0...v0.33.0) - 2026-03-28 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.33.0))
+## [0.35.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.32.0...v0.35.0) - 2026-04-02 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.35.0))
 
 ### ⚡ Performance
 
-- *(frontend)* UI rendering optimizations ([c7dcbbe](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c7dcbbee12acb10e4bb3306ec2518e85fc3701f8))
-- *(frontend)* Isolate bottom player rebuilds with select() and Consumer splitting ([d7b40a3](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d7b40a3fdb5ff64a586d4c68d01f9890a3e1a2ea))
+- *(frontend)* UI rendering optimizations ([5124032](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/51240329289d71dc6786c399b3179bd862a0f1ed))
+- *(frontend)* Isolate bottom player rebuilds with select() and Consumer splitting ([8c26c33](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8c26c33d0c37f97d1cf6c51bba186d5498e14f7d))
 
 ### 🐛 Bug Fixes
 
-- *(frontend)* Replace force-unwrap in playback queue controller ([7d19ac7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7d19ac76f3e4c8c42c78b35b11b70d1b3053eba4))
-- *(frontend)* Null safety improvements in podcast providers ([21ba189](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/21ba18996a7e4a3001deedefb75fb896148857fb))
-- *(frontend)* Clean up auth event stream dead code ([2f93483](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2f934838799a4992439141656787cd10c6d12c50))
-- *(frontend)* Network reliability improvements in dio_client ([b39f119](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b39f1191c16696e9295a166c13df7a529ab9ab0d))
-- *(frontend)* Resolve merge conflict in conversation_providers race condition fix ([422e5d4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/422e5d4f24b6eb09dce17ba27bc1c11b4c82f543))
-- *(frontend)* Error signaling in CachedAsyncNotifier + summary provider fixes ([fe0520e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/fe0520e22bc8a45ce732506a4873708cba52a529))
-- *(frontend)* Add clearError to copyWith in 3 state classes ([1dbc657](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1dbc657a6a9fc2f7ff27faa0854532d766a8197c))
-- *(frontend)* Resolve merge conflict in podcast_subscription_providers ([6330c19](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6330c1974cc1e90165a7af44444de63ac8b7f79d))
+- *(frontend)* Replace force-unwrap in playback queue controller ([e95426c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e95426c6d9cdcd0303b5b4027988d3dcfdfc23aa))
+- *(frontend)* Null safety improvements in podcast providers ([98814f0](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/98814f0c25eabd8f61b8f77298f84cee788cf79a))
+- *(frontend)* Clean up auth event stream dead code ([b74410f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b74410fbc52f71037946a0f1f905d4b227255c8f))
+- *(frontend)* Network reliability improvements in dio_client ([1d8cb48](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1d8cb4851d0b8e732e3d51ea83fea7316815e627))
+- *(frontend)* Add Equatable to AuthState, ConversationState, PodcastSearchState ([9294ae7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9294ae738be5a94f300bb254c8bb3cfddf521d12))
+- *(frontend)* Error signaling in CachedAsyncNotifier + summary provider fixes ([7cdf1cf](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7cdf1cf0b4dca344f0912b9a4c4094de18c665f1))
+- *(frontend)* Add clearError to copyWith in 3 state classes ([29469dc](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/29469dcff5eafa674bb1329114684dbeeccfe6f3))
+- *(frontend)* Add request guards and fix error propagation ([3a758bc](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3a758bcaae32dff389350f16aa2e781793b04a08))
+- *(frontend)* Replace late fields in Riverpod notifiers with getters and add l10n coverage ([80d429a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/80d429ae6770c9ac31d4439187797a254f8751f2))
+- *(frontend)* Email validation, nav feedback, password security, and Hero transitions ([321be8e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/321be8e2d887bdb89458dad370daf8ec680ce109))
+- *(frontend)* Use double literal for skeleton cover border radius ([809b880](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/809b8805f958bd726b62803e8f75220a1bb761f2))
 
 ### 📚 Documentation
 
 - Update AGENTS.md and CLAUDE.md with new commands and structure ([1e08a5b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1e08a5b2435a47c4ad6452e28986cd98e4b3c1d5))
-- Add frontend stability agent team design and deep scan report ([ce60b53](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ce60b5307ae815ed476333b00142804f2bb0e587))
+- Add frontend stability agent team design and deep scan report ([3d032f9](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3d032f97c178c08b590e7ce6478e2164423e5c2c))
+
+### 🚀 Features
+
+- *(frontend)* Error code enums, accessibility labels, and keyboard shortcuts ([51f6b61](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/51f6b615ef889f4bf0b3ac32a8dbbebc14a224e0))
+
+### 🚜 Refactor
+
+- *(frontend)* Upgrade to very_good_analysis and add RepaintBoundary to list items ([21f8d4c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/21f8d4c584326fcf874451a02fb1cdccc4357718))
+- *(frontend)* Convert all relative imports to package imports ([909fdd5](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/909fdd59b241faa524fa03d26dcf1ccdd5189f1d))
+- *(frontend)* Improve error states, user experience and retry buttons, skeleton screens, and cache cleanup ([888233a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/888233a4e29c28a08cfb3627f9dd68a4262bbf35))
 
 
 
