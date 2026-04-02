@@ -370,17 +370,20 @@ class CustomAdaptiveNavigation extends StatelessWidget {
   ) {
     final scheme = Theme.of(context).colorScheme;
     final extension = appThemeOf(context);
-    return Tooltip(
-      message: destination.label,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(extension.navItemRadius),
-          splashColor: scheme.primary.withValues(alpha: 0.12),
-          splashColor: scheme.primary.withValues(alpha: 0.12),
-          highlightColor: scheme.primary.withValues(alpha: 0.08),
-          hoverColor: scheme.primary.withValues(alpha: 0.05),),
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: destination.label,
+      child: Tooltip(
+        message: destination.label,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(extension.navItemRadius),
+            splashColor: scheme.primary.withValues(alpha: 0.12),
+            highlightColor: scheme.primary.withValues(alpha: 0.08),
+            hoverColor: scheme.primary.withValues(alpha: 0.05),
           child: Container(
             width: 52,
             height: 52,
@@ -397,6 +400,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
             ),
           ),
         ),
+        ),
       ),
     );
   }
@@ -411,54 +415,59 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     final scheme = theme.colorScheme;
     final extension = appThemeOf(context);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(extension.navItemRadius),
-        splashColor: scheme.primary.withValues(alpha: 0.12),
-        highlightColor: scheme.primary.withValues(alpha: 0.08),
-        hoverColor: scheme.primary.withValues(alpha: 0.05),
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? scheme.primary.withValues(alpha: 0.14)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(extension.navItemRadius),
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: isSelected
-                    ? (destination.selectedIcon ?? destination.icon)
-                    : destination.icon,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  destination.label,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: isSelected
-                        ? scheme.onSurface
-                        : scheme.onSurfaceVariant,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: destination.label,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(extension.navItemRadius),
+          splashColor: scheme.primary.withValues(alpha: 0.12),
+          highlightColor: scheme.primary.withValues(alpha: 0.08),
+          hoverColor: scheme.primary.withValues(alpha: 0.05),
+          child: Container(
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? scheme.primary.withValues(alpha: 0.14)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(extension.navItemRadius),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: isSelected
+                      ? (destination.selectedIcon ?? destination.icon)
+                      : destination.icon,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    destination.label,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: isSelected
+                          ? scheme.onSurface
+                          : scheme.onSurfaceVariant,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
                   ),
                 ),
-              ),
-              if (isSelected)
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: scheme.primary,
-                    shape: BoxShape.circle,
+                if (isSelected)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: scheme.primary,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -495,50 +504,55 @@ class CustomAdaptiveNavigation extends StatelessWidget {
   ) {
     final scheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        splashColor: scheme.primary.withValues(alpha: 0.12),
-        highlightColor: scheme.primary.withValues(alpha: 0.08),
-        hoverColor: scheme.primary.withValues(alpha: 0.05),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 3,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: destination.label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          splashColor: scheme.primary.withValues(alpha: 0.12),
+          highlightColor: scheme.primary.withValues(alpha: 0.08),
+          hoverColor: scheme.primary.withValues(alpha: 0.05),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? scheme.primary.withValues(alpha: 0.14)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: isSelected
+                      ? (destination.selectedIcon ?? destination.icon)
+                      : destination.icon,
                 ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? scheme.primary.withValues(alpha: 0.14)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 2),
+                Text(
+                  destination.label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 10,
+                    height: 1,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected
+                        ? scheme.onSurface
+                        : scheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                child: isSelected
-                    ? (destination.selectedIcon ?? destination.icon)
-                    : destination.icon,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                destination.label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontSize: 10,
-                  height: 1,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected
-                      ? scheme.onSurface
-                      : scheme.onSurfaceVariant,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

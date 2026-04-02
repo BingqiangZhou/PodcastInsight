@@ -132,18 +132,25 @@ class _MiniDockBody extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: onExpand,
-            child: RepaintBoundary(
-              child: _CoverImage(
-                imageUrl: episode.subscriptionImageUrl ?? episode.imageUrl,
-                size: 48,
+          Semantics(
+            button: true,
+            label: 'Expand player',
+            child: GestureDetector(
+              onTap: onExpand,
+              child: RepaintBoundary(
+                child: _CoverImage(
+                  imageUrl: episode.subscriptionImageUrl ?? episode.imageUrl,
+                  size: 48,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: GestureDetector(
+            child: Semantics(
+              button: true,
+              label: episode.title,
+              child: GestureDetector(
               key: showPrimaryKeys
                   ? const Key('podcast_bottom_player_mini_info')
                   : null,
@@ -189,6 +196,7 @@ class _MiniDockBody extends ConsumerWidget {
                     ),
                   ),
                 ],
+              ),
               ),
             ),
           ),

@@ -119,18 +119,35 @@ class AsyncValueWidget<T> extends StatelessWidget {
   }
 
   /// Maps exception types to user-friendly localized messages.
-  /// Falls back to a generic message for unknown error types.
+  /// Uses [NetworkErrorCode] enum for reliable matching instead of
+  /// fragile string comparisons. Falls back to a generic message for
+  /// unknown error types.
   static String _friendlyErrorMessage(BuildContext context, Object error) {
     final l10n = context.l10n;
 
-    if (error is NetworkException) {
-      final msg = error.message.toLowerCase();
-      if (msg.contains('timeout')) return l10n.error_network_timeout;
-      if (msg.contains('no internet') || msg.contains('connection')) {
-        return l10n.error_network_no_connection;
+    // Prefer enum-based matching when available
+    if (error is AppException) {
+      final code = error.errorCode;
+      if (code != null) {
+        return switch (code) {
+          NetworkErrorCode.connectionTimeout ||
+          NetworkErrorCode.sendTimeout ||
+          NetworkErrorCode.receiveTimeout =>
+            l10n.error_network_timeout,
+          NetworkErrorCode.noConnection => l10n.error_network_no_connection,
+          NetworkErrorCode.serverError => l10n.error_server,
+          NetworkErrorCode.authExpired => l10n.error_auth,
+          NetworkErrorCode.accessDenied => l10n.error_forbidden,
+          NetworkErrorCode.notFound => l10n.error_not_found,
+          NetworkErrorCode.validation => l10n.error_validation,
+          NetworkErrorCode.conflict => l10n.error_network_generic,
+          NetworkErrorCode.unknown => l10n.error_network_generic,
+        };
       }
-      return l10n.error_network_generic;
     }
+
+    // Fallback: match by exception type (no errorCode set)
+    if (error is NetworkException) return l10n.error_network_generic;
     if (error is ServerException) return l10n.error_server;
     if (error is AuthenticationException) return l10n.error_auth;
     if (error is AuthorizationException) return l10n.error_forbidden;

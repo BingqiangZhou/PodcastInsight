@@ -120,10 +120,13 @@ class BaseEpisodeCard extends StatelessWidget {
       elevation: 0,
       color: effectiveColor,
       clipBehavior: config.showImage ? Clip.none : Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(config.cornerRadius),
-        child: Padding(
+      child: Semantics(
+        button: true,
+        label: title,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(config.cornerRadius),
+          child: Padding(
           padding: config.cardPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,6 +146,7 @@ class BaseEpisodeCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

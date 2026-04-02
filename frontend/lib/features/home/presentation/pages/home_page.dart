@@ -8,6 +8,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations_extens
 import 'package:personal_ai_assistant/core/providers/route_provider.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
+import 'package:personal_ai_assistant/core/widgets/keyboard_shortcuts.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
@@ -177,23 +178,28 @@ class _HomeShellWidgetState extends ConsumerState<HomeShellWidget>
       _syncPlayerHostOverride(_buildPlayerHostOverride());
     }
 
-    return CustomAdaptiveNavigation(
-      key: const ValueKey('home_custom_adaptive_navigation'),
-      destinations: _buildDestinations(context),
-      selectedIndex: widget.navigationShell.currentIndex,
-      onDestinationSelected: _handleNavigation,
-      appBar: null,
-      floatingActionButton: _buildFloatingActionButton(),
-      desktopNavExpanded: _desktopNavExpanded,
-      onDesktopNavToggle: () {
-        setState(() {
-          _desktopNavExpanded = !_desktopNavExpanded;
-        });
-      },
-      body: PodcastPlayerLayoutFrame(
-        includeMiniPlayer: true,
-        applyMiniPlayerSafeArea: false,
-        child: widget.navigationShell,
+    return PlaybackShortcuts(
+      onTogglePlayPause: _togglePlayPause,
+      onSeekBackward: _seekBackward,
+      onSeekForward: _seekForward,
+      child: CustomAdaptiveNavigation(
+        key: const ValueKey('home_custom_adaptive_navigation'),
+        destinations: _buildDestinations(context),
+        selectedIndex: widget.navigationShell.currentIndex,
+        onDestinationSelected: _handleNavigation,
+        appBar: null,
+        floatingActionButton: _buildFloatingActionButton(),
+        desktopNavExpanded: _desktopNavExpanded,
+        onDesktopNavToggle: () {
+          setState(() {
+            _desktopNavExpanded = !_desktopNavExpanded;
+          });
+        },
+        body: PodcastPlayerLayoutFrame(
+          includeMiniPlayer: true,
+          applyMiniPlayerSafeArea: false,
+          child: widget.navigationShell,
+        ),
       ),
     );
   }
@@ -207,5 +213,35 @@ class _HomeShellWidgetState extends ConsumerState<HomeShellWidget>
       index,
       initialLocation: index == widget.navigationShell.currentIndex,
     );
+  }
+
+  void _togglePlayPause() {
+    final notifier = ref.read(audioPlayerProvider.notifier);
+    final playerState = ref.read(audioPlayerProvider);
+    if (playerState.currentEpisode == null) return;
+
+    if (playerState.isPlaying) {
+      notifier.pause();
+    } else {
+      notifier.resume();
+    }
+  }
+
+  void _seekBackward() {
+    final notifier = ref.read(audioPlayerProvider.notifier);
+    final playerState = ref.read(audioPlayerProvider);
+    if (playerState.currentEpisode == null) return;
+
+    final newPosition = (playerState.position - 10000).clamp(0, playerState.duration);
+    notifier.seekTo(newPosition);
+  }
+
+  void _seekForward() {
+    final notifier = ref.read(audioPlayerProvider.notifier);
+    final playerState = ref.read(audioPlayerProvider);
+    if (playerState.currentEpisode == null) return;
+
+    final newPosition = (playerState.position + 30000).clamp(0, playerState.duration);
+    notifier.seekTo(newPosition);
   }
 }
