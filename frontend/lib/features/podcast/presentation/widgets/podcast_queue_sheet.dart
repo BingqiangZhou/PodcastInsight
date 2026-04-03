@@ -514,26 +514,28 @@ class _QueueListState extends ConsumerState<_QueueList> {
       buildDefaultDragHandles: false,
       physics: const AlwaysScrollableScrollPhysics(),
       proxyDecorator: (child, index, animation) {
-        return AnimatedBuilder(
-          animation: animation,
-          builder: (context, _) {
-            final elevation = Tween<double>(
-              begin: 0,
-              end: 10,
-            ).evaluate(animation);
-            return Transform.scale(
-              scale: 1.0 + (0.01 * animation.value),
-              child: Material(
-                elevation: elevation,
-                color: Colors.transparent,
-                shadowColor: Theme.of(
-                  context,
-                ).colorScheme.shadow.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(16),
-                child: child,
-              ),
-            );
-          },
+        return RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: animation,
+            builder: (context, _) {
+              final elevation = Tween<double>(
+                begin: 0,
+                end: 10,
+              ).evaluate(animation);
+              return Transform.scale(
+                scale: 1.0 + (0.01 * animation.value),
+                child: Material(
+                  elevation: elevation,
+                  color: Colors.transparent,
+                  shadowColor: Theme.of(
+                    context,
+                  ).colorScheme.shadow.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(16),
+                  child: child,
+                ),
+              );
+            },
+          ),
         );
       },
       itemCount: widget.queue.items.length,

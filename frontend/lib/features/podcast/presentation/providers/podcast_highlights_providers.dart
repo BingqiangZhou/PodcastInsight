@@ -257,7 +257,7 @@ class HighlightDatesNotifier
 
   @override
   FutureOr<HighlightDatesResponse?> build() {
-    return null;
+    return load(forceRefresh: false);
   }
 
   Future<HighlightDatesResponse?> load({
@@ -304,7 +304,7 @@ class HighlightStatsNotifier
 
   @override
   FutureOr<HighlightStatsResponse?> build() {
-    return null;
+    return load(forceRefresh: false);
   }
 
   Future<HighlightStatsResponse?> load({

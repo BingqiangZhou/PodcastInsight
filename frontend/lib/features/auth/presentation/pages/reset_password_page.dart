@@ -285,7 +285,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                   const SizedBox(height: 24),
 
                   // Password requirements
-                  AnimatedBuilder(
+                  RepaintBoundary(
+                    child: AnimatedBuilder(
                     animation: _passwordController,
                     builder: (context, child) {
                       return Column(
@@ -316,6 +317,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                         ],
                       );
                     },
+                  ),
                   ),
 
                   const SizedBox(height: 32),

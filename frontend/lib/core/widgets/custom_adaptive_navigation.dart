@@ -177,7 +177,8 @@ class CustomAdaptiveNavigation extends StatelessWidget {
       appBar: appBar,
       body: Row(
         children: [
-          TweenAnimationBuilder<double>(
+          RepaintBoundary(
+            child: TweenAnimationBuilder<double>(
             tween: Tween<double>(end: expanded ? 256 : 72),
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOutCubic,
@@ -197,6 +198,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
                 ),
               );
             },
+          ),
           ),
           Expanded(
             child: Padding(
