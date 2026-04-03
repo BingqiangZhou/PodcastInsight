@@ -138,6 +138,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.buttonRadius,
     required this.inputRadius,
     required this.navItemRadius,
+    required this.controlRadius,
+    required this.sheetRadius,
+    required this.pillRadius,
     required this.shadowXs,
     required this.shadowSm,
     required this.shadowMd,
@@ -163,6 +166,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final double buttonRadius;
   final double inputRadius;
   final double navItemRadius;
+  final double controlRadius;
+  final double sheetRadius;
+  final double pillRadius;
 
   // Shadows
   final BoxShadow shadowXs;
@@ -193,6 +199,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     double? buttonRadius,
     double? inputRadius,
     double? navItemRadius,
+    double? controlRadius,
+    double? sheetRadius,
+    double? pillRadius,
     BoxShadow? shadowXs,
     BoxShadow? shadowSm,
     BoxShadow? shadowMd,
@@ -216,6 +225,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       buttonRadius: buttonRadius ?? this.buttonRadius,
       inputRadius: inputRadius ?? this.inputRadius,
       navItemRadius: navItemRadius ?? this.navItemRadius,
+      controlRadius: controlRadius ?? this.controlRadius,
+      sheetRadius: sheetRadius ?? this.sheetRadius,
+      pillRadius: pillRadius ?? this.pillRadius,
       shadowXs: shadowXs ?? this.shadowXs,
       shadowSm: shadowSm ?? this.shadowSm,
       shadowMd: shadowMd ?? this.shadowMd,
@@ -250,6 +262,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       buttonRadius: lerpDouble(buttonRadius, other.buttonRadius, t)!,
       inputRadius: lerpDouble(inputRadius, other.inputRadius, t)!,
       navItemRadius: lerpDouble(navItemRadius, other.navItemRadius, t)!,
+      controlRadius: lerpDouble(controlRadius, other.controlRadius, t)!,
+      sheetRadius: lerpDouble(sheetRadius, other.sheetRadius, t)!,
+      pillRadius: lerpDouble(pillRadius, other.pillRadius, t)!,
       shadowXs: BoxShadow.lerp(shadowXs, other.shadowXs, t)!,
       shadowSm: BoxShadow.lerp(shadowSm, other.shadowSm, t)!,
       shadowMd: BoxShadow.lerp(shadowMd, other.shadowMd, t)!,
@@ -271,6 +286,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     buttonRadius: 10,
     inputRadius: 8,
     navItemRadius: 10,
+    controlRadius: 14,
+    sheetRadius: 28,
+    pillRadius: 999,
     shadowXs: BoxShadow(
       color: Color(0x0A000000),
       blurRadius: 1,
@@ -308,6 +326,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     buttonRadius: 10,
     inputRadius: 8,
     navItemRadius: 10,
+    controlRadius: 14,
+    sheetRadius: 28,
+    pillRadius: 999,
     shadowXs: BoxShadow(
       color: Color(0x33000000),
       blurRadius: 1,
