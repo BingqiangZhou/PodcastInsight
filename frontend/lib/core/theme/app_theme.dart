@@ -696,7 +696,3 @@ class AppTheme {
     );
   }
 }
-
-// Legacy compatibility
-@Deprecated('Use AppTheme instead')
-typedef ArcticTheme = AppTheme;

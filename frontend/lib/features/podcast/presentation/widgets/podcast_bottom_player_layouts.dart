@@ -128,13 +128,14 @@ class _MiniDockBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
       child: Row(
         children: [
           Semantics(
             button: true,
-            label: 'Expand player',
+            label: l10n?.player_expand_player ?? 'Expand player',
             child: GestureDetector(
               onTap: onExpand,
               child: RepaintBoundary(

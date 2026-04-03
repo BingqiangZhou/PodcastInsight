@@ -1859,4 +1859,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String appearance_subtitle(String theme, String font) {
     return '$theme · $font';
   }
+
+  @override
+  String get player_expand_player => 'Expand player';
+
+  @override
+  String get unknown_podcast => 'Unknown Podcast';
+
+  @override
+  String get sleep_timer_after_episode => 'After current episode';
 }

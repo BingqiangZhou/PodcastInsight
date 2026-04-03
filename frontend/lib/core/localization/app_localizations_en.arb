@@ -2431,5 +2431,17 @@
                                                              "theme":  { "type":  "String" },
                                                              "font":  { "type":  "String" }
                                                          }
-                                   }
+                                   },
+    "player_expand_player":  "Expand player",
+    "@player_expand_player":  {
+                                        "description":  "Semantics label for expanding the mini player to full screen"
+                                    },
+    "unknown_podcast":  "Unknown Podcast",
+    "@unknown_podcast":  {
+                                   "description":  "Fallback title when podcast name is unavailable"
+                               },
+    "sleep_timer_after_episode":  "After current episode",
+    "@sleep_timer_after_episode":  {
+                                              "description":  "Label for sleep timer option to stop after current episode"
+                                          }
 }

@@ -2386,5 +2386,17 @@
                                                              "theme":  { "type":  "String" },
                                                              "font":  { "type":  "String" }
                                                          }
-                                   }
+                                   },
+    "player_expand_player":  "展开播放器",
+    "@player_expand_player":  {
+                                        "description":  "展开迷你播放器为全屏的无障碍标签"
+                                    },
+    "unknown_podcast":  "未知播客",
+    "@unknown_podcast":  {
+                                   "description":  "播客名称不可用时的默认标题"
+                               },
+    "sleep_timer_after_episode":  "当前剧集结束后",
+    "@sleep_timer_after_episode":  {
+                                              "description":  "睡眠定时选项：在当前剧集结束后停止"
+                                          }
 }

@@ -1784,4 +1784,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String appearance_subtitle(String theme, String font) {
     return '$theme · $font';
   }
+
+  @override
+  String get player_expand_player => '展开播放器';
+
+  @override
+  String get unknown_podcast => '未知播客';
+
+  @override
+  String get sleep_timer_after_episode => '当前剧集结束后';
 }

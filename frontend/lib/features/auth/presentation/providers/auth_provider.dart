@@ -273,19 +273,10 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final authResponse = await _authRepository.login(request);
 
-      // Save token expiry - prioritize server's UTC expires_at, fall back to expiresIn
-      if (authResponse.expiresAt != null) {
-        // Use server's UTC expiration time
-        await _secureStorage.saveTokenExpiry(authResponse.expiresAt!);
-        logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: ${authResponse.expiresAt}');
-      } else if (authResponse.expiresIn > 0) {
-        // Fall back to relative expiresIn, convert to UTC
-        final expiryUtc = DateTime.now().toUtc().add(
-          Duration(seconds: authResponse.expiresIn),
-        );
-        await _secureStorage.saveTokenExpiry(expiryUtc);
-        logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
-      }
+      await _saveTokenExpiry(
+        expiresAt: authResponse.expiresAt,
+        expiresIn: authResponse.expiresIn,
+      );
 
       // Fetch user info after successful login
       try {
@@ -350,19 +341,10 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final authResponse = await _authRepository.register(request);
 
-      // Save token expiry - prioritize server's UTC expires_at, fall back to expiresIn
-      if (authResponse.expiresAt != null) {
-        // Use server's UTC expiration time
-        await _secureStorage.saveTokenExpiry(authResponse.expiresAt!);
-        logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: ${authResponse.expiresAt}');
-      } else if (authResponse.expiresIn > 0) {
-        // Fall back to relative expiresIn, convert to UTC
-        final expiryUtc = DateTime.now().toUtc().add(
-          Duration(seconds: authResponse.expiresIn),
-        );
-        await _secureStorage.saveTokenExpiry(expiryUtc);
-        logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
-      }
+      await _saveTokenExpiry(
+        expiresAt: authResponse.expiresAt,
+        expiresIn: authResponse.expiresIn,
+      );
 
       // Fetch user info after successful registration
       try {
@@ -542,6 +524,22 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> _handleAuthError() async {
     await _clearAuthState();
     state = state.copyWith(isAuthenticated: false, user: null);
+  }
+
+  /// Saves token expiry from auth response.
+  /// Prioritizes server's UTC expires_at, falls back to relative expiresIn.
+  Future<void> _saveTokenExpiry({
+    DateTime? expiresAt,
+    required int expiresIn,
+  }) async {
+    if (expiresAt != null) {
+      await _secureStorage.saveTokenExpiry(expiresAt);
+      logger.AppLogger.debug('✅ [Auth] Saved server UTC expiry: $expiresAt');
+    } else if (expiresIn > 0) {
+      final expiryUtc = DateTime.now().toUtc().add(Duration(seconds: expiresIn));
+      await _secureStorage.saveTokenExpiry(expiryUtc);
+      logger.AppLogger.debug('✅ [Auth] Saved local UTC expiry: $expiryUtc');
+    }
   }
 
   Future<void> _clearAuthState() async {

@@ -3451,6 +3451,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{theme} · {font}'**
   String appearance_subtitle(String theme, String font);
+
+  /// Semantics label for expanding the mini player to full screen
+  ///
+  /// In en, this message translates to:
+  /// **'Expand player'**
+  String get player_expand_player;
+
+  /// Fallback title when podcast name is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Podcast'**
+  String get unknown_podcast;
+
+  /// Label for sleep timer option to stop after current episode
+  ///
+  /// In en, this message translates to:
+  /// **'After current episode'**
+  String get sleep_timer_after_episode;
 }
 
 class _AppLocalizationsDelegate

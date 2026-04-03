@@ -135,6 +135,7 @@ class ShownotesDisplayWidgetState
     }
 
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     final titleStyle = theme.textTheme.titleLarge?.copyWith(
       fontWeight: FontWeight.w700,
       color: theme.colorScheme.onSurface,
@@ -150,7 +151,7 @@ class ShownotesDisplayWidgetState
             children: [
               Row(
                 children: [
-                  Expanded(child: Text('Shownotes', style: titleStyle)),
+                  Expanded(child: Text(l10n.podcast_tab_shownotes, style: titleStyle)),
                   IconButton(
                     tooltip:
                         (AppLocalizations.of(context) ?? AppLocalizationsEn())
@@ -601,7 +602,7 @@ class ShownotesDisplayWidgetState
     if (!mounted) {
       return;
     }
-    showTopFloatingNotice(context, message: l10n.podcast_copied('Shownotes'));
+    showTopFloatingNotice(context, message: l10n.podcast_copied(l10n.podcast_tab_shownotes));
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -614,6 +615,7 @@ class ShownotesDisplayWidgetState
 
   Widget _buildLoadingState(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return Padding(
       padding: const EdgeInsets.all(18),
       child: Center(
@@ -621,7 +623,7 @@ class ShownotesDisplayWidgetState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Shownotes',
+              l10n.podcast_tab_shownotes,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: theme.colorScheme.onSurface,
