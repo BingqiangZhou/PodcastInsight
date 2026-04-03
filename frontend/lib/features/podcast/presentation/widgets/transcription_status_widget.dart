@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -48,6 +49,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final ext = appThemeOf(context);
     final accentColor = theme.brightness == Brightness.dark
         ? scheme.tertiary
         : scheme.primary;
@@ -55,7 +57,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
       elevation: 0,
       color: scheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(ext.cardRadius),
         side: BorderSide(color: scheme.outline.withValues(alpha: 0.2)),
       ),
       child: Padding(
@@ -109,7 +111,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(ext.buttonRadius),
                   ),
                 ),
               ),
@@ -122,7 +124,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(ext.buttonRadius),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -222,13 +224,13 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                       width: iconSize,
                       height: iconSize,
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.1),
+                        color: scheme.tertiary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(iconSize / 2),
                       ),
                       child: Icon(
                         Icons.pending_actions,
                         size: iconInnerSize,
-                        color: Colors.orange,
+                        color: scheme.tertiary,
                       ),
                     ),
 
@@ -273,6 +275,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final ext = appThemeOf(context);
     final progress = transcription.progressPercentage;
     final statusText = transcription.getLocalizedStatusDescription(context);
     final currentStep = transcriptionCurrentStepNumber(progress);
@@ -373,7 +376,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                       ),
                       decoration: BoxDecoration(
                         color: scheme.primaryContainer.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(ext.pillRadius),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -428,7 +431,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
                     // Progress bar
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(ext.inputRadius),
                       child: LinearProgressIndicator(
                         value: progress / 100,
                         backgroundColor: scheme.outline.withValues(alpha: 0.2),
@@ -444,7 +447,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                         padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                         decoration: BoxDecoration(
                           color: scheme.surface,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(ext.inputRadius),
                           border: Border.all(
                             color: scheme.outline.withValues(alpha: 0.1),
                           ),
@@ -542,16 +545,17 @@ class TranscriptionStatusWidget extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final ext = appThemeOf(context);
     final wordCount = transcription.wordCount ?? 0;
     final duration = transcription.durationSeconds ?? 0;
     final completedAt = transcription.completedAt;
 
     return Card(
       elevation: 0,
-      color: Colors.green.withValues(alpha: 0.05),
+      color: scheme.tertiary.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.green.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(ext.cardRadius),
+        side: BorderSide(color: scheme.tertiary.withValues(alpha: 0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -563,10 +567,10 @@ class TranscriptionStatusWidget extends ConsumerWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
+                color: scheme.tertiary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(40),
               ),
-              child: Icon(Icons.check_circle, size: 40, color: Colors.green),
+              child: Icon(Icons.check_circle, size: 40, color: scheme.tertiary),
             ),
 
             const SizedBox(height: 16),
@@ -599,7 +603,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(ext.buttonRadius),
                 border: Border.all(
                   color: Theme.of(
                     context,
@@ -668,7 +672,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(ext.buttonRadius),
                       ),
                       side: BorderSide(
                         color: Theme.of(context).colorScheme.error,
@@ -688,7 +692,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(ext.buttonRadius),
                       ),
                     ),
                   ),
@@ -708,6 +712,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final ext = appThemeOf(context);
     final errorMessage =
         transcription.errorMessage ??
         context.l10n.transcription_unknown_error;
@@ -716,10 +721,10 @@ class TranscriptionStatusWidget extends ConsumerWidget {
 
     return Card(
       elevation: 0,
-      color: Colors.red.withValues(alpha: 0.05),
+      color: scheme.error.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.red.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(ext.cardRadius),
+        side: BorderSide(color: scheme.error.withValues(alpha: 0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -731,10 +736,10 @@ class TranscriptionStatusWidget extends ConsumerWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: scheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(40),
               ),
-              child: Icon(Icons.error_outline, size: 40, color: Colors.red),
+              child: Icon(Icons.error_outline, size: 40, color: scheme.error),
             ),
 
             const SizedBox(height: 16),
@@ -766,22 +771,22 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                color: scheme.tertiary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(ext.buttonRadius),
+                border: Border.all(color: scheme.tertiary.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.lightbulb_outline,
                     size: 16,
-                    color: Colors.orange.shade700,
+                    color: scheme.tertiary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       suggestion,
-                      style: AppTheme.caption(Colors.orange.shade700),
+                      style: AppTheme.caption(scheme.tertiary),
                     ),
                   ),
                 ],
@@ -804,7 +809,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: scheme.surface,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(ext.inputRadius),
                     ),
                     child: Text(
                       errorMessage,
@@ -833,7 +838,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(ext.buttonRadius),
                       ),
                     ),
                   ),
@@ -849,10 +854,10 @@ class TranscriptionStatusWidget extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(ext.buttonRadius),
                       ),
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+                      backgroundColor: scheme.tertiary,
+                      foregroundColor: scheme.onTertiary,
                     ),
                   ),
                 ),

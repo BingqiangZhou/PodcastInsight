@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 
 /// A single message bubble in the conversation chat.
@@ -28,8 +29,16 @@ class ChatMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final extension = appThemeOf(context);
     final isUser = message.isUser;
     final userTextColor = scheme.onSurface;
+    final panelR = extension.panelRadius;
+    final bubbleRadius = BorderRadius.only(
+      topLeft: Radius.circular(panelR),
+      topRight: Radius.circular(panelR),
+      bottomLeft: Radius.circular(isUser ? 4.0 : panelR),
+      bottomRight: Radius.circular(isUser ? panelR : 4.0),
+    );
     final l10n = AppLocalizations.of(context)!;
     final roleLabel = isUser
         ? l10n.podcast_conversation_user
@@ -47,9 +56,9 @@ class ChatMessageBubble extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: isUser
-                ? scheme.primaryContainer
-                : scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16),
+                ? extension.aiBubbleUserColor
+                : extension.aiBubbleAssistantColor,
+            borderRadius: bubbleRadius,
             border: Border.all(
               color: isSelectMode
                   ? (isSelected

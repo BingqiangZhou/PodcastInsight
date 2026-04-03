@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
 
 /// Search input widget for discover page with country selector
-class DiscoverSearchInput extends ConsumerWidget {
+class DiscoverSearchInput extends ConsumerStatefulWidget {
   const DiscoverSearchInput({
     super.key,
     required this.searchController,
@@ -28,44 +28,91 @@ class DiscoverSearchInput extends ConsumerWidget {
   final bool isDense;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiscoverSearchInput> createState() =>
+      _DiscoverSearchInputState();
+}
+
+class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.searchFocusNode.addListener(_onFocusChange);
+    _isFocused = widget.searchFocusNode.hasFocus;
+  }
+
+  @override
+  void didUpdateWidget(covariant DiscoverSearchInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchFocusNode != widget.searchFocusNode) {
+      oldWidget.searchFocusNode.removeListener(_onFocusChange);
+      widget.searchFocusNode.addListener(_onFocusChange);
+      _isFocused = widget.searchFocusNode.hasFocus;
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.searchFocusNode.removeListener(_onFocusChange);
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    setState(() {
+      _isFocused = widget.searchFocusNode.hasFocus;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final hintLabel = searchMode == search.PodcastSearchMode.episodes
-        ? l10n.podcast_search_section_episodes
-        : l10n.podcast_search_section_podcasts;
-    final isZh = Localizations.localeOf(context).languageCode.startsWith('zh');
+    final scheme = theme.colorScheme;
+    final extension = appThemeOf(context);
+    final hintLabel =
+        widget.searchMode == search.PodcastSearchMode.episodes
+            ? l10n.podcast_search_section_episodes
+            : l10n.podcast_search_section_podcasts;
+    final isZh =
+        Localizations.localeOf(context).languageCode.startsWith('zh');
     final hintText = isZh
         ? '${l10n.search}$hintLabel...'
         : '${l10n.search} $hintLabel...';
+
+    final borderSide = _isFocused
+        ? BorderSide(color: scheme.primary, width: 1.4)
+        : BorderSide(color: scheme.outlineVariant);
 
     return RepaintBoundary(
       key: const Key('podcast_discover_search_input_boundary'),
       child: Material(
         key: const Key('podcast_discover_search_bar'),
         color: theme.colorScheme.surface,
+        shadowColor: _isFocused ? extension.shadowXs.color : Colors.transparent,
+        elevation: _isFocused ? 1 : 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(kPodcastMiniCornerRadius),
-          side: BorderSide(color: theme.colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(extension.controlRadius),
+          side: borderSide,
         ),
         child: SizedBox(
-        height: isDense ? 44 : 48,
+        height: widget.isDense ? 44 : 48,
         child: Row(
           children: [
             Padding(
-              padding: EdgeInsets.only(left: isDense ? 10 : 12),
+              padding: EdgeInsets.only(left: widget.isDense ? 10 : 12),
               child: Icon(
                 Icons.search,
-                size: isDense ? 18 : 20,
+                size: widget.isDense ? 18 : 20,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            SizedBox(width: isDense ? 6 : 8),
+            SizedBox(width: widget.isDense ? 6 : 8),
             Expanded(
               child: TextField(
                 key: const Key('podcast_discover_search_input'),
-                controller: searchController,
-                focusNode: searchFocusNode,
+                controller: widget.searchController,
+                focusNode: widget.searchFocusNode,
                 textInputAction: TextInputAction.search,
                 style: theme.textTheme.bodyMedium,
                 decoration: InputDecoration(
@@ -84,18 +131,18 @@ class DiscoverSearchInput extends ConsumerWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                onChanged: onSearchChanged,
+                onChanged: widget.onSearchChanged,
               ),
             ),
             ValueListenableBuilder<TextEditingValue>(
-              valueListenable: searchController,
+              valueListenable: widget.searchController,
               builder: (context, value, _) {
                 if (value.text.isNotEmpty) {
                   return IconButton(
-                    onPressed: onClearSearch,
+                    onPressed: widget.onClearSearch,
                     icon: Icon(
                       Icons.clear,
-                      size: isDense ? 16 : 18,
+                      size: widget.isDense ? 16 : 18,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   );
@@ -104,10 +151,10 @@ class DiscoverSearchInput extends ConsumerWidget {
               },
             ),
             Padding(
-              padding: EdgeInsets.only(right: isDense ? 6 : 7),
+              padding: EdgeInsets.only(right: widget.isDense ? 6 : 7),
               child: _CountryButton(
-                isDense: isDense,
-                onTap: onCountryTap,
+                isDense: widget.isDense,
+                onTap: widget.onCountryTap,
               ),
             ),
           ],

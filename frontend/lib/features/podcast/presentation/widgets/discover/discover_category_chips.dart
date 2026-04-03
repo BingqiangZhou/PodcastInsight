@@ -90,31 +90,39 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedBackgroundColor = theme.colorScheme.onSurfaceVariant;
+    final selectedBackgroundColor = theme.colorScheme.primary;
     final selectedLabelColor = theme.colorScheme.surface;
 
-    return ChoiceChip(
-      key: Key(
-        'podcast_discover_category_chip_${_normalizeCategoryKey(keyValue)}',
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: selected ? 1.05 : 1.0),
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      builder: (context, scale, child) {
+        return Transform.scale(scale: scale, child: child);
+      },
+      child: ChoiceChip(
+        key: Key(
+          'podcast_discover_category_chip_${_normalizeCategoryKey(keyValue)}',
+        ),
+        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        selected: selected,
+        onSelected: onSelected,
+        showCheckmark: false,
+        visualDensity: const VisualDensity(horizontal: -1, vertical: -2),
+        side: selected
+            ? BorderSide(color: selectedBackgroundColor)
+            : BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        labelStyle: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: selected
+              ? selectedLabelColor
+              : theme.colorScheme.onSurfaceVariant,
+        ),
+        selectedColor: selectedBackgroundColor,
+        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       ),
-      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-      selected: selected,
-      onSelected: onSelected,
-      showCheckmark: false,
-      visualDensity: const VisualDensity(horizontal: -1, vertical: -2),
-      side: selected
-          ? BorderSide(color: selectedBackgroundColor)
-          : BorderSide.none,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      labelStyle: theme.textTheme.labelLarge?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: selected
-            ? selectedLabelColor
-            : theme.colorScheme.onSurfaceVariant,
-      ),
-      selectedColor: selectedBackgroundColor,
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
     );
   }
 

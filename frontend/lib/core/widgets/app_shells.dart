@@ -772,7 +772,7 @@ class ProfileShell extends StatelessWidget {
     final extension = appThemeOf(context);
 
     return StellaBackground(
-      enableGlow: false,
+      enableGlow: true,
       child: Material(
         color: Colors.transparent,
         child: _ShellViewport(

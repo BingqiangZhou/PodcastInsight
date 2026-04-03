@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 
 /// Authentication Verification Page - Direct API Testing
@@ -52,7 +53,7 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
       if (response.statusCode == 200) {
         setState(() {
           _status = '✅ Backend is reachable and healthy!';
-          _statusColor = Colors.green;
+          _statusColor = AppColors.accentWarm;
         });
       } else {
         setState(() {
@@ -98,7 +99,7 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
       if (response.statusCode == 200) {
         setState(() {
           _status = '✅ Registration SUCCESS!\n\nUser: ${data['email']}\nID: ${data['id']}\n\nNow try login to get tokens.';
-          _statusColor = Colors.green;
+          _statusColor = AppColors.accentWarm;
         });
       } else if (response.statusCode == 409) {
         setState(() {
@@ -157,7 +158,7 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
 
         setState(() {
           _status = '✅ Login SUCCESS!\n\nAccess Token: ${accessToken.substring(0, 30)}...\nRefresh Token: ${refreshToken.substring(0, 30)}...\n\nTry "Get User Info" to verify token works!';
-          _statusColor = Colors.green;
+          _statusColor = AppColors.accentWarm;
         });
       } else {
         final data = response.data;
@@ -226,7 +227,7 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
               'Username: ${userData['username']}\n'
               'Full Name: ${userData['full_name']}\n'
               'User ID: ${userData['id']}';
-          _statusColor = Colors.green;
+          _statusColor = AppColors.accentWarm;
         });
       } else {
         setState(() {

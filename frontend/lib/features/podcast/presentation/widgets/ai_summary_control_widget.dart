@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
@@ -134,11 +136,12 @@ class _AISummaryControlWidgetState
   Widget _buildNoTranscriptMessage(BuildContext context) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
+    final extension = appThemeOf(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.errorContainer.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.controlRadius),
         border: Border.all(
           color: scheme.error.withValues(alpha: 0.3),
         ),
@@ -241,6 +244,7 @@ class _AISummaryControlWidgetState
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final extension = appThemeOf(context);
     final isCompact = widget.compact;
     final hasModelOptions = models.length > 1;
 
@@ -253,7 +257,7 @@ class _AISummaryControlWidgetState
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: scheme.secondaryContainer.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(extension.controlRadius),
             ),
             child: Wrap(
               spacing: 16,
@@ -369,17 +373,18 @@ class _AISummaryControlWidgetState
   }) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
+    final extension = appThemeOf(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.controlRadius),
       ),
       child: DropdownButtonFormField<SummaryModelInfo>(
         initialValue: _selectedModel,
         decoration: InputDecoration(
           labelText: l10n.podcast_ai_model,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(extension.controlRadius)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
             vertical: 8,
@@ -401,7 +406,7 @@ class _AISummaryControlWidgetState
                       ),
                       decoration: BoxDecoration(
                         color: scheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
                       ),
                       child: Text(
                         l10n.podcast_default_model,
@@ -443,11 +448,12 @@ class _AISummaryControlWidgetState
 
   Widget _buildErrorMessage(BuildContext context, String message) {
     final scheme = Theme.of(context).colorScheme;
+    final extension = appThemeOf(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: scheme.errorContainer.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.controlRadius),
         border: Border.all(
           color: scheme.error.withValues(alpha: 0.3),
         ),

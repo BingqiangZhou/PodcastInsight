@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 
 /// Input area for the conversation chat with a text field and send button.
 ///
@@ -31,6 +32,8 @@ class ChatInputArea extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final extension = appThemeOf(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -41,6 +44,13 @@ class ChatInputArea extends StatelessWidget {
             width: 1,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -64,19 +74,19 @@ class ChatInputArea extends StatelessWidget {
                       ? l10n.podcast_conversation_no_summary_hint
                       : l10n.podcast_conversation_send_hint,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(extension.pillRadius),
                     borderSide: BorderSide(
                       color: scheme.outline,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(extension.pillRadius),
                     borderSide: BorderSide(
                       color: scheme.outline,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(extension.pillRadius),
                     borderSide: BorderSide(
                       color: scheme.primary,
                       width: 2,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 
 /// Empty state for the conversation chat when no messages exist yet.
 ///
@@ -18,16 +19,25 @@ class ChatEmptyState extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final ext = appThemeOf(context);
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.chat_outlined,
-              size: 64,
-              color: scheme.onSurfaceVariant,
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: scheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.chat_outlined,
+                size: 36,
+                color: scheme.primary,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -47,10 +57,10 @@ class ChatEmptyState extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: scheme.outlineVariant,
+                  color: ext.aiHighlightSurfaceColor,
+                  borderRadius: BorderRadius.circular(ext.cardRadius),
+                  border: Border(
+                    left: BorderSide(color: scheme.primary, width: 3),
                   ),
                 ),
                 child: Column(

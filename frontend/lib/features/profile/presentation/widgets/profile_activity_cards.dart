@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/navigation/podcast_navigation.dart';
@@ -208,20 +209,28 @@ class ProfileActivityCards extends ConsumerWidget {
   }) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final effectiveIconColor = _resolveActivityIconColor(context);
+    final extension = appThemeOf(context);
     return Padding(
       key: cardKey,
       padding: _cardMargin(context),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(extension.cardRadius),
         child: SurfacePanel(
-          borderRadius: 20,
+          borderRadius: extension.cardRadius,
           showBorder: false,
           showHighlight: false,
           child: Row(
             children: [
-              Icon(icon, color: effectiveIconColor, size: 24),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -277,7 +286,4 @@ class ProfileActivityCards extends ConsumerWidget {
     }
   }
 
-  Color _resolveActivityIconColor(BuildContext context) {
-    return Theme.of(context).colorScheme.onSurfaceVariant;
-  }
 }

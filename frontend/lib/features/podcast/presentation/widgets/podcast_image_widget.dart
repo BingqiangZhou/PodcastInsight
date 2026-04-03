@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/services/app_cache_service.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 
 /// Podcast image widget with retry/fallback handling.
@@ -175,11 +176,12 @@ class _PodcastImageWidgetState extends State<PodcastImageWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final extension = appThemeOf(context);
     final iconColor = widget.iconColor ?? theme.colorScheme.onSurfaceVariant;
     final iconSize = widget.iconSize ?? (widget.width * 0.6);
 
     if (_currentImageUrl == null || _currentImageUrl!.isEmpty) {
-      return _buildIconPlaceholder(iconColor, iconSize);
+      return _buildIconPlaceholder(iconColor, iconSize, extension.inputRadius);
     }
 
     final stableCacheKey =
@@ -224,13 +226,26 @@ class _PodcastImageWidgetState extends State<PodcastImageWidget> {
             color: theme.colorScheme.surfaceContainerHighest.withValues(
               alpha: 0.5,
             ),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(extension.inputRadius),
           ),
           child: Center(
-            child: Icon(
-              Icons.podcasts,
-              size: iconSize * 0.6,
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.4, end: 1.0),
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.easeInOut,
+              onEnd: () => setState(() {}),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value.clamp(0.0, 1.0),
+                  child: child,
+                );
+              },
+              child: Icon(
+                Icons.podcasts,
+                size: iconSize * 0.6,
+                color: theme.colorScheme.onSurfaceVariant
+                    .withValues(alpha: 0.6),
+              ),
             ),
           ),
         );
@@ -250,7 +265,7 @@ class _PodcastImageWidgetState extends State<PodcastImageWidget> {
               color: theme.colorScheme.surfaceContainerHighest.withValues(
                 alpha: 0.5,
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(extension.inputRadius),
             ),
             child: Icon(
               Icons.refresh,
@@ -265,13 +280,13 @@ class _PodcastImageWidgetState extends State<PodcastImageWidget> {
     );
   }
 
-  Widget _buildIconPlaceholder(Color color, double size) {
+  Widget _buildIconPlaceholder(Color color, double size, double radius) {
     return Container(
       width: widget.width,
       height: widget.height,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Icon(
