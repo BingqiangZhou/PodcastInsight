@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Import ETag interceptor (now with integrated cache)
 import 'package:personal_ai_assistant/core/network/etag_interceptor.dart';
+import 'package:personal_ai_assistant/core/network/retry_interceptor.dart';
 import 'package:personal_ai_assistant/core/network/token_refresh_service.dart';
 
 // Import AppConfig and ApiConstants from the canonical config file
@@ -213,15 +214,11 @@ class DioClient {
   // Request cancellation support
   final Map<String, CancelToken> _cancelTokens = {};
 
-  // Retry options
+  // Retry options (passed to RetryInterceptor)
   final RetryOptions _retryOptions;
 
   // In-memory token cache to avoid secure storage I/O on every request
   String? _cachedAccessToken;
-
-  // Retry tracking for in-flight requests (LRU-bounded to prevent unbounded growth)
-  static const int _maxRetryKeys = 50;
-  final Map<String, int> _retryAttempts = {};
 
   // Request deduplication: maps GET request keys to their in-flight futures (NW-M3)
   final Map<String, Completer<Response>> _inFlightRequests = {};
@@ -263,6 +260,9 @@ class DioClient {
         onError: _onError,
       ),
     );
+
+    // Add retry interceptor after main interceptor
+    _dio.interceptors.add(RetryInterceptor(dio: _dio, options: _retryOptions));
 
     // Apply base URL synchronously before returning.
     _initializeBaseUrl(initialServerBaseUrl: _initOptions.initialServerBaseUrl);
@@ -494,60 +494,8 @@ class DioClient {
     logger.AppLogger.debug('   Type: ${error.type}');
     logger.AppLogger.debug('   Message: ${error.message}');
 
-    // Check if we should retry this request
-    final retryKey = _getRetryKey(error.requestOptions);
-    final currentAttempt = _retryAttempts[retryKey] ?? 0;
-
-    if (_shouldRetry(error, currentAttempt)) {
-      final nextAttempt = currentAttempt + 1;
-      _retryAttempts[retryKey] = nextAttempt;
-      _evictRetryKeysIfNeeded();
-
-      // Respect Retry-After header for 429 responses (NW-M4)
-      Duration delay = _retryOptions.getDelay(currentAttempt);
-      final statusCode = error.response?.statusCode;
-      if (statusCode == 429) {
-        final retryAfterHeader = error.response?.headers.value('retry-after');
-        if (retryAfterHeader != null) {
-          final retryAfterSeconds = int.tryParse(retryAfterHeader) ?? 0;
-          if (retryAfterSeconds > 0) {
-            delay = Duration(seconds: retryAfterSeconds);
-          }
-        }
-      }
-      logger.AppLogger.debug(
-        '[RETRY] Attempt $nextAttempt/${_retryOptions.maxRetries} '
-        'after ${delay.inMilliseconds}ms',
-      );
-
-      // Wait before retrying
-      await Future.delayed(delay);
-
-      try {
-        final response = await _dio.fetch(error.requestOptions);
-        // Success - remove retry tracking
-        _retryAttempts.remove(retryKey);
-        logger.AppLogger.debug(
-          '[RETRY] Success on attempt $nextAttempt',
-        );
-        handler.resolve(response);
-        return;
-      } on DioException catch (retryError) {
-        // Retry failed, will be handled by this interceptor again
-        logger.AppLogger.debug(
-          '[RETRY] Attempt $nextAttempt failed: ${retryError.type}',
-        );
-        // Continue to normal error handling below
-      }
-    } else if (currentAttempt > 0) {
-      // Exhausted retries or non-retryable error after retries
-      _retryAttempts.remove(retryKey);
-      if (currentAttempt >= _retryOptions.maxRetries) {
-        logger.AppLogger.debug(
-          '[RETRY] Exhausted $currentAttempt attempts, giving up',
-        );
-      }
-    }
+    // Retry logic is handled by RetryInterceptor (added in constructor).
+    // This handler only classifies errors.
 
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
@@ -974,70 +922,6 @@ class DioClient {
   /// Check if a request is cancelled
   bool isRequestCancelled(String tag) {
     return _cancelTokens[tag]?.isCancelled ?? true;
-  }
-
-  // Retry support methods
-
-  /// Generate a unique key for tracking retry attempts.
-  String _getRetryKey(RequestOptions options) {
-    return '${options.method}:${options.path}:${options.queryParameters.toString()}';
-  }
-
-  /// Evict oldest retry tracking entries when the map exceeds [_maxRetryKeys].
-  void _evictRetryKeysIfNeeded() {
-    while (_retryAttempts.length > _maxRetryKeys) {
-      _retryAttempts.remove(_retryAttempts.keys.first);
-    }
-  }
-
-  /// Determine if an error should trigger a retry.
-  bool _shouldRetry(DioException error, int currentAttempt) {
-    // Check if we've exceeded max retries
-    if (currentAttempt >= _retryOptions.maxRetries) {
-      return false;
-    }
-
-    // Only retry on transient failures
-    switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        // Retry on timeout
-        return true;
-      case DioExceptionType.connectionError:
-        // Retry on connection failure
-        return true;
-      case DioExceptionType.badResponse:
-        final statusCode = error.response?.statusCode;
-        if (statusCode != null) {
-          // Retry on 5xx server errors
-          if (statusCode >= 500 && statusCode < 600) {
-            return true;
-          }
-          // Retry on 429 Too Many Requests
-          if (statusCode == 429) {
-            return true;
-          }
-        }
-        // Don't retry on 4xx client errors (except 429)
-        return false;
-      case DioExceptionType.cancel:
-        // Don't retry cancelled requests
-        return false;
-      case DioExceptionType.badCertificate:
-        // Don't retry on certificate errors
-        return false;
-      case DioExceptionType.unknown:
-        // Check if it's a network-related error
-        final errorText = error.message?.toLowerCase() ?? '';
-        if (errorText.contains('socket') ||
-            errorText.contains('network') ||
-            errorText.contains('connection') ||
-            errorText.contains('failed')) {
-          return true;
-        }
-        return false;
-    }
   }
 
   // Static factory method for ServiceLocator
