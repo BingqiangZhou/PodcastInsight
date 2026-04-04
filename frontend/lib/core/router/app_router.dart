@@ -25,7 +25,6 @@ import 'package:personal_ai_assistant/features/profile/presentation/pages/profil
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_downloads_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/features/ai/presentation/pages/ai_tab_page.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/page_transitions.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
@@ -243,20 +242,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 2: AI
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/ai',
-                name: 'ai',
-                pageBuilder: (context, state) => _buildPageWithTransition(
-                  state: state,
-                  child: const AiTabPage(),
-                ),
-              ),
-            ],
-          ),
-          // Branch 3: Profile
+          // Branch 2: Profile (previously Branch 3)
           StatefulShellBranch(
             routes: [
               GoRoute(

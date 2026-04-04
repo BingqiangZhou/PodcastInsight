@@ -163,11 +163,6 @@ class _HomeShellWidgetState extends ConsumerState<HomeShellWidget>
         label: l10n.nav_feed,
       ),
       NavigationDestination(
-        icon: const Icon(Icons.auto_awesome_outlined),
-        selectedIcon: const Icon(Icons.auto_awesome),
-        label: l10n.nav_ai,
-      ),
-      NavigationDestination(
         icon: const Icon(Icons.person_outline),
         selectedIcon: const Icon(Icons.person),
         label: l10n.nav_profile,
