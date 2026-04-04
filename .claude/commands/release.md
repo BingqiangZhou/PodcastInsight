@@ -19,9 +19,9 @@ example: /release 1.0.0
 3. 根据需要更新功能版本注释
 
 ## 步骤2: 更新版本号
-1. 读取 frontend/pubspec.yaml 当前版本
+1. 读取 frontend/pubspec.yaml 当前版本（格式：`x.y.z+N`）
 2. 更新版本号为用户提供的新版本号
-3. 构建号（+后面的数字）在当前基础上加1
+3. 构建号（`+` 后面的数字 N）= 当前构建号 + 1（例如 `0.39.0+99` → `0.40.0+100`）
 
 ## 步骤3: 创建提交
 创建 commit，message 格式为：
@@ -38,7 +38,7 @@ chore(release): update version to <版本号> and generate changelog
 
 ## 示例
 输入: `/release 1.0.0`
-- 当前版本: 0.1.8+21
-- 新版本: 1.0.0+22
+- 当前版本: `0.39.0+99`
+- 新版本: `1.0.0+100`（构建号 99+1=100）
 - Tag: v1.0.0
 - Commit message: `chore(release): update version to 1.0.0 and generate changelog`
