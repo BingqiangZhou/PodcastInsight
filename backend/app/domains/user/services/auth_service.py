@@ -10,7 +10,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.email import email_service
 from app.core.exceptions import (
     BadRequestError,
     ConflictError,
@@ -488,13 +487,6 @@ class AuthenticationService:
             self.db.add(password_reset)
             await self.db.commit()
             # No refresh needed - password_reset.id is auto-populated by SQLAlchemy after flush/commit
-
-            # Send password reset email
-            await email_service.send_password_reset_email(
-                email=email,
-                token=reset_token,
-                expires_at=expires_at,
-            )
 
             result = {
                 "message": "If an account with this email exists, a password reset link has been sent.",

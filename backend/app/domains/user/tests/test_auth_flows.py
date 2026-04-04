@@ -14,7 +14,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 # ruff: noqa: ARG005
 import pytest
@@ -304,9 +304,7 @@ class TestPasswordReset:
         db: AsyncSession,
     ):
         await _create_user(db)
-        with patch("app.domains.user.services.auth_service.email_service") as mock_email:
-            mock_email.send_password_reset_email = AsyncMock()
-            result = await auth_service.create_password_reset_token("user@example.com")
+        result = await auth_service.create_password_reset_token("user@example.com")
         assert result["token"] is not None
         assert "message" in result
 
@@ -324,9 +322,7 @@ class TestPasswordReset:
     ):
         await _create_user(db)
         # Create reset token via service
-        with patch("app.domains.user.services.auth_service.email_service") as mock_email:
-            mock_email.send_password_reset_email = AsyncMock()
-            reset_result = await auth_service.create_password_reset_token("user@example.com")
+        reset_result = await auth_service.create_password_reset_token("user@example.com")
         token = reset_result["token"]
 
         result = await auth_service.reset_password(token, "NewSecure123!")
@@ -393,9 +389,7 @@ class TestPasswordReset:
         session_data = await auth_service.create_user_session(user)
 
         # Create reset token via service
-        with patch("app.domains.user.services.auth_service.email_service") as mock_email:
-            mock_email.send_password_reset_email = AsyncMock()
-            reset_result = await auth_service.create_password_reset_token("user@example.com")
+        reset_result = await auth_service.create_password_reset_token("user@example.com")
 
         await auth_service.reset_password(reset_result["token"], "NewSecure123!")
 
@@ -409,10 +403,8 @@ class TestPasswordReset:
         db: AsyncSession,
     ):
         await _create_user(db)
-        with patch("app.domains.user.services.auth_service.email_service") as mock_email:
-            mock_email.send_password_reset_email = AsyncMock()
-            result1 = await auth_service.create_password_reset_token("user@example.com")
-            result2 = await auth_service.create_password_reset_token("user@example.com")
+        result1 = await auth_service.create_password_reset_token("user@example.com")
+        result2 = await auth_service.create_password_reset_token("user@example.com")
         # First token should be invalidated
         with pytest.raises(BadRequestError, match="Invalid or expired"):
             await auth_service.reset_password(result1["token"], "NewSecure123!")
