@@ -1,6 +1,5 @@
 """Tests for exception handlers defined in app.core.exceptions."""
 
-import asyncio
 
 import pytest
 from fastapi import FastAPI, HTTPException
@@ -10,7 +9,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.circuit_breaker import CircuitOpenError
 from app.core.exceptions import (
-    BaseCustomError,
     BadRequestError,
     ConflictError,
     CustomValidationError,
@@ -213,7 +211,7 @@ def app_timeout() -> FastAPI:
 
     @app.get("/async-timeout")
     async def raise_async_timeout():
-        raise asyncio.TimeoutError()
+        raise TimeoutError()
 
     @app.get("/sync-timeout")
     async def raise_sync_timeout():

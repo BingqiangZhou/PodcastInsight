@@ -5,9 +5,7 @@ failure counting, recovery timeout behaviour, async context manager,
 call() method, decorator, and the global registry.
 """
 
-import asyncio
 import time
-from unittest.mock import patch
 
 import pytest
 
@@ -16,9 +14,11 @@ from app.core.circuit_breaker import (
     CircuitOpenError,
     CircuitState,
     _circuit_breakers,
-    circuit_breaker as circuit_breaker_decorator,
     get_all_circuit_breaker_stats,
     get_circuit_breaker,
+)
+from app.core.circuit_breaker import (
+    circuit_breaker as circuit_breaker_decorator,
 )
 
 

@@ -2,15 +2,11 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.domains.podcast.services import task_orchestration_service as service_module
 from app.domains.podcast.services.orchestration import feed_sync as feed_sync_module
 from app.domains.podcast.services.orchestration import (
     transcription as transcription_module,
 )
 from app.domains.podcast.services.orchestration.feed_sync import FeedSyncOrchestrator
-from app.domains.podcast.services.orchestration.transcription import (
-    TranscriptionOrchestrator,
-)
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )

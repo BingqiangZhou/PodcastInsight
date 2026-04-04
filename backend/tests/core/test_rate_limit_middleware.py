@@ -14,7 +14,6 @@ from app.core.middleware.rate_limit import (
     InMemoryRateLimiter,
     RateLimitConfig,
     RateLimitMiddleware,
-    get_rate_limit_stats,
     setup_rate_limiting,
 )
 

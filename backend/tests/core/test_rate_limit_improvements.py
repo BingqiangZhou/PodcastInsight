@@ -11,7 +11,7 @@ Covers:
 from __future__ import annotations
 
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -456,7 +456,6 @@ class TestRateLimitMiddlewareASGI:
     @pytest.mark.asyncio
     async def test_user_id_from_state_takes_priority_over_ip(self) -> None:
         """When request state has a user_id, it's used as the rate limit key."""
-        from starlette.types import Scope
 
         async def mock_app(scope, receive, send) -> None:
             pass
@@ -479,7 +478,6 @@ class TestRateLimitMiddlewareASGI:
     @pytest.mark.asyncio
     async def test_ip_from_client_when_no_user_id(self) -> None:
         """Without user_id, the client IP is used."""
-        from starlette.types import Scope
 
         async def mock_app(scope, receive, send) -> None:
             pass
@@ -499,7 +497,6 @@ class TestRateLimitMiddlewareASGI:
     @pytest.mark.asyncio
     async def test_x_forwarded_for_first_ip_used(self) -> None:
         """X-Forwarded-For header is parsed and first IP is used."""
-        from starlette.types import Scope
 
         async def mock_app(scope, receive, send) -> None:
             pass
@@ -517,7 +514,6 @@ class TestRateLimitMiddlewareASGI:
 
     @pytest.mark.asyncio
     async def test_whitelist_path_check(self) -> None:
-        from starlette.types import Scope
 
         async def mock_app(scope, receive, send) -> None:
             pass
@@ -536,7 +532,6 @@ class TestRateLimitMiddlewareASGI:
 
     @pytest.mark.asyncio
     async def test_whitelist_ip_check(self) -> None:
-        from starlette.types import Scope
 
         async def mock_app(scope, receive, send) -> None:
             pass
@@ -555,7 +550,6 @@ class TestRateLimitMiddlewareASGI:
 
     @pytest.mark.asyncio
     async def test_default_whitelist_includes_health_and_docs(self) -> None:
-        from starlette.types import Scope
 
         async def mock_app(scope, receive, send) -> None:
             pass
