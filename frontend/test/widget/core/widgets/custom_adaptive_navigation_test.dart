@@ -153,7 +153,7 @@ Future<void> _pumpWithSize({
   addTearDown(tester.view.resetDevicePixelRatio);
 
   await tester.pumpWidget(child);
-  await tester.pumpAndSettle();
+  await tester.pump(const Duration(milliseconds: 500));
 }
 
 Widget _buildNavigation({
