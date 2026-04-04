@@ -150,12 +150,3 @@ class RequestLoggingMiddleware:
                 client_host,
                 user_label,
             )
-
-
-# Backward-compatible aliases
-RequestObservabilityMiddleware = RequestLoggingMiddleware
-
-
-def get_performance_middleware(app=None):
-    """Deprecated: custom APM metrics store removed. Returns None."""
-    return None

@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import get_settings
 from app.core.database import check_db_readiness
 from app.core.exceptions import setup_exception_handlers
-from app.core.middleware import RequestObservabilityMiddleware
+from app.core.middleware import RequestLoggingMiddleware
 from app.core.redis import get_shared_redis
 from app.http.errors import register_admin_http_exception_handler
 
@@ -21,7 +21,7 @@ def configure_middlewares(app: FastAPI) -> None:
     """Register middleware stack."""
     settings = get_settings()
 
-    app.add_middleware(RequestObservabilityMiddleware, slow_threshold=5.0)
+    app.add_middleware(RequestLoggingMiddleware, slow_threshold=5.0)
     logger.debug("Request logging middleware enabled")
 
     app.add_middleware(
@@ -34,17 +34,6 @@ def configure_middlewares(app: FastAPI) -> None:
     from app.admin.first_run import first_run_middleware
 
     app.middleware("http")(first_run_middleware)
-
-    # Response optimization (compression + payload limits)
-    from app.core.middleware.response_optimization import (
-        configure_response_optimization,
-    )
-
-    configure_response_optimization(
-        app,
-        compression_min_size=1000,  # Compress responses > 1KB
-        max_payload_size=10 * 1024 * 1024,  # 10MB max request size
-    )
 
 
 def configure_exception_handlers(app: FastAPI) -> None:
