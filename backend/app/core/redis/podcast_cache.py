@@ -5,7 +5,6 @@ Business logic caching for podcast subscriptions, episodes, feeds, etc.
 
 import hashlib
 import logging
-from time import perf_counter
 from typing import Any
 
 import orjson
@@ -139,7 +138,6 @@ class PodcastCacheOperations:
         data: dict,
         filters: dict[str, Any] | None = None,
         cache_set_json_func: Any = None,
-        expire_func: Any = None,
     ) -> bool:
         """Cache subscription list (15 minutes TTL) using pipeline for efficiency."""
         key = self._subscription_list_key(user_id, page, size, filters=filters)
@@ -150,22 +148,18 @@ class PodcastCacheOperations:
         except (TypeError, ValueError):
             return False
 
-        started = perf_counter()
         # Use pipeline for atomic batch operations
         async with client.pipeline() as pipe:
             pipe.setex(key, 900, json_str)
             pipe.sadd(index_key, key)
             pipe.expire(index_key, 1800)
             await pipe.execute()
-        if expire_func:
-            await expire_func("PIPELINE_SETEX_SADD_EXPI", (perf_counter() - started) * 1000)
         return True
     async def invalidate_subscription_list(
         self, client: Any, user_id: int, scan_keys_func: Any = None, delete_keys_func: Any = None
     ) -> None:
         """Invalidate all subscription list caches for a user"""
         index_key = self._subscription_index_key(user_id)
-        started = perf_counter()
         keys = list(await client.smembers(index_key))
         if not keys:
             pattern = f"podcast:subscriptions:v2:{user_id}:*"
@@ -215,7 +209,7 @@ class PodcastCacheOperations:
         key = f"podcast:episodes:{subscription_id}:{page}:{size}"
         return await cache_get_json_func(client, key)
     async def set_episode_list(
-        self, client: Any, subscription_id: int, page: int, size: int, data: dict, cache_set_json_func: Any = None, expire_func: Any = None
+        self, client: Any, subscription_id: int, page: int, size: int, data: dict, cache_set_json_func: Any = None,
     ) -> bool:
         """Cache episode list (10 minutes TTL) using pipeline for efficiency."""
         key = f"podcast:episodes:{subscription_id}:{page}:{size}"
@@ -225,22 +219,18 @@ class PodcastCacheOperations:
             json_str = orjson.dumps(data).decode('utf-8')
         except (TypeError, ValueError):
             return False
-        started = perf_counter()
         # Use pipeline for atomic batch operations
         async with client.pipeline() as pipe:
             pipe.setex(key, 600, json_str)
             pipe.sadd(index_key, key)
             pipe.expire(index_key, 1800)
             await pipe.execute()
-        if expire_func:
-            await expire_func("PIPELINE_SETEX_SADD_EXPI", (perf_counter() - started) * 1000)
         return True
     async def invalidate_episode_list(
         self, client: Any, subscription_id: int, scan_keys_func: Any = None, delete_keys_func: Any = None
     ) -> None:
         """Invalidate all episode list caches for a subscription"""
         index_key = self._episode_index_key(subscription_id)
-        started = perf_counter()
         keys = list(await client.smembers(index_key))
         if not keys:
             pattern = f"podcast:episodes:{subscription_id}:*"

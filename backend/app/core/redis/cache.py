@@ -4,8 +4,8 @@ Basic caching operations (get/set/hash) and JSON helpers.
 """
 
 import logging
-from time import perf_counter
-from typing import Any
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
 
 import orjson
 
@@ -25,7 +25,6 @@ class CacheOperations:
     async def cache_get(self, client: Any, key: str) -> str | None:
         """Get cached value."""
         value = await client.get(key)
-        # Note: timing recorded by caller
         return value
 
     async def cache_set(
@@ -63,19 +62,12 @@ class CacheOperations:
 
     async def cache_get_json(self, key: str, client: Any, record_lookup: Any = None) -> Any | None:
         """Get and parse JSON from cache."""
-        data = await self.cache_get(key)
+        data = await self.cache_get(client, key)
         if data:
             try:
-                value = orjson.loads(data)
-                if record_lookup:
-                    await record_lookup(key, hit=True)
-                return value
+                return orjson.loads(data)
             except orjson.JSONDecodeError:
-                if record_lookup:
-                    await record_lookup(key, hit=False)
                 return None
-        if record_lookup:
-            await record_lookup(key, hit=False)
         return None
 
     async def cache_set_json(
@@ -86,7 +78,7 @@ class CacheOperations:
 
         try:
             json_str = orjson.dumps(value, default=redis_json_default).decode('utf-8')
-            return await self.cache_set(key, json_str, ttl=ttl)
+            return await self.cache_set(client, key, json_str, ttl=ttl)
         except (TypeError, ValueError):
             return False
 
@@ -100,8 +92,6 @@ class CacheOperations:
         ttl: int = CacheTTL.DEFAULT,
         lock_timeout: int = 10,
         max_wait_time: float = 3.0,
-        record_timing: Any = None,
-        record_lookup: Any = None,
     ) -> tuple[Any, bool]:
         """Get cached value with distributed lock to prevent cache stampede.
 
@@ -110,64 +100,50 @@ class CacheOperations:
         import asyncio
 
         # Try to get from cache first
-        value = await self.cache_get_json(key, client, record_lookup)
+        value = await self.cache_get_json(key, client)
         if value is not None:
             return value, True
 
         # Try to acquire lock
         lock_key = f"lock:{key}"
-        started = perf_counter()
         lock_acquired = await client.set(lock_key, "1", nx=True, ex=lock_timeout)
-        if record_timing:
-            await record_timing("SET_NX", (perf_counter() - started) * 1000)
 
         if lock_acquired:
             try:
                 # We hold the lock, load the value
                 value = await loader()
                 await self.cache_set_json(key, value, client, ttl)
-                if record_lookup:
-                    await record_lookup(key, hit=False)
                 return value, False
             finally:
                 # Release lock
                 await self._delete_keys_nonblocking(client, lock_key)
         else:
             # Another process is loading, wait with exponential backoff
-            import asyncio
-            wait_start = perf_counter()
+            wait_start = asyncio.get_event_loop().time()
             initial_delay = 0.05
             max_delay = 0.5
             attempt = 0
 
-            while (perf_counter() - wait_start) < max_wait_time:
+            while (asyncio.get_event_loop().time() - wait_start) < max_wait_time:
                 delay = min(initial_delay * (2 ** attempt), max_delay)
                 await asyncio.sleep(delay)
 
                 # Try to get from cache again
-                value = await self.cache_get_json(key, client, record_lookup)
+                value = await self.cache_get_json(key, client)
                 if value is not None:
                     return value, True
 
                 # Check if lock was released
-                started = perf_counter()
                 lock_exists = await client.exists(lock_key)
-                if record_timing:
-                    await record_timing("EXISTS", (perf_counter() - started) * 1000)
 
                 if not lock_exists:
                     # Lock was released without cache being set, try to acquire it
-                    started = perf_counter()
                     lock_acquired = await client.set(lock_key, "1", nx=True, ex=lock_timeout)
-                    if record_timing:
-                        await record_timing("SET_NX", (perf_counter() - started) * 1000)
 
                     if lock_acquired:
                         try:
                             value = await loader()
                             await self.cache_set_json(key, value, client, ttl)
-                            if record_lookup:
-                                await record_lookup(key, hit=False)
                             return value, False
                         finally:
                             await self._delete_keys_nonblocking(client, lock_key)
@@ -177,8 +153,6 @@ class CacheOperations:
             # Max wait time exceeded, load anyway as fallback
             value = await loader()
             await self.cache_set_json(key, value, client, ttl)
-            if record_lookup:
-                await record_lookup(key, hit=False)
             return value, False
 
     async def cache_get_or_load(
@@ -188,19 +162,14 @@ class CacheOperations:
         client: Any,
         ttl: int = CacheTTL.DEFAULT,
         stale_ttl: int = CacheTTL.STALE_REFRESH,
-        record_timing: Any = None,
-        record_lookup: Any = None,
     ) -> Any:
         """Get cached value with stale-while-revalidate pattern."""
         import asyncio
 
-        value = await self.cache_get_json(key, client, record_lookup)
+        value = await self.cache_get_json(key, client)
         if value is not None:
             # Check if we should background refresh
-            started = perf_counter()
             ttl_remaining = await client.ttl(key)
-            if record_timing:
-                await record_timing("TTL", (perf_counter() - started) * 1000)
 
             if ttl_remaining > 0 and ttl_remaining < stale_ttl:
                 # Trigger background refresh (non-blocking)
@@ -212,8 +181,6 @@ class CacheOperations:
         # Cache miss, load synchronously
         value = await loader()
         await self.cache_set_json(key, value, client, ttl)
-        if record_lookup:
-            await record_lookup(key, hit=False)
         return value
 
     async def _background_refresh(
@@ -248,10 +215,6 @@ NULL_VALUE_MARKER = _NULL_VALUE_MARKER
 
 # === Safe Cache Operation Helpers ===
 # These functions swallow exceptions for best-effort cache operations
-
-from collections.abc import Awaitable, Callable
-from typing import TypeVar
-
 
 T = TypeVar("T")
 
