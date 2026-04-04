@@ -2,6 +2,7 @@
 
 import logging
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,15 +17,6 @@ from app.domains.podcast.models import (
 )
 from app.domains.podcast.services.transcription_runtime_service import (
     PodcastTranscriptionRuntimeService,
-)
-from app.domains.podcast.transcription_schedule_projections import (
-    BatchTranscriptionDetailProjection,
-    BatchTranscriptionProjection,
-    CheckNewEpisodesDetailProjection,
-    CheckNewEpisodesProjection,
-    EpisodeTranscriptionScheduleProjection,
-    PendingTranscriptionTaskProjection,
-    TranscriptionScheduleStatusProjection,
 )
 from app.domains.podcast.transcription_types import ScheduleFrequency
 from app.domains.podcast.utils.status_helpers import status_value
@@ -46,7 +38,7 @@ class PodcastTranscriptionScheduleService:
         frequency: ScheduleFrequency = ScheduleFrequency.MANUAL,
         custom_interval: int | None = None,
         force: bool = False,
-    ) -> EpisodeTranscriptionScheduleProjection:
+    ) -> dict[str, Any]:
         del frequency, custom_interval
         episode = await self._get_episode(episode_id)
         if not episode:
@@ -59,36 +51,36 @@ class PodcastTranscriptionScheduleService:
         action = start_result["action"]
 
         if action == "reused_completed":
-            return EpisodeTranscriptionScheduleProjection(
-                status="skipped",
-                message="Transcription already exists",
-                task_id=task.id,
-                transcript_content=(
+            return {
+                "status": "skipped",
+                "message": "Transcription already exists",
+                "task_id": task.id,
+                "transcript_content": (
                     task.transcript_content[:100] + "..."
                     if task.transcript_content
                     else None
                 ),
-                reason="Already transcribed, use force=true to regenerate",
-                action=action,
-            )
+                "reason": "Already transcribed, use force=true to regenerate",
+                "action": action,
+            }
         if action in {"reused_in_progress", "reused_pending", "locked_by_other_task"}:
-            return EpisodeTranscriptionScheduleProjection(
-                status="processing",
-                message="Transcription task already in progress",
-                task_id=task.id,
-                progress=task.progress_percentage,
-                current_status=status_value(task.status),
-                action=action,
-            )
+            return {
+                "status": "processing",
+                "message": "Transcription task already in progress",
+                "task_id": task.id,
+                "progress": task.progress_percentage,
+                "current_status": status_value(task.status),
+                "action": action,
+            }
 
-        return EpisodeTranscriptionScheduleProjection(
-            status="scheduled",
-            message="Transcription task started",
-            task_id=task.id,
-            episode_id=episode_id,
-            scheduled_at=datetime.now(UTC),
-            action=action,
-        )
+        return {
+            "status": "scheduled",
+            "message": "Transcription task started",
+            "task_id": task.id,
+            "episode_id": episode_id,
+            "scheduled_at": datetime.now(UTC),
+            "action": action,
+        }
 
     async def batch_schedule_transcription(
         self,
@@ -97,7 +89,7 @@ class PodcastTranscriptionScheduleService:
         limit: int | None = None,
         skip_existing: bool = True,
         max_episodes: int = 50,
-    ) -> list[BatchTranscriptionDetailProjection]:
+    ) -> list[dict[str, Any]]:
         stmt = (
             select(PodcastEpisode)
             .where(PodcastEpisode.subscription_id == subscription_id)
@@ -119,7 +111,7 @@ class PodcastTranscriptionScheduleService:
         if not episodes:
             return []
 
-        results: list[BatchTranscriptionDetailProjection] = []
+        results: list[dict[str, Any]] = []
         for episode in episodes:
             try:
                 schedule_result = await self.schedule_transcription(
@@ -129,37 +121,33 @@ class PodcastTranscriptionScheduleService:
                 )
                 if (
                     not skip_existing
-                    and schedule_result.status == "skipped"
-                    and schedule_result.action == "reused_completed"
+                    and schedule_result["status"] == "skipped"
+                    and schedule_result["action"] == "reused_completed"
                 ):
                     schedule_result = await self.schedule_transcription(
                         episode_id=episode.id,
                         frequency=frequency,
                         force=True,
                     )
-                results.append(
-                    BatchTranscriptionDetailProjection(
-                        episode_id=episode.id,
-                        episode_title=episode.title,
-                        **schedule_result.to_response_payload(),
-                    ),
-                )
+                results.append({
+                    "episode_id": episode.id,
+                    "episode_title": episode.title,
+                    **schedule_result,
+                })
             except Exception as exc:  # noqa: BLE001
-                results.append(
-                    BatchTranscriptionDetailProjection(
-                        episode_id=episode.id,
-                        episode_title=episode.title,
-                        status="error",
-                        error=str(exc),
-                    ),
-                )
+                results.append({
+                    "episode_id": episode.id,
+                    "episode_title": episode.title,
+                    "status": "error",
+                    "error": str(exc),
+                })
         return results
 
     async def check_and_transcribe_new_episodes(
         self,
         subscription_id: int,
         hours_since_published: int = 24,
-    ) -> CheckNewEpisodesProjection:
+    ) -> dict[str, Any]:
         cutoff_time = datetime.now(UTC) - timedelta(
             hours=hours_since_published,
         )
@@ -185,14 +173,14 @@ class PodcastTranscriptionScheduleService:
 
         new_episodes = (await self.db.execute(stmt)).scalars().all()
         if not new_episodes:
-            return CheckNewEpisodesProjection(
-                status="completed",
-                message="No new episodes found",
-                processed=0,
-                skipped=0,
-            )
+            return {
+                "status": "completed",
+                "message": "No new episodes found",
+                "processed": 0,
+                "skipped": 0,
+            }
 
-        results: list[CheckNewEpisodesDetailProjection] = []
+        detail_results: list[dict[str, Any]] = []
         for episode in new_episodes:
             try:
                 schedule_result = await self.schedule_transcription(
@@ -200,80 +188,76 @@ class PodcastTranscriptionScheduleService:
                     frequency=ScheduleFrequency.MANUAL,
                     force=False,
                 )
-                results.append(
-                    CheckNewEpisodesDetailProjection(
-                        episode_id=episode.id,
-                        status="scheduled",
-                        task_id=schedule_result.task_id,
-                    ),
-                )
+                detail_results.append({
+                    "episode_id": episode.id,
+                    "status": "scheduled",
+                    "task_id": schedule_result["task_id"],
+                })
             except Exception as exc:  # noqa: BLE001
-                results.append(
-                    CheckNewEpisodesDetailProjection(
-                        episode_id=episode.id,
-                        status="error",
-                        error=str(exc),
-                    ),
-                )
+                detail_results.append({
+                    "episode_id": episode.id,
+                    "status": "error",
+                    "error": str(exc),
+                })
 
-        scheduled = sum(1 for item in results if item.status == "scheduled")
-        errors = sum(1 for item in results if item.status == "error")
-        return CheckNewEpisodesProjection(
-            status="completed",
-            message=f"Scheduled {scheduled} new episodes for transcription",
-            processed=len(new_episodes),
-            scheduled=scheduled,
-            errors=errors,
-            details=results,
-        )
+        scheduled = sum(1 for item in detail_results if item["status"] == "scheduled")
+        errors = sum(1 for item in detail_results if item["status"] == "error")
+        return {
+            "status": "completed",
+            "message": f"Scheduled {scheduled} new episodes for transcription",
+            "processed": len(new_episodes),
+            "scheduled": scheduled,
+            "errors": errors,
+            "details": detail_results,
+        }
 
     async def get_transcription_status(
         self,
         episode_id: int,
-    ) -> TranscriptionScheduleStatusProjection:
+    ) -> dict[str, Any]:
         episode = await self._get_episode(episode_id)
         if not episode:
             raise ValidationError(f"Episode {episode_id} not found")
 
         task = await self._get_existing_transcription_task(episode_id)
         if not task:
-            return TranscriptionScheduleStatusProjection(
-                episode_id=episode_id,
-                episode_title=episode.title,
-                status="not_started",
-                has_transcript=(episode.transcript is not None and episode.transcript.transcript_content is not None),
-                transcript_preview=(
+            return {
+                "episode_id": episode_id,
+                "episode_title": episode.title,
+                "status": "not_started",
+                "has_transcript": (episode.transcript is not None and episode.transcript.transcript_content is not None),
+                "transcript_preview": (
                     episode.transcript.transcript_content[:100] + "..."
                     if episode.transcript and episode.transcript.transcript_content
                     else None
                 ),
-            )
+            }
 
-        return TranscriptionScheduleStatusProjection(
-            episode_id=episode_id,
-            episode_title=episode.title,
-            task_id=task.id,
-            status=status_value(task.status),
-            progress=task.progress_percentage,
-            created_at=task.created_at,
-            updated_at=task.updated_at,
-            completed_at=task.completed_at,
-            has_transcript=task.transcript_content is not None,
-            transcript_preview=(
+        return {
+            "episode_id": episode_id,
+            "episode_title": episode.title,
+            "task_id": task.id,
+            "status": status_value(task.status),
+            "progress": task.progress_percentage,
+            "created_at": task.created_at,
+            "updated_at": task.updated_at,
+            "completed_at": task.completed_at,
+            "has_transcript": task.transcript_content is not None,
+            "transcript_preview": (
                 task.transcript_content[:100] + "..."
                 if status_value(task.status) == TranscriptionStatus.COMPLETED.value
                 and task.transcript_content
                 else None
             ),
-            transcript_word_count=task.transcript_word_count,
-            has_summary=task.summary_content is not None,
-            summary_word_count=task.summary_word_count,
-            error_message=task.error_message,
-        )
+            "transcript_word_count": task.transcript_word_count,
+            "has_summary": task.summary_content is not None,
+            "summary_word_count": task.summary_word_count,
+            "error_message": task.error_message,
+        }
 
     async def get_pending_transcriptions(
         self,
-    ) -> list[PendingTranscriptionTaskProjection]:
+    ) -> list[dict[str, Any]]:
         stmt = (
             select(TranscriptionTask)
             .where(
@@ -289,14 +273,14 @@ class PodcastTranscriptionScheduleService:
 
         tasks = (await self.db.execute(stmt)).scalars().all()
         return [
-            PendingTranscriptionTaskProjection(
-                task_id=task.id,
-                episode_id=task.episode_id,
-                status=status_value(task.status),
-                progress=task.progress_percentage,
-                created_at=task.created_at,
-                updated_at=task.updated_at,
-            )
+            {
+                "task_id": task.id,
+                "episode_id": task.episode_id,
+                "status": status_value(task.status),
+                "progress": task.progress_percentage,
+                "created_at": task.created_at,
+                "updated_at": task.updated_at,
+            }
             for task in tasks
         ]
 
@@ -344,7 +328,7 @@ async def batch_transcribe_subscription(
     subscription_id: int,
     skip_existing: bool = True,
     max_episodes: int = 50,
-) -> BatchTranscriptionProjection:
+) -> dict[str, Any]:
     scheduler = PodcastTranscriptionScheduleService(db)
     results = await scheduler.batch_schedule_transcription(
         subscription_id=subscription_id,
@@ -352,14 +336,14 @@ async def batch_transcribe_subscription(
         max_episodes=max_episodes,
     )
 
-    return BatchTranscriptionProjection(
-        subscription_id=subscription_id,
-        total=len(results),
-        scheduled=sum(1 for item in results if item.status == "scheduled"),
-        skipped=sum(1 for item in results if item.status == "skipped"),
-        errors=sum(1 for item in results if item.status == "error"),
-        details=results,
-    )
+    return {
+        "subscription_id": subscription_id,
+        "total": len(results),
+        "scheduled": sum(1 for item in results if item.get("status") == "scheduled"),
+        "skipped": sum(1 for item in results if item.get("status") == "skipped"),
+        "errors": sum(1 for item in results if item.get("status") == "error"),
+        "details": results,
+    }
 
 
 TranscriptionScheduler = PodcastTranscriptionScheduleService

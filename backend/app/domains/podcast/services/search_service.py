@@ -14,10 +14,9 @@ from app.core.redis import (
     safe_cache_get,
     safe_cache_write,
 )
-from app.domains.podcast.episode_projections import PodcastEpisodeProjection
 from app.domains.podcast.models import PodcastEpisode
 from app.domains.podcast.repositories import PodcastSearchRepository
-from app.domains.podcast.services.episode_mapper import build_episode_responses
+from app.domains.podcast.services.episode_mapper import build_episode_dicts
 
 
 logger = logging.getLogger(__name__)
@@ -56,7 +55,7 @@ class PodcastSearchService:
         search_in: str = "all",
         page: int = 1,
         size: int = 20,
-    ) -> tuple[list[PodcastEpisodeProjection], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """Search podcast content.
 
         Args:
@@ -82,10 +81,7 @@ class PodcastSearchService:
         if cached:
             logger.info(f"Cache HIT for search: {query}")
             return (
-                [
-                    PodcastEpisodeProjection.from_payload(item)
-                    for item in cached["results"]
-                ],
+                list(cached["results"]),
                 cached["total"],
             )
 
@@ -107,11 +103,11 @@ class PodcastSearchService:
         )
 
         # Build response
-        results = self._build_episode_response(episodes, playback_states)
+        results = self._build_episode_dicts(episodes, playback_states)
 
         # Add relevance scores
         for i, ep in enumerate(episodes):
-            results[i].relevance_score = getattr(ep, "relevance_score", 1.0)
+            results[i]["relevance_score"] = getattr(ep, "relevance_score", 1.0)
 
         # Cache results
         await safe_cache_write(
@@ -121,7 +117,7 @@ class PodcastSearchService:
                 page,
                 size,
                 {
-                    "results": [item.to_response_payload() for item in results],
+                    "results": results,
                     "total": total,
                 },
             ),
@@ -134,13 +130,13 @@ class PodcastSearchService:
 
         return results, total
 
-    def _build_episode_response(
+    def _build_episode_dicts(
         self,
         episodes: list[PodcastEpisode],
         playback_states: dict[int, Any],
-    ) -> list[PodcastEpisodeProjection]:
-        """Build typed episode projections with playback states."""
-        return build_episode_responses(
+    ) -> list[dict[str, Any]]:
+        """Build episode dicts with playback states."""
+        return build_episode_dicts(
             episodes=episodes,
             playback_states=playback_states,
             include_extended_fields=False,

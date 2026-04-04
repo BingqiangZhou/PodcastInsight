@@ -13,16 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.redis import PodcastRedis, get_shared_redis
 from app.core.utils import filter_thinking_content
-from app.domains.podcast.episode_projections import (
-    PodcastEpisodeDetailProjection,
-    PodcastEpisodeProjection,
-)
 from app.domains.podcast.models import PodcastEpisode, TranscriptionTask
 from app.domains.podcast.repositories import PodcastEpisodeRepository
 from app.domains.podcast.services.daily_report_summary_extractor import (
     extract_one_line_summary,
 )
-from app.domains.podcast.services.episode_mapper import build_episode_responses
+from app.domains.podcast.services.episode_mapper import build_episode_dicts
 
 
 logger = logging.getLogger(__name__)
@@ -78,7 +74,7 @@ class PodcastEpisodeService:
         filters: Any | None = None,
         page: int = 1,
         size: int = 20,
-    ) -> tuple[list[PodcastEpisodeProjection], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """List podcast episodes with pagination.
 
         Args:
@@ -107,10 +103,7 @@ class PodcastEpisodeService:
                     f"Cache HIT for episode list: sub_id={subscription_id}, page={page}",
                 )
                 return (
-                    [
-                        PodcastEpisodeProjection.from_payload(item)
-                        for item in cached["results"]
-                    ],
+                    list(cached["results"]),
                     cached["total"],
                 )
 
@@ -133,7 +126,7 @@ class PodcastEpisodeService:
         )
 
         # Build response
-        results = self._build_episode_response(episodes, playback_states)
+        results = self._build_episode_dicts(episodes, playback_states)
 
         # Cache if filtering by subscription
         if subscription_id:
@@ -142,7 +135,7 @@ class PodcastEpisodeService:
                 page,
                 size,
                 {
-                    "results": [item.to_response_payload() for item in results],
+                    "results": results,
                     "total": total,
                 },
             )
@@ -153,7 +146,7 @@ class PodcastEpisodeService:
         self,
         page: int = 1,
         size: int = 20,
-    ) -> tuple[list[PodcastEpisodeProjection], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """List user playback/view history ordered by latest activity."""
         episodes, total = await self.repo.get_playback_history_paginated(
             self.user_id,
@@ -166,7 +159,7 @@ class PodcastEpisodeService:
             self.user_id,
             episode_ids,
         )
-        results = self._build_episode_response(episodes, playback_states)
+        results = self._build_episode_dicts(episodes, playback_states)
         return results, total
 
     async def list_feed_by_cursor(
@@ -174,7 +167,7 @@ class PodcastEpisodeService:
         size: int = 20,
         cursor_published_at: datetime | None = None,
         cursor_episode_id: int | None = None,
-    ) -> tuple[list[PodcastEpisodeProjection], int, bool, tuple[datetime, int] | None]:
+    ) -> tuple[list[dict[str, Any]], int, bool, tuple[datetime, int] | None]:
         """List feed via keyset cursor pagination."""
         if settings.PODCAST_FEED_LIGHTWEIGHT_ENABLED:
             (
@@ -212,7 +205,7 @@ class PodcastEpisodeService:
             self.user_id,
             episode_ids,
         )
-        results = self._build_episode_response(episodes, playback_states)
+        results = self._build_episode_dicts(episodes, playback_states)
         results = [
             self._rewrite_feed_item_description(item, hide_ai_summary=False)
             for item in results
@@ -223,7 +216,7 @@ class PodcastEpisodeService:
         self,
         page: int = 1,
         size: int = 20,
-    ) -> tuple[list[PodcastEpisodeProjection], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """List feed via legacy page-based pagination for backward compatibility."""
         if settings.PODCAST_FEED_LIGHTWEIGHT_ENABLED:
             items, total = await self.repo.get_feed_lightweight_page_paginated(
@@ -244,7 +237,7 @@ class PodcastEpisodeService:
             self.user_id,
             episode_ids,
         )
-        results = self._build_episode_response(episodes, playback_states)
+        results = self._build_episode_dicts(episodes, playback_states)
         results = [
             self._rewrite_feed_item_description(item, hide_ai_summary=False)
             for item in results
@@ -256,7 +249,7 @@ class PodcastEpisodeService:
         size: int = 20,
         cursor_last_updated_at: datetime | None = None,
         cursor_episode_id: int | None = None,
-    ) -> tuple[list[PodcastEpisodeProjection], int, bool, tuple[datetime, int] | None]:
+    ) -> tuple[list[dict[str, Any]], int, bool, tuple[datetime, int] | None]:
         """List playback history via keyset cursor pagination."""
         (
             episodes,
@@ -275,7 +268,7 @@ class PodcastEpisodeService:
             self.user_id,
             episode_ids,
         )
-        results = self._build_episode_response(episodes, playback_states)
+        results = self._build_episode_dicts(episodes, playback_states)
         return results, total, has_more, next_cursor_values
 
     async def list_playback_history_lite(
@@ -328,7 +321,7 @@ class PodcastEpisodeService:
     async def get_episode_with_summary(
         self,
         episode_id: int,
-    ) -> PodcastEpisodeDetailProjection | None:
+    ) -> dict[str, Any] | None:
         """Get episode details with AI summary.
 
         Args:
@@ -360,50 +353,50 @@ class PodcastEpisodeService:
             subscription_author = config.get("author")
             subscription_categories = config.get("categories") or []
 
-        return PodcastEpisodeDetailProjection(
-            id=episode.id,
-            subscription_id=episode.subscription_id,
-            title=episode.title,
-            description=episode.description,
-            audio_url=episode.audio_url,
-            audio_duration=episode.audio_duration,
-            audio_file_size=episode.audio_file_size,
-            published_at=episode.published_at,
-            image_url=episode.image_url,
-            item_link=episode.item_link,
-            subscription_image_url=subscription_image_url,
-            transcript_url=episode.transcript_url,
-            transcript_content=episode.transcript.transcript_content if episode.transcript else None,
-            ai_summary=cleaned_summary,
-            summary_version=episode.summary_version,
-            ai_confidence_score=episode.ai_confidence_score,
-            play_count=episode.play_count,
+        return {
+            "id": episode.id,
+            "subscription_id": episode.subscription_id,
+            "title": episode.title,
+            "description": episode.description,
+            "audio_url": episode.audio_url,
+            "audio_duration": episode.audio_duration,
+            "audio_file_size": episode.audio_file_size,
+            "published_at": episode.published_at,
+            "image_url": episode.image_url,
+            "item_link": episode.item_link,
+            "subscription_image_url": subscription_image_url,
+            "transcript_url": episode.transcript_url,
+            "transcript_content": episode.transcript.transcript_content if episode.transcript else None,
+            "ai_summary": cleaned_summary,
+            "summary_version": episode.summary_version,
+            "ai_confidence_score": episode.ai_confidence_score,
+            "play_count": episode.play_count,
             # Use per-user playback timestamp when available.
-            last_played_at=playback.last_updated_at
+            "last_played_at": playback.last_updated_at
             if playback
             else episode.last_played_at,
-            season=episode.season,
-            episode_number=episode.episode_number,
-            explicit=episode.explicit,
-            status=episode.status,
-            metadata=episode.metadata_json or {},
-            created_at=episode.created_at,
-            updated_at=episode.updated_at,
-            playback_position=playback.current_position if playback else None,
-            is_playing=playback.is_playing if playback else False,
-            playback_rate=playback.playback_rate if playback else 1.0,
-            is_played=None,
-            summary_status=summary_status,
-            summary_error_message=transcription_task.summary_error_message
+            "season": episode.season,
+            "episode_number": episode.episode_number,
+            "explicit": episode.explicit,
+            "status": episode.status,
+            "metadata": episode.metadata_json or {},
+            "created_at": episode.created_at,
+            "updated_at": episode.updated_at,
+            "playback_position": playback.current_position if playback else None,
+            "is_playing": playback.is_playing if playback else False,
+            "playback_rate": playback.playback_rate if playback else 1.0,
+            "is_played": None,
+            "summary_status": summary_status,
+            "summary_error_message": transcription_task.summary_error_message
             if transcription_task
             else None,
-            summary_model_used=transcription_task.summary_model_used
+            "summary_model_used": transcription_task.summary_model_used
             if transcription_task
             else None,
-            summary_processing_time=transcription_task.summary_processing_time
+            "summary_processing_time": transcription_task.summary_processing_time
             if transcription_task
             else None,
-            subscription={
+            "subscription": {
                 "id": episode.subscription.id,
                 "title": episode.subscription.title,
                 "description": episode.subscription.description,
@@ -413,8 +406,8 @@ class PodcastEpisodeService:
             }
             if episode.subscription
             else None,
-            related_episodes=[],
-        )
+            "related_episodes": [],
+        }
 
     async def _get_transcription_task(
         self,
@@ -460,33 +453,29 @@ class PodcastEpisodeService:
         """
         return await self.repo.get_liked_episodes(user_id, limit)
 
-    def _build_episode_response(
+    def _build_episode_dicts(
         self,
         episodes: list[PodcastEpisode],
         playback_states: dict[int, Any],
-    ) -> list[PodcastEpisodeProjection]:
-        """Build typed episode projections with playback states."""
-        return build_episode_responses(
+    ) -> list[dict[str, Any]]:
+        """Build episode dicts with playback states."""
+        return build_episode_dicts(
             episodes=episodes,
             playback_states=playback_states,
             include_extended_fields=True,
         )
 
-    def _normalize_feed_item(self, item: dict[str, Any]) -> PodcastEpisodeProjection:
+    def _normalize_feed_item(self, item: dict[str, Any]) -> dict[str, Any]:
         """Normalize lightweight feed payload fields for stable frontend semantics."""
         return self._rewrite_feed_item_description(item, hide_ai_summary=True)
 
     def _rewrite_feed_item_description(
         self,
-        item: PodcastEpisodeProjection | dict[str, Any],
+        item: dict[str, Any],
         *,
         hide_ai_summary: bool,
-    ) -> PodcastEpisodeProjection:
-        normalized = (
-            item.to_response_payload()
-            if isinstance(item, PodcastEpisodeProjection)
-            else dict(item)
-        )
+    ) -> dict[str, Any]:
+        normalized = dict(item)
         normalized["description"] = self._resolve_feed_description(
             ai_summary=normalized.get("ai_summary"),
             fallback_description=normalized.get("description"),
@@ -494,7 +483,7 @@ class PodcastEpisodeService:
         normalized["transcript_content"] = None
         if hide_ai_summary:
             normalized["ai_summary"] = None
-        return PodcastEpisodeProjection.from_payload(normalized)
+        return normalized
 
     def _resolve_feed_description(
         self,

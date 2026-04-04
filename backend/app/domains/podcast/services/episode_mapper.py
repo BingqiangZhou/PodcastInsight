@@ -1,11 +1,10 @@
-"""Shared episode projection mapping helpers for podcast services."""
+"""Shared episode mapping helpers for podcast services."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from app.core.utils import filter_thinking_content
-from app.domains.podcast.episode_projections import PodcastEpisodeProjection
 from app.domains.podcast.models import PodcastEpisode
 
 
@@ -25,13 +24,13 @@ def _is_played(playback: Any, audio_duration: int | None) -> bool:
     )
 
 
-def build_episode_response(
+def build_episode_dict(
     episode: PodcastEpisode,
     playback: Any,
     *,
     include_extended_fields: bool,
-) -> PodcastEpisodeProjection:
-    """Build one typed episode projection with optional extended fields."""
+) -> dict[str, Any]:
+    """Build one episode dict with optional extended fields."""
     subscription_image_url = _subscription_image_url(episode)
     image_url = episode.image_url or subscription_image_url
     cleaned_summary = filter_thinking_content(episode.ai_summary)
@@ -57,7 +56,7 @@ def build_episode_response(
     }
 
     if not include_extended_fields:
-        return PodcastEpisodeProjection.model_validate(payload)
+        return payload
 
     payload.update(
         {
@@ -81,18 +80,18 @@ def build_episode_response(
             "playback_rate": playback.playback_rate if playback else 1.0,
         },
     )
-    return PodcastEpisodeProjection.model_validate(payload)
+    return payload
 
 
-def build_episode_responses(
+def build_episode_dicts(
     episodes: list[PodcastEpisode],
     playback_states: dict[int, Any],
     *,
     include_extended_fields: bool,
-) -> list[PodcastEpisodeProjection]:
-    """Build typed episode projections for one page result."""
+) -> list[dict[str, Any]]:
+    """Build episode dicts for one page result."""
     return [
-        build_episode_response(
+        build_episode_dict(
             episode=episode,
             playback=playback_states.get(episode.id),
             include_extended_fields=include_extended_fields,

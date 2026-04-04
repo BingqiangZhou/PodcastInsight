@@ -24,15 +24,6 @@ from app.domains.podcast.services.transcription_schedule_service import (
 from app.domains.podcast.services.transcription_state_coordinator import (
     TranscriptionStateCoordinator,
 )
-from app.domains.podcast.transcription_schedule_projections import (
-    BatchTranscriptionProjection,
-    CheckNewEpisodesProjection,
-    EpisodeTranscriptionScheduleProjection,
-    EpisodeTranscriptProjection,
-    PendingTranscriptionsProjection,
-    TranscriptionCancelProjection,
-    TranscriptionScheduleStatusProjection,
-)
 from app.domains.podcast.transcription_state import get_transcription_state_manager
 from app.domains.podcast.transcription_types import ScheduleFrequency
 from app.domains.podcast.utils.status_helpers import status_value
@@ -41,7 +32,7 @@ from app.domains.podcast.utils.status_helpers import status_value
 logger = logging.getLogger(__name__)
 
 
-# ── Status Projection Helpers (inlined from transcription_status_projection.py) ──
+# ── Status helpers (inlined from transcription_status_projection.py) ──
 
 STATUS_MESSAGES = {
     "pending": "Waiting to start",
@@ -267,7 +258,7 @@ class TranscriptionWorkflowService:
         frequency: ScheduleFrequency,
         force: bool,
         episode_lookup: Callable[[int], Awaitable[PodcastEpisode | None]],
-    ) -> EpisodeTranscriptionScheduleProjection:
+    ) -> dict[str, Any]:
         episode = await episode_lookup(episode_id)
         if not episode:
             raise ValueError(f"Episode {episode_id} not found")
@@ -283,7 +274,7 @@ class TranscriptionWorkflowService:
         episode_id: int,
         *,
         episode_lookup: Callable[[int], Awaitable[PodcastEpisode | None]],
-    ) -> EpisodeTranscriptProjection:
+    ) -> dict[str, Any]:
         episode = await episode_lookup(episode_id)
         if not episode:
             raise ValueError(f"Episode {episode_id} not found")
@@ -294,13 +285,13 @@ class TranscriptionWorkflowService:
                 "No transcription found for this episode. Please schedule transcription first.",
             )
 
-        return EpisodeTranscriptProjection(
-            episode_id=episode_id,
-            episode_title=episode.title,
-            transcript_length=len(transcript),
-            transcript=transcript,
-            status="success",
-        )
+        return {
+            "episode_id": episode_id,
+            "episode_title": episode.title,
+            "transcript_length": len(transcript),
+            "transcript": transcript,
+            "status": "success",
+        }
 
     async def batch_transcribe_subscription(
         self,
@@ -309,7 +300,7 @@ class TranscriptionWorkflowService:
         skip_existing: bool,
         max_episodes: int = 50,
         subscription_lookup: Callable[[int], Awaitable[Any | None]],
-    ) -> BatchTranscriptionProjection:
+    ) -> dict[str, Any]:
         subscription = await subscription_lookup(subscription_id)
         if not subscription:
             raise ValueError(f"Subscription {subscription_id} not found")
@@ -325,7 +316,7 @@ class TranscriptionWorkflowService:
         episode_id: int,
         *,
         episode_lookup: Callable[[int], Awaitable[PodcastEpisode | None]],
-    ) -> TranscriptionScheduleStatusProjection:
+    ) -> dict[str, Any]:
         episode = await episode_lookup(episode_id)
         if not episode:
             raise ValueError(f"Episode {episode_id} not found")
@@ -337,20 +328,20 @@ class TranscriptionWorkflowService:
         episode_id: int,
         *,
         episode_lookup: Callable[[int], Awaitable[PodcastEpisode | None]],
-    ) -> TranscriptionCancelProjection:
+    ) -> dict[str, Any]:
         episode = await episode_lookup(episode_id)
         if not episode:
             raise ValueError(f"Episode {episode_id} not found")
         scheduler = self.scheduler_factory(self.db)
         success = await scheduler.cancel_transcription(episode_id)
-        return TranscriptionCancelProjection(
-            success=success,
-            message=(
+        return {
+            "success": success,
+            "message": (
                 "Transcription cancelled"
                 if success
                 else "No active transcription to cancel"
             ),
-        )
+        }
 
     async def check_and_transcribe_new_episodes(
         self,
@@ -358,7 +349,7 @@ class TranscriptionWorkflowService:
         *,
         hours_since_published: int,
         subscription_lookup: Callable[[int], Awaitable[Any | None]],
-    ) -> CheckNewEpisodesProjection:
+    ) -> dict[str, Any]:
         subscription = await subscription_lookup(subscription_id)
         if not subscription:
             raise ValueError(f"Subscription {subscription_id} not found")
@@ -372,15 +363,15 @@ class TranscriptionWorkflowService:
         self,
         *,
         episode_lookup: Callable[[int], Awaitable[PodcastEpisode | None]],
-    ) -> PendingTranscriptionsProjection:
+    ) -> dict[str, Any]:
         scheduler = self.scheduler_factory(self.db)
         tasks = await scheduler.get_pending_transcriptions()
         user_tasks = []
         for task in tasks:
-            episode = await episode_lookup(task.episode_id)
+            episode = await episode_lookup(task["episode_id"])
             if episode:
                 user_tasks.append(task)
-        return PendingTranscriptionsProjection(total=len(user_tasks), tasks=user_tasks)
+        return {"total": len(user_tasks), "tasks": user_tasks}
 
     async def cleanup_old_temp_files(self, *, days: int = 7) -> dict[str, Any]:
         """Cleanup stale transcription temporary files via the shared service."""

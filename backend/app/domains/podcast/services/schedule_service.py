@@ -3,10 +3,11 @@
 Handles user-specific schedule settings for podcast subscriptions.
 """
 
+from typing import Any
+
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.podcast.schedule_projections import ScheduleConfigProjection
 from app.domains.subscription.models import Subscription, UserSubscription
 
 
@@ -17,26 +18,26 @@ class PodcastScheduleService:
         self.db = db
         self.user_id = user_id
 
-    def _build_schedule_projection(
+    def _build_schedule_dict(
         self,
         subscription: Subscription,
         user_sub: UserSubscription,
-    ) -> ScheduleConfigProjection:
-        return ScheduleConfigProjection(
-            id=subscription.id,
-            title=subscription.title,
-            update_frequency=user_sub.update_frequency,
-            update_time=user_sub.update_time,
-            update_day_of_week=user_sub.update_day_of_week,
-            fetch_interval=subscription.fetch_interval,
-            next_update_at=user_sub.computed_next_update_at,
-            last_updated_at=subscription.last_fetched_at,
-        )
+    ) -> dict[str, Any]:
+        return {
+            "id": subscription.id,
+            "title": subscription.title,
+            "update_frequency": user_sub.update_frequency,
+            "update_time": user_sub.update_time,
+            "update_day_of_week": user_sub.update_day_of_week,
+            "fetch_interval": subscription.fetch_interval,
+            "next_update_at": user_sub.computed_next_update_at,
+            "last_updated_at": subscription.last_fetched_at,
+        }
 
     async def get_subscription_schedule(
         self,
         subscription_id: int,
-    ) -> ScheduleConfigProjection | None:
+    ) -> dict[str, Any] | None:
         """Get schedule settings for a specific subscription."""
         stmt = (
             select(Subscription, UserSubscription)
@@ -52,7 +53,7 @@ class PodcastScheduleService:
             return None
 
         subscription, user_sub = row
-        return self._build_schedule_projection(subscription, user_sub)
+        return self._build_schedule_dict(subscription, user_sub)
 
     async def update_subscription_schedule(
         self,
@@ -61,7 +62,7 @@ class PodcastScheduleService:
         update_time: str | None,
         update_day_of_week: int | None,
         fetch_interval: int | None,
-    ) -> ScheduleConfigProjection | None:
+    ) -> dict[str, Any] | None:
         """Update schedule settings for a specific subscription."""
         stmt = (
             select(Subscription, UserSubscription)
@@ -87,9 +88,9 @@ class PodcastScheduleService:
         await self.db.commit()
         # No refresh needed - subscription and user_sub are already in session with updated values
 
-        return self._build_schedule_projection(subscription, user_sub)
+        return self._build_schedule_dict(subscription, user_sub)
 
-    async def get_all_subscription_schedules(self) -> list[ScheduleConfigProjection]:
+    async def get_all_subscription_schedules(self) -> list[dict[str, Any]]:
         """Get schedule settings for all user podcast subscriptions."""
         stmt = (
             select(Subscription, UserSubscription)
@@ -106,7 +107,7 @@ class PodcastScheduleService:
         result = await self.db.execute(stmt)
         rows = list(result.all())
         return [
-            self._build_schedule_projection(sub, user_sub) for sub, user_sub in rows
+            self._build_schedule_dict(sub, user_sub) for sub, user_sub in rows
         ]
 
     async def batch_update_subscription_schedules(
@@ -116,7 +117,7 @@ class PodcastScheduleService:
         update_time: str | None,
         update_day_of_week: int | None,
         fetch_interval: int | None,
-    ) -> list[ScheduleConfigProjection]:
+    ) -> list[dict[str, Any]]:
         """Batch update schedule settings for multiple subscriptions."""
         stmt = (
             select(Subscription, UserSubscription)
@@ -146,6 +147,6 @@ class PodcastScheduleService:
         # No refresh needed - sub and user_sub are already in session with updated values
 
         return [
-            self._build_schedule_projection(sub, user_sub)
+            self._build_schedule_dict(sub, user_sub)
             for sub, user_sub in updated_rows
         ]

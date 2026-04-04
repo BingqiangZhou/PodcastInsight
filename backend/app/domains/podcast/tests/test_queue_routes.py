@@ -3,36 +3,32 @@ from unittest.mock import AsyncMock
 
 from fastapi.testclient import TestClient
 
-from app.domains.podcast.playback_queue_projections import PodcastQueueProjection
-
 
 def test_get_queue_returns_assembled_response(
     client: TestClient,
     mock_queue_service: AsyncMock,
 ):
     now = datetime.now(UTC)
-    mock_queue_service.get_queue.return_value = PodcastQueueProjection.model_validate(
-        {
-            "current_episode_id": 9,
-            "revision": 4,
-            "updated_at": now,
-            "items": [
-                {
-                    "episode_id": 9,
-                    "position": 0,
-                    "playback_position": 42,
-                    "title": "Episode 9",
-                    "podcast_id": 3,
-                    "audio_url": "https://example.com/audio.mp3",
-                    "duration": 200,
-                    "published_at": now,
-                    "image_url": None,
-                    "subscription_title": "Podcast",
-                    "subscription_image_url": None,
-                },
-            ],
-        },
-    )
+    mock_queue_service.get_queue.return_value = {
+        "current_episode_id": 9,
+        "revision": 4,
+        "updated_at": now,
+        "items": [
+            {
+                "episode_id": 9,
+                "position": 0,
+                "playback_position": 42,
+                "title": "Episode 9",
+                "podcast_id": 3,
+                "audio_url": "https://example.com/audio.mp3",
+                "duration": 200,
+                "published_at": now,
+                "image_url": None,
+                "subscription_title": "Podcast",
+                "subscription_image_url": None,
+            },
+        ],
+    }
 
     response = client.get("/api/v1/podcasts/queue")
 

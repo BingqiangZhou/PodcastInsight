@@ -12,9 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import EpisodeNotFoundError
 from app.core.redis import PodcastRedis, get_shared_redis
 from app.domains.podcast.models import PodcastEpisode, PodcastPlaybackState
-from app.domains.podcast.playback_queue_projections import (
-    PodcastPlaybackStateProjection,
-)
 from app.domains.podcast.repositories import PodcastPlaybackRepository
 
 
@@ -57,7 +54,7 @@ class PodcastPlaybackService:
         progress_seconds: int,
         is_playing: bool = False,
         playback_rate: float = 1.0,
-    ) -> PodcastPlaybackStateProjection:
+    ) -> dict[str, Any]:
         """Update playback progress for an episode.
 
         Args:
@@ -95,16 +92,16 @@ class PodcastPlaybackService:
             ) * 100
             remaining_time = max(0, episode.audio_duration - playback.current_position)
 
-        return PodcastPlaybackStateProjection(
-            episode_id=episode_id,
-            current_position=playback.current_position,
-            is_playing=playback.is_playing,
-            playback_rate=playback.playback_rate,
-            play_count=playback.play_count,
-            last_updated_at=playback.last_updated_at,
-            progress_percentage=round(progress_percentage, 2),
-            remaining_time=remaining_time,
-        )
+        return {
+            "episode_id": episode_id,
+            "current_position": playback.current_position,
+            "is_playing": playback.is_playing,
+            "playback_rate": playback.playback_rate,
+            "play_count": playback.play_count,
+            "last_updated_at": playback.last_updated_at,
+            "progress_percentage": round(progress_percentage, 2),
+            "remaining_time": remaining_time,
+        }
 
     async def _invalidate_stats_cache(self) -> None:
         """Invalidate derived stats caches after playback mutation."""
@@ -145,7 +142,7 @@ class PodcastPlaybackService:
     async def get_playback_state(
         self,
         episode_id: int,
-    ) -> PodcastPlaybackStateProjection | None:
+    ) -> dict[str, Any] | None:
         """Get playback state for an episode.
 
         Args:
@@ -171,16 +168,16 @@ class PodcastPlaybackService:
             ) * 100
             remaining_time = max(0, episode.audio_duration - playback.current_position)
 
-        return PodcastPlaybackStateProjection(
-            episode_id=episode_id,
-            current_position=playback.current_position,
-            is_playing=playback.is_playing,
-            playback_rate=playback.playback_rate,
-            play_count=playback.play_count,
-            last_updated_at=playback.last_updated_at,
-            progress_percentage=round(progress_percentage, 2),
-            remaining_time=remaining_time,
-        )
+        return {
+            "episode_id": episode_id,
+            "current_position": playback.current_position,
+            "is_playing": playback.is_playing,
+            "playback_rate": playback.playback_rate,
+            "play_count": playback.play_count,
+            "last_updated_at": playback.last_updated_at,
+            "progress_percentage": round(progress_percentage, 2),
+            "remaining_time": remaining_time,
+        }
 
     async def get_playback_states_batch(
         self,

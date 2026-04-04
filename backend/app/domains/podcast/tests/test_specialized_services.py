@@ -427,9 +427,9 @@ class TestPodcastQueueService:
 
         result = await service.get_queue()
 
-        assert result.current_episode_id == 5
-        assert result.items[0].episode_id == 5
-        assert result.items[0].playback_position == 30
+        assert result["current_episode_id"] == 5
+        assert result["items"][0]["episode_id"] == 5
+        assert result["items"][0]["playback_position"] == 30
 
 
 class TestPodcastSearchService:

@@ -4,21 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.domains.podcast.episode_projections import (
-    EpisodeProjectionLike,
-    PodcastEpisodeDetailProjection,
-    episode_projection_to_payload,
-)
-from app.domains.podcast.playback_queue_projections import (
-    PlaybackStateProjectionLike,
-    QueueProjectionLike,
-    playback_state_projection_to_payload,
-    queue_projection_to_payload,
-)
-from app.domains.podcast.schedule_projections import (
-    ScheduleProjectionLike,
-    schedule_projection_to_payload,
-)
 from app.domains.podcast.schemas import (
     ConversationSessionListResponse,
     ConversationSessionResponse,
@@ -60,32 +45,10 @@ from app.domains.podcast.schemas import (
     SummaryModelInfo,
     SummaryModelsResponse,
 )
-from app.domains.podcast.transcription_schedule_projections import (
-    BatchTranscriptionProjectionLike,
-    CheckNewEpisodesProjectionLike,
-    EpisodeTranscriptionScheduleProjectionLike,
-    EpisodeTranscriptProjectionLike,
-    PendingTranscriptionsProjectionLike,
-    TranscriptionCancelProjectionLike,
-    TranscriptionScheduleStatusProjectionLike,
-    batch_transcription_projection_to_payload,
-    check_new_episodes_projection_to_payload,
-    episode_transcript_projection_to_payload,
-    episode_transcription_schedule_projection_to_payload,
-    pending_transcriptions_projection_to_payload,
-    transcription_cancel_projection_to_payload,
-    transcription_schedule_status_projection_to_payload,
-)
-
-
-def _episode_payloads(
-    episodes: list[EpisodeProjectionLike],
-) -> list[dict[str, Any]]:
-    return [episode_projection_to_payload(episode) for episode in episodes]
 
 
 def build_feed_response(
-    episodes: list[EpisodeProjectionLike],
+    episodes: list[dict[str, Any]],
     *,
     has_more: bool,
     next_page: int | None,
@@ -94,9 +57,7 @@ def build_feed_response(
 ) -> PodcastFeedResponse:
     """Build the feed response envelope."""
     return PodcastFeedResponse(
-        items=[
-            PodcastEpisodeResponse(**episode) for episode in _episode_payloads(episodes)
-        ],
+        items=[PodcastEpisodeResponse(**episode) for episode in episodes],
         has_more=has_more,
         next_page=next_page,
         next_cursor=next_cursor,
@@ -105,7 +66,7 @@ def build_feed_response(
 
 
 def build_episode_list_response(
-    episodes: list[EpisodeProjectionLike],
+    episodes: list[dict[str, Any]],
     *,
     total: int,
     page: int,
@@ -115,9 +76,7 @@ def build_episode_list_response(
 ) -> PodcastEpisodeListResponse:
     """Build the paginated episode list response."""
     return PodcastEpisodeListResponse(
-        items=[
-            PodcastEpisodeResponse(**episode) for episode in _episode_payloads(episodes)
-        ],
+        items=[PodcastEpisodeResponse(**episode) for episode in episodes],
         total=total,
         page=page,
         size=size,
@@ -149,10 +108,10 @@ def build_playback_history_list_response(
 
 
 def build_episode_detail_response(
-    episode: PodcastEpisodeDetailProjection | dict[str, Any],
+    episode: dict[str, Any],
 ) -> PodcastEpisodeDetailResponse:
     """Build the detailed episode response."""
-    return PodcastEpisodeDetailResponse(**episode_projection_to_payload(episode))
+    return PodcastEpisodeDetailResponse(**episode)
 
 
 def build_conversation_session_response(
@@ -284,42 +243,40 @@ def build_summary_start_response(
 
 def build_playback_state_response(
     *,
-    payload: PlaybackStateProjectionLike,
+    payload: dict[str, Any],
     episode_id: int | None = None,
 ) -> PodcastPlaybackStateResponse:
     """Build the playback state response."""
-    normalized = playback_state_projection_to_payload(payload)
-    current_position = normalized.get("current_position")
+    current_position = payload.get("current_position")
     if current_position is None:
-        current_position = normalized["progress"]
+        current_position = payload["progress"]
     return PodcastPlaybackStateResponse(
-        episode_id=normalized.get("episode_id", episode_id),
+        episode_id=payload.get("episode_id", episode_id),
         current_position=current_position,
-        is_playing=normalized["is_playing"],
-        playback_rate=normalized["playback_rate"],
-        play_count=normalized["play_count"],
-        last_updated_at=normalized["last_updated_at"],
-        progress_percentage=normalized["progress_percentage"],
-        remaining_time=normalized["remaining_time"],
+        is_playing=payload["is_playing"],
+        playback_rate=payload["playback_rate"],
+        play_count=payload["play_count"],
+        last_updated_at=payload["last_updated_at"],
+        progress_percentage=payload["progress_percentage"],
+        remaining_time=payload["remaining_time"],
     )
 
 
 def build_existing_playback_state_response(
-    payload: PlaybackStateProjectionLike,
+    payload: dict[str, Any],
 ) -> PodcastPlaybackStateResponse:
     """Build playback state response from an already-shaped payload."""
-    return PodcastPlaybackStateResponse(**playback_state_projection_to_payload(payload))
+    return PodcastPlaybackStateResponse(**payload)
 
 
-def build_queue_response(payload: QueueProjectionLike) -> PodcastQueueResponse:
+def build_queue_response(payload: dict[str, Any]) -> PodcastQueueResponse:
     """Build the queue snapshot response."""
-    normalized = queue_projection_to_payload(payload)
     return PodcastQueueResponse(
-        current_episode_id=normalized.get("current_episode_id"),
-        revision=normalized["revision"],
-        updated_at=normalized.get("updated_at"),
+        current_episode_id=payload.get("current_episode_id"),
+        revision=payload["revision"],
+        updated_at=payload.get("updated_at"),
         items=[
-            PodcastQueueItemResponse(**item) for item in normalized.get("items", [])
+            PodcastQueueItemResponse(**item) for item in payload.get("items", [])
         ],
     )
 
@@ -332,84 +289,71 @@ def build_effective_playback_rate_response(
 
 
 def build_schedule_config_response(
-    payload: ScheduleProjectionLike,
+    payload: dict[str, Any],
 ) -> ScheduleConfigResponse:
     """Build one subscription schedule response."""
-    return ScheduleConfigResponse(**schedule_projection_to_payload(payload))
+    return ScheduleConfigResponse(**payload)
 
 
 def build_schedule_config_list_response(
-    payloads: list[ScheduleProjectionLike],
+    payloads: list[dict[str, Any]],
 ) -> list[ScheduleConfigResponse]:
     """Build a list of subscription schedule responses."""
     return [build_schedule_config_response(payload) for payload in payloads]
 
 
 def build_transcription_schedule_response(
-    payload: EpisodeTranscriptionScheduleProjectionLike,
+    payload: dict[str, Any],
 ) -> PodcastTranscriptionScheduleResponse:
     """Build the episode transcription scheduling response."""
-    return PodcastTranscriptionScheduleResponse(
-        **episode_transcription_schedule_projection_to_payload(payload),
-    )
+    return PodcastTranscriptionScheduleResponse(**payload)
 
 
 def build_episode_transcript_response(
-    payload: EpisodeTranscriptProjectionLike,
+    payload: dict[str, Any],
 ) -> PodcastEpisodeTranscriptResponse:
     """Build the episode transcript response."""
-    return PodcastEpisodeTranscriptResponse(
-        **episode_transcript_projection_to_payload(payload)
-    )
+    return PodcastEpisodeTranscriptResponse(**payload)
 
 
 def build_batch_transcription_response(
-    payload: BatchTranscriptionProjectionLike,
+    payload: dict[str, Any],
 ) -> PodcastBatchTranscriptionResponse:
     """Build the batch transcription response."""
-    return PodcastBatchTranscriptionResponse(
-        **batch_transcription_projection_to_payload(payload)
-    )
+    return PodcastBatchTranscriptionResponse(**payload)
 
 
 def build_transcription_schedule_status_response(
-    payload: TranscriptionScheduleStatusProjectionLike,
+    payload: dict[str, Any],
 ) -> PodcastTranscriptionScheduleStatusResponse:
     """Build the transcription schedule-status response."""
-    return PodcastTranscriptionScheduleStatusResponse(
-        **transcription_schedule_status_projection_to_payload(payload),
-    )
+    return PodcastTranscriptionScheduleStatusResponse(**payload)
 
 
 def build_transcription_cancel_response(
-    payload: TranscriptionCancelProjectionLike,
+    payload: dict[str, Any],
 ) -> PodcastTranscriptionCancelResponse:
     """Build the transcription cancellation response."""
-    return PodcastTranscriptionCancelResponse(
-        **transcription_cancel_projection_to_payload(payload)
-    )
+    return PodcastTranscriptionCancelResponse(**payload)
 
 
 def build_check_new_episodes_response(
-    payload: CheckNewEpisodesProjectionLike,
+    payload: dict[str, Any],
 ) -> PodcastCheckNewEpisodesResponse:
     """Build the recently-published episode scheduling response."""
-    return PodcastCheckNewEpisodesResponse(
-        **check_new_episodes_projection_to_payload(payload)
-    )
+    return PodcastCheckNewEpisodesResponse(**payload)
 
 
 def build_pending_transcriptions_response(
-    payload: PendingTranscriptionsProjectionLike,
+    payload: dict[str, Any],
 ) -> PodcastPendingTranscriptionsResponse:
     """Build the pending transcription list response."""
-    normalized = pending_transcriptions_projection_to_payload(payload)
     return PodcastPendingTranscriptionsResponse(
         items=[
             PodcastPendingTranscriptionTaskResponse(**task)
-            for task in normalized.get("tasks", [])
+            for task in payload.get("tasks", [])
         ],
-        total=normalized["total"],
+        total=payload["total"],
     )
 
 
