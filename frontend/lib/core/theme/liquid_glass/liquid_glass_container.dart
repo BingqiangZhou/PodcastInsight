@@ -111,31 +111,6 @@ class _LiquidGlassContainerState extends State<LiquidGlassContainer>
   }
 
   @override
-  void didUpdateWidget(LiquidGlassContainer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    // Update style if tier changed
-    if (oldWidget.tier != widget.tier) {
-      _style = LiquidGlassStyle.forTier(
-        widget.tier,
-        Theme.of(context).brightness,
-      );
-    }
-
-    // Handle animation state changes
-    if (oldWidget.animate != widget.animate) {
-      if (widget.animate) {
-        _animationController.startLightFlow();
-        if (!_animationController.hasPlayedEntryAnimation) {
-          _animationController.playEntryAnimation();
-        }
-      } else {
-        _animationController.stopLightFlow();
-      }
-    }
-  }
-
-  @override
   void dispose() {
     _animationController.dispose();
     super.dispose();

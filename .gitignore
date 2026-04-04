@@ -148,3 +148,4 @@ specs/
 
 # Worktrees
 .worktrees/
+.superpowers/

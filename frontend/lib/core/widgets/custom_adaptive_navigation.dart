@@ -5,6 +5,8 @@ import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
+import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_container.dart';
+import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_style.dart';
 
 const Duration _kBottomAccessoryPaddingTransition = Duration(milliseconds: 220);
 
@@ -626,7 +628,7 @@ class ResponsiveContainer extends StatelessWidget {
   }
 }
 
-/// Clean sidebar with solid background and subtle border
+/// Glass sidebar with liquid glass effect
 class _CleanSidebar extends StatelessWidget {
   const _CleanSidebar({required this.child, required this.compact});
 
@@ -635,36 +637,17 @@ class _CleanSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    // Indigo-tinted surface for cosmic feel
-    final sidebarColor = isDark
-        ? AppColors.darkSurface.withValues(alpha: 0.9)
-        : const Color(0xFFF8F7FF);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: sidebarColor,
-        borderRadius: BorderRadius.circular(compact ? 16 : 20),
-        border: Border.all(color: scheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? const Color(0x1A6366F1)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return LiquidGlassContainer(
+      tier: LiquidGlassTier.medium,
+      borderRadius: compact ? 16 : 20,
+      animate: true,
+      interactive: false,
       child: child,
     );
   }
 }
 
-/// Clean dock with solid background and shadow
+/// Glass dock with liquid glass effect
 class _CleanDock extends StatelessWidget {
   const _CleanDock({super.key, required this.child, required this.width});
 
@@ -673,32 +656,15 @@ class _CleanDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    // Indigo-tinted dock background for dark mode
-    final dockColor = isDark
-        ? AppColors.darkSurface.withValues(alpha: 0.9)
-        : scheme.surface;
-
-    return Container(
+    return SizedBox(
       width: width,
-      decoration: BoxDecoration(
-        color: dockColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? const Color(0x1A6366F1)
-                : Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+      child: LiquidGlassContainer(
+        tier: LiquidGlassTier.medium,
+        borderRadius: 16,
+        animate: true,
+        interactive: false,
+        child: child,
       ),
-      child: child,
     );
   }
 }
