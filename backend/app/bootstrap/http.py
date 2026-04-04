@@ -7,11 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
-from app.core.database import check_db_readiness, get_db_pool_snapshot
+from app.core.database import check_db_readiness
 from app.core.exceptions import setup_exception_handlers
 from app.core.middleware import RequestObservabilityMiddleware
 from app.core.middleware.rate_limit import RateLimitConfig, setup_rate_limiting
-from app.core.redis import get_null_redis_runtime_metrics, get_shared_redis
+from app.core.redis import get_shared_redis
 from app.http.errors import register_admin_http_exception_handler
 
 
@@ -35,8 +35,6 @@ def configure_middlewares(app: FastAPI) -> None:
             "/docs",
             "/redoc",
             "/openapi.json",
-            "/metrics",
-            "/metrics/summary",
             "/api/v1/podcasts/episodes",  # Playback updates (frequent polling)
         },
     )
@@ -85,18 +83,8 @@ def configure_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(CSRFException, csrf_exception_handler)
 
 
-async def _build_metrics_payload() -> dict:
-    """Build metrics payload from DB pool, Redis, and system info."""
-    db_pool = get_db_pool_snapshot()
-    redis_runtime = get_null_redis_runtime_metrics()
-    return {
-        "db_pool": db_pool,
-        "redis_runtime": redis_runtime,
-    }
-
-
 def register_internal_routes(app: FastAPI) -> None:
-    """Register health, root, and metrics routes."""
+    """Register health and root routes."""
     settings = get_settings()
 
     @app.get("/")
@@ -133,27 +121,3 @@ def register_internal_routes(app: FastAPI) -> None:
         }
         status_code = 200 if overall_status == "healthy" else 503
         return JSONResponse(status_code=status_code, content=payload)
-
-    @app.get("/metrics", include_in_schema=False)
-    async def get_metrics():
-        return await _build_metrics_payload()
-
-    @app.get("/metrics/prometheus", include_in_schema=False)
-    async def get_prometheus_metrics():
-        """Prometheus-formatted metrics endpoint."""
-        from app.core.metrics import get_prometheus_metrics
-
-        return await get_prometheus_metrics()
-
-    @app.get("/metrics/summary", include_in_schema=False)
-    async def get_metrics_summary():
-        """Simplified metrics summary (DB pool + Redis runtime)."""
-        payload = await _build_metrics_payload()
-        from app.core.observability import build_observability_snapshot
-
-        observability = build_observability_snapshot(
-            performance_metrics={"summary": {}},
-            db_pool=payload["db_pool"],
-            redis_runtime=payload["redis_runtime"],
-        )
-        return observability

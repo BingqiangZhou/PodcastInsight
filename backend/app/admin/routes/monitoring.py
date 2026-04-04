@@ -9,8 +9,7 @@ from app.admin.auth import admin_required
 from app.admin.monitoring import SystemMonitorService
 from app.admin.routes._shared import get_templates
 from app.core.database import check_db_readiness, get_db_pool_snapshot
-from app.core.observability import build_observability_snapshot
-from app.core.redis import get_null_redis_runtime_metrics, get_shared_redis
+from app.core.redis import get_shared_redis
 from app.domains.user.models import User
 
 
@@ -19,23 +18,15 @@ templates = get_templates()
 monitor_service = SystemMonitorService()
 
 
-async def _runtime_observability_payload(request: Request) -> dict:
+async def _runtime_payload() -> dict:
     db_pool = get_db_pool_snapshot()
-    redis_runtime = get_null_redis_runtime_metrics()
     readiness = {
         "db": await check_db_readiness(),
         "redis": await get_shared_redis().check_health(),
     }
-    observability = build_observability_snapshot(
-        performance_metrics={"summary": {}},
-        db_pool=db_pool,
-        redis_runtime=redis_runtime,
-    )
     return {
         "db_pool": db_pool,
-        "redis_runtime": redis_runtime,
         "readiness": readiness,
-        "observability": observability,
     }
 
 
@@ -57,12 +48,11 @@ async def monitoring_page(
 
 @router.get("/api/monitoring/all")
 async def get_all_metrics(
-    request: Request,
     _: User = Depends(admin_required),
 ):
-    """Return system + runtime observability metrics."""
+    """Return system + runtime metrics."""
     payload = monitor_service.get_all_metrics()
-    payload["runtime"] = await _runtime_observability_payload(request)
+    payload["runtime"] = await _runtime_payload()
     return payload
 
 
