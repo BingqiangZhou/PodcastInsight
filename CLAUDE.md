@@ -29,7 +29,7 @@ flutter gen-l10n                       # Regenerate l10n (en, zh)
 ### Docker (integration/deployment verification)
 ```bash
 cd docker
-docker compose up -d                   # Start all 7 services
+docker compose up -d                   # Start all 6 services
 docker compose build backend && docker compose up -d  # After backend changes
 curl http://localhost:8000/api/v1/health              # Verify health
 ```
@@ -53,7 +53,6 @@ app/
     middleware/          # rate_limit, query_analysis (N+1), response_optimization (gzip)
     metrics.py          # Prometheus counters/gauges/histograms
     observability.py    # Alert thresholds, health snapshot
-    providers/          # Dependency injection (auth, podcast, ai, subscription, admin)
   domains/              # Business domains
     user/               # Auth, profile (api, repositories, services, tests)
     subscription/       # Podcast subscriptions
@@ -91,26 +90,25 @@ lib/
   shared/               # Cross-feature models, widgets
 ```
 
-### Docker Services (7 containers)
+### Docker Services (6 containers)
 | Service | Description |
 |---------|-------------|
 | postgres | PostgreSQL 15 (primary + optional read replica) |
 | redis | Redis 7 (cache + Celery broker) |
-| backend | Gunicorn + 4 Uvicorn workers |
-| celery_worker_core | Queues: subscription_sync, ai_generation, maintenance |
-| celery_worker_transcription | Queue: transcription |
+| backend | Uvicorn ASGI server |
+| celery_worker | Queues: default, transcription (merged worker) |
 | celery_beat | Scheduled tasks (feed refresh hourly, summaries 30min, cleanup daily) |
 | nginx | Reverse proxy, SSL termination |
 
 ## Key Technologies
 
 ### Backend
-- **Framework:** FastAPI + Uvicorn/Gunicorn
+- **Framework:** FastAPI + Uvicorn
 - **ORM:** SQLAlchemy 2.x async (asyncpg driver)
 - **Validation:** Pydantic v2, pydantic-settings
 - **Database:** PostgreSQL 15 (async, read replica support)
 - **Cache:** Redis 7 (distributed rate limiting, session cache)
-- **Task Queue:** Celery 5 (Redis broker, 3 workers)
+- **Task Queue:** Celery 5 (Redis broker, 1 worker with 2 queues)
 - **Auth:** JWT (python-jose), bcrypt, 2FA (pyotp + qrcode)
 - **AI:** OpenAI API, SiliconFlow transcription
 - **Monitoring:** prometheus-client, custom observability with alert thresholds
@@ -140,7 +138,7 @@ lib/
   - Service/Repository layer: raise `BaseCustomError` subclasses
   - Route layer: use `bilingual_http_exception()` from `app.http.errors`
   - NEVER use bare ValueError/string comparison for control flow
-- Dependency injection: provider modules in `core/providers/`
+- Dependency injection: FastAPI native `Depends()`
 - Migrations: Alembic in `backend/alembic/` (16 migration files)
 
 ### Frontend
