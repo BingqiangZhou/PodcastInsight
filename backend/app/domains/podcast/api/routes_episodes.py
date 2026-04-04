@@ -3,7 +3,7 @@
 import logging
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.core.config import settings
 from app.core.exceptions import (
@@ -57,7 +57,6 @@ from app.domains.podcast.tasks.summary_generation import (
     generate_episode_summary as generate_episode_summary_task,
 )
 from app.http.errors import bilingual_http_exception
-from app.http.responses import build_etag_response
 
 
 router = APIRouter(prefix="")
@@ -73,7 +72,6 @@ logger = logging.getLogger(__name__)
     summary="Get podcast feed",
 )
 async def get_podcast_feed(
-    request: Request,
     page: int = Query(1, ge=1, description="Page number"),
     cursor: str | None = Query(None, description="Cursor token for pagination"),
     page_size: int = Query(10, ge=1, le=50, description="Page size"),
@@ -144,16 +142,7 @@ async def get_podcast_feed(
         next_cursor=next_cursor,
         total=total,
     )
-    return build_etag_response(
-        request=request,
-        content=response_data,
-        max_age=30 if settings.PODCAST_FEED_LIGHTWEIGHT_ENABLED else 600,
-        cache_control=(
-            "private, max-age=30"
-            if settings.PODCAST_FEED_LIGHTWEIGHT_ENABLED
-            else "private, max-age=600"
-        ),
-    )
+    return response_data
 
 
 @router.get(
@@ -190,7 +179,6 @@ async def list_episodes(
     summary="List playback history",
 )
 async def list_playback_history(
-    request: Request,
     page: int = Query(1, ge=1, description="Page number"),
     cursor: str | None = Query(None, description="Cursor token for pagination"),
     size: int = Query(20, ge=1, le=100, description="Page size"),
@@ -237,12 +225,7 @@ async def list_playback_history(
         subscription_id=0,
         next_cursor=next_cursor,
     )
-    return build_etag_response(
-        request=request,
-        content=response_data,
-        max_age=300,
-        cache_control="private, max-age=300",
-    )
+    return response_data
 
 
 @router.get(
@@ -270,7 +253,6 @@ async def list_playback_history_lite(
     summary="Get episode detail",
 )
 async def get_episode(
-    request: Request,
     episode_id: int,
     service: PodcastEpisodeService = Depends(get_podcast_episode_service),
 ):
@@ -280,12 +262,7 @@ async def get_episode(
             status_code=404, detail="Episode not found or no permission"
         )
 
-    return build_etag_response(
-        request=request,
-        content=build_episode_detail_response(episode),
-        max_age=1800,
-        cache_control="private, max-age=1800",
-    )
+    return build_episode_detail_response(episode)
 
 
 # ── Summary & playback actions ─────────────────────────────────────────────

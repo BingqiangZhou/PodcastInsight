@@ -4,9 +4,8 @@ All endpoints here are mounted under:
     /api/v1/podcasts/subscriptions*
 """
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 
-from app.core.etag import build_conditional_etag_response
 from app.core.exceptions import SubscriptionNotFoundError
 from app.core.providers import (
     get_podcast_schedule_service,
@@ -93,7 +92,6 @@ async def add_subscription(
     summary="List podcast subscriptions",
 )
 async def list_subscriptions(
-    request: Request,
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Page size"),
     category_id: int | None = Query(None, description="Category filter"),
@@ -120,12 +118,7 @@ async def list_subscriptions(
         size=size,
         pages=pages,
     )
-    return build_conditional_etag_response(
-        request=request,
-        content=response_data,
-        max_age=900,
-        cache_control="private, max-age=900",
-    )
+    return response_data
 
 
 @router.post(
@@ -152,7 +145,6 @@ async def delete_subscriptions_bulk(
     summary="Get podcast subscription detail",
 )
 async def get_subscription(
-    request: Request,
     subscription_id: int,
     service: PodcastSubscriptionService = Depends(get_podcast_subscription_service),
 ):
@@ -162,13 +154,7 @@ async def get_subscription(
             status_code=404, detail="Subscription not found or no permission"
         )
 
-    response_data = PodcastSubscriptionResponse(**details)
-    return build_conditional_etag_response(
-        request=request,
-        content=response_data,
-        max_age=1800,
-        cache_control="private, max-age=1800",
-    )
+    return PodcastSubscriptionResponse(**details)
 
 
 @router.delete(
