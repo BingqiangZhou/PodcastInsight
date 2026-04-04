@@ -11,7 +11,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
           children: [
             IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+              onPressed: () => context.canPop() ? context.pop() : context.go('/'),
             ),
             const SizedBox(width: 8),
             _buildHeaderCover(fallbackImageUrl),

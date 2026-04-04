@@ -222,7 +222,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
           : HeaderCapsuleActionButton(
               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               icon: Icons.arrow_back_rounded,
-              onPressed: () => context.pop(),
+              onPressed: () => context.canPop() ? context.pop() : context.go('/'),
               circular: true,
             ),
     );

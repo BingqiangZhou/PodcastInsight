@@ -592,7 +592,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     return HeaderCapsuleActionButton(
       tooltip: l10n.back_button,
       icon: Icons.arrow_back,
-      onPressed: () => context.pop(),
+      onPressed: () => context.canPop() ? context.pop() : context.go('/'),
       circular: true,
       density: _isCompactPhoneLayout
           ? HeaderCapsuleActionButtonDensity.compact

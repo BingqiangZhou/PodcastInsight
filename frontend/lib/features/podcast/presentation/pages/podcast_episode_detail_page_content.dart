@@ -417,7 +417,11 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
             subtitle: error.toString(),
             action: FilledButton(
               onPressed: () {
-                context.pop();
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
               },
               child: Text(l10n.podcast_go_back),
             ),
