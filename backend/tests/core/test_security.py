@@ -17,7 +17,7 @@ import base64
 import time
 from datetime import timedelta
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -50,15 +50,29 @@ def sample_payload() -> dict:
 
 
 @pytest.fixture
-def access_token(sample_payload: dict) -> str:
-    """Create a valid access token for testing."""
-    return create_access_token(sample_payload)
+def mock_blacklist():
+    """Mock the token blacklist so token operations work without Redis."""
+    with patch(
+        "app.core.security.token_blacklist.register_user_token",
+        new_callable=AsyncMock,
+    ) as mock_register, patch(
+        "app.core.security.token_blacklist.is_token_revoked",
+        new_callable=AsyncMock,
+        return_value=False,
+    ) as mock_is_revoked:
+        yield {"register": mock_register, "is_revoked": mock_is_revoked}
 
 
 @pytest.fixture
-def refresh_token(sample_payload: dict) -> str:
+async def access_token(sample_payload: dict, mock_blacklist) -> str:
+    """Create a valid access token for testing."""
+    return await create_access_token(sample_payload)
+
+
+@pytest.fixture
+async def refresh_token(sample_payload: dict, mock_blacklist) -> str:
     """Create a valid refresh token for testing."""
-    return create_refresh_token(sample_payload)
+    return await create_refresh_token(sample_payload)
 
 
 # ---------------------------------------------------------------------------
@@ -69,54 +83,62 @@ def refresh_token(sample_payload: dict) -> str:
 class TestTokenCreationRoundTrip:
     """Verify that created tokens can be decoded and contain expected claims."""
 
-    def test_access_token_round_trip(self, sample_payload: dict) -> None:
-        token = create_access_token(sample_payload)
-        payload = verify_token(token, token_type="access")
+    @pytest.mark.asyncio
+    async def test_access_token_round_trip(self, sample_payload: dict, mock_blacklist) -> None:
+        token = await create_access_token(sample_payload)
+        payload = await verify_token(token, token_type="access")
 
         assert payload["sub"] == "42"
         assert payload["email"] == "user@example.com"
         assert "exp" in payload
         assert "iat" in payload
+        assert "jti" in payload
         # Access tokens should NOT have a "type" claim
         assert "type" not in payload
 
-    def test_refresh_token_round_trip(self, sample_payload: dict) -> None:
-        token = create_refresh_token(sample_payload)
-        payload = verify_token(token, token_type="refresh")
+    @pytest.mark.asyncio
+    async def test_refresh_token_round_trip(self, sample_payload: dict, mock_blacklist) -> None:
+        token = await create_refresh_token(sample_payload)
+        payload = await verify_token(token, token_type="refresh")
 
         assert payload["sub"] == "42"
         assert payload["type"] == "refresh"
+        assert "jti" in payload
 
-    def test_access_token_with_custom_expiry(self, sample_payload: dict) -> None:
+    @pytest.mark.asyncio
+    async def test_access_token_with_custom_expiry(self, sample_payload: dict, mock_blacklist) -> None:
         delta = timedelta(minutes=5)
-        token = create_access_token(sample_payload, expires_delta=delta)
-        payload = verify_token(token, token_type="access")
+        token = await create_access_token(sample_payload, expires_delta=delta)
+        payload = await verify_token(token, token_type="access")
 
         # Expiry should be roughly 5 minutes from now
         remaining_seconds = payload["exp"] - time.time()
         assert 200 < remaining_seconds < 400  # generous window
 
-    def test_refresh_token_with_custom_expiry(self, sample_payload: dict) -> None:
+    @pytest.mark.asyncio
+    async def test_refresh_token_with_custom_expiry(self, sample_payload: dict, mock_blacklist) -> None:
         delta = timedelta(days=1)
-        token = create_refresh_token(sample_payload, expires_delta=delta)
-        payload = verify_token(token, token_type="refresh")
+        token = await create_refresh_token(sample_payload, expires_delta=delta)
+        payload = await verify_token(token, token_type="refresh")
 
         remaining_seconds = payload["exp"] - time.time()
         # ~1 day in seconds
         assert 80000 < remaining_seconds < 90000
 
-    def test_access_token_accepted_for_any_type(self, sample_payload: dict) -> None:
+    @pytest.mark.asyncio
+    async def test_access_token_accepted_for_any_type(self, sample_payload: dict, mock_blacklist) -> None:
         """Access tokens don't have a 'type' field, so type check is skipped."""
-        token = create_access_token(sample_payload)
+        token = await create_access_token(sample_payload)
         # Access tokens lack the 'type' claim, so verify_token skips type enforcement
-        payload = verify_token(token, token_type="refresh")
+        payload = await verify_token(token, token_type="refresh")
         assert payload["sub"] == sample_payload["sub"]
 
-    def test_refresh_token_rejected_as_access(self, sample_payload: dict) -> None:
+    @pytest.mark.asyncio
+    async def test_refresh_token_rejected_as_access(self, sample_payload: dict, mock_blacklist) -> None:
         """Refresh token used as access token should be rejected."""
-        token = create_refresh_token(sample_payload)
+        token = await create_refresh_token(sample_payload)
         with pytest.raises(HTTPException) as exc_info:
-            verify_token(token, token_type="access")
+            await verify_token(token, token_type="access")
         assert exc_info.value.status_code == 401
 
 
@@ -128,18 +150,20 @@ class TestTokenCreationRoundTrip:
 class TestExpiredTokenRejection:
     """Tokens past their expiry must be rejected."""
 
-    def test_expired_access_token_rejected(self, sample_payload: dict) -> None:
-        token = create_access_token(sample_payload, expires_delta=timedelta(seconds=-1))
+    @pytest.mark.asyncio
+    async def test_expired_access_token_rejected(self, sample_payload: dict, mock_blacklist) -> None:
+        token = await create_access_token(sample_payload, expires_delta=timedelta(seconds=-1))
         with pytest.raises(HTTPException) as exc_info:
-            verify_token(token, token_type="access")
+            await verify_token(token, token_type="access")
         assert exc_info.value.status_code == 401
 
-    def test_expired_refresh_token_rejected(self, sample_payload: dict) -> None:
-        token = create_refresh_token(
+    @pytest.mark.asyncio
+    async def test_expired_refresh_token_rejected(self, sample_payload: dict, mock_blacklist) -> None:
+        token = await create_refresh_token(
             sample_payload, expires_delta=timedelta(seconds=-1)
         )
         with pytest.raises(HTTPException) as exc_info:
-            verify_token(token, token_type="refresh")
+            await verify_token(token, token_type="refresh")
         assert exc_info.value.status_code == 401
 
 
@@ -151,25 +175,29 @@ class TestExpiredTokenRejection:
 class TestInvalidTokenRejection:
     """Malformed or tampered tokens must be rejected."""
 
-    def test_completely_invalid_token(self) -> None:
+    @pytest.mark.asyncio
+    async def test_completely_invalid_token(self) -> None:
         with pytest.raises(HTTPException) as exc_info:
-            verify_token("not-a-real-token", token_type="access")
+            await verify_token("not-a-real-token", token_type="access")
         assert exc_info.value.status_code == 401
         assert "Could not validate credentials" in exc_info.value.detail
 
-    def test_tampered_token_rejected(self, access_token: str) -> None:
+    @pytest.mark.asyncio
+    async def test_tampered_token_rejected(self, access_token: str) -> None:
         # Alter one character in the token body
         tampered = access_token[:-5] + "XXXXX"
         with pytest.raises(HTTPException) as exc_info:
-            verify_token(tampered, token_type="access")
+            await verify_token(tampered, token_type="access")
         assert exc_info.value.status_code == 401
 
-    def test_empty_string_token_rejected(self) -> None:
+    @pytest.mark.asyncio
+    async def test_empty_string_token_rejected(self) -> None:
         with pytest.raises(HTTPException) as exc_info:
-            verify_token("", token_type="access")
+            await verify_token("", token_type="access")
         assert exc_info.value.status_code == 401
 
-    def test_wrong_secret_key_rejected(self, sample_payload: dict) -> None:
+    @pytest.mark.asyncio
+    async def test_wrong_secret_key_rejected(self, sample_payload: dict) -> None:
         """Token signed with a different key must be rejected."""
         from jose import jwt
 
@@ -182,7 +210,7 @@ class TestInvalidTokenRejection:
             algorithm=settings.ALGORITHM,
         )
         with pytest.raises(HTTPException) as exc_info:
-            verify_token(forged, token_type="access")
+            await verify_token(forged, token_type="access")
         assert exc_info.value.status_code == 401
 
 
@@ -194,41 +222,46 @@ class TestInvalidTokenRejection:
 class TestVerifyTokenOptional:
     """verify_token_optional returns mock user in dev, raises in prod."""
 
-    def test_returns_mock_user_in_dev_mode_when_no_token(self) -> None:
+    @pytest.mark.asyncio
+    async def test_returns_mock_user_in_dev_mode_when_no_token(self) -> None:
         with patch("app.core.security.jwt.settings") as mock_settings:
             mock_settings.ENVIRONMENT = "development"
-            result = verify_token_optional(token=None, token_type="access")
+            result = await verify_token_optional(token=None, token_type="access")
 
         assert result["sub"] == "dev-mock-00000000-0000-0000-000000000001"
         assert result["email"] == "dev-mock@internal.local"
         assert result["type"] == "access"
         assert result["exp"] > int(time.time())
 
-    def test_raises_401_in_production_when_no_token(self) -> None:
+    @pytest.mark.asyncio
+    async def test_raises_401_in_production_when_no_token(self) -> None:
         with patch("app.core.security.jwt.settings") as mock_settings:
             mock_settings.ENVIRONMENT = "production"
             with pytest.raises(HTTPException) as exc_info:
-                verify_token_optional(token=None, token_type="access")
+                await verify_token_optional(token=None, token_type="access")
 
         assert exc_info.value.status_code == 401
         assert "Authentication required" in exc_info.value.detail
 
-    def test_verifies_real_token_when_provided(self, access_token: str) -> None:
+    @pytest.mark.asyncio
+    async def test_verifies_real_token_when_provided(self, access_token: str) -> None:
         """When a real token is provided, it should be verified normally."""
-        payload = verify_token_optional(token=access_token, token_type="access")
+        payload = await verify_token_optional(token=access_token, token_type="access")
         assert payload["sub"] == "42"
 
-    def test_rejects_invalid_token_when_provided(self) -> None:
+    @pytest.mark.asyncio
+    async def test_rejects_invalid_token_when_provided(self) -> None:
         """When an invalid token is provided, it should raise."""
         with pytest.raises(HTTPException) as exc_info:
-            verify_token_optional(token="invalid-token", token_type="access")
+            await verify_token_optional(token="invalid-token", token_type="access")
         assert exc_info.value.status_code == 401
 
-    def test_dev_mock_has_correct_token_type(self) -> None:
+    @pytest.mark.asyncio
+    async def test_dev_mock_has_correct_token_type(self) -> None:
         """Mock user should reflect the requested token_type."""
         with patch("app.core.security.jwt.settings") as mock_settings:
             mock_settings.ENVIRONMENT = "development"
-            result = verify_token_optional(token=None, token_type="refresh")
+            result = await verify_token_optional(token=None, token_type="refresh")
 
         assert result["type"] == "refresh"
 
@@ -243,7 +276,7 @@ class TestGetTokenFromRequest:
 
     @pytest.mark.asyncio
     async def test_extracts_from_authorization_header(
-        self, access_token: str
+        self, access_token: str, mock_blacklist
     ) -> None:
         payload = await get_token_from_request(
             token=None, authorization=f"Bearer {access_token}"
@@ -252,7 +285,7 @@ class TestGetTokenFromRequest:
 
     @pytest.mark.asyncio
     async def test_extracts_token_without_bearer_prefix(
-        self, access_token: str
+        self, access_token: str, mock_blacklist
     ) -> None:
         """Authorization header without 'Bearer ' prefix should still work."""
         payload = await get_token_from_request(
@@ -269,7 +302,7 @@ class TestGetTokenFromRequest:
 
     @pytest.mark.asyncio
     async def test_rejects_query_param_in_production(
-        self, access_token: str
+        self, access_token: str, mock_blacklist
     ) -> None:
         """Query param token must be rejected when not in development."""
         with patch.object(settings, "ENVIRONMENT", "production"):
@@ -283,7 +316,7 @@ class TestGetTokenFromRequest:
 
     @pytest.mark.asyncio
     async def test_allows_query_param_in_development(
-        self, access_token: str
+        self, access_token: str, mock_blacklist
     ) -> None:
         """Query param token is accepted in development with a deprecation warning."""
         with patch.object(settings, "ENVIRONMENT", "development"):
@@ -295,7 +328,7 @@ class TestGetTokenFromRequest:
 
     @pytest.mark.asyncio
     async def test_authorization_header_takes_precedence_over_query_param(
-        self, access_token: str
+        self, access_token: str, mock_blacklist
     ) -> None:
         """When both are provided, Authorization header wins."""
         payload = await get_token_from_request(
@@ -436,7 +469,6 @@ class TestValidateExportPassword:
         # Only lowercase + digits
         is_valid, error = validate_export_password("abcdefghijkl12")
         # This has 2 types (lower + digit) which is < 3
-        # Actually "abcdefghijkl12" is 14 chars with lower and digit = 2 types
         assert is_valid is False
         assert "at least 3 of" in error
 

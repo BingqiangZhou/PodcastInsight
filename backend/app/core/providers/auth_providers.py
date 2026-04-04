@@ -46,7 +46,7 @@ async def get_current_user(
     )
 
     try:
-        payload = verify_token(token)
+        payload = await verify_token(token)
         user_id_str: str | None = payload.get("sub")
         if user_id_str is None:
             raise credentials_exception

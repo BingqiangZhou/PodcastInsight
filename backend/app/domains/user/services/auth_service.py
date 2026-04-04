@@ -24,6 +24,10 @@ from app.core.security import (
     verify_password,
     verify_token,
 )
+from app.core.security.token_blacklist import (
+    revoke_all_user_tokens,
+    revoke_token,
+)
 from app.domains.user.models import PasswordReset, User, UserSession
 
 
@@ -191,13 +195,13 @@ class AuthenticationService:
                 )
 
         # Create tokens
-        access_token = create_access_token(
+        access_token = await create_access_token(
             data={"sub": str(user.id), "email": user.email},
         )
 
         # Set refresh token expiry based on remember_me
         refresh_expiry_days = 30 if remember_me else settings.REFRESH_TOKEN_EXPIRE_DAYS
-        refresh_token = create_refresh_token(
+        refresh_token = await create_refresh_token(
             data={"sub": str(user.id), "email": user.email},
             expires_delta=timedelta(days=refresh_expiry_days),
         )
@@ -265,7 +269,7 @@ class AuthenticationService:
         """
         # Verify refresh token
         try:
-            payload = verify_token(refresh_token, token_type="refresh")
+            payload = await verify_token(refresh_token, token_type="refresh")
             user_id = int(payload.get("sub"))
         except Exception as err:
             raise UnauthorizedError("Invalid refresh token") from err
@@ -297,7 +301,7 @@ class AuthenticationService:
             raise UnauthorizedError("User not found or inactive")
 
         # Create new access token
-        new_access_token = create_access_token(
+        new_access_token = await create_access_token(
             data={"sub": str(user.id), "email": user.email},
         )
 
@@ -313,7 +317,7 @@ class AuthenticationService:
             refresh_expiry_days = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
         # Create new refresh token (sliding session - extend expiration)
-        new_refresh_token = create_refresh_token(
+        new_refresh_token = await create_refresh_token(
             data={"sub": str(user.id), "email": user.email},
             expires_delta=timedelta(days=refresh_expiry_days),
         )
@@ -367,6 +371,15 @@ class AuthenticationService:
         session.last_activity_at = datetime.now(UTC)
         await self.db.commit()
 
+        # Revoke the refresh token on the blacklist so it cannot be reused
+        try:
+            payload = await verify_token(refresh_token, token_type="refresh")
+            jti = payload.get("jti")
+            if jti:
+                await revoke_token(jti)
+        except Exception:
+            logger.debug("Token blacklist revocation skipped during logout")
+
         return True
 
     async def logout_all_sessions(self, user_id: int) -> bool:
@@ -394,6 +407,13 @@ class AuthenticationService:
             session.last_activity_at = datetime.now(UTC)
 
         await self.db.commit()
+
+        # Revoke all tokens for this user on the blacklist
+        try:
+            await revoke_all_user_tokens(user_id)
+        except Exception:
+            logger.debug("Bulk token revocation skipped during logout-all")
+
         return True
 
     async def cleanup_expired_sessions(self) -> int:

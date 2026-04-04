@@ -2,6 +2,7 @@
 
 import logging
 import time
+import uuid
 from datetime import timedelta
 from typing import Any
 
@@ -47,7 +48,7 @@ class TokenOptimizer:
 token_optimizer = TokenOptimizer()
 
 
-def create_access_token(
+async def create_access_token(
     data: dict,
     expires_delta: timedelta | None = None,
 ) -> str:
@@ -55,11 +56,15 @@ def create_access_token(
     # Fast path - using optimized claim builder
     custom_minutes = expires_delta.total_seconds() / 60 if expires_delta else None
 
+    # Assign a unique token ID for revocation support
+    jti = str(uuid.uuid4())
+
     claims = token_optimizer.build_standard_claims(
         extra_claims=data,
         expire_minutes=custom_minutes,
         is_refresh=False,
     )
+    claims["jti"] = jti
 
     # HS256 is already highly optimized in python-jose (uses pyca/cryptography)
     # The jose library will cache the key internally
@@ -69,10 +74,19 @@ def create_access_token(
         algorithm=settings.ALGORITHM,
     )
 
+    # Register token for bulk-revocation on logout/password-change
+    sub = data.get("sub")
+    if sub is not None:
+        try:
+            from app.core.security.token_blacklist import register_user_token
+            await register_user_token(int(sub), jti)
+        except Exception:
+            logger.debug("Token registration skipped (Redis unavailable)")
+
     return encoded_jwt
 
 
-def create_refresh_token(
+async def create_refresh_token(
     data: dict,
     expires_delta: timedelta | None = None,
 ) -> str:
@@ -83,21 +97,35 @@ def create_refresh_token(
 
     custom_days = expires_delta.total_seconds() / (24 * 60 * 60)
 
+    # Assign a unique token ID for revocation support
+    jti = str(uuid.uuid4())
+
     claims = token_optimizer.build_standard_claims(
         extra_claims=data,
         expire_minutes=custom_days * 24 * 60,
         is_refresh=True,
     )
+    claims["jti"] = jti
 
     encoded_jwt = jwt.encode(
         claims,
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
+
+    # Register token for bulk-revocation on logout/password-change
+    sub = data.get("sub")
+    if sub is not None:
+        try:
+            from app.core.security.token_blacklist import register_user_token
+            await register_user_token(int(sub), jti)
+        except Exception:
+            logger.debug("Token registration skipped (Redis unavailable)")
+
     return encoded_jwt
 
 
-def verify_token(token: str, token_type: str = "access") -> dict:
+async def verify_token(token: str, token_type: str = "access") -> dict:
     """Verify and decode JWT token."""
     try:
         logger.debug("[DEBUG] Verifying token")
@@ -125,6 +153,23 @@ def verify_token(token: str, token_type: str = "access") -> dict:
                 detail="Token has expired",
             )
 
+        # Check token blacklist (revocation)
+        jti = payload.get("jti")
+        if jti:
+            try:
+                from app.core.security.token_blacklist import is_token_revoked
+                if await is_token_revoked(jti):
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Token has been revoked",
+                    )
+            except HTTPException:
+                raise
+            except Exception:
+                # Redis unavailable -- allow the token through rather than
+                # blocking all authenticated requests.
+                logger.debug("Blacklist check skipped (Redis unavailable)")
+
         return payload
 
     except JWTError as e:
@@ -136,7 +181,7 @@ def verify_token(token: str, token_type: str = "access") -> dict:
         ) from e
 
 
-def verify_token_optional(
+async def verify_token_optional(
     token: str | None = None,
     token_type: str = "access",
 ) -> dict:
@@ -159,7 +204,7 @@ def verify_token_optional(
             detail="Authentication required",
         )
 
-    return verify_token(token, token_type)
+    return await verify_token(token, token_type)
 
 
 async def get_token_from_request(
@@ -204,7 +249,7 @@ async def get_token_from_request(
         )
 
     # Verify the token
-    return verify_token(resolved_token, token_type="access")
+    return await verify_token(resolved_token, token_type="access")
 
 
 # === Type Safety Helpers ===
