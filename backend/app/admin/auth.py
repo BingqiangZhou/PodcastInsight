@@ -7,8 +7,8 @@ from fastapi import Cookie, Depends, HTTPException, Request, status
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_db_session_dependency
 from app.core.config import get_settings
-from app.core.providers import get_db_session_dependency
 from app.domains.user.models import User
 from app.domains.user.repositories import UserRepository
 

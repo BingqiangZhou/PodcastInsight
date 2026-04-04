@@ -5,18 +5,18 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.core.auth import get_token_user_id
 from app.core.config import settings
 from app.core.exceptions import (
     EpisodeNotFoundError,
     SubscriptionNotFoundError,
     ValidationError,
 )
-from app.core.providers import (
+from app.domains.podcast.api.dependencies import (
     get_podcast_episode_service,
     get_podcast_playback_service,
     get_podcast_search_service,
     get_summary_workflow_service,
-    get_token_user_id,
 )
 from app.domains.podcast.api.episode_route_common import (
     decode_cursor,

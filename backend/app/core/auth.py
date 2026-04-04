@@ -1,25 +1,58 @@
-"""Authentication and user-related dependency providers."""
+"""Authentication and user-related FastAPI dependencies.
+
+Consolidates all auth-oriented dependency functions that were previously
+spread across ``app.core.providers.auth_providers`` and
+``app.core.providers.base_providers``.
+"""
 
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncGenerator
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
+from app.core.database import get_db_session
 from app.core.security import get_token_from_request, verify_token
 from app.domains.user.models import User
 from app.domains.user.repositories import UserRepository
-
-from .base_providers import get_db_session_dependency
 
 
 logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{get_settings().API_V1_STR}/auth/login")
+
+
+# ── Base dependencies ────────────────────────────────────────────────────────
+
+
+async def get_db_session_dependency() -> AsyncGenerator[AsyncSession, None]:
+    """Provide the request-scoped DB session through the provider layer."""
+    async for db in get_db_session():
+        yield db
+
+
+async def get_redis_client():
+    """Provide the shared Redis helper (process-level singleton with connection pooling).
+
+    The shared instance lives for the process lifetime and is closed on shutdown
+    via close_shared_redis() in the application lifecycle.
+    """
+    from app.core.redis import get_shared_redis
+
+    return get_shared_redis()
+
+
+def get_settings_dependency() -> Settings:
+    """Provide cached application settings."""
+    return get_settings()
+
+
+# ── Auth dependencies ────────────────────────────────────────────────────────
 
 
 def get_user_repository(
@@ -101,14 +134,3 @@ def get_authentication_service(
     from app.domains.user.services import AuthenticationService
 
     return AuthenticationService(db)
-
-
-__all__ = [
-    "get_authentication_service",
-    "get_current_active_user",
-    "get_current_superuser",
-    "get_current_user",
-    "get_token_user_id",
-    "get_user_repository",
-    "oauth2_scheme",
-]

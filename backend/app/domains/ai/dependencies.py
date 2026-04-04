@@ -1,9 +1,9 @@
-"""AI-related dependency providers."""
+"""AI-related FastAPI dependency providers."""
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .base_providers import get_db_session_dependency
+from app.core.auth import get_db_session_dependency
 
 
 def get_ai_model_config_service(

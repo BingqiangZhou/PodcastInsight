@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
-from app.core.providers import (
+from app.domains.podcast.api.dependencies import (
     get_podcast_episode_service,
     get_podcast_search_service,
 )

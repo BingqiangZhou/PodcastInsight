@@ -6,11 +6,11 @@ All endpoints here are mounted under:
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 
+from app.core.auth import get_token_user_id
 from app.core.exceptions import SubscriptionNotFoundError
-from app.core.providers import (
+from app.domains.podcast.api.dependencies import (
     get_podcast_schedule_service,
     get_podcast_subscription_service,
-    get_token_user_id,
 )
 from app.domains.podcast.api.response_assemblers import (
     build_schedule_config_list_response,
@@ -154,7 +154,8 @@ async def get_subscription(
             status_code=404, detail="Subscription not found or no permission"
         )
 
-    return PodcastSubscriptionResponse(**details)
+    response_data = PodcastSubscriptionResponse(**details)
+    return response_data
 
 
 @router.delete(

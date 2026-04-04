@@ -6,6 +6,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from app.admin.auth import admin_required
+from app.admin.dependencies import get_admin_subscriptions_service
 from app.admin.routes._shared import (
     empty_response,
     get_templates,
@@ -15,7 +16,6 @@ from app.admin.routes._shared import (
     xml_download_response,
 )
 from app.admin.services import AdminSubscriptionsService
-from app.core.providers import get_admin_subscriptions_service
 from app.domains.user.models import User
 
 

@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
 
 from app.admin.auth import admin_required
+from app.admin.dependencies import get_admin_apikeys_service
 from app.admin.routes._shared import (
     get_templates,
     json_payload,
@@ -14,7 +15,6 @@ from app.admin.routes._shared import (
     require_payload,
 )
 from app.admin.services import AdminApiKeysService
-from app.core.providers import get_admin_apikeys_service
 from app.domains.user.models import User
 
 

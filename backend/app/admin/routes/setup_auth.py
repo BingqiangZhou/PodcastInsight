@@ -12,10 +12,10 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.admin.auth import admin_required, admin_required_no_2fa
+from app.admin.dependencies import get_admin_setup_auth_service
 from app.admin.routes._shared import get_templates
 from app.admin.services import AdminSetupAuthService
 from app.admin.twofa import verify_totp_token
-from app.core.providers import get_admin_setup_auth_service
 from app.domains.user.models import User
 
 

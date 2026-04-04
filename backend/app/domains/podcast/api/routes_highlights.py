@@ -4,7 +4,7 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, Query
 
-from app.core.providers import get_highlight_service
+from app.domains.podcast.api.dependencies import get_highlight_service
 from app.domains.podcast.api.response_assemblers import (
     build_highlight_dates_response,
     build_highlight_list_response,

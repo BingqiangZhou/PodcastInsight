@@ -13,8 +13,8 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.auth import get_authentication_service, get_current_user
 from app.core.exceptions import ConflictError, UnauthorizedError
-from app.core.providers import get_authentication_service, get_current_user
 from app.domains.user.models import User
 from app.main import app
 

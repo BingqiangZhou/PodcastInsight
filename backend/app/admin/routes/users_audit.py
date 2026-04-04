@@ -11,9 +11,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from app.admin.auth import admin_required
+from app.admin.dependencies import get_admin_users_audit_service
 from app.admin.routes._shared import get_templates, json_payload, render_admin_template
 from app.admin.services.users_audit_service import AdminUsersAuditService
-from app.core.providers import get_admin_users_audit_service
 from app.domains.user.models import User
 
 

@@ -32,28 +32,28 @@ def mock_service_factory() -> Callable[[Callable], Generator[AsyncMock, None, No
 
 @pytest.fixture
 def mock_daily_report_service(mock_service_factory):
-    from app.core.providers import get_daily_report_service
+    from app.domains.podcast.api.dependencies import get_daily_report_service
 
     yield from mock_service_factory(get_daily_report_service)
 
 
 @pytest.fixture
 def mock_playback_service(mock_service_factory):
-    from app.core.providers import get_podcast_playback_service
+    from app.domains.podcast.api.dependencies import get_podcast_playback_service
 
     yield from mock_service_factory(get_podcast_playback_service)
 
 
 @pytest.fixture
 def mock_queue_service(mock_service_factory):
-    from app.core.providers import get_podcast_queue_service
+    from app.domains.podcast.api.dependencies import get_podcast_queue_service
 
     yield from mock_service_factory(get_podcast_queue_service)
 
 
 @pytest.fixture
 def mock_stats_service(mock_service_factory):
-    from app.core.providers import (
+    from app.domains.podcast.api.dependencies import (
         get_podcast_episode_service,
         get_podcast_stats_service,
     )
@@ -71,28 +71,28 @@ def mock_stats_service(mock_service_factory):
 
 @pytest.fixture
 def mock_episode_service(mock_service_factory):
-    from app.core.providers import get_podcast_episode_service
+    from app.domains.podcast.api.dependencies import get_podcast_episode_service
 
     yield from mock_service_factory(get_podcast_episode_service)
 
 
 @pytest.fixture
 def mock_subscription_service(mock_service_factory):
-    from app.core.providers import get_podcast_subscription_service
+    from app.domains.podcast.api.dependencies import get_podcast_subscription_service
 
     yield from mock_service_factory(get_podcast_subscription_service)
 
 
 @pytest.fixture
 def mock_workflow_service(mock_service_factory):
-    from app.core.providers import get_transcription_workflow_service
+    from app.domains.podcast.api.dependencies import get_transcription_workflow_service
 
     yield from mock_service_factory(get_transcription_workflow_service)
 
 
 @pytest.fixture
 def mock_schedule_service(mock_service_factory):
-    from app.core.providers import get_podcast_schedule_service
+    from app.domains.podcast.api.dependencies import get_podcast_schedule_service
 
     yield from mock_service_factory(get_podcast_schedule_service)
 
@@ -100,7 +100,7 @@ def mock_schedule_service(mock_service_factory):
 @pytest.fixture(autouse=True)
 def override_auth_dependencies():
     """Override authentication for routes requiring auth."""
-    from app.core.providers import get_token_user_id
+    from app.core.auth import get_token_user_id
     from app.core.security import get_token_from_request
 
     app.dependency_overrides[get_token_from_request] = lambda: {"sub": "123"}

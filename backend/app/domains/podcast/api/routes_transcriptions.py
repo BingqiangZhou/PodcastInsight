@@ -9,7 +9,7 @@ from app.core.exceptions import (
     SubscriptionNotFoundError,
     TranscriptionTaskNotFoundError,
 )
-from app.core.providers import (
+from app.domains.podcast.api.dependencies import (
     get_podcast_episode_service,
     get_podcast_subscription_service,
     get_transcription_workflow_service,

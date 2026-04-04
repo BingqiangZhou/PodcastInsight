@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends
 
-from app.core.providers import get_podcast_stats_service
+from app.domains.podcast.api.dependencies import get_podcast_stats_service
 from app.domains.podcast.api.response_assemblers import (
     build_podcast_profile_stats_response,
     build_podcast_stats_response,

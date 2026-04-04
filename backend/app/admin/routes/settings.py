@@ -4,9 +4,9 @@ from fastapi import APIRouter, Body, Depends, Request
 from fastapi.responses import HTMLResponse
 
 from app.admin.auth import admin_required
+from app.admin.dependencies import get_admin_settings_service
 from app.admin.routes._shared import get_templates, json_payload, render_admin_template
 from app.admin.services import AdminSettingsService
-from app.core.providers import get_admin_settings_service
 from app.domains.user.models import User
 from app.http.decorators import handle_admin_errors
 

@@ -7,10 +7,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.core.exceptions import EpisodeNotFoundError
 
-from app.core.providers import (
+from app.core.auth import get_token_user_id
+from app.domains.podcast.api.dependencies import (
     get_conversation_service,
     get_podcast_episode_service,
-    get_token_user_id,
 )
 from app.domains.podcast.api.response_assemblers import (
     build_conversation_clear_response,
