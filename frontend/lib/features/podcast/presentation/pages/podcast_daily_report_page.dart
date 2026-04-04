@@ -135,7 +135,13 @@ class _PodcastDailyReportPageState
     return HeaderCapsuleActionButton(
       tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       icon: Icons.arrow_back_rounded,
-      onPressed: () => context.pop(),
+      onPressed: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/');
+        }
+      },
       circular: true,
       style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
