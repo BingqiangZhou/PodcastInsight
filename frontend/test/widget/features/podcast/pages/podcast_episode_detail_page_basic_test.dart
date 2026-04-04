@@ -263,7 +263,7 @@ void main() {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
-      final completer = Completer<PodcastEpisodeDetailResponse?>();
+      final completer = Completer<PodcastEpisodeModel?>();
       await tester.pumpWidget(
         _createWidgetWithEpisodeLoader(() => completer.future),
       );
@@ -281,7 +281,7 @@ void main() {
   });
 }
 
-Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
+Widget _createWidget({required PodcastEpisodeModel? episode}) {
   return ProviderScope(
     overrides: [
       audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
@@ -309,7 +309,7 @@ Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
 }
 
 Widget _createWidgetWithEpisodeLoader(
-  Future<PodcastEpisodeDetailResponse?> Function() loader,
+  Future<PodcastEpisodeModel?> Function() loader,
 ) {
   return ProviderScope(
     overrides: [
@@ -337,9 +337,9 @@ Widget _createWidgetWithEpisodeLoader(
   );
 }
 
-PodcastEpisodeDetailResponse _episode() {
+PodcastEpisodeModel _episode() {
   final now = DateTime(2026, 3, 11, 9, 30);
-  return PodcastEpisodeDetailResponse(
+  return PodcastEpisodeModel(
     id: 1,
     subscriptionId: 1,
     title: 'Test Episode',

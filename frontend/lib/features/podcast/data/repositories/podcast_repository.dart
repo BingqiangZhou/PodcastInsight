@@ -171,7 +171,7 @@ class PodcastRepository {
             isPlayed,
           ));
 
-  Future<PodcastEpisodeDetailResponse> getEpisode(int episodeId) =>
+  Future<PodcastEpisodeModel> getEpisode(int episodeId) =>
       _apiCall(() => _apiService.getEpisode(episodeId));
 
   Future<PodcastEpisodeListResponse> getPlaybackHistory({

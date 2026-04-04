@@ -44,7 +44,7 @@ class ShownotesAnchor {
 }
 
 class ShownotesDisplayWidget extends ConsumerStatefulWidget {
-  final PodcastEpisodeDetailResponse episode;
+  final PodcastEpisodeModel episode;
   final ValueChanged<List<ShownotesAnchor>>? onAnchorsChanged;
 
   const ShownotesDisplayWidget({
@@ -243,7 +243,7 @@ class ShownotesDisplayWidgetState
     _notifyAnchorsChanged();
   }
 
-  String _resolveShownotesContent(PodcastEpisodeDetailResponse episode) {
+  String _resolveShownotesContent(PodcastEpisodeModel episode) {
     final description = episode.description;
     if (description != null && description.isNotEmpty) {
       return description;
@@ -273,7 +273,7 @@ class ShownotesDisplayWidgetState
     return '';
   }
 
-  String _contentSignature(PodcastEpisodeDetailResponse episode) {
+  String _contentSignature(PodcastEpisodeModel episode) {
     return '${episode.description}|${episode.aiSummary}|${episode.metadata?['shownotes']}|${episode.subscription?['description']}';
   }
 

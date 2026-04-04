@@ -41,10 +41,10 @@ class _FakePodcastRepository extends PodcastRepository {
   int getEpisodeCalls = 0;
 
   @override
-  Future<PodcastEpisodeDetailResponse> getEpisode(int episodeId) async {
+  Future<PodcastEpisodeModel> getEpisode(int episodeId) async {
     getEpisodeCalls += 1;
     final now = DateTime(2026, 2, 14, 10, 0, 0);
-    return PodcastEpisodeDetailResponse(
+    return PodcastEpisodeModel(
       id: episodeId,
       subscriptionId: 100 + episodeId,
       title: 'Episode $episodeId',

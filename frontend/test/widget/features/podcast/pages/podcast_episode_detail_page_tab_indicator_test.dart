@@ -99,7 +99,7 @@ void main() {
 
 Widget _createWidget() {
   final now = DateTime.now();
-  final episode = PodcastEpisodeDetailResponse(
+  final episode = PodcastEpisodeModel(
     id: 1,
     subscriptionId: 1,
     title: 'Test Episode',

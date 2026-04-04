@@ -13,7 +13,7 @@ void main() {
 
     Future<void> pumpShownotes(
       WidgetTester tester,
-      PodcastEpisodeDetailResponse episode,
+      PodcastEpisodeModel episode,
     ) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -27,11 +27,11 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    PodcastEpisodeDetailResponse buildEpisode({
+    PodcastEpisodeModel buildEpisode({
       String? description,
       String? aiSummary,
     }) {
-      return PodcastEpisodeDetailResponse(
+      return PodcastEpisodeModel(
         id: 1,
         subscriptionId: 1,
         title: 'Test Episode',

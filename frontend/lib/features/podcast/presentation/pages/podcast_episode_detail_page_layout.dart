@@ -3,7 +3,7 @@ part of 'podcast_episode_detail_page.dart';
 extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
   Widget _buildNewLayout(
     BuildContext context,
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
   ) {
     final safeTop = MediaQuery.viewPaddingOf(context).top;
 
@@ -38,7 +38,7 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
 
   Widget _buildWideLayout(
     BuildContext context,
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
   ) {
     final tokens = appThemeOf(context);
 
@@ -103,7 +103,7 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
     );
   }
 
-  Widget _buildMobileLayout(PodcastEpisodeDetailResponse episode) {
+  Widget _buildMobileLayout(PodcastEpisodeModel episode) {
     final pageCount = _episodeDetailTabLabels().length;
 
     return Column(

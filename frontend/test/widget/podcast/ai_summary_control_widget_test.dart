@@ -141,8 +141,8 @@ class _FakeSummaryRepository extends PodcastRepository {
   }
 
   @override
-  Future<PodcastEpisodeDetailResponse> getEpisode(int id) async {
-    return PodcastEpisodeDetailResponse(
+  Future<PodcastEpisodeModel> getEpisode(int id) async {
+    return PodcastEpisodeModel(
       id: id,
       subscriptionId: 1,
       title: 'Episode',

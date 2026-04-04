@@ -118,7 +118,7 @@ void main() {
       await tester.pumpWidget(
         _createWidget(
           audioState: AudioPlayerState(
-            currentEpisode: detail.toEpisodeModel(),
+            currentEpisode: detail,
             duration: 180000,
             position: 60000,
             isPlaying: true,
@@ -136,7 +136,7 @@ void main() {
 Widget _createWidget({
   TestPodcastPlayerUiNotifier? uiNotifier,
   AudioPlayerState? audioState,
-  PodcastEpisodeDetailResponse? detail,
+  PodcastEpisodeModel? detail,
 }) {
   final resolvedDetail = detail ?? _detail();
   return ProviderScope(
@@ -148,7 +148,7 @@ Widget _createWidget({
         () => _TestAudioPlayerNotifier(
           audioState ??
               AudioPlayerState(
-                currentEpisode: resolvedDetail.toEpisodeModel(),
+                currentEpisode: resolvedDetail,
                 duration: 180000,
                 isPlaying: true,
               ),
@@ -184,9 +184,9 @@ Widget _createWidget({
   );
 }
 
-PodcastEpisodeDetailResponse _detail({int? playbackPosition}) {
+PodcastEpisodeModel _detail({int? playbackPosition}) {
   final now = DateTime.now();
-  return PodcastEpisodeDetailResponse(
+  return PodcastEpisodeModel(
     id: 1,
     subscriptionId: 1,
     title: 'Test Episode',

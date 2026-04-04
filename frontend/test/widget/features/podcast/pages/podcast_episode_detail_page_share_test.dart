@@ -95,9 +95,9 @@ Widget _createWidget({
   );
 }
 
-PodcastEpisodeDetailResponse _episodeDetail(String? summary) {
+PodcastEpisodeModel _episodeDetail(String? summary) {
   final now = DateTime.now();
-  return PodcastEpisodeDetailResponse(
+  return PodcastEpisodeModel(
     id: 1,
     subscriptionId: 1,
     title: 'Test Episode',

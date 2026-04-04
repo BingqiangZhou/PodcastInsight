@@ -34,7 +34,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     );
   }
 
-  Widget _buildTabContent(PodcastEpisodeDetailResponse episode) {
+  Widget _buildTabContent(PodcastEpisodeModel episode) {
     switch (_selectedTabIndex) {
       case 0:
         return ShownotesDisplayWidget(
@@ -56,7 +56,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildSingleTabContent(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     int index,
   ) {
     switch (index) {
@@ -79,7 +79,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     }
   }
 
-  Widget _buildTranscriptContent(PodcastEpisodeDetailResponse episode) {
+  Widget _buildTranscriptContent(PodcastEpisodeModel episode) {
     final tProvider = transcriptionProvider(widget.episodeId);
     final transcriptionState = ref.watch(tProvider);
     final highlightsState = ref.watch(episodeHighlightsProvider(widget.episodeId));
@@ -108,7 +108,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     );
   }
 
-  Widget _buildSummaryTabContent(PodcastEpisodeDetailResponse episode) {
+  Widget _buildSummaryTabContent(PodcastEpisodeModel episode) {
     final isCompact =
         MediaQuery.sizeOf(context).width < Breakpoints.medium;
 
@@ -208,7 +208,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildAiSummarySection(
-    PodcastEpisodeDetailResponse episode, {
+    PodcastEpisodeModel episode, {
     bool compact = false,
   }) {
     final provider = summaryProvider(widget.episodeId);
@@ -328,7 +328,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     );
   }
 
-  Widget _buildChatDrawer(PodcastEpisodeDetailResponse episode) {
+  Widget _buildChatDrawer(PodcastEpisodeModel episode) {
     final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
     final width = MediaQuery.sizeOf(context).width;
     final drawerWidth =
@@ -371,7 +371,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     );
   }
 
-  Widget _buildConversationContent(PodcastEpisodeDetailResponse episode) {
+  Widget _buildConversationContent(PodcastEpisodeModel episode) {
     final episodeDetailAsync = ref.watch(
       episodeDetailProvider(widget.episodeId),
     );

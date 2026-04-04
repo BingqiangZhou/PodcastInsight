@@ -9,7 +9,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 
 // === Episode Detail Provider ===
 final episodeDetailProvider =
-    FutureProvider.autoDispose.family<PodcastEpisodeDetailResponse?, int>((
+    FutureProvider.autoDispose.family<PodcastEpisodeModel?, int>((
       ref,
       episodeId,
     ) async {

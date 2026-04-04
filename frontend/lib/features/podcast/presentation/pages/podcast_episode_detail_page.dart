@@ -173,45 +173,12 @@ class _PodcastEpisodeDetailPageState
       }
 
       if (episodeDetailAsync != null) {
-        // Convert PodcastEpisodeDetailResponse to PodcastEpisodeModel
-        final episodeModel = PodcastEpisodeModel(
-          id: episodeDetailAsync.id,
-          subscriptionId: episodeDetailAsync.subscriptionId,
-          subscriptionImageUrl: episodeDetailAsync.subscriptionImageUrl,
-          title: episodeDetailAsync.title,
-          description: episodeDetailAsync.description,
-          audioUrl: episodeDetailAsync.audioUrl,
-          audioDuration: episodeDetailAsync.audioDuration,
-          audioFileSize: episodeDetailAsync.audioFileSize,
-          publishedAt: episodeDetailAsync.publishedAt,
-          imageUrl: episodeDetailAsync.imageUrl,
-          itemLink: episodeDetailAsync.itemLink,
-          transcriptUrl: episodeDetailAsync.transcriptUrl,
-          transcriptContent: episodeDetailAsync.transcriptContent,
-          aiSummary: episodeDetailAsync.aiSummary,
-          summaryVersion: episodeDetailAsync.summaryVersion,
-          aiConfidenceScore: episodeDetailAsync.aiConfidenceScore,
-          playCount: episodeDetailAsync.playCount,
-          lastPlayedAt: episodeDetailAsync.lastPlayedAt,
-          season: episodeDetailAsync.season,
-          episodeNumber: episodeDetailAsync.episodeNumber,
-          explicit: episodeDetailAsync.explicit,
-          status: episodeDetailAsync.status,
-          metadata: episodeDetailAsync.metadata,
-          playbackPosition: episodeDetailAsync.playbackPosition,
-          isPlaying: episodeDetailAsync.isPlaying,
-          playbackRate: episodeDetailAsync.playbackRate,
-          isPlayed: episodeDetailAsync.isPlayed ?? false,
-          createdAt: episodeDetailAsync.createdAt,
-          updatedAt: episodeDetailAsync.updatedAt,
-        );
-
         logger.AppLogger.debug(
-          '[Playback] Auto-playing episode: ${episodeModel.title}',
+          '[Playback] Auto-playing episode: ${episodeDetailAsync.title}',
         );
         await ref
             .read(audioPlayerProvider.notifier)
-            .playManagedEpisode(episodeModel);
+            .playManagedEpisode(episodeDetailAsync);
       }
     } catch (error) {
       logger.AppLogger.debug('[Error] Failed to auto-play episode: $error');
@@ -231,7 +198,7 @@ class _PodcastEpisodeDetailPageState
     }
   }
 
-  void _trackEpisodeViewOnce(PodcastEpisodeDetailResponse episodeDetail) {
+  void _trackEpisodeViewOnce(PodcastEpisodeModel episodeDetail) {
     if (_hasTrackedEpisodeView) {
       return;
     }
@@ -240,7 +207,7 @@ class _PodcastEpisodeDetailPageState
   }
 
   Future<void> _trackEpisodeView(
-    PodcastEpisodeDetailResponse episodeDetail,
+    PodcastEpisodeModel episodeDetail,
   ) async {
     try {
       final repository = ref.read(podcastRepositoryProvider);

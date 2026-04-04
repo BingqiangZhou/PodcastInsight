@@ -116,7 +116,7 @@ abstract class PodcastApiService {
   );
 
   @GET('/podcasts/episodes/{episodeId}')
-  Future<PodcastEpisodeDetailResponse> getEpisode(
+  Future<PodcastEpisodeModel> getEpisode(
     @Path('episodeId') int episodeId,
   );
 

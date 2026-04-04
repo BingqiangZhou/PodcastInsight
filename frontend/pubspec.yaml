@@ -18,8 +18,6 @@ dependencies:
   flutter_riverpod: ^3.2.1
   riverpod: ^3.2.1
   riverpod_annotation: ^4.0.2
-  dartz: ^0.10.1
-
   # Navigation
   go_router: ^17.1.0
 

@@ -113,51 +113,50 @@ bool shouldAdvanceQueueOnCompletion(AudioPlayerState state) {
 @visibleForTesting
 PodcastEpisodeModel mergeEpisodeForPlayback(
   PodcastEpisodeModel incoming,
-  PodcastEpisodeDetailResponse latest,
+  PodcastEpisodeModel latest,
 ) {
-  final latestEpisode = latest.toEpisodeModel();
   final backendSubscriptionTitle = _extractSubscriptionTitle(
     latest.subscription,
   );
-  final resolvedPlaybackRate = latestEpisode.playbackRate > 0
-      ? latestEpisode.playbackRate
+  final resolvedPlaybackRate = latest.playbackRate > 0
+      ? latest.playbackRate
       : incoming.playbackRate;
 
-  return latestEpisode.copyWith(
+  return latest.copyWith(
     subscriptionTitle: backendSubscriptionTitle ?? incoming.subscriptionTitle,
     subscriptionImageUrl:
-        latestEpisode.subscriptionImageUrl ?? incoming.subscriptionImageUrl,
-    description: latestEpisode.description ?? incoming.description,
-    imageUrl: latestEpisode.imageUrl ?? incoming.imageUrl,
-    itemLink: latestEpisode.itemLink ?? incoming.itemLink,
-    transcriptUrl: latestEpisode.transcriptUrl ?? incoming.transcriptUrl,
+        latest.subscriptionImageUrl ?? incoming.subscriptionImageUrl,
+    description: latest.description ?? incoming.description,
+    imageUrl: latest.imageUrl ?? incoming.imageUrl,
+    itemLink: latest.itemLink ?? incoming.itemLink,
+    transcriptUrl: latest.transcriptUrl ?? incoming.transcriptUrl,
     transcriptContent:
-        latestEpisode.transcriptContent ?? incoming.transcriptContent,
-    aiSummary: latestEpisode.aiSummary ?? incoming.aiSummary,
-    summaryVersion: latestEpisode.summaryVersion ?? incoming.summaryVersion,
+        latest.transcriptContent ?? incoming.transcriptContent,
+    aiSummary: latest.aiSummary ?? incoming.aiSummary,
+    summaryVersion: latest.summaryVersion ?? incoming.summaryVersion,
     aiConfidenceScore:
-        latestEpisode.aiConfidenceScore ?? incoming.aiConfidenceScore,
-    metadata: latestEpisode.metadata ?? incoming.metadata,
-    playCount: latestEpisode.playCount > 0
-        ? latestEpisode.playCount
+        latest.aiConfidenceScore ?? incoming.aiConfidenceScore,
+    metadata: latest.metadata ?? incoming.metadata,
+    playCount: latest.playCount > 0
+        ? latest.playCount
         : incoming.playCount,
-    lastPlayedAt: latestEpisode.lastPlayedAt ?? incoming.lastPlayedAt,
+    lastPlayedAt: latest.lastPlayedAt ?? incoming.lastPlayedAt,
     playbackPosition:
-        latestEpisode.playbackPosition ?? incoming.playbackPosition,
-    audioDuration: latestEpisode.audioDuration ?? incoming.audioDuration,
-    audioFileSize: latestEpisode.audioFileSize ?? incoming.audioFileSize,
-    audioUrl: latestEpisode.audioUrl.isNotEmpty
-        ? latestEpisode.audioUrl
+        latest.playbackPosition ?? incoming.playbackPosition,
+    audioDuration: latest.audioDuration ?? incoming.audioDuration,
+    audioFileSize: latest.audioFileSize ?? incoming.audioFileSize,
+    audioUrl: latest.audioUrl.isNotEmpty
+        ? latest.audioUrl
         : incoming.audioUrl,
     playbackRate: resolvedPlaybackRate,
-    isPlayed: latestEpisode.isPlayed || incoming.isPlayed,
+    isPlayed: latest.isPlayed || incoming.isPlayed,
   );
 }
 
 @visibleForTesting
 Future<PodcastEpisodeModel> resolveEpisodeForPlayback(
   PodcastEpisodeModel incoming,
-  Future<PodcastEpisodeDetailResponse> Function() fetchLatest,
+  Future<PodcastEpisodeModel> Function() fetchLatest,
 ) async {
   try {
     final latest = await fetchLatest();

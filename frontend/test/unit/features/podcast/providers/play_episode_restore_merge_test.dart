@@ -104,7 +104,7 @@ PodcastEpisodeModel _buildIncomingEpisode({
   );
 }
 
-PodcastEpisodeDetailResponse _buildDetailResponse({
+PodcastEpisodeModel _buildDetailResponse({
   int? playbackPosition = 120,
   int? audioDuration = 2400,
   String audioUrl = 'https://example.com/detail.mp3',
@@ -113,7 +113,7 @@ PodcastEpisodeDetailResponse _buildDetailResponse({
   DateTime? lastPlayedAt,
   Map<String, dynamic>? subscription = const {'title': 'Detail Show'},
 }) {
-  return PodcastEpisodeDetailResponse(
+  return PodcastEpisodeModel(
     id: 1,
     subscriptionId: 101,
     title: 'Detail Episode',

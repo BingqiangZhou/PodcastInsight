@@ -71,6 +71,11 @@ class PodcastEpisodeModel extends Equatable {
   @JsonKey(name: 'summary_processing_time')
   final double? summaryProcessingTime;
 
+  // Additional detail fields (from episode detail endpoint)
+  final Map<String, dynamic>? subscription;
+  @JsonKey(name: 'related_episodes')
+  final List<dynamic>? relatedEpisodes;
+
   const PodcastEpisodeModel({
     required this.id,
     required this.subscriptionId,
@@ -106,6 +111,8 @@ class PodcastEpisodeModel extends Equatable {
     this.summaryErrorMessage,
     this.summaryModelUsed,
     this.summaryProcessingTime,
+    this.subscription,
+    this.relatedEpisodes,
   });
 
   factory PodcastEpisodeModel.fromJson(Map<String, dynamic> json) =>
@@ -148,6 +155,8 @@ class PodcastEpisodeModel extends Equatable {
     String? summaryErrorMessage,
     String? summaryModelUsed,
     double? summaryProcessingTime,
+    Map<String, dynamic>? subscription,
+    List<dynamic>? relatedEpisodes,
   }) {
     return PodcastEpisodeModel(
       id: id ?? this.id,
@@ -185,6 +194,8 @@ class PodcastEpisodeModel extends Equatable {
       summaryModelUsed: summaryModelUsed ?? this.summaryModelUsed,
       summaryProcessingTime:
           summaryProcessingTime ?? this.summaryProcessingTime,
+      subscription: subscription ?? this.subscription,
+      relatedEpisodes: relatedEpisodes ?? this.relatedEpisodes,
     );
   }
 
@@ -255,6 +266,8 @@ class PodcastEpisodeModel extends Equatable {
     summaryErrorMessage,
     summaryModelUsed,
     summaryProcessingTime,
+    subscription,
+    relatedEpisodes,
   ];
 }
 
@@ -294,230 +307,6 @@ class PodcastEpisodeListResponse extends Equatable {
     pages,
     subscriptionId,
     nextCursor,
-  ];
-}
-
-@JsonSerializable()
-class PodcastEpisodeDetailResponse extends Equatable {
-  // Episode fields (directly from backend)
-  final int id;
-  @JsonKey(name: 'subscription_id')
-  final int subscriptionId;
-  @JsonKey(name: 'subscription_image_url')
-  final String? subscriptionImageUrl;
-  final String title;
-  final String? description;
-  @JsonKey(name: 'audio_url')
-  final String audioUrl;
-  @JsonKey(name: 'audio_duration')
-  final int? audioDuration;
-  @JsonKey(name: 'audio_file_size')
-  final int? audioFileSize;
-  @JsonKey(name: 'published_at')
-  final DateTime publishedAt;
-  @JsonKey(name: 'image_url')
-  final String? imageUrl;
-  @JsonKey(name: 'item_link')
-  final String? itemLink;
-  @JsonKey(name: 'transcript_url')
-  final String? transcriptUrl;
-  @JsonKey(name: 'transcript_content')
-  final String? transcriptContent;
-  @JsonKey(name: 'ai_summary')
-  final String? aiSummary;
-  @JsonKey(name: 'summary_version')
-  final String? summaryVersion;
-  @JsonKey(name: 'ai_confidence_score')
-  final double? aiConfidenceScore;
-  @JsonKey(name: 'play_count')
-  final int playCount;
-  @JsonKey(name: 'last_played_at')
-  final DateTime? lastPlayedAt;
-  final int? season;
-  @JsonKey(name: 'episode_number')
-  final int? episodeNumber;
-  final bool explicit;
-  final String status;
-  final Map<String, dynamic>? metadata;
-
-  // Playback state
-  @JsonKey(name: 'playback_position')
-  final int? playbackPosition;
-  @JsonKey(name: 'is_playing')
-  final bool isPlaying;
-  @JsonKey(name: 'playback_rate')
-  final double playbackRate;
-  @JsonKey(name: 'is_played')
-  final bool? isPlayed;
-
-  @JsonKey(name: 'created_at')
-  final DateTime createdAt;
-  @JsonKey(name: 'updated_at')
-  final DateTime? updatedAt;
-  @JsonKey(name: 'summary_status')
-  final String? summaryStatus;
-  @JsonKey(name: 'summary_error_message')
-  final String? summaryErrorMessage;
-  @JsonKey(name: 'summary_model_used')
-  final String? summaryModelUsed;
-  @JsonKey(name: 'summary_processing_time')
-  final double? summaryProcessingTime;
-
-  // Additional fields
-  final Map<String, dynamic>? subscription;
-  @JsonKey(name: 'related_episodes')
-  final List<dynamic>? relatedEpisodes;
-
-  const PodcastEpisodeDetailResponse({
-    required this.id,
-    required this.subscriptionId,
-    this.subscriptionImageUrl,
-    required this.title,
-    this.description,
-    required this.audioUrl,
-    this.audioDuration,
-    this.audioFileSize,
-    required this.publishedAt,
-    this.imageUrl,
-    this.itemLink,
-    this.transcriptUrl,
-    this.transcriptContent,
-    this.aiSummary,
-    this.summaryVersion,
-    this.aiConfidenceScore,
-    this.playCount = 0,
-    this.lastPlayedAt,
-    this.season,
-    this.episodeNumber,
-    this.explicit = false,
-    this.status = 'published',
-    this.metadata,
-    this.playbackPosition,
-    this.isPlaying = false,
-    this.playbackRate = 1.0,
-    this.isPlayed,
-    required this.createdAt,
-    this.updatedAt,
-    this.summaryStatus,
-    this.summaryErrorMessage,
-    this.summaryModelUsed,
-    this.summaryProcessingTime,
-    this.subscription,
-    this.relatedEpisodes,
-  });
-
-  factory PodcastEpisodeDetailResponse.fromJson(Map<String, dynamic> json) =>
-      _$PodcastEpisodeDetailResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$PodcastEpisodeDetailResponseToJson(this);
-
-  // Helper method to convert to PodcastEpisodeModel
-  PodcastEpisodeModel toEpisodeModel() {
-    return PodcastEpisodeModel(
-      id: id,
-      subscriptionId: subscriptionId,
-      subscriptionImageUrl: subscriptionImageUrl,
-      title: title,
-      description: description,
-      audioUrl: audioUrl,
-      audioDuration: audioDuration,
-      audioFileSize: audioFileSize,
-      publishedAt: publishedAt,
-      imageUrl: imageUrl, // ✅ 修复：添加缺失的 imageUrl 字段
-      itemLink: itemLink,
-      transcriptUrl: transcriptUrl,
-      transcriptContent: transcriptContent,
-      aiSummary: aiSummary,
-      summaryVersion: summaryVersion,
-      aiConfidenceScore: aiConfidenceScore,
-      playCount: playCount,
-      lastPlayedAt: lastPlayedAt,
-      season: season,
-      episodeNumber: episodeNumber,
-      explicit: explicit,
-      status: status,
-      metadata: metadata,
-      playbackPosition: playbackPosition,
-      isPlaying: isPlaying,
-      playbackRate: playbackRate,
-      isPlayed: isPlayed ?? false,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      summaryStatus: summaryStatus,
-      summaryErrorMessage: summaryErrorMessage,
-      summaryModelUsed: summaryModelUsed,
-      summaryProcessingTime: summaryProcessingTime,
-    );
-  }
-
-  // Helper getters for UI display
-  String get formattedDuration {
-    final duration = audioDuration;
-    if (duration == null) return '--:--';
-    return TimeFormatter.formatDuration(Duration(seconds: duration));
-  }
-
-  String get formattedPlaybackPosition {
-    final position = playbackPosition;
-    if (position == null) return '00:00';
-    return TimeFormatter.formatDuration(Duration(seconds: position));
-  }
-
-  double get progressPercentage {
-    final duration = audioDuration;
-    final position = playbackPosition;
-    if (duration == null || position == null) return 0.0;
-    return (position / duration).clamp(0.0, 1.0);
-  }
-
-  String get episodeIdentifier {
-    final s = season;
-    final ep = episodeNumber;
-    if (s != null && ep != null) {
-      return 'S${s.toString().padLeft(2, '0')}E${ep.toString().padLeft(2, '0')}';
-    } else if (ep != null) {
-      return 'Episode $ep';
-    }
-    return '';
-  }
-
-  @override
-  List<Object?> get props => [
-    id,
-    subscriptionId,
-    subscriptionImageUrl,
-    title,
-    description,
-    audioUrl,
-    audioDuration,
-    audioFileSize,
-    publishedAt,
-    imageUrl,
-    itemLink,
-    transcriptUrl,
-    transcriptContent,
-    aiSummary,
-    summaryVersion,
-    aiConfidenceScore,
-    playCount,
-    lastPlayedAt,
-    season,
-    episodeNumber,
-    explicit,
-    status,
-    metadata,
-    playbackPosition,
-    isPlaying,
-    playbackRate,
-    isPlayed,
-    createdAt,
-    updatedAt,
-    summaryStatus,
-    summaryErrorMessage,
-    summaryModelUsed,
-    summaryProcessingTime,
-    subscription,
-    relatedEpisodes,
   ];
 }
 

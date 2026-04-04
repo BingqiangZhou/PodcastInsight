@@ -6,7 +6,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
 
   bool get _isUltraCompactPhoneLayout => MediaQuery.sizeOf(context).width < 360;
 
-  Widget _buildHeader(PodcastEpisodeDetailResponse episode) {
+  Widget _buildHeader(PodcastEpisodeModel episode) {
     return ValueListenableBuilder<bool>(
       valueListenable: _isHeaderExpandedNotifier,
       builder: (context, isExpanded, _) {
@@ -26,7 +26,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     );
   }
 
-  Widget _buildAnimatedHeader(PodcastEpisodeDetailResponse episode) {
+  Widget _buildAnimatedHeader(PodcastEpisodeModel episode) {
     return ValueListenableBuilder<bool>(
       valueListenable: _isHeaderExpandedNotifier,
       builder: (context, isExpanded, _) {
@@ -47,7 +47,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildHeroHeaderCard(
-    PodcastEpisodeDetailResponse episode, {
+    PodcastEpisodeModel episode, {
     required bool isWide,
     Key? key,
   }) {
@@ -181,7 +181,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildHeroArtwork(
-    PodcastEpisodeDetailResponse episode, {
+    PodcastEpisodeModel episode, {
     required bool isWide,
   }) {
     final size = isWide ? 76.0 : 56.0;
@@ -220,7 +220,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildWideHeaderActionColumn(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     AppLocalizations l10n,
   ) {
     return ConstrainedBox(
@@ -253,7 +253,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildMobileHeroActionColumn(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     AppLocalizations l10n,
   ) {
     return Column(
@@ -275,7 +275,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   String _resolvePodcastTitle(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     AppLocalizations l10n,
   ) {
     final subscription = episode.subscription;
@@ -297,7 +297,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildPodcastTitleChip(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     AppLocalizations l10n,
   ) {
     return StatusBadge(
@@ -377,7 +377,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Future<void> _launchEpisodeSource(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
   ) async {
     final itemLink = episode.itemLink;
     if (itemLink == null || itemLink.trim().isEmpty) {
@@ -392,10 +392,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     if (await canLaunchUrl(linkUri)) {
       await launchUrl(linkUri, mode: LaunchMode.externalApplication);
     }
-  }
-
-  PodcastEpisodeModel _episodeToModel(PodcastEpisodeDetailResponse episode) {
-    return episode.toEpisodeModel();
   }
 
   Future<void> _playOrResumeFromDetail(PodcastEpisodeModel episodeModel) async {
@@ -457,7 +453,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildPlayButton(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     AppLocalizations l10n, {
     required bool compact,
     HeaderCapsuleActionButtonDensity? density,
@@ -506,7 +502,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           padding: padding,
           label: showLabel ? Text(buttonText) : null,
           onPressed: () {
-            unawaited(_playOrResumeFromDetail(_episodeToModel(episode)));
+            unawaited(_playOrResumeFromDetail(episode));
           },
         );
       },
@@ -515,7 +511,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
 
   _EpisodeDetailPlayState _resolveEpisodePlayState(
     AudioEpisodePlayState playStateInfo,
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
   ) {
     final isSameEpisode = playStateInfo.currentEpisodeId == episode.id;
     final isCompleted =
@@ -535,7 +531,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
 
   int _resolveResumePositionMs(
     AudioEpisodePlayState playStateInfo,
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
   ) {
     final isSameEpisode = playStateInfo.currentEpisodeId == episode.id;
     if (isSameEpisode) {
@@ -545,7 +541,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildPlaybackStateBadge(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     AppLocalizations l10n,
   ) {
     return Consumer(
@@ -601,7 +597,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     );
   }
 
-  Widget _buildDateChip(PodcastEpisodeDetailResponse episode) {
+  Widget _buildDateChip(PodcastEpisodeModel episode) {
     return StatusBadge(
       label: EpisodeCardUtils.formatDate(episode.publishedAt),
       icon: Icons.calendar_today_outlined,
@@ -609,7 +605,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     );
   }
 
-  Widget _buildDurationChip(PodcastEpisodeDetailResponse episode) {
+  Widget _buildDurationChip(PodcastEpisodeModel episode) {
     return Consumer(
       builder: (context, ref, _) {
         final activeDuration = ref.watch(
@@ -628,7 +624,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildSourceLinkChip(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     AppLocalizations l10n, {
     bool iconOnly = false,
   }) {
@@ -645,7 +641,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildMobileSourceLinkAction(
-    PodcastEpisodeDetailResponse episode,
+    PodcastEpisodeModel episode,
     AppLocalizations l10n,
   ) {
     final theme = Theme.of(context);
@@ -697,7 +693,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       padHours: false,
     );
   }
-  Widget _buildDownloadButton(PodcastEpisodeDetailResponse episode) {
+  Widget _buildDownloadButton(PodcastEpisodeModel episode) {
     return Consumer(
       builder: (context, ref, _) {
         final asyncTask = ref.watch(episodeDownloadStatusProvider(episode.id));
@@ -798,7 +794,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     );
   }
 
-  void _startDownload(PodcastEpisodeDetailResponse episode) {
+  void _startDownload(PodcastEpisodeModel episode) {
     final sub = episode.subscription;
     final podcastTitle = sub?['title'] as String? ??
         sub?['name'] as String? ??

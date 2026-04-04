@@ -108,7 +108,7 @@ void main() {
   });
 }
 
-Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
+Widget _createWidget({required PodcastEpisodeModel? episode}) {
   return ProviderScope(
     overrides: [
       audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
@@ -135,9 +135,9 @@ Widget _createWidget({required PodcastEpisodeDetailResponse? episode}) {
   );
 }
 
-PodcastEpisodeDetailResponse _episode() {
+PodcastEpisodeModel _episode() {
   final now = DateTime(2026, 3, 11, 9, 30);
-  return PodcastEpisodeDetailResponse(
+  return PodcastEpisodeModel(
     id: 1,
     subscriptionId: 1,
     title: 'Test Episode',
