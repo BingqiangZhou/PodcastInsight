@@ -114,7 +114,7 @@ async def list_subscriptions(
     ]
     pages = (total + size - 1) // size
     response_data = PodcastSubscriptionListResponse(
-        subscriptions=subscription_responses,
+        items=subscription_responses,
         total=total,
         page=page,
         size=size,

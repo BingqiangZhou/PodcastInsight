@@ -115,7 +115,7 @@ def build_episode_list_response(
 ) -> PodcastEpisodeListResponse:
     """Build the paginated episode list response."""
     return PodcastEpisodeListResponse(
-        episodes=[
+        items=[
             PodcastEpisodeResponse(**episode) for episode in _episode_payloads(episodes)
         ],
         total=total,
@@ -137,7 +137,7 @@ def build_playback_history_list_response(
 ) -> PodcastPlaybackHistoryListResponse:
     """Build the lightweight playback history response."""
     return PodcastPlaybackHistoryListResponse(
-        episodes=[
+        items=[
             PodcastPlaybackHistoryItemResponse(**episode) for episode in episodes
         ],
         total=total,
@@ -167,7 +167,7 @@ def build_conversation_session_list_response(
 ) -> ConversationSessionListResponse:
     """Build the conversation session list response."""
     return ConversationSessionListResponse(
-        sessions=[build_conversation_session_response(session) for session in sessions],
+        items=[build_conversation_session_response(session) for session in sessions],
         total=len(sessions),
     )
 
@@ -230,9 +230,9 @@ def build_daily_report_dates_response(
     payload: dict[str, Any],
 ) -> PodcastDailyReportDatesResponse:
     """Build the report dates response."""
-    dates = [DailyReportDateItem(**item) for item in payload.get("dates", [])]
+    items = [DailyReportDateItem(**item) for item in payload.get("dates", [])]
     return PodcastDailyReportDatesResponse(
-        dates=dates,
+        items=items,
         total=payload["total"],
         page=payload["page"],
         size=payload["size"],
@@ -405,11 +405,11 @@ def build_pending_transcriptions_response(
     """Build the pending transcription list response."""
     normalized = pending_transcriptions_projection_to_payload(payload)
     return PodcastPendingTranscriptionsResponse(
-        total=normalized["total"],
-        tasks=[
+        items=[
             PodcastPendingTranscriptionTaskResponse(**task)
             for task in normalized.get("tasks", [])
         ],
+        total=normalized["total"],
     )
 
 
@@ -441,12 +441,16 @@ def build_summary_models_response(
 def build_highlight_list_response(payload: dict[str, Any]) -> HighlightListResponse:
     """Build the highlights list response."""
     items = [HighlightResponse(**item) for item in payload.get("items", [])]
+    total = payload["total"]
+    size = payload.get("per_page") or payload.get("size", 20)
+    page = payload["page"]
+    pages = (total + size - 1) // size if size > 0 else 0
     return HighlightListResponse(
         items=items,
-        total=payload["total"],
-        page=payload["page"],
-        per_page=payload["per_page"],
-        has_more=payload["has_more"],
+        total=total,
+        page=page,
+        size=size,
+        pages=pages,
     )
 
 

@@ -109,9 +109,9 @@ class PodcastSubscriptionResponse(PodcastTimestampedSchema):
 
 
 class PodcastSubscriptionListResponse(PodcastBaseSchema):
-    """播客订阅列表响应"""
+    """播客订阅列表响应 -- unified with PaginatedResponse shape."""
 
-    subscriptions: list[PodcastSubscriptionResponse]
+    items: list[PodcastSubscriptionResponse]
     total: int
     page: int
     size: int
@@ -157,9 +157,9 @@ class PodcastEpisodeResponse(PodcastTimestampedSchema):
 
 
 class PodcastEpisodeListResponse(PodcastBaseSchema):
-    """播客单集列表响应"""
+    """播客单集列表响应 -- unified with PaginatedResponse shape."""
 
-    episodes: list[PodcastEpisodeResponse]
+    items: list[PodcastEpisodeResponse]
     total: int
     page: int
     size: int
@@ -184,9 +184,9 @@ class PodcastPlaybackHistoryItemResponse(PodcastBaseSchema):
 
 
 class PodcastPlaybackHistoryListResponse(PodcastBaseSchema):
-    """Lightweight playback history list response."""
+    """Lightweight playback history list response -- unified with PaginatedResponse shape."""
 
-    episodes: list[PodcastPlaybackHistoryItemResponse]
+    items: list[PodcastPlaybackHistoryItemResponse]
     total: int
     page: int
     size: int
@@ -252,9 +252,9 @@ class DailyReportDateItem(PodcastBaseSchema):
 
 
 class PodcastDailyReportDatesResponse(PodcastBaseSchema):
-    """Paginated report date list response."""
+    """Paginated report date list response -- unified with PaginatedResponse shape."""
 
-    dates: list[DailyReportDateItem] = Field(default_factory=list)
+    items: list[DailyReportDateItem] = Field(default_factory=list)
     total: int
     page: int
     size: int
@@ -690,10 +690,10 @@ class PodcastPendingTranscriptionTaskResponse(PodcastBaseSchema):
 
 
 class PodcastPendingTranscriptionsResponse(PodcastBaseSchema):
-    """待处理转录任务列表响应"""
+    """待处理转录任务列表响应 -- unified with PaginatedResponse shape."""
 
+    items: list[PodcastPendingTranscriptionTaskResponse] = Field(default_factory=list)
     total: int
-    tasks: list[PodcastPendingTranscriptionTaskResponse] = Field(default_factory=list)
 
 
 # === Conversation相关 ===
@@ -764,9 +764,9 @@ class ConversationSessionResponse(PodcastBaseSchema):
 
 
 class ConversationSessionListResponse(PodcastBaseSchema):
-    """对话会话列表响应"""
+    """对话会话列表响应 -- unified with PaginatedResponse shape."""
 
-    sessions: list[ConversationSessionResponse]
+    items: list[ConversationSessionResponse]
     total: int
 
 
@@ -924,13 +924,13 @@ class HighlightResponse(PodcastBaseSchema):
 
 
 class HighlightListResponse(PodcastBaseSchema):
-    """高光列表响应"""
+    """高光列表响应 -- unified with PaginatedResponse shape."""
 
     items: list[HighlightResponse] = Field(default_factory=list)
     total: int
     page: int
-    per_page: int
-    has_more: bool
+    size: int
+    pages: int
 
 
 class HighlightDatesResponse(PodcastBaseSchema):
