@@ -2752,5 +2752,9 @@
     "ai_tab_chat_subtitle": "Chat with AI about your podcasts",
     "@ai_tab_chat_subtitle":  {
                                     "description":  "AI tab chat assistant card subtitle"
+                                },
+    "ai_summary_available": "AI Summary available",
+    "@ai_summary_available":  {
+                                    "description":  "Tooltip for the AI summary badge on episode cards"
                                 }
 }

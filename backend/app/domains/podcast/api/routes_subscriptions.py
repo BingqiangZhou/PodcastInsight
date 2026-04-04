@@ -1,7 +1,7 @@
-"""Podcast subscription routes under the subscription domain.
+"""Podcast subscription routes under the podcast domain.
 
 All endpoints here are mounted under:
-    /api/v1/subscriptions/podcasts*
+    /api/v1/podcasts/subscriptions*
 """
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
@@ -31,7 +31,7 @@ from app.domains.podcast.services.schedule_service import PodcastScheduleService
 from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
 
 
-router = APIRouter(prefix="/podcasts")
+router = APIRouter()
 
 
 @router.post(
@@ -181,7 +181,7 @@ async def delete_subscription(
 ):
     success = await service.remove_subscription(subscription_id)
     if not success:
-        raise HTTPException(status_code=404, detail="Subscription not found")
+        raise HTTPException(status_code=404, detail="Subscription not found") from None
     # TODO: Add a proper response model (e.g. ActionSuccessResponse) instead of raw dict
     return {"success": True, "message": "Subscription deleted"}
 
@@ -203,7 +203,7 @@ async def refresh_subscription(
             "message": f"Updated, found {len(new_episodes)} new episodes",
         }
     except SubscriptionNotFoundError:
-        raise HTTPException(status_code=404, detail="Subscription not found")
+        raise HTTPException(status_code=404, detail="Subscription not found") from None
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
@@ -226,7 +226,7 @@ async def reparse_subscription(
         # TODO: Add a proper response model (e.g. ReparseResponse) instead of raw dict
         return {"success": True, "result": result}
     except SubscriptionNotFoundError:
-        raise HTTPException(status_code=404, detail="Subscription not found")
+        raise HTTPException(status_code=404, detail="Subscription not found") from None
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:

@@ -73,7 +73,7 @@ $headers = @{
 
 Write-Host "Checking protected podcast endpoints..."
 $subscriptions = Invoke-JsonRequest `
-    -Uri "$normalizedBaseUrl/api/v1/subscriptions/podcasts?page=1&size=20" `
+    -Uri "$normalizedBaseUrl/api/v1/podcasts/subscriptions?page=1&size=20" `
     -Method "Get" `
     -Headers $headers
 $feed = Invoke-JsonRequest `

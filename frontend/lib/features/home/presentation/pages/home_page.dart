@@ -14,7 +14,6 @@ import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
-import 'package:personal_ai_assistant/main.dart' as main_app;
 
 /// Shell widget for the main tab navigation using StatefulShellRoute.
 ///
@@ -261,11 +260,11 @@ class _HomeShellWidgetState extends ConsumerState<HomeShellWidget>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
   void _volumeUp() {
-    main_app.audioHandler.volumeUp();
+    ref.read(audioHandlerProvider).volumeUp();
   }
 
   void _volumeDown() {
-    main_app.audioHandler.volumeDown();
+    ref.read(audioHandlerProvider).volumeDown();
   }
 
   void _nextEpisode() {

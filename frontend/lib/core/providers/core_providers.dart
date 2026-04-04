@@ -7,7 +7,6 @@ import 'package:personal_ai_assistant/core/network/dio_client.dart';
 import 'package:personal_ai_assistant/core/network/server_health_service.dart';
 import 'package:personal_ai_assistant/core/services/app_cache_service.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 
 // Dio Client Provider
 final dioClientProvider = Provider<DioClient>((ref) {
@@ -71,8 +70,9 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
   /// Clear all server-related data when switching servers.
   ///
   /// Feature-layer providers listen to [serverConfigVersionProvider] and
-  /// perform their own cleanup, so this method does NOT import any feature
-  /// modules directly.
+  /// perform their own cleanup (e.g. auth clears tokens, podcast clears
+  /// caches).  This method does NOT import any feature modules directly,
+  /// preserving the core -> feature dependency boundary.
   Future<void> _clearAllServerData() async {
     final dioClient = ref.read(dioClientProvider);
 
@@ -89,9 +89,6 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
     // 4. Bump the server-config version so that feature-layer listeners
     //    invalidate their own caches and state.
     ref.read(serverConfigVersionProvider.notifier).bump();
-
-    // 5. Clear auth tokens and reset auth state (triggers router redirect)
-    await ref.read(authProvider.notifier).clearLocalAuthState();
   }
 
   /// Update server base URL and apply to DioClient

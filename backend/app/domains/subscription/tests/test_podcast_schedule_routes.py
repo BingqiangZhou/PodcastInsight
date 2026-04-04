@@ -24,7 +24,7 @@ def test_get_subscription_schedule_returns_assembled_response(
         )
     )
 
-    response = client.get("/api/v1/subscriptions/podcasts/8/schedule")
+    response = client.get("/api/v1/podcasts/subscriptions/8/schedule")
 
     assert response.status_code == 200
     payload = response.json()
@@ -51,7 +51,7 @@ def test_get_all_subscription_schedules_returns_projection_list(
         ),
     ]
 
-    response = client.get("/api/v1/subscriptions/podcasts/schedule/all")
+    response = client.get("/api/v1/podcasts/subscriptions/schedule/all")
 
     assert response.status_code == 200
     payload = response.json()

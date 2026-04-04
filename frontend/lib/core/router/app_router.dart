@@ -243,7 +243,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 2: Profile
+          // Branch 2: AI
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/ai',
+                name: 'ai',
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  state: state,
+                  child: const AiTabPage(),
+                ),
+              ),
+            ],
+          ),
+          // Branch 3: Profile
           StatefulShellBranch(
             routes: [
               GoRoute(

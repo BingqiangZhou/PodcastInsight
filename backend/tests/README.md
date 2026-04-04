@@ -60,7 +60,7 @@ $env:DATABASE_URL='postgresql+asyncpg://user:pass@localhost:5432/test'; uv run p
 
 ## Snapshot Coverage
 
-- `tests/test_route_snapshot.py`: `/api/v1/subscriptions/podcasts*` route snapshot.
+- `tests/test_route_snapshot.py`: `/api/v1/podcasts/subscriptions*` route snapshot.
 - `tests/admin/test_admin_route_snapshot.py`: `/api/v1/admin/*` route snapshot.
 - `tests/tasks/test_task_registry.py`: Celery task registration + routes + beat schedule consistency.
 - `tests/tasks/test_transcription_task_flow.py`: transcription success/retry/lock behavior.

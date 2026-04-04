@@ -17,21 +17,7 @@ import 'package:personal_ai_assistant/core/theme/font_provider.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/features/auth/presentation/providers/onboarding_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/audio_handler.dart';
-
-PodcastAudioHandler? _audioHandler;
-
-/// Get the audio handler instance.
-/// Throws StateError if accessed before initialization.
-PodcastAudioHandler get audioHandler {
-  final handler = _audioHandler;
-  if (handler == null) {
-    throw StateError('AudioHandler not initialized. Ensure main() has completed initialization before accessing audioHandler.');
-  }
-  return handler;
-}
-
-/// Check if audio handler is initialized.
-bool get isAudioHandlerInitialized => _audioHandler != null;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 
 void main() {
   runZonedGuarded(
@@ -60,8 +46,15 @@ void main() {
 
       final isMobile = Platform.isAndroid || Platform.isIOS;
 
+      // On mobile platforms, AudioService.init() wraps the handler in a
+      // foreground service that provides lock-screen controls and a
+      // persistent notification. On desktop, we use a plain handler.
+      // The resulting handler is fed into Riverpod via a provider override
+      // so that the entire app accesses a single instance through
+      // [audioHandlerProvider].
+      final PodcastAudioHandler platformAudioHandler;
       if (isMobile) {
-        _audioHandler = await AudioService.init(
+        platformAudioHandler = await AudioService.init(
           builder: PodcastAudioHandler.new,
           config: const AudioServiceConfig(
             androidNotificationChannelId: 'com.personal_ai_assistant.audio',
@@ -76,7 +69,7 @@ void main() {
         );
         logger.AppLogger.info('AudioService initialized (mobile platform)');
       } else {
-        _audioHandler = PodcastAudioHandler();
+        platformAudioHandler = PodcastAudioHandler();
         logger.AppLogger.info(
           'PodcastAudioHandler initialized (desktop platform)',
         );
@@ -159,6 +152,7 @@ void main() {
         ProviderScope(
           overrides: [
             localStorageServiceProvider.overrideWithValue(storageService),
+            audioHandlerProvider.overrideWithValue(platformAudioHandler),
             initialThemeModeCodeProvider.overrideWithValue(
               initialThemeModeCode,
             ),

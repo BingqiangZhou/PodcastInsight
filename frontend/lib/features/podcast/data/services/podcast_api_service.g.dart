@@ -32,7 +32,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts',
+            '/podcasts/subscriptions',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -70,7 +70,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts',
+            '/podcasts/subscriptions',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -97,7 +97,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/${subscriptionId}',
+            '/podcasts/subscriptions/${subscriptionId}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -124,7 +124,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'DELETE', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/${subscriptionId}',
+            '/podcasts/subscriptions/${subscriptionId}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -146,7 +146,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/bulk-delete',
+            '/podcasts/subscriptions/bulk-delete',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -173,7 +173,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/${subscriptionId}/refresh',
+            '/podcasts/subscriptions/${subscriptionId}/refresh',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -195,7 +195,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/${subscriptionId}/reparse',
+            '/podcasts/subscriptions/${subscriptionId}/reparse',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -224,7 +224,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/${subscriptionId}/schedule',
+            '/podcasts/subscriptions/${subscriptionId}/schedule',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -255,7 +255,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'PATCH', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/${subscriptionId}/schedule',
+            '/podcasts/subscriptions/${subscriptionId}/schedule',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -1308,7 +1308,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/schedule/all',
+            '/podcasts/subscriptions/schedule/all',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -1343,7 +1343,7 @@ class _PodcastApiService implements PodcastApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/subscriptions/podcasts/schedule/batch-update',
+            '/podcasts/subscriptions/schedule/batch-update',
             queryParameters: queryParameters,
             data: _data,
           )

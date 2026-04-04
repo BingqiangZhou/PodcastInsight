@@ -141,7 +141,7 @@ backend/
 - API 前缀: `/api/v1`
 - 管理面板: `/api/v1/admin/*`
 - 认证: `/api/v1/auth/*`
-- 播客订阅: `/api/v1/subscriptions/*`
+- 播客订阅: `/api/v1/podcasts/subscriptions/*`
 - 播客单集: `/api/v1/podcasts/episodes/*`
 
 ## 相关文档

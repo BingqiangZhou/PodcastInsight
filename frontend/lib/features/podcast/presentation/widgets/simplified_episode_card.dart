@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/core/utils/episode_description_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/base_episode_card.dart';
@@ -65,6 +66,18 @@ class SimplifiedEpisodeCard extends ConsumerWidget {
         onTap: onTap,
         onPlay: onPlay,
         onAddToQueue: onAddToQueue,
+        additionalMetadata: episode.aiSummary != null
+            ? [
+                Tooltip(
+                  message: context.l10n.ai_summary_available,
+                  child: Icon(
+                    Icons.auto_awesome,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ]
+            : null,
       ),
     );
   }

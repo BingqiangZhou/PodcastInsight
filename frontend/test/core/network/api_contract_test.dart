@@ -37,7 +37,7 @@ void main() {
       );
     });
 
-    test('subscription list uses /subscriptions/podcasts query contract', () async {
+    test('subscription list uses /podcasts/subscriptions query contract', () async {
       final adapter = _RecordingHttpClientAdapter(
         responder: (options) => _responseBody(
           options,
@@ -57,7 +57,7 @@ void main() {
       await service.listSubscriptions(2, 20, null, 'active');
 
       expect(adapter.lastRequest!.method, 'GET');
-      expect(adapter.lastRequest!.uri.path, '/api/v1/subscriptions/podcasts');
+      expect(adapter.lastRequest!.uri.path, '/api/v1/podcasts/subscriptions');
       expect(adapter.lastRequest!.uri.queryParameters, {
         'page': '2',
         'size': '20',

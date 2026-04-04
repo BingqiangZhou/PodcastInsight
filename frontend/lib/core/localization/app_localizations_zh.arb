@@ -2707,5 +2707,9 @@
     "ai_tab_chat_subtitle": "与 AI 聊聊你的播客",
     "@ai_tab_chat_subtitle":  {
                                     "description":  "AI 标签页聊天助手卡片副标题"
+                                },
+    "ai_summary_available": "AI 摘要可用",
+    "@ai_summary_available":  {
+                                    "description":  "播客单集卡片上 AI 摘要徽章的工具提示"
                                 }
 }

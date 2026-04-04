@@ -14,7 +14,7 @@ def test_app_import_and_factory_smoke() -> None:
 
 def test_admin_router_import_smoke() -> None:
     paths = {route.path for route in admin_router.routes}
-    assert "/subscriptions" in paths
+    assert "/subscriptions" in paths  # admin subscription routes
 
 
 def test_celery_app_lazy_creation_smoke() -> None:

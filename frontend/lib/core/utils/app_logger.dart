@@ -46,8 +46,13 @@ class AppLogger {
     _config = const AppLoggerConfig.production();
   }
 
+  /// Log a debug message.
+  ///
+  /// Short-circuits immediately in release builds via [kDebugMode] to avoid
+  /// any overhead. The [_config.debugEnabled] flag provides a secondary guard
+  /// that can be toggled at runtime in debug builds.
   static void debug(String message, {String? tag}) {
-    if (!_config.debugEnabled) {
+    if (!kDebugMode || !_config.debugEnabled) {
       return;
     }
     debugPrint('${_prefix(tag)}$message');

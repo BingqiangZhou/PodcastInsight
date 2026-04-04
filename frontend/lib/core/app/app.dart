@@ -16,11 +16,12 @@ import 'package:personal_ai_assistant/core/theme/font_provider.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_server_config_listener.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_server_config_listener.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/widgets/update_dialog.dart';
 
-import 'package:personal_ai_assistant/main.dart' as main_app;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
 
 /// Splash screen widget that matches the Mindriver brand style
@@ -152,7 +153,7 @@ class _PersonalAIAssistantAppState
       // stopService() will:
       // - On mobile: Stop AudioService, stop playback, dispose player
       // - On desktop: Stop playback, dispose player
-      await main_app.audioHandler.stopService();
+      await ref.read(audioHandlerProvider).stopService();
 
       logger.AppLogger.debug('[AppInit] Audio handler stopped and cleaned up');
     } catch (e) {
@@ -333,6 +334,10 @@ class _PersonalAIAssistantAppState
     // Keep the podcast server-config listener active so it can react to
     // server switches even when no podcast page is currently mounted.
     ref.watch(podcastServerConfigListenerProvider);
+
+    // Keep the auth server-config listener active so auth state is cleared
+    // when the user switches backend servers.
+    ref.watch(authServerConfigListenerProvider);
 
     // Show splash screen while initializing
     if (!_isInitialized) {

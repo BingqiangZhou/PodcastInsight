@@ -34,7 +34,7 @@ def include_application_routers(app: FastAPI) -> None:
     )
     app.include_router(
         podcast_subscription_router,
-        prefix=f"{settings.API_V1_STR}/subscriptions",
+        prefix=f"{settings.API_V1_STR}/podcasts/subscriptions",
         tags=["podcast-subscriptions"],
     )
     app.include_router(

@@ -178,7 +178,7 @@ async def test_podcast_list_first_load_performance(performance_client: AsyncClie
     # Note: In real test, we'd clear Redis cache here
 
     start = time.time()
-    response = await performance_client.get("/api/v1/subscriptions/podcasts")
+    response = await performance_client.get("/api/v1/podcasts/subscriptions")
     wall_duration_ms = (time.time() - start) * 1000
     duration_ms = _server_duration_ms(response, wall_duration_ms)
 
@@ -193,14 +193,14 @@ async def test_podcast_list_first_load_performance(performance_client: AsyncClie
 @pytest.mark.asyncio
 async def test_podcast_list_cache_performance(performance_client: AsyncClient):
     """Test podcast list HTTP cache behavior via ETag conditional request."""
-    first_response = await performance_client.get("/api/v1/subscriptions/podcasts")
+    first_response = await performance_client.get("/api/v1/podcasts/subscriptions")
     etag = first_response.headers.get("etag") or first_response.headers.get("ETag")
     assert etag, "Subscription list response did not include ETag header"
 
     # Conditional request should return 304 when unchanged.
     start = time.time()
     response = await performance_client.get(
-        "/api/v1/subscriptions/podcasts",
+        "/api/v1/podcasts/subscriptions",
         headers={"If-None-Match": etag},
     )
     wall_duration_ms = (time.time() - start) * 1000
@@ -285,7 +285,7 @@ async def test_user_stats_performance(performance_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_episode_list_performance(performance_client: AsyncClient):
     """Test episode list loading performance"""
-    response = await performance_client.get("/api/v1/subscriptions/podcasts")
+    response = await performance_client.get("/api/v1/podcasts/subscriptions")
     url = "/api/v1/podcasts/episodes"
     if response.status_code == 200 and response.json().get("subscriptions"):
         subscription_id = response.json()["subscriptions"][0]["id"]
@@ -307,7 +307,7 @@ async def test_concurrent_users(performance_client: AsyncClient):
 
     async def make_request(client: AsyncClient, user_id: int):
         start = time.time()
-        response = await client.get("/api/v1/subscriptions/podcasts")
+        response = await client.get("/api/v1/podcasts/subscriptions")
         wall_duration_ms = (time.time() - start) * 1000
         duration_ms = _server_duration_ms(response, wall_duration_ms)
         return user_id, duration_ms, response.status_code
@@ -335,7 +335,7 @@ async def test_cache_hit_rate_measurement(performance_client: AsyncClient):
     """Measure cache hit rate over multiple requests"""
     num_requests = 10
 
-    first_response = await performance_client.get("/api/v1/subscriptions/podcasts")
+    first_response = await performance_client.get("/api/v1/podcasts/subscriptions")
     etag = first_response.headers.get("etag") or first_response.headers.get("ETag")
     assert etag, "Subscription list response did not include ETag header"
 
@@ -345,7 +345,7 @@ async def test_cache_hit_rate_measurement(performance_client: AsyncClient):
     for _ in range(num_requests):
         start = time.time()
         response = await performance_client.get(
-            "/api/v1/subscriptions/podcasts",
+            "/api/v1/podcasts/subscriptions",
             headers={"If-None-Match": etag},
         )
         wall_duration_ms = (time.time() - start) * 1000

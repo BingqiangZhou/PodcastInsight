@@ -2127,4 +2127,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ai_tab_chat_subtitle => 'Chat with AI about your podcasts';
+
+  @override
+  String get ai_summary_available => 'AI Summary available';
 }

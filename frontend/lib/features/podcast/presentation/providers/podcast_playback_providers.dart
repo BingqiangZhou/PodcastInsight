@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/riverpod.dart';
 
-import 'package:personal_ai_assistant/main.dart' as main_app;
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/audio_handler.dart';
 
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
@@ -130,11 +129,11 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   static const String _kSnapshotPersist = 'snapshotPersist';
   static const String _kPositionDebounce = 'positionDebounce';
 
-  PodcastAudioHandler get _audioHandler => main_app.audioHandler;
+  PodcastAudioHandler get _audioHandler => ref.read(audioHandlerProvider);
 
   PodcastAudioHandler? _audioHandlerOrNull() {
     try {
-      return main_app.audioHandler;
+      return ref.read(audioHandlerProvider);
     } catch (e) {
       logger.AppLogger.debug('[Playback] Audio handler not available: $e');
       return null;

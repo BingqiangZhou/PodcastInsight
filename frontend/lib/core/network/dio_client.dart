@@ -16,126 +16,6 @@ import 'package:personal_ai_assistant/core/app/config/app_config.dart' as config
 import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 
-/// Normalizes API responses to handle inconsistent response shapes.
-///
-/// This addresses the backend inconsistency where list endpoints may return
-/// data under either 'items' or 'subscriptions' keys.
-///
-/// Expected normalized shape for list responses:
-/// ```json
-/// {
-///   "items": [...],      // Standardized list key
-///   "total": 123,        // Total count (when paginated)
-///   "page": 1,           // Current page (when paginated)
-///   "size": 20           // Page size (when paginated)
-/// }
-/// ```
-///
-/// Example backend responses that need normalization:
-/// ```json
-/// // Subscriptions endpoint - uses 'subscriptions' key
-/// {"subscriptions": [...], "total": 10}
-///
-/// // Other endpoints - use 'items' key
-/// {"items": [...], "total": 50}
-/// ```
-@immutable
-class ApiResponseNormalizer {
-  /// Normalize a response data map to use consistent field names.
-  ///
-  /// This handles cases where the backend returns 'subscriptions' instead
-  /// of 'items' for list endpoints.
-  static Map<String, dynamic> normalize(dynamic data) {
-    if (data == null) {
-      return {};
-    }
-
-    if (data is! Map) {
-      return data is List ? {'items': data} : {'data': data};
-    }
-
-    final map = Map<String, dynamic>.from(data);
-
-    // Normalize 'subscriptions' to 'items' for consistency
-    if (map.containsKey('subscriptions') && !map.containsKey('items')) {
-      final normalized = Map<String, dynamic>.from(map);
-      normalized['items'] = normalized.remove('subscriptions');
-      if (kDebugMode) {
-        logger.AppLogger.debug(
-          '[ApiResponseNormalizer] Normalized "subscriptions" -> "items"',
-        );
-      }
-      return normalized;
-    }
-
-    // Ensure 'items' exists for list responses
-    if (!map.containsKey('items') && map.containsKey('total')) {
-      // Has 'total' but no 'items' - likely a list response
-      final normalized = Map<String, dynamic>.from(map);
-      // Find the list value
-      for (final key in map.keys) {
-        if (map[key] is List) {
-          normalized['items'] = normalized.remove(key);
-          if (kDebugMode) {
-            logger.AppLogger.debug(
-              '[ApiResponseNormalizer] Normalized "$key" -> "items"',
-            );
-          }
-          break;
-        }
-      }
-      return normalized;
-    }
-
-    return map;
-  }
-
-  /// Extract the items list from a normalized response.
-  static List<T> extractItems<T>(dynamic data) {
-    final normalized = normalize(data);
-    final items = normalized['items'];
-
-    if (items == null) {
-      return [];
-    }
-
-    if (items is! List) {
-      logger.AppLogger.warning(
-        '[ApiResponseNormalizer] Expected "items" to be a List, got ${items.runtimeType}',
-      );
-      return [];
-    }
-
-    return items.cast<T>();
-  }
-
-  /// Extract total count from a normalized response.
-  static int extractTotal(dynamic data, {int defaultValue = 0}) {
-    final normalized = normalize(data);
-    final total = normalized['total'];
-
-    if (total == null) {
-      return defaultValue;
-    }
-
-    if (total is int) {
-      return total;
-    }
-
-    if (total is String) {
-      return int.tryParse(total) ?? defaultValue;
-    }
-
-    return defaultValue;
-  }
-
-  /// Check if a response is a paginated list response.
-  static bool isPaginatedResponse(dynamic data) {
-    final normalized = normalize(data);
-    return normalized.containsKey('items') && normalized.containsKey('total');
-  }
-}
-
 typedef SavedServerBaseUrlLoader = Future<String?> Function();
 
 /// Options for configuring retry behavior on network failures.
@@ -447,23 +327,9 @@ class DioClient {
       }
     }
 
-    // Normalize response data for consistent API response handling
-    final originalData = response.data;
-    final normalizedData = ApiResponseNormalizer.normalize(originalData);
-
-    // Only update if normalization changed the structure
-    if (normalizedData != originalData) {
-      response.data = normalizedData;
-      if (kDebugMode) {
-        logger.AppLogger.debug(
-          '[ApiResponseNormalizer] Normalized response for ${response.requestOptions.path}',
-        );
-      }
-    }
-
     // Debug subscriptions list response shape
     if (kDebugMode) {
-      if (response.requestOptions.path == '/subscriptions/podcasts') {
+      if (response.requestOptions.path == '/podcasts/subscriptions') {
         final data = response.data;
         if (data is Map) {
           logger.AppLogger.debug(

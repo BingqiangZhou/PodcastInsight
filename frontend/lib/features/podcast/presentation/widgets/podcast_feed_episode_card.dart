@@ -74,6 +74,18 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
       onTap: onOpenDetail,
       onPlay: onPlayAndOpenDetail,
       onAddToQueue: onAddToQueue,
+      additionalMetadata: episode.aiSummary != null
+          ? [
+              Tooltip(
+                message: l10n.ai_summary_available,
+                child: Icon(
+                  Icons.auto_awesome,
+                  size: 14,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ]
+          : null,
     );
   }
 }

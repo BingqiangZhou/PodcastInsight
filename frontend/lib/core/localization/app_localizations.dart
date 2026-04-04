@@ -3925,6 +3925,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chat with AI about your podcasts'**
   String get ai_tab_chat_subtitle;
+
+  /// Tooltip for the AI summary badge on episode cards
+  ///
+  /// In en, this message translates to:
+  /// **'AI Summary available'**
+  String get ai_summary_available;
 }
 
 class _AppLocalizationsDelegate

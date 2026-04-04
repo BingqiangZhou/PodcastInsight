@@ -2039,4 +2039,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ai_tab_chat_subtitle => '与 AI 聊聊你的播客';
+
+  @override
+  String get ai_summary_available => 'AI 摘要可用';
 }
