@@ -11,8 +11,8 @@ from app.domains.podcast.services.task_orchestration_service import (
 from app.domains.podcast.services.transcription_workflow_service import (
     TranscriptionWorkflowService,
 )
-from app.domains.podcast.tasks import transcription
-from app.domains.podcast.tasks.handlers_transcription import (
+from app.domains.podcast.tasks import tasks_transcription as transcription
+from app.domains.podcast.tasks.tasks_transcription import (
     process_audio_transcription_handler,
 )
 

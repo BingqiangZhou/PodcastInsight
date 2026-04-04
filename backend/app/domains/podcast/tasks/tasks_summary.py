@@ -1,24 +1,52 @@
-"""Celery tasks for summary generation flows."""
+"""Celery tasks and handlers for summary generation flows.
+
+Merged from: summary_generation.py, handlers_summary.py
+"""
 
 from datetime import UTC, datetime
 
 from app.core.celery_app import celery_app
 from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
-from app.domains.podcast.tasks.handlers_summary import (
-    generate_pending_summaries_handler,
+from app.domains.podcast.tasks.runtime import (
+    log_task_run,
+    run_async,
+    single_instance_task_lock,
+    worker_session,
 )
-from app.domains.podcast.tasks.runtime import log_task_run, run_async, worker_session
+
+
+# ---------------------------------------------------------------------------
+# Handlers (formerly handlers_summary.py)
+# ---------------------------------------------------------------------------
+
+
+async def generate_pending_summaries_handler(session) -> dict:
+    """Generate summaries for pending episodes."""
+    async with single_instance_task_lock(
+        "task:generate_pending_summaries",
+        ttl_seconds=1800,
+    ) as acquired:
+        if not acquired:
+            return {
+                "status": "skipped_locked",
+                "reason": "summary_task_already_running",
+            }
+        workflow = SummaryWorkflowService(session)
+        return await workflow.generate_pending_summaries_run()
+
+
+# ---------------------------------------------------------------------------
+# Tasks (formerly summary_generation.py)
+# ---------------------------------------------------------------------------
 
 
 @celery_app.task(bind=True, max_retries=3)
 def generate_pending_summaries(self):
     started_at = datetime.now(UTC)
-    task_name = (
-        "app.domains.podcast.tasks.summary_generation.generate_pending_summaries"
-    )
-    queue_name = "ai_generation"
+    task_name = "app.domains.podcast.tasks.tasks_summary.generate_pending_summaries"
+    queue_name = "default"
     try:
-        result = run_async(_generate_pending_summaries())
+        result = run_async(_generate_pending_summaries_async())
         log_task_run(
             task_name=task_name,
             queue_name=queue_name,
@@ -41,7 +69,7 @@ def generate_pending_summaries(self):
         raise
 
 
-async def _generate_pending_summaries():
+async def _generate_pending_summaries_async():
     async with worker_session("celery-summary-worker") as session:
         return await generate_pending_summaries_handler(session)
 
@@ -54,11 +82,11 @@ def generate_episode_summary(
     custom_prompt: str | None = None,
 ):
     started_at = datetime.now(UTC)
-    task_name = "app.domains.podcast.tasks.summary_generation.generate_episode_summary"
-    queue_name = "ai_generation"
+    task_name = "app.domains.podcast.tasks.tasks_summary.generate_episode_summary"
+    queue_name = "default"
     try:
         result = run_async(
-            _generate_episode_summary(
+            _generate_episode_summary_async(
                 episode_id=episode_id,
                 summary_model=summary_model,
                 custom_prompt=custom_prompt,
@@ -88,7 +116,7 @@ def generate_episode_summary(
         raise
 
 
-async def _generate_episode_summary(
+async def _generate_episode_summary_async(
     *,
     episode_id: int,
     summary_model: str | None,

@@ -108,7 +108,7 @@ class MaintenanceOrchestrator(BaseOrchestrator):
 
     def enqueue_opml_subscription_episodes(self, **kwargs) -> Any:
         """Queue OPML episode parsing without exposing Celery task imports."""
-        from app.domains.podcast.tasks.opml_import import (
+        from app.domains.podcast.tasks.tasks_maintenance import (
             process_opml_subscription_episodes,
         )
 

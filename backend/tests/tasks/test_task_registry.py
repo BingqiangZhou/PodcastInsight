@@ -6,16 +6,16 @@ from app.core.celery_app import celery_app
 def test_registered_task_names_snapshot() -> None:
     registered_names = set(celery_app.tasks.keys())
     expected_names = {
-        "app.domains.podcast.tasks.subscription_sync.refresh_all_podcast_feeds",
-        "app.domains.podcast.tasks.summary_generation.generate_pending_summaries",
-        "app.domains.podcast.tasks.transcription.process_audio_transcription",
-        "app.domains.podcast.tasks.transcription.process_podcast_episode_with_transcription",
-        "app.domains.podcast.tasks.pending_transcription.process_pending_transcriptions",
-        "app.domains.podcast.tasks.maintenance.cleanup_old_playback_states",
-        "app.domains.podcast.tasks.maintenance.cleanup_old_transcription_temp_files",
-        "app.domains.podcast.tasks.maintenance.log_periodic_task_statistics",
-        "app.domains.podcast.tasks.maintenance.auto_cleanup_cache_files",
-        "app.domains.podcast.tasks.daily_report.generate_daily_podcast_reports",
+        "app.domains.podcast.tasks.tasks_subscription.refresh_all_podcast_feeds",
+        "app.domains.podcast.tasks.tasks_summary.generate_pending_summaries",
+        "app.domains.podcast.tasks.tasks_transcription.process_audio_transcription",
+        "app.domains.podcast.tasks.tasks_transcription.process_podcast_episode_with_transcription",
+        "app.domains.podcast.tasks.tasks_transcription.process_pending_transcriptions",
+        "app.domains.podcast.tasks.tasks_maintenance.cleanup_old_playback_states",
+        "app.domains.podcast.tasks.tasks_maintenance.cleanup_old_transcription_temp_files",
+        "app.domains.podcast.tasks.tasks_maintenance.log_periodic_task_statistics",
+        "app.domains.podcast.tasks.tasks_maintenance.auto_cleanup_cache_files",
+        "app.domains.podcast.tasks.tasks_daily_report.generate_daily_podcast_reports",
     }
     assert expected_names.issubset(registered_names)
 

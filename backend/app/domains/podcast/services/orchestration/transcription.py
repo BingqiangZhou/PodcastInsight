@@ -188,7 +188,9 @@ class TranscriptionOrchestrator(BaseOrchestrator):
         config_db_id: int | None = None,
     ) -> Any:
         """Queue a transcription worker task without exposing Celery imports."""
-        from app.domains.podcast.tasks.transcription import process_audio_transcription
+        from app.domains.podcast.tasks.tasks_transcription import (
+            process_audio_transcription,
+        )
 
         return process_audio_transcription.delay(task_id, config_db_id)
 
@@ -199,7 +201,7 @@ class TranscriptionOrchestrator(BaseOrchestrator):
         user_id: int,
     ) -> Any:
         """Queue the episode transcription/summary pipeline."""
-        from app.domains.podcast.tasks.transcription import (
+        from app.domains.podcast.tasks.tasks_transcription import (
             process_podcast_episode_with_transcription,
         )
 

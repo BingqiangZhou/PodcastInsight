@@ -7,18 +7,18 @@ from app.core.config import settings
 def test_celery_task_routes_snapshot() -> None:
     task_routes = celery_app.conf.task_routes
 
-    assert "app.domains.podcast.tasks.subscription_sync.refresh_all_podcast_feeds" in task_routes
-    assert "app.domains.podcast.tasks.summary_generation.generate_pending_summaries" in task_routes
-    assert "app.domains.podcast.tasks.transcription.process_audio_transcription" in task_routes
-    assert "app.domains.podcast.tasks.pending_transcription.process_pending_transcriptions" in task_routes
-    assert "app.domains.podcast.tasks.maintenance.cleanup_old_playback_states" in task_routes
-    assert "app.domains.podcast.tasks.daily_report.generate_daily_podcast_reports" in task_routes
+    assert "app.domains.podcast.tasks.tasks_subscription.refresh_all_podcast_feeds" in task_routes
+    assert "app.domains.podcast.tasks.tasks_summary.generate_pending_summaries" in task_routes
+    assert "app.domains.podcast.tasks.tasks_transcription.process_audio_transcription" in task_routes
+    assert "app.domains.podcast.tasks.tasks_transcription.process_pending_transcriptions" in task_routes
+    assert "app.domains.podcast.tasks.tasks_maintenance.cleanup_old_playback_states" in task_routes
+    assert "app.domains.podcast.tasks.tasks_daily_report.generate_daily_podcast_reports" in task_routes
 
     assert task_routes[
-        "app.domains.podcast.tasks.subscription_sync.refresh_all_podcast_feeds"
-    ]["queue"] == "subscription_sync"
+        "app.domains.podcast.tasks.tasks_subscription.refresh_all_podcast_feeds"
+    ]["queue"] == "default"
     assert task_routes[
-        "app.domains.podcast.tasks.transcription.process_audio_transcription"
+        "app.domains.podcast.tasks.tasks_transcription.process_audio_transcription"
     ]["queue"] == "transcription"
 
 

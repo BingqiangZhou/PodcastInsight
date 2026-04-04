@@ -11,10 +11,10 @@ def main():
 
     # Check expected tasks
     expected = {
-        "app.domains.podcast.tasks.transcription.process_audio_transcription",
-        "app.domains.podcast.tasks.transcription.process_podcast_episode_with_transcription",
-        "app.domains.podcast.tasks.pending_transcription.process_pending_transcriptions",
-        "app.domains.podcast.tasks.summary_generation.generate_pending_summaries",
+        "app.domains.podcast.tasks.tasks_transcription.process_audio_transcription",
+        "app.domains.podcast.tasks.tasks_transcription.process_podcast_episode_with_transcription",
+        "app.domains.podcast.tasks.tasks_transcription.process_pending_transcriptions",
+        "app.domains.podcast.tasks.tasks_summary.generate_pending_summaries",
     }
 
     registered = set(celery_app.tasks.keys())

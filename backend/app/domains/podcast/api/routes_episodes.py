@@ -53,7 +53,7 @@ from app.domains.podcast.services.episode_service import PodcastEpisodeService
 from app.domains.podcast.services.playback_service import PodcastPlaybackService
 from app.domains.podcast.services.search_service import PodcastSearchService
 from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
-from app.domains.podcast.tasks.summary_generation import (
+from app.domains.podcast.tasks.tasks_summary import (
     generate_episode_summary as generate_episode_summary_task,
 )
 from app.http.errors import bilingual_http_exception

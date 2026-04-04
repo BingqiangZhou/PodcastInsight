@@ -9,7 +9,7 @@ from app.domains.podcast.models import PodcastEpisode
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )
-from app.domains.podcast.tasks.handlers_opml_import import (
+from app.domains.podcast.tasks.tasks_maintenance import (
     process_opml_subscription_episodes_handler,
 )
 

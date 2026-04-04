@@ -9,8 +9,8 @@ from app.core.config import settings
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )
-from app.domains.podcast.tasks import pending_transcription
-from app.domains.podcast.tasks.handlers_pending_transcription import (
+from app.domains.podcast.tasks import tasks_transcription as pending_transcription
+from app.domains.podcast.tasks.tasks_transcription import (
     process_pending_transcriptions_handler,
 )
 
@@ -42,7 +42,7 @@ async def test_backlog_handler_dispatches_candidates(monkeypatch):
         AsyncMock(return_value=expected),
     )
     monkeypatch.setattr(
-        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        "app.domains.podcast.tasks.tasks_transcription.single_instance_task_lock",
         _acquired_lock,
     )
 
@@ -76,7 +76,7 @@ async def test_backlog_handler_skips_reused_actions(monkeypatch):
         ),
     )
     monkeypatch.setattr(
-        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        "app.domains.podcast.tasks.tasks_transcription.single_instance_task_lock",
         _acquired_lock,
     )
 
@@ -109,7 +109,7 @@ async def test_backlog_handler_counts_failures(monkeypatch):
         ),
     )
     monkeypatch.setattr(
-        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        "app.domains.podcast.tasks.tasks_transcription.single_instance_task_lock",
         _acquired_lock,
     )
 
@@ -122,7 +122,7 @@ async def test_backlog_handler_counts_failures(monkeypatch):
 @pytest.mark.asyncio
 async def test_backlog_handler_respects_feature_toggle(monkeypatch):
     monkeypatch.setattr(
-        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        "app.domains.podcast.tasks.tasks_transcription.single_instance_task_lock",
         _acquired_lock,
     )
     monkeypatch.setattr(settings, "TRANSCRIPTION_BACKLOG_ENABLED", False)
@@ -134,7 +134,7 @@ async def test_backlog_handler_respects_feature_toggle(monkeypatch):
 @pytest.mark.asyncio
 async def test_backlog_handler_skips_when_task_lock_is_held(monkeypatch):
     monkeypatch.setattr(
-        "app.domains.podcast.tasks.handlers_pending_transcription.single_instance_task_lock",
+        "app.domains.podcast.tasks.tasks_transcription.single_instance_task_lock",
         _skipped_lock,
     )
 

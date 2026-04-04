@@ -204,7 +204,7 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
-    command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=${CELERY_WORKERS_CORE:-2} -Q subscription_sync,ai_generation,maintenance
+    command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=${CELERY_WORKERS_CORE:-2} -Q default
     # Use shared memory for Chromium
     shm_size: 2gb
     logging: *default-logging

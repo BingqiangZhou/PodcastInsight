@@ -17,39 +17,39 @@ def _build_beat_schedule() -> dict[str, Any]:
     settings = get_settings()
     beat_schedule = {
         "log-task-statistics": {
-            "task": "app.domains.podcast.tasks.maintenance.log_periodic_task_statistics",
+            "task": "app.domains.podcast.tasks.tasks_maintenance.log_periodic_task_statistics",
             "schedule": 600.0,
-            "options": {"queue": "maintenance"},
+            "options": {"queue": "default"},
         },
         "refresh-podcast-feeds": {
-            "task": "app.domains.podcast.tasks.subscription_sync.refresh_all_podcast_feeds",
+            "task": "app.domains.podcast.tasks.tasks_subscription.refresh_all_podcast_feeds",
             "schedule": crontab(minute=0),
-            "options": {"queue": "subscription_sync"},
+            "options": {"queue": "default"},
         },
         "generate-pending-summaries": {
-            "task": "app.domains.podcast.tasks.summary_generation.generate_pending_summaries",
+            "task": "app.domains.podcast.tasks.tasks_summary.generate_pending_summaries",
             "schedule": 1800.0,
-            "options": {"queue": "ai_generation"},
+            "options": {"queue": "default"},
         },
         "auto-cleanup-cache": {
-            "task": "app.domains.podcast.tasks.maintenance.auto_cleanup_cache_files",
+            "task": "app.domains.podcast.tasks.tasks_maintenance.auto_cleanup_cache_files",
             "schedule": crontab(hour=4, minute=0),
-            "options": {"queue": "maintenance"},
+            "options": {"queue": "default"},
         },
         "generate-daily-podcast-reports": {
-            "task": "app.domains.podcast.tasks.daily_report.generate_daily_podcast_reports",
+            "task": "app.domains.podcast.tasks.tasks_daily_report.generate_daily_podcast_reports",
             "schedule": crontab(hour=19, minute=30),
-            "options": {"queue": "ai_generation"},
+            "options": {"queue": "default"},
         },
         "extract-pending-highlights": {
-            "task": "app.domains.podcast.tasks.highlight_extraction.extract_pending_highlights",
+            "task": "app.domains.podcast.tasks.tasks_highlight.extract_pending_highlights",
             "schedule": crontab(minute=30),  # 每小时30分执行
-            "options": {"queue": "ai_generation"},
+            "options": {"queue": "default"},
         },
     }
     if settings.TRANSCRIPTION_BACKLOG_ENABLED:
         beat_schedule["process-pending-transcriptions"] = {
-            "task": "app.domains.podcast.tasks.pending_transcription.process_pending_transcriptions",
+            "task": "app.domains.podcast.tasks.tasks_transcription.process_pending_transcriptions",
             "schedule": crontab(minute=settings.TRANSCRIPTION_BACKLOG_SCHEDULE_MINUTE),
             "options": {"queue": "transcription"},
         }
@@ -80,44 +80,46 @@ def create_celery_app() -> Celery:
         worker_prefetch_multiplier=settings.CELERY_WORKER_PREFETCH_MULTIPLIER,
         worker_max_tasks_per_child=settings.CELERY_WORKER_MAX_TASKS_PER_CHILD,
         task_routes={
-            "app.domains.podcast.tasks.subscription_sync.refresh_all_podcast_feeds": {
-                "queue": "subscription_sync",
+            # Default queue — all tasks except transcription
+            "app.domains.podcast.tasks.tasks_subscription.refresh_all_podcast_feeds": {
+                "queue": "default",
             },
-            "app.domains.podcast.tasks.opml_import.process_opml_subscription_episodes": {
-                "queue": "subscription_sync",
+            "app.domains.podcast.tasks.tasks_maintenance.process_opml_subscription_episodes": {
+                "queue": "default",
             },
-            "app.domains.podcast.tasks.summary_generation.generate_pending_summaries": {
-                "queue": "ai_generation",
+            "app.domains.podcast.tasks.tasks_summary.generate_pending_summaries": {
+                "queue": "default",
             },
-            "app.domains.podcast.tasks.summary_generation.generate_episode_summary": {
-                "queue": "ai_generation",
+            "app.domains.podcast.tasks.tasks_summary.generate_episode_summary": {
+                "queue": "default",
             },
-            "app.domains.podcast.tasks.transcription.process_audio_transcription": {
+            "app.domains.podcast.tasks.tasks_maintenance.cleanup_old_playback_states": {
+                "queue": "default",
+            },
+            "app.domains.podcast.tasks.tasks_maintenance.cleanup_old_transcription_temp_files": {
+                "queue": "default",
+            },
+            "app.domains.podcast.tasks.tasks_maintenance.auto_cleanup_cache_files": {
+                "queue": "default",
+            },
+            "app.domains.podcast.tasks.tasks_daily_report.generate_daily_podcast_reports": {
+                "queue": "default",
+            },
+            "app.domains.podcast.tasks.tasks_highlight.extract_episode_highlights": {
+                "queue": "default",
+            },
+            "app.domains.podcast.tasks.tasks_highlight.extract_pending_highlights": {
+                "queue": "default",
+            },
+            # Transcription queue — isolated for heavy I/O work
+            "app.domains.podcast.tasks.tasks_transcription.process_audio_transcription": {
                 "queue": "transcription",
             },
-            "app.domains.podcast.tasks.transcription.process_podcast_episode_with_transcription": {
+            "app.domains.podcast.tasks.tasks_transcription.process_podcast_episode_with_transcription": {
                 "queue": "transcription",
             },
-            "app.domains.podcast.tasks.pending_transcription.process_pending_transcriptions": {
+            "app.domains.podcast.tasks.tasks_transcription.process_pending_transcriptions": {
                 "queue": "transcription",
-            },
-            "app.domains.podcast.tasks.maintenance.cleanup_old_playback_states": {
-                "queue": "maintenance",
-            },
-            "app.domains.podcast.tasks.maintenance.cleanup_old_transcription_temp_files": {
-                "queue": "maintenance",
-            },
-            "app.domains.podcast.tasks.maintenance.auto_cleanup_cache_files": {
-                "queue": "maintenance",
-            },
-            "app.domains.podcast.tasks.daily_report.generate_daily_podcast_reports": {
-                "queue": "ai_generation",
-            },
-            "app.domains.podcast.tasks.highlight_extraction.extract_episode_highlights": {
-                "queue": "ai_generation",
-            },
-            "app.domains.podcast.tasks.highlight_extraction.extract_pending_highlights": {
-                "queue": "ai_generation",
             },
         },
         beat_schedule=_build_beat_schedule(),

@@ -7,8 +7,8 @@ import pytest
 
 from app.core.exceptions import ValidationError
 from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
-from app.domains.podcast.tasks import summary_generation
-from app.domains.podcast.tasks.handlers_summary import (
+from app.domains.podcast.tasks import tasks_summary as summary_generation
+from app.domains.podcast.tasks.tasks_summary import (
     generate_pending_summaries_handler,
 )
 
@@ -172,11 +172,11 @@ async def test_handler_delegates_to_summary_workflow(monkeypatch):
             return {"status": "success", "processed": 1, "failed": 0}
 
     monkeypatch.setattr(
-        "app.domains.podcast.tasks.handlers_summary.SummaryWorkflowService",
+        "app.domains.podcast.tasks.tasks_summary.SummaryWorkflowService",
         _FakeWorkflow,
     )
     monkeypatch.setattr(
-        "app.domains.podcast.tasks.handlers_summary.single_instance_task_lock",
+        "app.domains.podcast.tasks.tasks_summary.single_instance_task_lock",
         _acquired_lock,
     )
 
@@ -187,7 +187,7 @@ async def test_handler_delegates_to_summary_workflow(monkeypatch):
 @pytest.mark.asyncio
 async def test_handler_skips_when_summary_lock_is_held(monkeypatch):
     monkeypatch.setattr(
-        "app.domains.podcast.tasks.handlers_summary.single_instance_task_lock",
+        "app.domains.podcast.tasks.tasks_summary.single_instance_task_lock",
         _skipped_lock,
     )
 

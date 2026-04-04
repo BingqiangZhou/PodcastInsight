@@ -85,7 +85,7 @@ async def trigger_episode_extraction(
     service: HighlightService = Depends(get_highlight_service),
 ):
     """Manually trigger highlight extraction for a single episode."""
-    from app.domains.podcast.tasks.highlight_extraction import (
+    from app.domains.podcast.tasks.tasks_highlight import (
         extract_episode_highlights,
     )
 
