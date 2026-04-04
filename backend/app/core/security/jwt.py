@@ -128,7 +128,7 @@ async def create_refresh_token(
 async def verify_token(token: str, token_type: str = "access") -> dict:
     """Verify and decode JWT token."""
     try:
-        logger.debug("[DEBUG] Verifying token")
+        logger.debug("Verifying token")
 
         payload = jwt.decode(
             token,
@@ -136,7 +136,7 @@ async def verify_token(token: str, token_type: str = "access") -> dict:
             algorithms=[settings.ALGORITHM],
         )
 
-        logger.debug("[DEBUG] Token decoded successfully")
+        logger.debug("Token decoded successfully")
 
         # Check token type if present
         if "type" in payload and payload["type"] != token_type:
@@ -174,7 +174,7 @@ async def verify_token(token: str, token_type: str = "access") -> dict:
 
     except JWTError as e:
         # This is an actual error condition
-        logger.error(f"[ERROR] JWTError during token decode: {type(e).__name__}: {e!s}")
+        logger.error(f"JWTError during token decode: {type(e).__name__}: {e!s}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

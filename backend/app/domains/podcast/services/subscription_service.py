@@ -231,7 +231,10 @@ class PodcastSubscriptionService:
             if not metadata["image_url"]:
                 config = sub.config or {}
                 logger.warning(
-                    f"[DEBUG] Subscription {sub.id} ({sub.title}) has no image_url. config keys: {list(config.keys()) if config else 'config is None'}",
+                    "Subscription %s (%s) has no image_url. config keys: %s",
+                    sub.id,
+                    sub.title,
+                    list(config.keys()) if config else "config is None",
                 )
 
             # Latest episode

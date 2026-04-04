@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:meta/meta.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -59,9 +60,11 @@ class ApiResponseNormalizer {
     if (map.containsKey('subscriptions') && !map.containsKey('items')) {
       final normalized = Map<String, dynamic>.from(map);
       normalized['items'] = normalized.remove('subscriptions');
-      logger.AppLogger.debug(
-        '[ApiResponseNormalizer] Normalized "subscriptions" -> "items"',
-      );
+      if (kDebugMode) {
+        logger.AppLogger.debug(
+          '[ApiResponseNormalizer] Normalized "subscriptions" -> "items"',
+        );
+      }
       return normalized;
     }
 
@@ -73,9 +76,11 @@ class ApiResponseNormalizer {
       for (final key in map.keys) {
         if (map[key] is List) {
           normalized['items'] = normalized.remove(key);
-          logger.AppLogger.debug(
-            '[ApiResponseNormalizer] Normalized "$key" -> "items"',
-          );
+          if (kDebugMode) {
+            logger.AppLogger.debug(
+              '[ApiResponseNormalizer] Normalized "$key" -> "items"',
+            );
+          }
           break;
         }
       }
@@ -296,9 +301,11 @@ class DioClient {
         : '${config.AppConfig.serverBaseUrl}/api/v1';
 
     _dio.options.baseUrl = apiBaseUrl;
-    logger.AppLogger.debug(
-      ' [DioClient] Initialized with baseUrl: $apiBaseUrl',
-    );
+    if (kDebugMode) {
+      logger.AppLogger.debug(
+        ' [DioClient] Initialized with baseUrl: $apiBaseUrl',
+      );
+    }
   }
 
   Dio get dio => _dio;
@@ -306,7 +313,9 @@ class DioClient {
   /// Update the base URL dynamically
   void updateBaseUrl(String newBaseUrl) {
     _dio.options.baseUrl = newBaseUrl;
-    logger.AppLogger.debug(' [DioClient] Base URL updated to: $newBaseUrl');
+    if (kDebugMode) {
+      logger.AppLogger.debug(' [DioClient] Base URL updated to: $newBaseUrl');
+    }
   }
 
   /// Get the current base URL
@@ -336,16 +345,20 @@ class DioClient {
         // No trailing slash — Retrofit paths start with '/', concatenation
         // produces the correct URL without double slashes.
         updateBaseUrl('$normalizedUrl/api/v1');
-        logger.AppLogger.debug(
-          ' [DioClient] Applied saved backend API baseUrl: $savedUrl',
-        );
+        if (kDebugMode) {
+          logger.AppLogger.debug(
+            ' [DioClient] Applied saved backend API baseUrl: $savedUrl',
+          );
+        }
       }
     } catch (e) {
       final message = e.toString();
       if (message.contains('Binding has not yet been initialized')) {
         return;
       }
-      logger.AppLogger.debug(' [DioClient] Failed to apply saved baseUrl: $e');
+      if (kDebugMode) {
+        logger.AppLogger.debug(' [DioClient] Failed to apply saved baseUrl: $e');
+      }
     }
   }
 
@@ -365,13 +378,15 @@ class DioClient {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final fullUrl = '${_dio.options.baseUrl}${options.path}';
-    logger.AppLogger.debug(' [API REQUEST] ${options.method} $fullUrl');
-    if (options.data != null) {
-      logger.AppLogger.debug('   Data: ${options.data}');
-    }
-    if (options.queryParameters.isNotEmpty) {
-      logger.AppLogger.debug('   Query: ${options.queryParameters}');
+    if (kDebugMode) {
+      final fullUrl = '${_dio.options.baseUrl}${options.path}';
+      logger.AppLogger.debug(' [API REQUEST] ${options.method} $fullUrl');
+      if (options.data != null) {
+        logger.AppLogger.debug('   Data: ${options.data}');
+      }
+      if (options.queryParameters.isNotEmpty) {
+        logger.AppLogger.debug('   Query: ${options.queryParameters}');
+      }
     }
 
     // Only add token if not already set
@@ -386,25 +401,33 @@ class DioClient {
         );
         if (token != null) {
           _cachedAccessToken = token;
-          logger.AppLogger.debug(
-            '[AUTH] Token loaded from secure storage and cached',
-          );
+          if (kDebugMode) {
+            logger.AppLogger.debug(
+              '[AUTH] Token loaded from secure storage and cached',
+            );
+          }
         }
       } else {
-        logger.AppLogger.debug(
-          '[AUTH] Token served from in-memory cache',
-        );
+        if (kDebugMode) {
+          logger.AppLogger.debug(
+            '[AUTH] Token served from in-memory cache',
+          );
+        }
       }
 
       if (token != null) {
         options.headers['Authorization'] = 'Bearer $token';
-        logger.AppLogger.debug(
-          '[AUTH] Token added: ${token.substring(0, 20)}...',
-        );
+        if (kDebugMode) {
+          logger.AppLogger.debug(
+            '[AUTH] Token added: ${token.substring(0, 20)}...',
+          );
+        }
       } else {
-        logger.AppLogger.debug(
-          '[AUTH] No token found - skipping auth, will return 401 if protected route',
-        );
+        if (kDebugMode) {
+          logger.AppLogger.debug(
+            '[AUTH] No token found - skipping auth, will return 401 if protected route',
+          );
+        }
       }
     }
 
@@ -417,9 +440,11 @@ class DioClient {
       response.statusCode,
     )) {
       _etagInterceptor.clearCache();
-      logger.AppLogger.debug(
-        ' [DioClient] Cleared ETag cache after ${response.requestOptions.method} ${response.requestOptions.path}',
-      );
+      if (kDebugMode) {
+        logger.AppLogger.debug(
+          ' [DioClient] Cleared ETag cache after ${response.requestOptions.method} ${response.requestOptions.path}',
+        );
+      }
     }
 
     // Normalize response data for consistent API response handling
@@ -429,33 +454,37 @@ class DioClient {
     // Only update if normalization changed the structure
     if (normalizedData != originalData) {
       response.data = normalizedData;
-      logger.AppLogger.debug(
-        '[ApiResponseNormalizer] Normalized response for ${response.requestOptions.path}',
-      );
-    }
-
-    // Debug subscriptions list response shape
-    if (response.requestOptions.path == '/subscriptions/podcasts') {
-      final data = response.data;
-      if (data is Map) {
+      if (kDebugMode) {
         logger.AppLogger.debug(
-          '?? [Subscriptions Response] keys=${data.keys.toList()} '
-          'items=${(data['items'] as List?)?.length} '
-          'total=${data['total']}',
-        );
-      } else {
-        logger.AppLogger.debug(
-          '?? [Subscriptions Response] type=${data.runtimeType}',
+          '[ApiResponseNormalizer] Normalized response for ${response.requestOptions.path}',
         );
       }
     }
-    // Debug: log AI summary related responses.
-    if (response.requestOptions.path.contains('/episodes/')) {
-      final data = response.data;
-      if (data is Map && data.containsKey('ai_summary')) {
-        logger.AppLogger.debug(
-          ' [API RESPONSE] Episode ${data['id']} has ai_summary: ${data['ai_summary'] != null ? "YES (${data['ai_summary'].length} chars)" : "NO"}',
-        );
+
+    // Debug subscriptions list response shape
+    if (kDebugMode) {
+      if (response.requestOptions.path == '/subscriptions/podcasts') {
+        final data = response.data;
+        if (data is Map) {
+          logger.AppLogger.debug(
+            '?? [Subscriptions Response] keys=${data.keys.toList()} '
+            'items=${(data['items'] as List?)?.length} '
+            'total=${data['total']}',
+          );
+        } else {
+          logger.AppLogger.debug(
+            '?? [Subscriptions Response] type=${data.runtimeType}',
+          );
+        }
+      }
+      // Debug: log AI summary related responses.
+      if (response.requestOptions.path.contains('/episodes/')) {
+        final data = response.data;
+        if (data is Map && data.containsKey('ai_summary')) {
+          logger.AppLogger.debug(
+            ' [API RESPONSE] Episode ${data['id']} has ai_summary: ${data['ai_summary'] != null ? "YES (${data['ai_summary'].length} chars)" : "NO"}',
+          );
+        }
       }
     }
     handler.next(response);
@@ -488,13 +517,15 @@ class DioClient {
   }
 
   void _onError(DioException error, ErrorInterceptorHandler handler) async {
-    final errorUrl =
-        '${error.requestOptions.baseUrl}${error.requestOptions.path}';
-    logger.AppLogger.debug(
-      '[API ERROR] ${error.requestOptions.method} $errorUrl',
-    );
-    logger.AppLogger.debug('   Type: ${error.type}');
-    logger.AppLogger.debug('   Message: ${error.message}');
+    if (kDebugMode) {
+      final errorUrl =
+          '${error.requestOptions.baseUrl}${error.requestOptions.path}';
+      logger.AppLogger.debug(
+        '[API ERROR] ${error.requestOptions.method} $errorUrl',
+      );
+      logger.AppLogger.debug('   Type: ${error.type}');
+      logger.AppLogger.debug('   Message: ${error.message}');
+    }
 
     // Retry logic is handled by RetryInterceptor (added in constructor).
     // This handler only classifies errors.
@@ -503,7 +534,9 @@ class DioClient {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        logger.AppLogger.debug('    Timeout Error');
+        if (kDebugMode) {
+          logger.AppLogger.debug('    Timeout Error');
+        }
         handler.reject(
           DioException(
             requestOptions: error.requestOptions,
@@ -537,13 +570,17 @@ class DioClient {
               ),
             );
           } else if (statusCode == 409) {
-            logger.AppLogger.debug('=== Dio Client 409 Error ===');
-            logger.AppLogger.debug('Response data: ${error.response?.data}');
+            if (kDebugMode) {
+              logger.AppLogger.debug('=== Dio Client 409 Error ===');
+              logger.AppLogger.debug('Response data: ${error.response?.data}');
+            }
             final conflictError = ConflictException.fromDioError(error);
-            logger.AppLogger.debug(
-              'ConflictException message: ${conflictError.message}',
-            );
-            logger.AppLogger.debug('============================');
+            if (kDebugMode) {
+              logger.AppLogger.debug(
+                'ConflictException message: ${conflictError.message}',
+              );
+              logger.AppLogger.debug('============================');
+            }
             handler.reject(
               DioException(
                 requestOptions: error.requestOptions,
@@ -553,16 +590,20 @@ class DioClient {
               ),
             );
           } else if (statusCode == 422) {
-            logger.AppLogger.debug('=== Dio Client 422 Error ===');
-            logger.AppLogger.debug('Response data: ${error.response?.data}');
+            if (kDebugMode) {
+              logger.AppLogger.debug('=== Dio Client 422 Error ===');
+              logger.AppLogger.debug('Response data: ${error.response?.data}');
+            }
             final validationError = ValidationException.fromDioError(error);
-            logger.AppLogger.debug(
-              'ValidationException message: ${validationError.message}',
-            );
-            logger.AppLogger.debug(
-              'ValidationException fieldErrors: ${validationError.fieldErrors}',
-            );
-            logger.AppLogger.debug('============================');
+            if (kDebugMode) {
+              logger.AppLogger.debug(
+                'ValidationException message: ${validationError.message}',
+              );
+              logger.AppLogger.debug(
+                'ValidationException fieldErrors: ${validationError.fieldErrors}',
+              );
+              logger.AppLogger.debug('============================');
+            }
             handler.reject(
               DioException(
                 requestOptions: error.requestOptions,
@@ -606,10 +647,12 @@ class DioClient {
     DioException error,
     ErrorInterceptorHandler handler,
   ) async {
-    logger.AppLogger.debug(
-      '[AUTH] ?401 Error: ${error.requestOptions.method} ${error.requestOptions.path}',
-    );
-    logger.AppLogger.debug('   Response: ${error.response?.data}');
+    if (kDebugMode) {
+      logger.AppLogger.debug(
+        '[AUTH] ?401 Error: ${error.requestOptions.method} ${error.requestOptions.path}',
+      );
+      logger.AppLogger.debug('   Response: ${error.response?.data}');
+    }
 
     // Check if this is a refresh token request to avoid infinite loop
     final isRefreshRequest = error.requestOptions.path.contains('/auth/refresh');
@@ -625,35 +668,43 @@ class DioClient {
             error.requestOptions,
             newAccessToken,
           );
-          logger.AppLogger.debug(
-            '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=success',
-          );
+          if (kDebugMode) {
+            logger.AppLogger.debug(
+              '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=success',
+            );
+          }
           handler.resolve(response);
           return;
         } on DioException catch (retryError) {
           if (retryError.response?.statusCode == 401) {
-            logger.AppLogger.debug(
-              '[AUTH] ?Retry still returns 401; treat as authorization/resource issue',
-            );
-            logger.AppLogger.debug(
-              '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=still_401',
-            );
+            if (kDebugMode) {
+              logger.AppLogger.debug(
+                '[AUTH] ?Retry still returns 401; treat as authorization/resource issue',
+              );
+              logger.AppLogger.debug(
+                '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=still_401',
+              );
+            }
             handler.reject(retryError);
             return;
           }
-          logger.AppLogger.debug(
-            '[AUTH]  Retry failed with status: ${retryError.response?.statusCode}',
-          );
-          logger.AppLogger.debug(
-            '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=failed_status_${retryError.response?.statusCode}',
-          );
+          if (kDebugMode) {
+            logger.AppLogger.debug(
+              '[AUTH]  Retry failed with status: ${retryError.response?.statusCode}',
+            );
+            logger.AppLogger.debug(
+              '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=failed_status_${retryError.response?.statusCode}',
+            );
+          }
           handler.reject(retryError);
           return;
         } catch (e) {
-          logger.AppLogger.debug('?Unexpected error during retry: $e');
-          logger.AppLogger.debug(
-            '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=unexpected_error',
-          );
+          if (kDebugMode) {
+            logger.AppLogger.debug('?Unexpected error during retry: $e');
+            logger.AppLogger.debug(
+              '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=unexpected_error',
+            );
+          }
           handler.reject(error);
           return;
         }
@@ -662,14 +713,18 @@ class DioClient {
             refreshResult.reason ?? TokenRefreshFailureReason.unknownFailure;
         final shouldClearTokens =
             TokenRefreshService.shouldClearTokensForRefreshFailure(reason);
-        logger.AppLogger.debug(
-          '[AUTH] refresh_reason=${reason.name} should_clear_tokens=$shouldClearTokens retry_result=not_attempted',
-        );
+        if (kDebugMode) {
+          logger.AppLogger.debug(
+            '[AUTH] refresh_reason=${reason.name} should_clear_tokens=$shouldClearTokens retry_result=not_attempted',
+          );
+        }
 
         if (shouldClearTokens) {
-          logger.AppLogger.debug(
-            '[AUTH] ?Token refresh failed due to invalid session, clearing tokens',
-          );
+          if (kDebugMode) {
+            logger.AppLogger.debug(
+              '[AUTH] ?Token refresh failed due to invalid session, clearing tokens',
+            );
+          }
           _cachedAccessToken = null;
           await _tokenRefreshService.clearTokens();
           handler.reject(
@@ -683,9 +738,11 @@ class DioClient {
           return;
         }
 
-        logger.AppLogger.debug(
-          '[AUTH]  Token refresh failed transiently; keeping tokens',
-        );
+        if (kDebugMode) {
+          logger.AppLogger.debug(
+            '[AUTH]  Token refresh failed transiently; keeping tokens',
+          );
+        }
         handler.reject(
           DioException(
             requestOptions: error.requestOptions,
@@ -723,20 +780,26 @@ class DioClient {
 
     final newOptions = options.copyWith(headers: newHeaders);
 
-    logger.AppLogger.debug(
-      '[AUTH]  Retrying ${options.method} ${options.path} with new token: ${token.substring(0, 20)}...',
-    );
-    logger.AppLogger.debug('   Query: ${newOptions.queryParameters}');
-    logger.AppLogger.debug('   Data: ${newOptions.data}');
+    if (kDebugMode) {
+      logger.AppLogger.debug(
+        '[AUTH]  Retrying ${options.method} ${options.path} with new token: ${token.substring(0, 20)}...',
+      );
+      logger.AppLogger.debug('   Query: ${newOptions.queryParameters}');
+      logger.AppLogger.debug('   Data: ${newOptions.data}');
+    }
 
     try {
       final response = await _dio.fetch(newOptions);
-      logger.AppLogger.debug(
-        '[AUTH] ?Retry successful: ${response.statusCode}',
-      );
+      if (kDebugMode) {
+        logger.AppLogger.debug(
+          '[AUTH] ?Retry successful: ${response.statusCode}',
+        );
+      }
       return response;
     } catch (e) {
-      logger.AppLogger.debug('[AUTH] ?Retry failed: $e');
+      if (kDebugMode) {
+        logger.AppLogger.debug('[AUTH] ?Retry failed: $e');
+      }
       rethrow;
     }
   }
@@ -837,7 +900,9 @@ class DioClient {
   /// Clear all caches (ETag)
   Future<void> clearCache() async {
     _etagInterceptor.clearCache();
-    logger.AppLogger.debug('[DioClient] All caches cleared');
+    if (kDebugMode) {
+      logger.AppLogger.debug('[DioClient] All caches cleared');
+    }
   }
 
   /// Clear ETag cache
@@ -870,7 +935,9 @@ class DioClient {
   /// read or refreshed.
   void clearTokenCache() {
     _cachedAccessToken = null;
-    logger.AppLogger.debug('[DioClient] In-memory token cache cleared');
+    if (kDebugMode) {
+      logger.AppLogger.debug('[DioClient] In-memory token cache cleared');
+    }
   }
 
   /// Update the in-memory token cache with a new access token.
@@ -880,9 +947,11 @@ class DioClient {
   /// (which requires a platform-channel round-trip).
   void setToken(String? token) {
     _cachedAccessToken = token;
-    logger.AppLogger.debug(
-      '[DioClient] In-memory token cache ${token != null ? "updated" : "cleared"}',
-    );
+    if (kDebugMode) {
+      logger.AppLogger.debug(
+        '[DioClient] In-memory token cache ${token != null ? "updated" : "cleared"}',
+      );
+    }
   }
 
   // Request cancellation support
@@ -901,7 +970,9 @@ class DioClient {
     final token = _cancelTokens.remove(tag);
     if (token != null && !token.isCancelled) {
       token.cancel(reason ?? 'Request cancelled by client');
-      logger.AppLogger.debug('[DioClient] Cancelled request: $tag');
+      if (kDebugMode) {
+        logger.AppLogger.debug('[DioClient] Cancelled request: $tag');
+      }
     }
   }
 
@@ -913,7 +984,9 @@ class DioClient {
       }
     }
     _cancelTokens.clear();
-    logger.AppLogger.debug('[DioClient] Cancelled all pending requests');
+    if (kDebugMode) {
+      logger.AppLogger.debug('[DioClient] Cancelled all pending requests');
+    }
   }
 
   /// Remove a completed request's token
