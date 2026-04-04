@@ -10,7 +10,6 @@ from app.core.config import get_settings
 from app.core.database import check_db_readiness
 from app.core.exceptions import setup_exception_handlers
 from app.core.middleware import RequestObservabilityMiddleware
-from app.core.middleware.rate_limit import RateLimitConfig, setup_rate_limiting
 from app.core.redis import get_shared_redis
 from app.http.errors import register_admin_http_exception_handler
 
@@ -21,31 +20,6 @@ logger = logging.getLogger(__name__)
 def configure_middlewares(app: FastAPI) -> None:
     """Register middleware stack."""
     settings = get_settings()
-
-    # Rate limiting middleware (added early, executes late)
-    rate_limit_config = RateLimitConfig(
-        requests_per_minute=settings.RATE_LIMIT_REQUESTS_PER_MINUTE,
-        requests_per_hour=settings.RATE_LIMIT_REQUESTS_PER_HOUR,
-        burst_size=10,
-        enabled=settings.RATE_LIMIT_ENABLED,
-        whitelist_paths={
-            "/api/v1/health",
-            "/api/v1/health/ready",
-            "/health",
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-            "/api/v1/podcasts/episodes",  # Playback updates (frequent polling)
-        },
-    )
-    try:
-        redis_client = get_shared_redis()
-        setup_rate_limiting(app, redis_client=redis_client, config=rate_limit_config)
-        logger.info("Rate limiting middleware enabled with Redis backend")
-    except Exception as e:
-        logger.warning("Rate limiting falling back to in-memory: %s", e)
-        setup_rate_limiting(app, redis_client=None, config=rate_limit_config)
-        logger.info("Rate limiting middleware enabled with in-memory backend")
 
     app.add_middleware(RequestObservabilityMiddleware, slow_threshold=5.0)
     logger.debug("Request logging middleware enabled")

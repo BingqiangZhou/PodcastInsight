@@ -1,4 +1,4 @@
-"""Redis cache with distributed lock, rate limiting, and sorted sets.
+"""Redis cache with distributed lock and sorted sets.
 
 Usage:
     from app.core.redis import AppCache, get_shared_redis
@@ -24,7 +24,6 @@ from app.core.redis.client import RedisClientManager
 from app.core.redis.lock import LockOperations
 from app.core.redis.metrics_collector import RuntimeMetricsCollector
 from app.core.redis.podcast_cache import PodcastCacheOperations
-from app.core.redis.rate_limit import RateLimitOperations
 from app.core.redis.sorted_set import SortedSetOperations
 
 
@@ -118,10 +117,9 @@ class AppCache(
     CacheOperations,
     PodcastCacheOperations,
     LockOperations,
-    RateLimitOperations,
     SortedSetOperations,
 ):
-    """Unified Redis cache with distributed lock, rate limiting, and sorted sets."""
+    """Unified Redis cache with distributed lock and sorted sets."""
 
     _hash_search_query = PodcastCacheOperations._hash_search_query
 

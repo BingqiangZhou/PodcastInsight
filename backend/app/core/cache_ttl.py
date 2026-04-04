@@ -32,7 +32,6 @@ class CacheTTL:
     # === Instant (seconds) ===
     # Used for data that changes frequently or needs quick invalidation
     NULL_VALUE: int = 60  # 1 minute - null value caching for penetration protection
-    RATE_LIMIT_WINDOW: int = 60  # 1 minute - rate limit window
 
     # === Short (minutes) ===
     # Used for data that changes moderately often
@@ -82,8 +81,6 @@ class CacheTTL:
             "podcast:episodes": cls.SUBSCRIPTION_LIST,
             "podcast:search": cls.STATS_SHORT,
             "podcast:metrics": cls.METRICS,
-            # Rate limiting
-            "rate_limit": cls.RATE_LIMIT_WINDOW,
             # Locks
             "lock": cls.LOCK_TIMEOUT,
         }
