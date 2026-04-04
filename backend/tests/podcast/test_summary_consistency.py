@@ -11,9 +11,9 @@ from app.domains.podcast.api.routes_episodes import generate_summary
 from app.domains.podcast.schemas import PodcastSummaryRequest
 from app.domains.podcast.services.episode_service import PodcastEpisodeService
 from app.domains.podcast.services.search_service import PodcastSearchService
+from app.core.ai_client import looks_like_html_error_page
 from app.domains.podcast.services.summary_service import (
     PodcastSummaryGenerationService,
-    _looks_like_html_error_page,
 )
 from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
 
@@ -51,6 +51,7 @@ def _make_episode(*, ai_summary: str) -> SimpleNamespace:
         image_url=None,
         item_link="https://example.com/item",
         transcript_url=None,
+        transcript=SimpleNamespace(transcript_content="transcript"),
         transcript_content="transcript",
         ai_summary=ai_summary,
         summary_version="1.0",
@@ -161,16 +162,16 @@ async def test_episode_service_filters_summary_on_detail_response() -> None:
     result = await service.get_episode_with_summary(episode_id=episode.id)
 
     assert result is not None
-    assert result.ai_summary == "clean summary"
+    assert result["ai_summary"] == "clean summary"
 
 
 def test_search_service_filters_summary_in_list_response() -> None:
     service = PodcastSearchService(db=AsyncMock(), user_id=1)
     episode = _make_episode(ai_summary="<think>internal</think>search summary")
 
-    result = service._build_episode_response([episode], playback_states={})
+    result = service._build_episode_dicts([episode], playback_states={})
 
-    assert result[0].ai_summary == "search summary"
+    assert result[0]["ai_summary"] == "search summary"
 
 
 def test_rule_based_summary_fallback_not_truncated() -> None:
@@ -184,4 +185,4 @@ def test_rule_based_summary_fallback_not_truncated() -> None:
 
 def test_html_timeout_page_is_detected_as_invalid_summary_content() -> None:
     html_error = "<!DOCTYPE html><html><head><title>524: A timeout occurred</title></head></html>"
-    assert _looks_like_html_error_page(html_error) is True
+    assert looks_like_html_error_page(html_error) is True

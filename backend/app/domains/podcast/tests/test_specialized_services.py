@@ -15,7 +15,6 @@ from app.domains.podcast.services import (
     PodcastQueueService,
     PodcastSearchService,
     PodcastSubscriptionService,
-    PodcastSyncService,
 )
 
 
@@ -480,34 +479,6 @@ class TestPodcastSearchService:
 
         assert results == []
         assert total == 0
-
-
-class TestPodcastSyncService:
-    """测试播客同步服务"""
-
-    @pytest.fixture
-    def mock_db(self):
-        return AsyncMock()
-
-    @pytest.fixture
-    def mock_transcription_service(self):
-        with patch(
-            "app.domains.podcast.services.transcription_runtime_service.DatabaseBackedTranscriptionService",
-        ) as mock:
-            service_instance = AsyncMock()
-            mock.return_value = service_instance
-            yield service_instance
-
-    @pytest.fixture
-    def service(self, mock_db, mock_transcription_service):
-        return PodcastSyncService(mock_db, user_id=1)
-
-    @pytest.mark.asyncio
-    async def test_service_initialization(self, service):
-        """测试服务初始化"""
-        assert service.user_id == 1
-        assert service.db is not None
-        assert service.transcription_service is not None
 
 
 def _build_mock_episode(

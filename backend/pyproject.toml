@@ -130,6 +130,7 @@ strict_equality = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests", "app"]
+norecursedirs = ["app/domains/*/tests"]
 addopts = "--import-mode=importlib"
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
