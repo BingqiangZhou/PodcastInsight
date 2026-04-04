@@ -12,7 +12,7 @@ class AdminAuditLog(Base):
 
     __tablename__ = "admin_audit_logs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=False, index=True)
     username = Column(String(100), nullable=False)
     action = Column(
@@ -45,7 +45,7 @@ class SystemSettings(Base):
 
     __tablename__ = "system_settings"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     key = Column(
         String(100), unique=True, nullable=False, index=True, comment="Setting key"
     )
@@ -77,7 +77,7 @@ class BackgroundTaskRun(Base):
 
     __tablename__ = "background_task_runs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     task_name = Column(String(255), nullable=False, index=True)
     queue_name = Column(String(64), nullable=False, index=True)
     status = Column(String(20), nullable=False, index=True)  # started, success, failed

@@ -57,7 +57,7 @@ class Subscription(Base):
 
     __tablename__ = "subscriptions"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     source_type = Column(String(50), nullable=False)
@@ -114,7 +114,7 @@ class UserSubscription(Base):
 
     __tablename__ = "user_subscriptions"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -287,8 +287,10 @@ class SubscriptionItem(Base):
 
     __tablename__ = "subscription_items"
 
-    id = Column(Integer, primary_key=True, index=True)
-    subscription_id = Column(Integer, ForeignKey("subscriptions.id"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    subscription_id = Column(
+        Integer, ForeignKey("subscriptions.id", ondelete="CASCADE"), nullable=False
+    )
     external_id = Column(String(255), nullable=True)
     title = Column(String(500), nullable=False)
     content = Column(Text, nullable=True)
@@ -327,8 +329,8 @@ class SubscriptionCategory(Base):
 
     __tablename__ = "subscription_categories"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
     color = Column(String(7), nullable=True)
@@ -354,8 +356,12 @@ class SubscriptionCategoryMapping(Base):
 
     __tablename__ = "subscription_category_mappings"
 
-    subscription_id = Column(Integer, ForeignKey("subscriptions.id"), primary_key=True)
+    subscription_id = Column(
+        Integer, ForeignKey("subscriptions.id", ondelete="CASCADE"), primary_key=True
+    )
     category_id = Column(
-        Integer, ForeignKey("subscription_categories.id"), primary_key=True
+        Integer,
+        ForeignKey("subscription_categories.id", ondelete="CASCADE"),
+        primary_key=True,
     )
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))

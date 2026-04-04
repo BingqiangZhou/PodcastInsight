@@ -33,7 +33,7 @@ class User(Base):
 
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(100), unique=True, index=True, nullable=True)
     account_name = Column(String(255), nullable=True)  # Renamed from full_name
@@ -91,7 +91,7 @@ class UserSession(Base):
 
     __tablename__ = "user_sessions"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=False)
     session_token = Column(String(255), unique=True, index=True, nullable=False)
     refresh_token = Column(String(255), unique=True, index=True, nullable=True)
@@ -117,7 +117,7 @@ class PasswordReset(Base):
 
     __tablename__ = "password_resets"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     email = Column(String(255), nullable=False, index=True)
     token = Column(String(255), unique=True, index=True, nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)

@@ -38,8 +38,10 @@ class PodcastEpisode(Base):
 
     __tablename__ = "podcast_episodes"
 
-    id = Column(Integer, primary_key=True, index=True)
-    subscription_id = Column(Integer, ForeignKey("subscriptions.id"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    subscription_id = Column(
+        Integer, ForeignKey("subscriptions.id", ondelete="CASCADE"), nullable=False
+    )
 
     # 播客基本信息
     title = Column(String(500), nullable=False)
@@ -148,7 +150,9 @@ class PodcastEpisodeTranscript(Base):
 
     __tablename__ = "podcast_episode_transcripts"
 
-    episode_id = Column(Integer, ForeignKey("podcast_episodes.id"), primary_key=True)
+    episode_id = Column(
+        Integer, ForeignKey("podcast_episodes.id", ondelete="CASCADE"), primary_key=True
+    )
     transcript_content = Column(Text, nullable=True)
     transcript_word_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
@@ -170,7 +174,7 @@ class PodcastDailyReport(Base):
 
     __tablename__ = "podcast_daily_reports"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -216,7 +220,7 @@ class PodcastDailyReportItem(Base):
 
     __tablename__ = "podcast_daily_report_items"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     report_id = Column(
         Integer,
         ForeignKey("podcast_daily_reports.id", ondelete="CASCADE"),
@@ -263,8 +267,10 @@ class PodcastPlaybackState(Base):
 
     __tablename__ = "podcast_playback_states"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     episode_id = Column(
         Integer,
         ForeignKey("podcast_episodes.id", ondelete="CASCADE"),
@@ -306,7 +312,7 @@ class PodcastQueue(Base):
 
     __tablename__ = "podcast_queues"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -348,7 +354,7 @@ class PodcastQueueItem(Base):
 
     __tablename__ = "podcast_queue_items"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     queue_id = Column(
         Integer,
         ForeignKey("podcast_queues.id", ondelete="CASCADE"),
@@ -422,7 +428,7 @@ class TranscriptionTask(Base):
 
     __tablename__ = "transcription_tasks"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     episode_id = Column(
         Integer,
         ForeignKey("podcast_episodes.id", ondelete="CASCADE"),
@@ -554,13 +560,15 @@ class ConversationSession(Base):
 
     __tablename__ = "conversation_sessions"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     episode_id = Column(
         Integer,
         ForeignKey("podcast_episodes.id", ondelete="CASCADE"),
         nullable=False,
     )
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     title = Column(String(255), default="默认对话")
 
     created_at = Column(
@@ -599,13 +607,15 @@ class PodcastConversation(Base):
 
     __tablename__ = "podcast_conversations"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     episode_id = Column(
         Integer,
         ForeignKey("podcast_episodes.id", ondelete="CASCADE"),
         nullable=False,
     )
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     session_id = Column(
         Integer,
         ForeignKey("conversation_sessions.id", ondelete="CASCADE"),
@@ -619,7 +629,7 @@ class PodcastConversation(Base):
     # 上下文管理
     parent_message_id = Column(
         Integer,
-        ForeignKey("podcast_conversations.id"),
+        ForeignKey("podcast_conversations.id", ondelete="SET NULL"),
         nullable=True,
     )  # 父消息ID，用于构建对话树
     conversation_turn = Column(Integer, default=0)  # 对话轮次
@@ -666,7 +676,7 @@ class HighlightExtractionTask(Base):
 
     __tablename__ = "highlight_extraction_tasks"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     episode_id = Column(
         Integer,
         ForeignKey("podcast_episodes.id", ondelete="CASCADE"),
@@ -722,7 +732,7 @@ class EpisodeHighlight(Base):
 
     __tablename__ = "episode_highlights"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     episode_id = Column(
         Integer,
         ForeignKey("podcast_episodes.id", ondelete="CASCADE"),

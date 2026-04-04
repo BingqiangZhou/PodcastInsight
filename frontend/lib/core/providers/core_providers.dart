@@ -2,14 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
+import 'package:personal_ai_assistant/core/events/server_config_events.dart';
 import 'package:personal_ai_assistant/core/network/dio_client.dart';
 import 'package:personal_ai_assistant/core/network/server_health_service.dart';
 import 'package:personal_ai_assistant/core/services/app_cache_service.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
 
 // Dio Client Provider
 final dioClientProvider = Provider<DioClient>((ref) {
@@ -70,7 +68,11 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
     return ServerConfigState(serverUrl: initialUrl);
   }
 
-  /// Clear all server-related data when switching servers
+  /// Clear all server-related data when switching servers.
+  ///
+  /// Feature-layer providers listen to [serverConfigVersionProvider] and
+  /// perform their own cleanup, so this method does NOT import any feature
+  /// modules directly.
   Future<void> _clearAllServerData() async {
     final dioClient = ref.read(dioClientProvider);
 
@@ -84,25 +86,11 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
     // 3. Clear media cache
     await ref.read(appCacheServiceProvider).clearAll();
 
-    // 4. Clear Provider runtime cache
-    ref.read(podcastDiscoverProvider.notifier).clearRuntimeCache();
-    ref.read(search.iTunesSearchServiceProvider).clearCache();
+    // 4. Bump the server-config version so that feature-layer listeners
+    //    invalidate their own caches and state.
+    ref.read(serverConfigVersionProvider.notifier).bump();
 
-    // 5. Invalidate all server-related Providers
-    ref.invalidate(podcastFeedProvider);
-    ref.invalidate(podcastDiscoverProvider);
-    ref.invalidate(podcastSubscriptionProvider);
-    ref.invalidate(podcastEpisodesProvider);
-
-    // Reset notifier states before invalidating
-    ref.read(profileStatsProvider.notifier).reset();
-    ref.read(playbackHistoryLiteProvider.notifier).reset();
-
-    ref.invalidate(profileStatsProvider);
-    ref.invalidate(playbackHistoryLiteProvider);
-    ref.invalidate(search.podcastSearchProvider);
-
-    // 6. Clear auth tokens and reset auth state (triggers router redirect)
+    // 5. Clear auth tokens and reset auth state (triggers router redirect)
     await ref.read(authProvider.notifier).clearLocalAuthState();
   }
 

@@ -22,7 +22,7 @@ class AIModelConfig(Base):
 
     __tablename__ = "ai_model_configs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
 
     # 基本信息
     name = Column(String(100), nullable=False, index=True, comment="模型名称")

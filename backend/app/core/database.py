@@ -21,14 +21,18 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import NullPool
 
 from app.core.config import get_settings
 
 
 logger = logging.getLogger(__name__)
-Base = declarative_base()
+
+
+class Base(DeclarativeBase):
+    pass
+
 
 _orm_models_registered = False
 _engine: AsyncEngine | None = None
@@ -116,7 +120,9 @@ def get_engine() -> AsyncEngine:
         if _engine is not None and _engine_url == database_url:
             return _engine
 
-        _engine = create_async_engine(database_url, **_build_engine_kwargs(database_url))
+        _engine = create_async_engine(
+            database_url, **_build_engine_kwargs(database_url)
+        )
         _engine_url = database_url
         return _engine
 
@@ -244,7 +250,9 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
-async def warmup_connection_pool(engine: AsyncEngine, target_size: int | None = None) -> None:
+async def warmup_connection_pool(
+    engine: AsyncEngine, target_size: int | None = None
+) -> None:
     """Pre-populate connection pool on startup to reduce initial latency.
 
     This creates and immediately releases connections to fill the pool,
@@ -262,7 +270,7 @@ async def warmup_connection_pool(engine: AsyncEngine, target_size: int | None = 
         return
 
     logger.info("Warming up connection pool with %d connections...", target_size)
-    start_time = asyncio.get_event_loop().time()
+    start_time = asyncio.get_running_loop().time()
 
     try:
         # Create multiple connections in parallel
@@ -274,13 +282,13 @@ async def warmup_connection_pool(engine: AsyncEngine, target_size: int | None = 
         for conn in connections:
             if isinstance(conn, Exception):
                 logger.warning("Failed to create connection during warmup: %s", conn)
-            elif hasattr(conn, 'close'):
+            elif hasattr(conn, "close"):
                 close_tasks.append(conn.close())
 
         if close_tasks:
             await asyncio.gather(*close_tasks, return_exceptions=True)
 
-        duration = asyncio.get_event_loop().time() - start_time
+        duration = asyncio.get_running_loop().time() - start_time
         logger.info(
             "Connection pool warmed up successfully in %.2fs (%d/%d connections)",
             duration,
@@ -307,7 +315,9 @@ async def init_db(run_metadata_sync: bool = False) -> None:
             settings.DATABASE_POOL_WAKEUP_TIMEOUT,
         )
     except Exception as exc:
-        logger.warning("Connection pool warmup failed (continuing with cold pool): %s", exc)
+        logger.warning(
+            "Connection pool warmup failed (continuing with cold pool): %s", exc
+        )
 
     async with engine.begin() as conn:
         if not run_metadata_sync:
