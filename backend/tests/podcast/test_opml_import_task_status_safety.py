@@ -60,10 +60,10 @@ async def test_opml_background_handler_does_not_mutate_existing_episode_status()
     service = PodcastTaskOrchestrationService(session=AsyncMock())
 
     with patch(
-        "app.domains.podcast.services.orchestration.feed_sync.PodcastSubscriptionRepository",
+        "app.domains.podcast.services.task_orchestration_service.PodcastSubscriptionRepository",
         return_value=mock_repo,
     ), patch(
-        "app.domains.podcast.services.orchestration.feed_sync.SecureRSSParser",
+        "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
         return_value=mock_parser,
     ):
         result = await service.process_opml_subscription_episodes(

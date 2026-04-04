@@ -15,7 +15,7 @@ from app.domains.podcast.services.search_service import PodcastSearchService
 from app.domains.podcast.services.summary_service import (
     PodcastSummaryGenerationService,
 )
-from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
+from app.domains.podcast.services.summary_service import SummaryWorkflowService
 
 
 class _ScalarResult:

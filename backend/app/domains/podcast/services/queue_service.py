@@ -109,21 +109,23 @@ class PodcastQueueService:
                 subscription_image = subscription.config.get("image_url")
             playback_state = playback_states.get(item.episode_id)
 
-            items.append({
-                "episode_id": item.episode_id,
-                "position": item.position,
-                "playback_position": (
-                    playback_state.current_position if playback_state else None
-                ),
-                "title": episode.title if episode else "",
-                "podcast_id": episode.subscription_id if episode else 0,
-                "audio_url": episode.audio_url if episode else "",
-                "duration": episode.audio_duration if episode else None,
-                "published_at": episode.published_at if episode else None,
-                "image_url": episode.image_url if episode else None,
-                "subscription_title": subscription.title if subscription else None,
-                "subscription_image_url": subscription_image,
-            })
+            items.append(
+                {
+                    "episode_id": item.episode_id,
+                    "position": item.position,
+                    "playback_position": (
+                        playback_state.current_position if playback_state else None
+                    ),
+                    "title": episode.title if episode else "",
+                    "podcast_id": episode.subscription_id if episode else 0,
+                    "audio_url": episode.audio_url if episode else "",
+                    "duration": episode.audio_duration if episode else None,
+                    "published_at": episode.published_at if episode else None,
+                    "image_url": episode.image_url if episode else None,
+                    "subscription_title": subscription.title if subscription else None,
+                    "subscription_image_url": subscription_image,
+                }
+            )
 
         return {
             "current_episode_id": queue.current_episode_id,

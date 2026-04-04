@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.core.exceptions import ValidationError
-from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
+from app.domains.podcast.services.summary_service import SummaryWorkflowService
 from app.domains.podcast.tasks import tasks_summary as summary_generation
 from app.domains.podcast.tasks.tasks_summary import (
     generate_pending_summaries_handler,
@@ -59,7 +59,7 @@ async def test_generate_pending_summaries_success(monkeypatch):
         AsyncMock(return_value=[11, 12]),
     )
     monkeypatch.setattr(
-        "app.domains.podcast.services.summary_workflow_service.worker_db_session",
+        "app.domains.podcast.services.summary_service.worker_db_session",
         lambda *_args, **_kwargs: _worker_session_factory(object()),
     )
 
@@ -101,7 +101,7 @@ async def test_generate_pending_summaries_marks_failed_episode(monkeypatch):
         AsyncMock(return_value=[11]),
     )
     monkeypatch.setattr(
-        "app.domains.podcast.services.summary_workflow_service.worker_db_session",
+        "app.domains.podcast.services.summary_service.worker_db_session",
         lambda *_args, **_kwargs: _worker_session_factory(object()),
     )
 
@@ -150,7 +150,7 @@ async def test_generate_pending_summaries_resets_claim_for_skippable_validation_
         AsyncMock(side_effect=lambda episode_id: resets.append(episode_id)),
     )
     monkeypatch.setattr(
-        "app.domains.podcast.services.summary_workflow_service.worker_db_session",
+        "app.domains.podcast.services.summary_service.worker_db_session",
         lambda *_args, **_kwargs: _worker_session_factory(object()),
     )
 

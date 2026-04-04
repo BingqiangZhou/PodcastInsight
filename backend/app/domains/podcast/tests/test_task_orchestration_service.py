@@ -2,14 +2,18 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.domains.podcast.services.orchestration import feed_sync as feed_sync_module
-from app.domains.podcast.services.orchestration import (
-    transcription as transcription_module,
+from app.domains.podcast.services import (
+    task_orchestration_service as task_orchestration_module,
 )
-from app.domains.podcast.services.orchestration.feed_sync import FeedSyncOrchestrator
 from app.domains.podcast.services.task_orchestration_service import (
+    FeedSyncOrchestrator,
     PodcastTaskOrchestrationService,
 )
+
+
+# Aliases for test monkeypatching targets
+feed_sync_module = task_orchestration_module
+transcription_module = task_orchestration_module
 
 
 class _ScalarResult:

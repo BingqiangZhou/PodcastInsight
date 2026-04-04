@@ -106,9 +106,7 @@ class PodcastScheduleService:
         )
         result = await self.db.execute(stmt)
         rows = list(result.all())
-        return [
-            self._build_schedule_dict(sub, user_sub) for sub, user_sub in rows
-        ]
+        return [self._build_schedule_dict(sub, user_sub) for sub, user_sub in rows]
 
     async def batch_update_subscription_schedules(
         self,
@@ -147,6 +145,5 @@ class PodcastScheduleService:
         # No refresh needed - sub and user_sub are already in session with updated values
 
         return [
-            self._build_schedule_dict(sub, user_sub)
-            for sub, user_sub in updated_rows
+            self._build_schedule_dict(sub, user_sub) for sub, user_sub in updated_rows
         ]

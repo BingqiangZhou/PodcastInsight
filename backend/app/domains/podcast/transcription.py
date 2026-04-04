@@ -2338,7 +2338,7 @@ class PodcastTranscriptionService:
                 )
                 return
 
-            from app.domains.podcast.services.highlight_extraction_service import (
+            from app.domains.podcast.services.highlight_service import (
                 HighlightExtractionService,
             )
 

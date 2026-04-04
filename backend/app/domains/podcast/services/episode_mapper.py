@@ -63,7 +63,9 @@ def build_episode_dict(
             "audio_file_size": episode.audio_file_size,
             "item_link": episode.item_link,
             "transcript_url": episode.transcript_url,
-            "transcript_content": episode.transcript.transcript_content if episode.transcript else None,
+            "transcript_content": episode.transcript.transcript_content
+            if episode.transcript
+            else None,
             "summary_version": episode.summary_version,
             "ai_confidence_score": episode.ai_confidence_score,
             "play_count": episode.play_count,

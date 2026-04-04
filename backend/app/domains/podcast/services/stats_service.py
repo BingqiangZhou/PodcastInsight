@@ -68,12 +68,8 @@ class PodcastStatsService:
 
         # Extract results with error handling
         stats = results[0] if not isinstance(results[0], Exception) else {}
-        recently_played = (
-            results[1] if not isinstance(results[1], Exception) else []
-        )
-        listening_streak = (
-            results[2] if not isinstance(results[2], Exception) else 0
-        )
+        recently_played = results[1] if not isinstance(results[1], Exception) else []
+        listening_streak = results[2] if not isinstance(results[2], Exception) else 0
 
         if isinstance(results[1], Exception):
             logger.warning("Failed to get recently played, defaulting to empty list")

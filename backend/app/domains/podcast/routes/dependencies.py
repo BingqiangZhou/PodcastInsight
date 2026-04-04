@@ -21,7 +21,7 @@ from app.domains.podcast.services.schedule_service import PodcastScheduleService
 from app.domains.podcast.services.search_service import PodcastSearchService
 from app.domains.podcast.services.stats_service import PodcastStatsService
 from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
-from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
+from app.domains.podcast.services.summary_service import SummaryWorkflowService
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )

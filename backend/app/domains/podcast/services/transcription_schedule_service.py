@@ -105,7 +105,9 @@ class PodcastTranscriptionScheduleService:
         if len(episodes) > max_episodes:
             logger.warning(
                 "Batch transcription limited: %d -> %d episodes (max: %d)",
-                len(episodes), max_episodes, settings.TRANSCRIPTION_BATCH_MAX_EPISODES,
+                len(episodes),
+                max_episodes,
+                settings.TRANSCRIPTION_BATCH_MAX_EPISODES,
             )
             episodes = episodes[:max_episodes]
         if not episodes:
@@ -129,18 +131,22 @@ class PodcastTranscriptionScheduleService:
                         frequency=frequency,
                         force=True,
                     )
-                results.append({
-                    "episode_id": episode.id,
-                    "episode_title": episode.title,
-                    **schedule_result,
-                })
+                results.append(
+                    {
+                        "episode_id": episode.id,
+                        "episode_title": episode.title,
+                        **schedule_result,
+                    }
+                )
             except Exception as exc:  # noqa: BLE001
-                results.append({
-                    "episode_id": episode.id,
-                    "episode_title": episode.title,
-                    "status": "error",
-                    "error": str(exc),
-                })
+                results.append(
+                    {
+                        "episode_id": episode.id,
+                        "episode_title": episode.title,
+                        "status": "error",
+                        "error": str(exc),
+                    }
+                )
         return results
 
     async def check_and_transcribe_new_episodes(
@@ -188,17 +194,21 @@ class PodcastTranscriptionScheduleService:
                     frequency=ScheduleFrequency.MANUAL,
                     force=False,
                 )
-                detail_results.append({
-                    "episode_id": episode.id,
-                    "status": "scheduled",
-                    "task_id": schedule_result["task_id"],
-                })
+                detail_results.append(
+                    {
+                        "episode_id": episode.id,
+                        "status": "scheduled",
+                        "task_id": schedule_result["task_id"],
+                    }
+                )
             except Exception as exc:  # noqa: BLE001
-                detail_results.append({
-                    "episode_id": episode.id,
-                    "status": "error",
-                    "error": str(exc),
-                })
+                detail_results.append(
+                    {
+                        "episode_id": episode.id,
+                        "status": "error",
+                        "error": str(exc),
+                    }
+                )
 
         scheduled = sum(1 for item in detail_results if item["status"] == "scheduled")
         errors = sum(1 for item in detail_results if item["status"] == "error")
@@ -225,7 +235,10 @@ class PodcastTranscriptionScheduleService:
                 "episode_id": episode_id,
                 "episode_title": episode.title,
                 "status": "not_started",
-                "has_transcript": (episode.transcript is not None and episode.transcript.transcript_content is not None),
+                "has_transcript": (
+                    episode.transcript is not None
+                    and episode.transcript.transcript_content is not None
+                ),
                 "transcript_preview": (
                     episode.transcript.transcript_content[:100] + "..."
                     if episode.transcript and episode.transcript.transcript_content

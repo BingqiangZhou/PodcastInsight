@@ -15,7 +15,7 @@ from app.core.redis import PodcastRedis, get_shared_redis
 from app.core.utils import filter_thinking_content
 from app.domains.podcast.models import PodcastEpisode, TranscriptionTask
 from app.domains.podcast.repositories import PodcastEpisodeRepository
-from app.domains.podcast.services.daily_report_summary_extractor import (
+from app.domains.podcast.services.daily_report_service import (
     extract_one_line_summary,
 )
 from app.domains.podcast.services.episode_mapper import build_episode_dicts
@@ -366,7 +366,9 @@ class PodcastEpisodeService:
             "item_link": episode.item_link,
             "subscription_image_url": subscription_image_url,
             "transcript_url": episode.transcript_url,
-            "transcript_content": episode.transcript.transcript_content if episode.transcript else None,
+            "transcript_content": episode.transcript.transcript_content
+            if episode.transcript
+            else None,
             "ai_summary": cleaned_summary,
             "summary_version": episode.summary_version,
             "ai_confidence_score": episode.ai_confidence_score,

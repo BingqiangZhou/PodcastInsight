@@ -6,7 +6,7 @@ Merged from: summary_generation.py, handlers_summary.py
 from datetime import UTC, datetime
 
 from app.core.celery_app import celery_app
-from app.domains.podcast.services.summary_workflow_service import SummaryWorkflowService
+from app.domains.podcast.services.summary_service import SummaryWorkflowService
 from app.domains.podcast.tasks.runtime import (
     log_task_run,
     run_async,
