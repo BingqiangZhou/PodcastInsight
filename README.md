@@ -1,6 +1,6 @@
 # Personal AI Assistant
 
-[![Version](https://img.shields.io/badge/version-0.39.0-blue)](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.39.0)
+[![Version](https://img.shields.io/badge/version-0.40.0-blue)](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.40.0)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/)
 [![Dart](https://img.shields.io/badge/dart-3.8+-cyan)](https://dart.dev/)
@@ -8,7 +8,7 @@
 
 一个可扩展的私人 AI 助手，集成了播客订阅、音频播放和 AI 功能。旨在通过本地化部署和 AI 能力，打造个人化的信息处理中心。
 
-**当前版本: [v0.39.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.39.0)** (2026-04-04)
+**当前版本: [v0.40.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.40.0)** (2026-04-04)
 
 ## 更新日志
 
@@ -78,8 +78,7 @@ backend/app/
 ├── bootstrap/      # 应用初始化（路由注册、生命周期、缓存预热）
 ├── core/           # 核心基础设施（配置、安全、数据库、中间件、可观测性）
 ├── shared/         # 共享层（schemas、utils、constants）
-├── domains/        # 领域层（user、subscription、podcast、ai、admin）
-└── contexts/       # DDD 限界上下文（content、ingestion、playback）[重构中]
+└── domains/        # 领域层（user、subscription、podcast、ai、admin）
 ```
 
 ### 前端 (Flutter)
@@ -182,7 +181,7 @@ flutter test test/widget/
 personal-ai-assistant/
 ├── backend/          # FastAPI 后端
 ├── frontend/         # Flutter 前端
-├── docker/           # Docker 配置 (7 个服务)
+├── docker/           # Docker 配置 (6 个服务)
 ├── docs/             # 详细文档
 ├── specs/            # 功能规格
 ├── scripts/          # 工具脚本
