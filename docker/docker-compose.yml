@@ -10,7 +10,7 @@
 #   - PostgreSQL (数据/ Database)
 #   - Redis (缓存 / Cache)
 #   - Backend API (后端服务)
-#   - Celery Worker (后台任务处理 / Background tasks)
+#   - Celery Worker (后台任务处理 / Background tasks — merged core + transcription)
 #   - Celery Beat (定时任务调度 / Scheduled tasks)
 #   - Nginx (反向代理 / Reverse proxy)
 
@@ -154,21 +154,21 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # 本地与云端统一使用 gunicorn（本地可通过 BACKEND_CMD 增加 --reload）
-    # Unified: gunicorn for both local and cloud
-    command: ${BACKEND_CMD:-gunicorn app.main:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 4 --timeout 90 --graceful-timeout 30 --log-level info}
+    # 本地与云端统一使用 uvicorn（本地可通过 BACKEND_CMD 增加 --reload）
+    # Unified: uvicorn for both local and cloud
+    command: ${BACKEND_CMD:-uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --timeout-keep-alive 90 --log-level info}
     # Use shared memory for Chromium
     shm_size: 2gb
     logging: *default-logging
 
   # =============================================================================
-  # Celery Core Worker
+  # Celery Worker (merged: core + transcription queues)
   # =============================================================================
-  celery_worker_core:
+  celery_worker:
     build:
       context: ${BACKEND_SRC_DIR:-../backend}
       dockerfile: Dockerfile
-    container_name: ${PROJECT_NAME:-personal_ai}_celery_worker_core
+    container_name: ${PROJECT_NAME:-personal_ai}_celery_worker
     env_file:
       - ${BACKEND_ENV_FILE:-../backend/.env}
     environment:
@@ -204,51 +204,8 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
-    command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=${CELERY_WORKERS_CORE:-2} -Q subscription_sync,ai_generation,maintenance
+    command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=${CELERY_WORKERS:-2} -Q default,subscription_sync,ai_generation,maintenance,transcription
     # Use shared memory for Chromium
-    shm_size: 2gb
-    logging: *default-logging
-
-  # =============================================================================
-  # Celery Transcription Worker
-  # =============================================================================
-  celery_worker_transcription:
-    build:
-      context: ${BACKEND_SRC_DIR:-../backend}
-      dockerfile: Dockerfile
-    container_name: ${PROJECT_NAME:-personal_ai}_celery_worker_transcription
-    env_file:
-      - ${BACKEND_ENV_FILE:-../backend/.env}
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-personal_ai}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
-      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/2
-      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-      - TZ=${TZ:-Asia/Shanghai}
-      - PYTHONUTF8=1
-    volumes:
-      - backend_data:/app/data
-      - ${TRANSCRIPTION_STORAGE_DIR:-./storage/podcasts}:/app/storage/podcasts
-      - ${TRANSCRIPTION_TEMP_DIR:-./temp/transcription}:/app/temp/transcription
-      - ${LOG_DIR:-./logs}:/app/logs
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - app_network
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=${CELERY_WORKERS_TRANSCRIPTION:-2} -Q transcription
     shm_size: 2gb
     logging: *default-logging
 
@@ -278,9 +235,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      celery_worker_core:
-        condition: service_started
-      celery_worker_transcription:
+      celery_worker:
         condition: service_started
     networks:
       - app_network
