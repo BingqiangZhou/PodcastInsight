@@ -280,11 +280,11 @@ async def get_prometheus_metrics() -> Response:
     except Exception:
         pass
 
-    # Update cache hit rate (null placeholder until real counters are wired)
+    # Update cache hit rate from runtime metrics collector
     try:
-        from app.core.redis import get_null_redis_runtime_metrics
+        from app.core.redis import get_redis_runtime_metrics
 
-        redis_metrics = get_null_redis_runtime_metrics()
+        redis_metrics = get_redis_runtime_metrics()
         if "cache" in redis_metrics and "hit_rate" in redis_metrics["cache"]:
             cache_hit_rate.labels(cache_type="redis").set(
                 redis_metrics["cache"]["hit_rate"]

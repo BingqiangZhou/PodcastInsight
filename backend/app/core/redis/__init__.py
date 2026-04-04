@@ -22,6 +22,7 @@ from app.core.redis.cache import (
 )
 from app.core.redis.client import RedisClientManager
 from app.core.redis.lock import LockOperations
+from app.core.redis.metrics_collector import RuntimeMetricsCollector
 from app.core.redis.podcast_cache import PodcastCacheOperations
 from app.core.redis.rate_limit import RateLimitOperations
 from app.core.redis.sorted_set import SortedSetOperations
@@ -35,6 +36,9 @@ _NULL_CACHE_TTL = 60
 
 # Shared instance for process-level reuse
 _shared_redis: "AppCache | None" = None
+
+# Module-level metrics collector for runtime observability
+_metrics_collector = RuntimeMetricsCollector()
 
 # ---------------------------------------------------------------------------
 # Delegation decorator: replaces boilerplate wrapper methods
@@ -248,7 +252,8 @@ class AppCache(
         return await CacheOperations.cache_get_with_lock(
             self, key=key, loader=loader, client=client,
             ttl=ttl, lock_timeout=lock_timeout, max_wait_time=max_wait_time,
-            record_timing=None, record_lookup=None,
+            record_timing=_metrics_collector.record_timing,
+            record_lookup=_metrics_collector.record_lookup,
         )
 
     async def cache_get_or_load(
@@ -259,7 +264,8 @@ class AppCache(
         return await CacheOperations.cache_get_or_load(
             self, key=key, loader=loader, client=client,
             ttl=ttl, stale_ttl=stale_ttl,
-            record_timing=None, record_lookup=None,
+            record_timing=_metrics_collector.record_timing,
+            record_lookup=_metrics_collector.record_lookup,
         )
 
     # === Stats Cache Invalidation ===
@@ -416,16 +422,22 @@ async def close_shared_redis() -> None:
     _shared_redis = None
 
 
-def get_null_redis_runtime_metrics() -> dict[str, Any]:
-    """Return a stable zero-value metrics dict for callers that need a placeholder.
+def get_redis_runtime_metrics() -> dict[str, Any]:
+    """Get runtime metrics from the metrics collector.
 
-    This replaces the former ``get_redis_runtime_metrics`` module-level function
-    and the ``AppCache.get_runtime_metrics`` instance method (both removed).
+    Returns real metrics tracked by the ``RuntimeMetricsCollector`` including
+    command latencies, cache hit/miss counts, and error counts.
     """
-    return {
-        "commands": {"total": 0, "errors": 0, "avg_ms": 0.0, "max_ms": 0.0},
-        "cache": {"hits": 0, "misses": 0, "hit_rate": 0.0},
-    }
+    return _metrics_collector.get_metrics()
+
+
+def get_null_redis_runtime_metrics() -> dict[str, Any]:
+    """Deprecated: Use ``get_redis_runtime_metrics`` instead.
+
+    Kept for backward compatibility with callers that import this name.
+    Now returns real runtime metrics instead of zero-value placeholders.
+    """
+    return get_redis_runtime_metrics()
 
 
 __all__ = [
@@ -434,6 +446,7 @@ __all__ = [
     "get_redis",
     "get_shared_redis",
     "close_shared_redis",
+    "get_redis_runtime_metrics",
     "get_null_redis_runtime_metrics",
     "_NULL_VALUE_MARKER",
     "_NULL_CACHE_TTL",
