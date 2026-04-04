@@ -1,35 +1,35 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:personal_ai_assistant/core/constants/cache_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
+import 'package:personal_ai_assistant/shared/models/paginated_state.dart';
 
 const Object _stateNoChange = Object();
 
-class PodcastFeedState extends Equatable {
-  final List<PodcastEpisodeModel> episodes;
-  final bool hasMore;
-  final int? nextPage;
+class PodcastFeedState extends PaginatedState<PodcastEpisodeModel> {
   final String? nextCursor;
-  final int total;
-  final bool isLoading;
-  final bool isLoadingMore;
-  final String? error;
-
-  /// Last refresh timestamp for cache validation
-  final DateTime? lastRefreshTime;
 
   const PodcastFeedState({
-    this.episodes = const [],
-    this.hasMore = true,
-    this.nextPage,
+    List<PodcastEpisodeModel> episodes = const [],
+    bool hasMore = true,
+    int? nextPage,
     this.nextCursor,
-    this.total = 0,
-    this.isLoading = false,
-    this.isLoadingMore = false,
-    this.error,
-    this.lastRefreshTime,
-  });
+    int total = 0,
+    bool isLoading = false,
+    bool isLoadingMore = false,
+    String? error,
+    DateTime? lastRefreshTime,
+  }) : super(
+          items: episodes,
+          hasMore: hasMore,
+          nextPage: nextPage,
+          total: total,
+          isLoading: isLoading,
+          isLoadingMore: isLoadingMore,
+          error: error,
+          lastRefreshTime: lastRefreshTime,
+        );
+
+  List<PodcastEpisodeModel> get episodes => items;
 
   PodcastFeedState copyWith({
     List<PodcastEpisodeModel>? episodes,
@@ -44,7 +44,7 @@ class PodcastFeedState extends Equatable {
     DateTime? lastRefreshTime,
   }) {
     return PodcastFeedState(
-      episodes: episodes ?? this.episodes,
+      episodes: episodes ?? items.cast<PodcastEpisodeModel>(),
       hasMore: hasMore ?? this.hasMore,
       nextPage: identical(nextPage, _stateNoChange)
           ? this.nextPage
@@ -60,59 +60,51 @@ class PodcastFeedState extends Equatable {
     );
   }
 
-  /// Check if data is fresh (within cache duration)
+  @override
   bool isDataFresh({
     Duration cacheDuration = CacheConstants.feedCacheDuration,
   }) {
-    final refreshTime = lastRefreshTime;
-    if (refreshTime == null) return false;
-    return DateTime.now().difference(refreshTime) < cacheDuration;
+    return super.isDataFresh(cacheDuration: cacheDuration);
   }
 
   @override
   List<Object?> get props => [
-    episodes,
-    hasMore,
-    nextPage,
-    nextCursor,
-    total,
-    isLoading,
-    isLoadingMore,
-    error,
-    lastRefreshTime,
-  ];
+        ...super.props,
+        nextCursor,
+      ];
 }
 
-class PodcastEpisodesState extends Equatable {
-  final List<PodcastEpisodeModel> episodes;
-  final bool hasMore;
-  final int? nextPage;
-  final int currentPage;
-  final int total;
-  final bool isLoading;
-  final bool isLoadingMore;
-  final String? error;
+class PodcastEpisodesState extends PaginatedState<PodcastEpisodeModel> {
   final int? cachedSubscriptionId;
   final String? cachedStatus;
   final bool? cachedHasSummary;
 
-  /// Last refresh timestamp for cache validation
-  final DateTime? lastRefreshTime;
-
   const PodcastEpisodesState({
-    this.episodes = const [],
-    this.hasMore = true,
-    this.nextPage,
-    this.currentPage = 1,
-    this.total = 0,
-    this.isLoading = false,
-    this.isLoadingMore = false,
-    this.error,
+    List<PodcastEpisodeModel> episodes = const [],
+    bool hasMore = true,
+    int? nextPage,
+    int currentPage = 1,
+    int total = 0,
+    bool isLoading = false,
+    bool isLoadingMore = false,
+    String? error,
     this.cachedSubscriptionId,
     this.cachedStatus,
     this.cachedHasSummary,
-    this.lastRefreshTime,
-  });
+    DateTime? lastRefreshTime,
+  }) : super(
+          items: episodes,
+          hasMore: hasMore,
+          nextPage: nextPage,
+          currentPage: currentPage,
+          total: total,
+          isLoading: isLoading,
+          isLoadingMore: isLoadingMore,
+          error: error,
+          lastRefreshTime: lastRefreshTime,
+        );
+
+  List<PodcastEpisodeModel> get episodes => items;
 
   PodcastEpisodesState copyWith({
     List<PodcastEpisodeModel>? episodes,
@@ -130,7 +122,7 @@ class PodcastEpisodesState extends Equatable {
     DateTime? lastRefreshTime,
   }) {
     return PodcastEpisodesState(
-      episodes: episodes ?? this.episodes,
+      episodes: episodes ?? items.cast<PodcastEpisodeModel>(),
       hasMore: hasMore ?? this.hasMore,
       nextPage: nextPage ?? this.nextPage,
       currentPage: currentPage ?? this.currentPage,
@@ -138,67 +130,52 @@ class PodcastEpisodesState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       error: clearError ? null : (error ?? this.error),
-      cachedSubscriptionId: cachedSubscriptionId ?? this.cachedSubscriptionId,
+      cachedSubscriptionId:
+          cachedSubscriptionId ?? this.cachedSubscriptionId,
       cachedStatus: cachedStatus ?? this.cachedStatus,
       cachedHasSummary: cachedHasSummary ?? this.cachedHasSummary,
       lastRefreshTime: lastRefreshTime ?? this.lastRefreshTime,
     );
   }
 
-  /// Check if data is fresh (within cache duration)
-  bool isDataFresh({
-    Duration cacheDuration = CacheConstants.defaultListCacheDuration,
-  }) {
-    final refreshTime = lastRefreshTime;
-    if (refreshTime == null) return false;
-    return DateTime.now().difference(refreshTime) < cacheDuration;
-  }
-
   @override
   List<Object?> get props => [
-    episodes,
-    hasMore,
-    nextPage,
-    currentPage,
-    total,
-    isLoading,
-    isLoadingMore,
-    error,
-    cachedSubscriptionId,
-    cachedStatus,
-    cachedHasSummary,
-    lastRefreshTime,
-  ];
+        ...super.props,
+        cachedSubscriptionId,
+        cachedStatus,
+        cachedHasSummary,
+      ];
 }
 
-class PodcastSubscriptionState extends Equatable {
-  final List<PodcastSubscriptionModel> subscriptions;
-  final bool hasMore;
-  final int? nextPage;
-  final int currentPage;
-  final int total;
-  final bool isLoading;
-  final bool isLoadingMore;
-  final String? error;
-
-  /// 正在订阅的 Feed URLs 集合 / Set of Feed URLs currently being subscribed
+class PodcastSubscriptionState
+    extends PaginatedState<PodcastSubscriptionModel> {
+  /// Set of Feed URLs currently being subscribed
   final Set<String> subscribingFeedUrls;
 
-  /// Last refresh timestamp for cache validation
-  final DateTime? lastRefreshTime;
-
   const PodcastSubscriptionState({
-    this.subscriptions = const [],
-    this.hasMore = true,
-    this.nextPage,
-    this.currentPage = 1,
-    this.total = 0,
-    this.isLoading = false,
-    this.isLoadingMore = false,
-    this.error,
+    List<PodcastSubscriptionModel> subscriptions = const [],
+    bool hasMore = true,
+    int? nextPage,
+    int currentPage = 1,
+    int total = 0,
+    bool isLoading = false,
+    bool isLoadingMore = false,
+    String? error,
     this.subscribingFeedUrls = const {},
-    this.lastRefreshTime,
-  });
+    DateTime? lastRefreshTime,
+  }) : super(
+          items: subscriptions,
+          hasMore: hasMore,
+          nextPage: nextPage,
+          currentPage: currentPage,
+          total: total,
+          isLoading: isLoading,
+          isLoadingMore: isLoadingMore,
+          error: error,
+          lastRefreshTime: lastRefreshTime,
+        );
+
+  List<PodcastSubscriptionModel> get subscriptions => items;
 
   PodcastSubscriptionState copyWith({
     List<PodcastSubscriptionModel>? subscriptions,
@@ -214,7 +191,8 @@ class PodcastSubscriptionState extends Equatable {
     DateTime? lastRefreshTime,
   }) {
     return PodcastSubscriptionState(
-      subscriptions: subscriptions ?? this.subscriptions,
+      subscriptions:
+          subscriptions ?? items.cast<PodcastSubscriptionModel>(),
       hasMore: hasMore ?? this.hasMore,
       nextPage: nextPage ?? this.nextPage,
       currentPage: currentPage ?? this.currentPage,
@@ -227,26 +205,9 @@ class PodcastSubscriptionState extends Equatable {
     );
   }
 
-  /// Check if data is fresh (within cache duration)
-  bool isDataFresh({
-    Duration cacheDuration = CacheConstants.defaultListCacheDuration,
-  }) {
-    final refreshTime = lastRefreshTime;
-    if (refreshTime == null) return false;
-    return DateTime.now().difference(refreshTime) < cacheDuration;
-  }
-
   @override
   List<Object?> get props => [
-    subscriptions,
-    hasMore,
-    nextPage,
-    currentPage,
-    total,
-    isLoading,
-    isLoadingMore,
-    error,
-    subscribingFeedUrls,
-    lastRefreshTime,
-  ];
+        ...super.props,
+        subscribingFeedUrls,
+      ];
 }
