@@ -50,16 +50,12 @@ app/
     redis/              # Shared Redis client
     celery_app.py       # Celery beat schedule + task registry
     security.py         # JWT, password hashing, 2FA
-    middleware/          # rate_limit, query_analysis (N+1), response_optimization (gzip)
-    metrics.py          # Prometheus counters/gauges/histograms
-    observability.py    # Alert thresholds, health snapshot
+    middleware/          # Request logging middleware
   domains/              # Business domains
-    user/               # Auth, profile (api, repositories, services, tests)
+    user/               # Auth, profile (routes, services, tests)
     subscription/       # Podcast subscriptions
     podcast/            # Episodes, transcription, playback, AI summaries
     ai/                 # LLM integration, conversations
-  contexts/             # Bounded contexts (DDD hexagonal, scaffolded)
-    content/ ingestion/ playback/ shared/
   http/                 # Shared HTTP helpers
     errors.py           # Bilingual HTTPException helpers
     responses.py        # ETag response builder
@@ -107,11 +103,10 @@ lib/
 - **ORM:** SQLAlchemy 2.x async (asyncpg driver)
 - **Validation:** Pydantic v2, pydantic-settings
 - **Database:** PostgreSQL 15 (async, read replica support)
-- **Cache:** Redis 7 (distributed rate limiting, session cache)
+- **Cache:** Redis 7 (cache + Celery broker, distributed locks)
 - **Task Queue:** Celery 5 (Redis broker, 1 worker with 2 queues)
 - **Auth:** JWT (python-jose), bcrypt, 2FA (pyotp + qrcode)
 - **AI:** OpenAI API, SiliconFlow transcription
-- **Monitoring:** prometheus-client, custom observability with alert thresholds
 - **Linting:** ruff (replaces black, isort, flake8)
 - **Testing:** pytest + pytest-asyncio (asyncio_mode=auto), aiosqlite, httpx
 - **Package Mgmt:** uv (NEVER pip)
@@ -161,7 +156,7 @@ lib/
 - Health endpoints:
   - `GET /health` — liveness
   - `GET /api/v1/health/ready` — readiness (checks DB + Redis)
-  - `GET /metrics/prometheus` — Prometheus format
+  - `GET /api/v1/admin/monitoring/metrics` — System + runtime metrics (admin auth required)
 
 ### General
 - Check `specs/active/` for existing requirements before implementing
