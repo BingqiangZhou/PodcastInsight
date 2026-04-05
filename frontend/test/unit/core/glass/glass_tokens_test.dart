@@ -85,45 +85,45 @@ void main() {
 
       test('ultraHeavy params match spec', () {
         final params = tokens.ultraHeavy;
-        expect(params.fill, const Color(0x99FFFFFF));
-        expect(params.borderTop, const Color(0xB2FFFFFF));
-        expect(params.borderBottom, const Color(0x66FFFFFF));
-        expect(params.innerGlow, const Color(0x26FFFFFF));
-        expect(params.shadow, const Color(0x1F000000));
-        expect(params.saturationBoost, 1.2);
+        expect(params.fill, const Color(0x47FFFFFF)); // 28%
+        expect(params.borderTop, const Color(0x38FFFFFF)); // 22%
+        expect(params.borderBottom, const Color(0x1EFFFFFF)); // 12%
+        expect(params.innerGlow, const Color(0x0FFFFFFF)); // 6%
+        expect(params.shadow, const Color(0x14000000)); // 8%
+        expect(params.saturationBoost, 1.08);
         expect(params.noiseOpacity, 0.04);
       });
 
       test('heavy params match spec', () {
         final params = tokens.heavy;
-        expect(params.fill, const Color(0x8CFFFFFF));
-        expect(params.borderTop, const Color(0xA5FFFFFF));
-        expect(params.borderBottom, const Color(0x59FFFFFF));
-        expect(params.innerGlow, const Color(0x23FFFFFF));
-        expect(params.shadow, const Color(0x19000000));
-        expect(params.saturationBoost, 1.2);
+        expect(params.fill, const Color(0x3DFFFFFF)); // 24%
+        expect(params.borderTop, const Color(0x33FFFFFF)); // 20%
+        expect(params.borderBottom, const Color(0x19FFFFFF)); // 10%
+        expect(params.innerGlow, const Color(0x0DFFFFFF)); // 5%
+        expect(params.shadow, const Color(0x12000000)); // 7%
+        expect(params.saturationBoost, 1.06);
         expect(params.noiseOpacity, 0.03);
       });
 
       test('medium params match spec', () {
         final params = tokens.medium;
-        expect(params.fill, const Color(0x7FFFFFFF));
-        expect(params.borderTop, const Color(0x99FFFFFF));
-        expect(params.borderBottom, const Color(0x4DFFFFFF));
-        expect(params.innerGlow, const Color(0x1EFFFFFF));
-        expect(params.shadow, const Color(0x14000000));
-        expect(params.saturationBoost, 1.15);
+        expect(params.fill, const Color(0x33FFFFFF)); // 20%
+        expect(params.borderTop, const Color(0x2EFFFFFF)); // 18%
+        expect(params.borderBottom, const Color(0x14FFFFFF)); // 8%
+        expect(params.innerGlow, const Color(0x0AFFFFFF)); // 4%
+        expect(params.shadow, const Color(0x0F000000)); // 6%
+        expect(params.saturationBoost, 1.05);
         expect(params.noiseOpacity, 0.03);
       });
 
       test('light params match spec', () {
         final params = tokens.light;
-        expect(params.fill, const Color(0x72FFFFFF));
-        expect(params.borderTop, const Color(0x8BFFFFFF));
-        expect(params.borderBottom, const Color(0x3EFFFFFF));
-        expect(params.innerGlow, const Color(0x19FFFFFF));
-        expect(params.shadow, const Color(0x0F000000));
-        expect(params.saturationBoost, 1.1);
+        expect(params.fill, const Color(0x28FFFFFF)); // 16%
+        expect(params.borderTop, const Color(0x26FFFFFF)); // 15%
+        expect(params.borderBottom, const Color(0x0FFFFFFF)); // 6%
+        expect(params.innerGlow, const Color(0x08FFFFFF)); // 3%
+        expect(params.shadow, const Color(0x0D000000)); // 5%
+        expect(params.saturationBoost, 1.03);
         expect(params.noiseOpacity, 0.02);
       });
 

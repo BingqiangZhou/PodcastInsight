@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/glass/glass_container.dart';
+import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 
-/// On desktop/tablet (width ≥ 600), shows a centered [Dialog] within the
+/// On desktop/tablet (width >= 600), shows a centred [Dialog] within the
 /// current navigator's content area.  On mobile shows a standard
 /// [showModalBottomSheet].
 ///
+/// Both variants wrap content in [GlassContainer] for a glass effect.
 /// Returns the value produced by the builder (if any).
 Future<T?> showAdaptiveSheet<T>({
   required BuildContext context,
@@ -27,7 +30,7 @@ Future<T?> showAdaptiveSheet<T>({
   final screenWidth = MediaQuery.of(resolvedContext).size.width;
 
   if (screenWidth >= 600) {
-    // Desktop / tablet → centred dialog scoped to the content area navigator.
+    // Desktop / tablet -> centred dialog with glass container.
     return showDialog<T>(
       context: resolvedContext,
       useRootNavigator: true,
@@ -40,11 +43,10 @@ Future<T?> showAdaptiveSheet<T>({
               maxWidth: desktopMaxWidth,
               maxHeight: size.height * desktopMaxHeightFraction,
             ),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(28),
-              clipBehavior: Clip.antiAlias,
-              elevation: 6,
+            child: GlassContainer(
+              tier: GlassTier.heavy,
+              borderRadius: 28,
+              padding: EdgeInsets.zero,
               child: builder(dialogCtx),
             ),
           ),
@@ -53,7 +55,7 @@ Future<T?> showAdaptiveSheet<T>({
     );
   }
 
-  // Mobile → bottom sheet.
+  // Mobile -> bottom sheet with glass container.
   return showModalBottomSheet<T>(
     context: resolvedContext,
     isScrollControlled: isScrollControlled,
@@ -64,6 +66,13 @@ Future<T?> showAdaptiveSheet<T>({
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
-    builder: builder,
+    builder: (sheetCtx) {
+      return GlassContainer(
+        tier: GlassTier.heavy,
+        borderRadius: 28,
+        padding: EdgeInsets.zero,
+        child: builder(sheetCtx),
+      );
+    },
   );
 }
