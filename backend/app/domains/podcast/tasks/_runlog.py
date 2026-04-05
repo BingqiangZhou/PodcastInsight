@@ -1,9 +1,17 @@
 """Task run logging utilities."""
 
+import logging
 from datetime import datetime
 
 from app.admin.models import BackgroundTaskRun
 from app.core.database import create_isolated_session_factory
+
+
+_logger = logging.getLogger(__name__)
+
+# Cached session factory + engine for runlog writes (reused across task runs)
+_runlog_session_factory = None
+_runlog_engine = None
 
 
 async def _insert_run_async(
@@ -15,9 +23,16 @@ async def _insert_run_async(
     error_message: str | None = None,
     metadata: dict | None = None,
 ) -> None:
-    session_factory, engine = create_isolated_session_factory("celery-runlog")
+    """Insert a BackgroundTaskRun row, reusing a cached engine across calls."""
+    global _runlog_session_factory, _runlog_engine
+
     try:
-        async with session_factory() as session:
+        if _runlog_session_factory is None:
+            _runlog_session_factory, _runlog_engine = create_isolated_session_factory(
+                "celery-runlog",
+            )
+
+        async with _runlog_session_factory() as session:
             duration_ms = None
             if finished_at is not None:
                 duration_ms = int((finished_at - started_at).total_seconds() * 1000)
@@ -34,5 +49,8 @@ async def _insert_run_async(
                 ),
             )
             await session.commit()
-    finally:
-        await engine.dispose()
+    except Exception:
+        _logger.exception("Failed to insert runlog for %s", task_name)
+        # Reset cached factory on error so next call creates a fresh one
+        _runlog_session_factory = None
+        _runlog_engine = None

@@ -28,8 +28,8 @@ def configure_middlewares(app: FastAPI) -> None:
         CORSMiddleware,
         allow_origins=settings.ALLOWED_HOSTS,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
     )
     from app.admin.first_run import first_run_middleware
 

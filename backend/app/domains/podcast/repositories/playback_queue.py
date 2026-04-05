@@ -205,9 +205,20 @@ class PodcastPlaybackQueueRepositoryMixin:
         is_playing: bool = False,
         playback_rate: float = 1.0,
     ) -> PodcastPlaybackState:
-        state = await self.get_playback_state(user_id, episode_id)
+        # Use SELECT ... FOR UPDATE to prevent race condition on concurrent
+        # progress updates for the same user+episode pair.
+        stmt = (
+            select(PodcastPlaybackState)
+            .where(
+                PodcastPlaybackState.user_id == user_id,
+                PodcastPlaybackState.episode_id == episode_id,
+            )
+            .with_for_update()
+        )
+        result = await self.db.execute(stmt)
+        state = result.scalar_one_or_none()
 
-        if state:
+        if state is not None:
             was_playing = bool(state.is_playing)
             state.current_position = position
             state.playback_rate = playback_rate
@@ -215,6 +226,7 @@ class PodcastPlaybackQueueRepositoryMixin:
                 state.play_count += 1
             state.is_playing = is_playing
             state.last_updated_at = datetime.now(UTC)
+            await self.db.flush()
         else:
             state = PodcastPlaybackState(
                 user_id=user_id,
@@ -226,9 +238,9 @@ class PodcastPlaybackQueueRepositoryMixin:
                 last_updated_at=datetime.now(UTC),
             )
             self.db.add(state)
+            await self.db.flush()
 
         await self.db.commit()
-        # No refresh needed - state.id is auto-populated by SQLAlchemy after flush/commit
 
         if self.redis:
             await self.redis.set_user_progress(user_id, episode_id, position / 100)
@@ -236,15 +248,22 @@ class PodcastPlaybackQueueRepositoryMixin:
         return state
 
     async def get_or_create_queue(self, user_id: int) -> PodcastQueue:
-        stmt = select(PodcastQueue).where(PodcastQueue.user_id == user_id)
+        # Use FOR UPDATE to prevent concurrent queue creation for the same user.
+        stmt = select(PodcastQueue).where(
+            PodcastQueue.user_id == user_id,
+        ).with_for_update()
         result = await self.db.execute(stmt)
         queue = result.scalar_one_or_none()
-        if queue:
+        if queue is not None:
             return queue
 
-        queue = PodcastQueue(user_id=user_id, revision=0)
-        self.db.add(queue)
-        await self.db.flush()
+        # Savepoint isolates the INSERT so a concurrent creation that already
+        # committed (unique constraint on user_id) can be caught gracefully.
+        async with self.db.begin_nested():
+            queue = PodcastQueue(user_id=user_id, revision=0)
+            self.db.add(queue)
+            await self.db.flush()
+
         return queue
 
     async def get_queue_with_items(self, user_id: int) -> PodcastQueue:

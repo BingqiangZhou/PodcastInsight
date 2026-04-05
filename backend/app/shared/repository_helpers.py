@@ -131,9 +131,9 @@ async def exists_by_id(
         True if record exists, False otherwise
     """
     column = getattr(model, id_column)
-    stmt = select(func.count()).select_from(model).where(column == id)
-    result = await db.scalar(stmt)
-    return (result or 0) > 0
+    stmt = select(model.id).where(column == id).limit(1)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() is not None
 
 
 async def count_records(

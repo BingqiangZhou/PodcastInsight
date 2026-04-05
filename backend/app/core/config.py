@@ -9,6 +9,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def get_or_generate_secret_key() -> str:
     """Get SECRET_KEY from env, or load/generate from file for persistence."""
+    import logging
+
+    _logger = logging.getLogger(__name__)
+
     env_key = os.getenv("SECRET_KEY")
     if env_key:
         return env_key
@@ -23,6 +27,11 @@ def get_or_generate_secret_key() -> str:
             pass
 
     new_key = secrets.token_urlsafe(48)
+    _logger.critical(
+        "SECRET_KEY not found in env/file — generated a new key. "
+        "All existing JWT tokens and encrypted data (API keys) are now INVALID. "
+        "Set SECRET_KEY explicitly to prevent this in production."
+    )
     try:
         data_dir.mkdir(exist_ok=True, parents=True)
         key_file.write_text(new_key, encoding="utf-8")

@@ -9,6 +9,7 @@ Usage:
 
 import logging
 import secrets
+import threading
 from typing import Any
 
 import orjson
@@ -34,6 +35,7 @@ _NULL_CACHE_TTL = 60
 
 # Shared instance for process-level reuse
 _shared_redis: "AppCache | None" = None
+_shared_redis_lock = threading.Lock()
 
 # ---------------------------------------------------------------------------
 # Delegation decorator: replaces boilerplate wrapper methods
@@ -171,7 +173,7 @@ class AppCache(
             return self._pipe
 
         async def __aexit__(self, exc_type, exc_val, exc_tb):
-            if self._pipe:
+            if self._pipe and exc_type is None:
                 await self._pipe.execute()
 
         def __getattr__(self, name):
@@ -215,6 +217,11 @@ class AppCache(
         client = await self._get_client()
         data = await client.get(key)
         if data:
+            # Check for null value marker to prevent cache penetration
+            if isinstance(data, bytes) and data == _NULL_VALUE_MARKER.encode():
+                return None  # Cache hit for null value — return None without calling loader
+            if isinstance(data, str) and data == _NULL_VALUE_MARKER:
+                return None
             try:
                 return orjson.loads(data)
             except orjson.JSONDecodeError:
@@ -228,6 +235,9 @@ class AppCache(
 
         client = await self._get_client()
         try:
+            # Use null marker for None values to prevent cache penetration
+            if value is None:
+                return bool(await client.setex(key, _NULL_CACHE_TTL, _NULL_VALUE_MARKER))
             json_str = orjson.dumps(value, default=redis_json_default).decode("utf-8")
             return bool(await client.setex(key, ttl, json_str))
         except (TypeError, ValueError):
@@ -471,10 +481,12 @@ async def get_redis() -> AppCache:
 
 
 def get_shared_redis() -> AppCache:
-    """Return a process-level shared Redis helper."""
+    """Return a process-level shared Redis helper (thread-safe)."""
     global _shared_redis
     if _shared_redis is None:
-        _shared_redis = AppCache()
+        with _shared_redis_lock:
+            if _shared_redis is None:
+                _shared_redis = AppCache()
     return _shared_redis
 
 

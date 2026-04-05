@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 
 import aiohttp
 
 
 _shared_http_session: aiohttp.ClientSession | None = None
 _shared_http_session_loop_token: int | None = None
-_http_session_lock = asyncio.Lock()
+_http_session_lock = threading.Lock()
 
 
 def _current_loop_token() -> int | None:
@@ -25,7 +26,7 @@ async def get_shared_http_session() -> aiohttp.ClientSession:
 
     current_loop_token = _current_loop_token()
 
-    async with _http_session_lock:
+    with _http_session_lock:
         if (
             _shared_http_session is not None
             and _shared_http_session_loop_token == current_loop_token
@@ -59,7 +60,7 @@ async def close_shared_http_session() -> None:
     """Close and clear the shared aiohttp session."""
     global _shared_http_session, _shared_http_session_loop_token
 
-    async with _http_session_lock:
+    with _http_session_lock:
         if _shared_http_session is not None and not _shared_http_session.closed:
             await _shared_http_session.close()
         _shared_http_session = None

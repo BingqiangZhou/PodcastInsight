@@ -311,9 +311,9 @@ class PodcastEpisodeService:
             return {}
 
         # Use a single query with IN clause for efficiency
+        # Note: episodes are shared across users (no user_id column),
+        # so user_id filtering is handled at the subscription level by callers.
         stmt = select(PodcastEpisode).where(PodcastEpisode.id.in_(episode_ids))
-        if user_id is not None:
-            stmt = stmt.where(PodcastEpisode.user_id == user_id)
 
         episodes = (await self.db.execute(stmt)).scalars().all()
         return {ep.id: ep for ep in episodes}

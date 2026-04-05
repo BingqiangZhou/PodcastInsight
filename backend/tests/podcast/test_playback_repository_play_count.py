@@ -1,7 +1,7 @@
 """Playback repository play_count behavior tests."""
 
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
@@ -15,6 +15,13 @@ def _mock_db() -> SimpleNamespace:
         refresh=AsyncMock(),
         flush=AsyncMock(),
     )
+
+
+def _mock_execute_returning(state: SimpleNamespace | None) -> AsyncMock:
+    """Return an AsyncMock for db.execute that returns the given state."""
+    result_mock = MagicMock()
+    result_mock.scalar_one_or_none.return_value = state
+    return AsyncMock(return_value=result_mock)
 
 
 def _state(*, is_playing: bool, play_count: int, position: int = 0) -> SimpleNamespace:
@@ -32,9 +39,9 @@ def _state(*, is_playing: bool, play_count: int, position: int = 0) -> SimpleNam
 @pytest.mark.asyncio
 async def test_play_count_increments_only_on_false_to_true_transition() -> None:
     db = _mock_db()
-    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
     state = _state(is_playing=False, play_count=3)
-    repo.get_playback_state = AsyncMock(return_value=state)
+    db.execute = _mock_execute_returning(state)
+    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
 
     await repo.update_playback_progress(
         user_id=1,
@@ -50,9 +57,9 @@ async def test_play_count_increments_only_on_false_to_true_transition() -> None:
 @pytest.mark.asyncio
 async def test_play_count_does_not_increment_on_true_to_true_heartbeat() -> None:
     db = _mock_db()
-    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
     state = _state(is_playing=True, play_count=7, position=120)
-    repo.get_playback_state = AsyncMock(return_value=state)
+    db.execute = _mock_execute_returning(state)
+    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
 
     await repo.update_playback_progress(
         user_id=1,
@@ -68,9 +75,9 @@ async def test_play_count_does_not_increment_on_true_to_true_heartbeat() -> None
 @pytest.mark.asyncio
 async def test_play_count_does_not_increment_on_true_to_false_transition() -> None:
     db = _mock_db()
-    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
     state = _state(is_playing=True, play_count=5, position=200)
-    repo.get_playback_state = AsyncMock(return_value=state)
+    db.execute = _mock_execute_returning(state)
+    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
 
     await repo.update_playback_progress(
         user_id=1,
@@ -86,9 +93,9 @@ async def test_play_count_does_not_increment_on_true_to_false_transition() -> No
 @pytest.mark.asyncio
 async def test_play_count_increments_again_after_pause_then_resume() -> None:
     db = _mock_db()
-    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
     state = _state(is_playing=True, play_count=2, position=50)
-    repo.get_playback_state = AsyncMock(return_value=state)
+    db.execute = _mock_execute_returning(state)
+    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
 
     await repo.update_playback_progress(
         user_id=1,
@@ -111,9 +118,9 @@ async def test_play_count_increments_again_after_pause_then_resume() -> None:
 @pytest.mark.asyncio
 async def test_continuous_heartbeats_do_not_inflate_play_count() -> None:
     db = _mock_db()
-    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
     state = _state(is_playing=True, play_count=11, position=0)
-    repo.get_playback_state = AsyncMock(return_value=state)
+    db.execute = _mock_execute_returning(state)
+    repo = PodcastPlaybackRepository(db=db, redis=AsyncMock())
 
     for pos in range(1, 11):
         await repo.update_playback_progress(

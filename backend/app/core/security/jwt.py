@@ -82,7 +82,7 @@ async def create_access_token(
 
             await register_user_token(int(sub), jti)
         except Exception:
-            logger.debug("Token registration skipped (Redis unavailable)")
+            logger.warning("Token registration skipped — Redis unavailable. Token cannot be revoked on logout.")
 
     return encoded_jwt
 
@@ -122,7 +122,7 @@ async def create_refresh_token(
 
             await register_user_token(int(sub), jti)
         except Exception:
-            logger.debug("Token registration skipped (Redis unavailable)")
+            logger.warning("Token registration skipped — Redis unavailable. Token cannot be revoked on logout.")
 
     return encoded_jwt
 
@@ -171,7 +171,7 @@ async def verify_token(token: str, token_type: str = "access") -> dict:
             except Exception:
                 # Redis unavailable -- allow the token through rather than
                 # blocking all authenticated requests.
-                logger.debug("Blacklist check skipped (Redis unavailable)")
+                logger.warning("Token blacklist check skipped — Redis unavailable. Revoked tokens may be accepted.")
 
         return payload
 

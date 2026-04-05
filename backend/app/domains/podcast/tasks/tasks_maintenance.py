@@ -67,8 +67,8 @@ async def process_opml_subscription_episodes_handler(
 # ---------------------------------------------------------------------------
 
 
-@celery_app.task
-def cleanup_old_playback_states():
+@celery_app.task(bind=True, max_retries=2)
+def cleanup_old_playback_states(self):
     started_at = datetime.now(UTC)
     task_name = (
         "app.domains.podcast.tasks.tasks_maintenance.cleanup_old_playback_states"
@@ -101,8 +101,8 @@ async def _cleanup_old_playback_states_async():
         return await cleanup_old_playback_states_handler(session)
 
 
-@celery_app.task
-def cleanup_old_transcription_temp_files(days: int = 7):
+@celery_app.task(bind=True, max_retries=2)
+def cleanup_old_transcription_temp_files(self, days: int = 7):
     started_at = datetime.now(UTC)
     task_name = "app.domains.podcast.tasks.tasks_maintenance.cleanup_old_transcription_temp_files"
     queue_name = "default"
@@ -135,8 +135,8 @@ async def _cleanup_old_transcription_temp_files_async(days: int):
         return await cleanup_old_transcription_temp_files_handler(session, days=days)
 
 
-@celery_app.task
-def log_periodic_task_statistics():
+@celery_app.task(bind=True, max_retries=2)
+def log_periodic_task_statistics(self):
     started_at = datetime.now(UTC)
     task_name = (
         "app.domains.podcast.tasks.tasks_maintenance.log_periodic_task_statistics"

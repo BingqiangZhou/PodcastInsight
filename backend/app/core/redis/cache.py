@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Null value cache marker
 _NULL_VALUE_MARKER = "__NULL__"
+_NULL_CACHE_TTL = 60  # seconds
 
 
 # ---------------------------------------------------------------------------
@@ -104,17 +105,27 @@ class CacheOperations:
         if lock_acquired:
             try:
                 value = await loader()
-                await self.cache_set_json(key, value, client, ttl)
+                # Cache null values with marker to prevent cache penetration
+                if value is None:
+                    await client.setex(key, _NULL_CACHE_TTL, _NULL_VALUE_MARKER)
+                else:
+                    await self.cache_set_json(key, value, client, ttl)
                 return value, False
+            except Exception:
+                # Cache short-lived error marker to prevent thundering herd
+                import contextlib
+                with contextlib.suppress(Exception):
+                    await client.setex(f"{key}:error", 5, "1")
+                raise
             finally:
                 await self._delete_keys_nonblocking(client, lock_key)
         else:
-            wait_start = asyncio.get_event_loop().time()
+            wait_start = asyncio.get_running_loop().time()
             initial_delay = 0.05
             max_delay = 0.5
             attempt = 0
 
-            while (asyncio.get_event_loop().time() - wait_start) < max_wait_time:
+            while (asyncio.get_running_loop().time() - wait_start) < max_wait_time:
                 delay = min(initial_delay * (2**attempt), max_delay)
                 await asyncio.sleep(delay)
 

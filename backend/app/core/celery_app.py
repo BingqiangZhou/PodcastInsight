@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from typing import Any
 
 from celery import Celery
 from celery.schedules import crontab
+from celery.signals import worker_process_shutdown
 
 from app.core.config import get_settings
+
+
+_logger = logging.getLogger(__name__)
 
 
 _celery_app: Celery | None = None
@@ -131,6 +137,28 @@ def create_celery_app() -> Celery:
     import app.domains.podcast.tasks  # noqa: F401
 
     return celery
+
+
+# ---------------------------------------------------------------------------
+# Worker lifecycle hooks
+# ---------------------------------------------------------------------------
+
+try:
+    from celery.signals import worker_process_shutdown  # type: ignore[import-untyped]
+
+    @worker_process_shutdown.connect
+    def _on_worker_process_shutdown(**kwargs):  # type: ignore[misc]
+        """Dispose DB engines when a Celery worker child process shuts down."""
+        try:
+            from app.core.database import close_worker_db_runtimes
+
+            asyncio.run(close_worker_db_runtimes())
+        except Exception:
+            _logger.warning(
+                "Failed to dispose worker DB engines during shutdown", exc_info=True
+            )
+except ImportError:
+    pass
 
 
 class _LazyCeleryApp:

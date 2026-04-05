@@ -4,6 +4,7 @@ This module provides decorators to reduce boilerplate error handling
 code across API and admin routes.
 """
 
+import asyncio
 import logging
 from collections.abc import Callable
 from functools import wraps
@@ -26,6 +27,7 @@ def handle_api_errors(
 
     This decorator:
     - Re-raises HTTPException as-is
+    - Converts BaseCustomError to HTTPException with its status code
     - Catches other exceptions and converts to 500 Internal Server Error
     - Logs errors with context
 
@@ -35,12 +37,6 @@ def handle_api_errors(
 
     Returns:
         Decorated function
-
-    Example:
-        @router.get("/users/{user_id}")
-        @handle_api_errors("get user", error_message="Failed to get user")
-        async def get_user(user_id: int, service: UserService = Depends()):
-            return await service.get_user(user_id)
     """
 
     def decorator(func: F) -> F:
@@ -51,12 +47,19 @@ def handle_api_errors(
             except HTTPException:
                 raise
             except Exception as exc:
-                logger.error("%s error: %s", operation, exc)
-                detail = error_message or f"Failed to {operation}"
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=detail,
-                ) from exc
+                # Check if this is a BaseCustomError with its own status code
+                status_code = getattr(exc, "status_code", None)
+                detail = getattr(exc, "message", None) or str(exc)
+                if status_code is None:
+                    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                    detail = error_message or f"Failed to {operation}"
+
+                if status_code >= 500:
+                    logger.error("%s error: %s", operation, exc)
+                else:
+                    logger.warning("%s error: %s", operation, exc)
+
+                raise HTTPException(status_code=status_code, detail=detail) from exc
 
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
@@ -65,14 +68,20 @@ def handle_api_errors(
             except HTTPException:
                 raise
             except Exception as exc:
-                logger.error("%s error: %s", operation, exc)
-                detail = error_message or f"Failed to {operation}"
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=detail,
-                ) from exc
+                status_code = getattr(exc, "status_code", None)
+                detail = getattr(exc, "message", None) or str(exc)
+                if status_code is None:
+                    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                    detail = error_message or f"Failed to {operation}"
 
-        if hasattr(func, "__code__") and func.__code__.co_flags & 0x80:
+                if status_code >= 500:
+                    logger.error("%s error: %s", operation, exc)
+                else:
+                    logger.warning("%s error: %s", operation, exc)
+
+                raise HTTPException(status_code=status_code, detail=detail) from exc
+
+        if asyncio.iscoroutinefunction(func):
             return async_wrapper  # type: ignore
         return sync_wrapper  # type: ignore
 
@@ -88,19 +97,6 @@ def handle_admin_errors(
 
     Similar to handle_api_errors but uses simpler error messages
     suitable for admin panel responses.
-
-    Args:
-        operation: Description of the operation (for logging)
-        error_detail: Custom error detail message (optional)
-
-    Returns:
-        Decorated function
-
-    Example:
-        @router.post("/settings")
-        @handle_admin_errors("update settings")
-        async def update_settings(request: Request):
-            ...
     """
 
     def decorator(func: F) -> F:
@@ -111,12 +107,18 @@ def handle_admin_errors(
             except HTTPException:
                 raise
             except Exception as exc:
-                logger.error("%s error: %s", operation, exc)
-                detail = error_detail or f"Failed to {operation}"
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=detail,
-                ) from exc
+                status_code = getattr(exc, "status_code", None)
+                detail = getattr(exc, "message", None) or error_detail or f"Failed to {operation}"
+                if status_code is None:
+                    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                    detail = error_detail or f"Failed to {operation}"
+
+                if status_code >= 500:
+                    logger.error("%s error: %s", operation, exc)
+                else:
+                    logger.warning("%s error: %s", operation, exc)
+
+                raise HTTPException(status_code=status_code, detail=detail) from exc
 
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
@@ -125,14 +127,20 @@ def handle_admin_errors(
             except HTTPException:
                 raise
             except Exception as exc:
-                logger.error("%s error: %s", operation, exc)
-                detail = error_detail or f"Failed to {operation}"
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=detail,
-                ) from exc
+                status_code = getattr(exc, "status_code", None)
+                detail = getattr(exc, "message", None) or error_detail or f"Failed to {operation}"
+                if status_code is None:
+                    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                    detail = error_detail or f"Failed to {operation}"
 
-        if hasattr(func, "__code__") and func.__code__.co_flags & 0x80:
+                if status_code >= 500:
+                    logger.error("%s error: %s", operation, exc)
+                else:
+                    logger.warning("%s error: %s", operation, exc)
+
+                raise HTTPException(status_code=status_code, detail=detail) from exc
+
+        if asyncio.iscoroutinefunction(func):
             return async_wrapper  # type: ignore
         return sync_wrapper  # type: ignore
 
