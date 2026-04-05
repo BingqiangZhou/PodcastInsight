@@ -150,43 +150,47 @@ class _DarkGlassTokens extends GlassTokens {
 }
 
 /// Light mode glass tokens
+///
+/// Uses subtle dark tints for fill and borders (instead of white) to create
+/// visible glass effects on light backgrounds. White fills on light backgrounds
+/// are nearly invisible, so dark overlays provide better visual distinction.
 class _LightGlassTokens extends GlassTokens {
   const _LightGlassTokens()
       : super(
           brightness: Brightness.light,
           ultraHeavy: const GlassTierParams(
-            fill: Color(0x47FFFFFF), // white 28%
-            borderTop: Color(0x38FFFFFF), // white 22%
-            borderBottom: Color(0x1EFFFFFF), // white 12%
-            innerGlow: Color(0x0FFFFFFF), // white 6%
-            shadow: Color(0x14000000), // black 8%
+            fill: Color(0x12000000), // black 7% — visible darkening
+            borderTop: Color(0x1A000000), // black 10% — edge definition
+            borderBottom: Color(0x0D000000), // black 5%
+            innerGlow: Color(0x0AFFFFFF), // white 4% — subtle inner light
+            shadow: Color(0x1A000000), // black 10% — stronger shadow
             saturationBoost: 1.08,
             noiseOpacity: 0.04,
           ),
           heavy: const GlassTierParams(
-            fill: Color(0x3DFFFFFF), // white 24%
-            borderTop: Color(0x33FFFFFF), // white 20%
-            borderBottom: Color(0x19FFFFFF), // white 10%
-            innerGlow: Color(0x0DFFFFFF), // white 5%
-            shadow: Color(0x12000000), // black 7%
+            fill: Color(0x0F000000), // black 6%
+            borderTop: Color(0x16000000), // black 9%
+            borderBottom: Color(0x0A000000), // black 4%
+            innerGlow: Color(0x08FFFFFF), // white 3%
+            shadow: Color(0x16000000), // black 9%
             saturationBoost: 1.06,
             noiseOpacity: 0.03,
           ),
           medium: const GlassTierParams(
-            fill: Color(0x33FFFFFF), // white 20%
-            borderTop: Color(0x2EFFFFFF), // white 18%
-            borderBottom: Color(0x14FFFFFF), // white 8%
-            innerGlow: Color(0x0AFFFFFF), // white 4%
-            shadow: Color(0x0F000000), // black 6%
+            fill: Color(0x0D000000), // black 5%
+            borderTop: Color(0x13000000), // black 7.5%
+            borderBottom: Color(0x08000000), // black 3%
+            innerGlow: Color(0x06FFFFFF), // white 2.5%
+            shadow: Color(0x12000000), // black 7%
             saturationBoost: 1.05,
             noiseOpacity: 0.03,
           ),
           light: const GlassTierParams(
-            fill: Color(0x28FFFFFF), // white 16%
-            borderTop: Color(0x26FFFFFF), // white 15%
-            borderBottom: Color(0x0FFFFFFF), // white 6%
-            innerGlow: Color(0x08FFFFFF), // white 3%
-            shadow: Color(0x0D000000), // black 5%
+            fill: Color(0x0A000000), // black 4%
+            borderTop: Color(0x10000000), // black 6%
+            borderBottom: Color(0x06000000), // black 2.5%
+            innerGlow: Color(0x05FFFFFF), // white 2%
+            shadow: Color(0x0F000000), // black 6%
             saturationBoost: 1.03,
             noiseOpacity: 0.02,
           ),

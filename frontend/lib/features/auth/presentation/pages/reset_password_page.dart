@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
-import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
@@ -107,7 +108,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
           !next.isLoading &&
           next.error == null &&
           next.currentOperation == AuthOperation.resetPassword) {
-        // Success - password reset
         setState(() {
           _passwordReset = true;
         });
@@ -116,241 +116,173 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
       }
     });
 
-    if (_passwordReset) {
-      return Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.accentWarm.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Icon(
-                      Icons.check_circle_outline,
-                      size: 40,
-                      color: AppColors.accentWarm,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.action_completed,
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.accentWarm,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.auth_password_reset_success,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: FilledButton(
-                      key: const Key('go_to_login_button'),
-                      onPressed: () => context.go('/login'),
-                      child: Text(l10n.auth_back_to_login),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.auth_reset_password),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/login'),
+      body: LoadingOverlay(
+        isLoading: isLoading,
+        child: AuthShell(
+          title: _passwordReset
+              ? l10n.action_completed
+              : l10n.auth_set_new_password,
+          subtitle: _passwordReset
+              ? l10n.auth_password_reset_success
+              : l10n.auth_new_password_instruction,
+          header: Column(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.go('/login'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: _passwordReset
+                      ? AppColors.accentWarm.withValues(alpha: 0.1)
+                      : Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  _passwordReset ? Icons.check_circle_outline : Icons.lock_open,
+                  size: 40,
+                  color: _passwordReset
+                      ? AppColors.accentWarm
+                      : Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          child: _passwordReset ? _buildSuccessContent(l10n) : _buildFormContent(l10n),
         ),
       ),
-      body: SafeArea(
-        child: LoadingOverlay(
-          isLoading: isLoading,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 20),
+    );
+  }
 
-                  // Icon and title
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
+  Widget _buildFormContent(AppLocalizations l10n) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Password field
+          PasswordTextField(
+            controller: _passwordController,
+            label: l10n.auth_new_password,
+            obscureText: _obscurePassword,
+            onToggleVisibility: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return l10n.auth_enter_password;
+              }
+              if (value.length < 8) {
+                return l10n.auth_password_too_short;
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 16),
+
+          // Confirm Password field
+          PasswordTextField(
+            controller: _confirmPasswordController,
+            label: l10n.auth_confirm_password,
+            obscureText: _obscureConfirmPassword,
+            onToggleVisibility: () {
+              setState(() {
+                _obscureConfirmPassword = !_obscureConfirmPassword;
+              });
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return l10n.auth_enter_password;
+              }
+              if (value != _passwordController.text) {
+                return l10n.auth_passwords_not_match;
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 24),
+
+          // Password requirements
+          RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: _passwordController,
+              builder: (context, child) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.auth_password_requirements_title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
-                          child: Icon(
-                            Icons.lock_open,
-                            size: 40,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          l10n.auth_set_new_password,
-                          style: Theme.of(context).textTheme.headlineLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.auth_new_password_instruction,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.7),
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
                     ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Password field
-                  PasswordTextField(
-                    controller: _passwordController,
-                    label: l10n.auth_new_password,
-                    obscureText: _obscurePassword,
-                    onToggleVisibility: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.auth_enter_password;
-                      }
-                      if (value.length < 8) {
-                        return l10n.auth_password_too_short;
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Confirm Password field
-                  PasswordTextField(
-                    controller: _confirmPasswordController,
-                    label: l10n.auth_confirm_password,
-                    obscureText: _obscureConfirmPassword,
-                    onToggleVisibility: () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.auth_enter_password;
-                      }
-                      if (value != _passwordController.text) {
-                        return l10n.auth_passwords_not_match;
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Password requirements
-                  RepaintBoundary(
-                    child: AnimatedBuilder(
-                    animation: _passwordController,
-                    builder: (context, child) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.auth_password_requirements_title,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 8),
-                          PasswordRequirementItem(
-                            text: l10n.auth_password_requirement_min_length,
-                            isValid: _hasMinLength(_passwordController.text),
-                          ),
-                          PasswordRequirementItem(
-                            text: l10n.auth_password_requirement_uppercase,
-                            isValid: _hasUppercase(_passwordController.text),
-                          ),
-                          PasswordRequirementItem(
-                            text: l10n.auth_password_requirement_lowercase,
-                            isValid: _hasLowercase(_passwordController.text),
-                          ),
-                          PasswordRequirementItem(
-                            text: l10n.auth_password_requirement_number,
-                            isValid: _hasNumber(_passwordController.text),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Reset button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: FilledButton(
-                      key: const Key('reset_password_button'),
-                      onPressed: isLoading ? null : _submitResetPassword,
-                      child: isLoading
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            )
-                          : Text(l10n.auth_reset_password),
+                    const SizedBox(height: 8),
+                    PasswordRequirementItem(
+                      text: l10n.auth_password_requirement_min_length,
+                      isValid: _hasMinLength(_passwordController.text),
                     ),
-                  ),
-                ],
-              ),
+                    PasswordRequirementItem(
+                      text: l10n.auth_password_requirement_uppercase,
+                      isValid: _hasUppercase(_passwordController.text),
+                    ),
+                    PasswordRequirementItem(
+                      text: l10n.auth_password_requirement_lowercase,
+                      isValid: _hasLowercase(_passwordController.text),
+                    ),
+                    PasswordRequirementItem(
+                      text: l10n.auth_password_requirement_number,
+                      isValid: _hasNumber(_passwordController.text),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
-        ),
+
+          const SizedBox(height: 32),
+
+          // Reset button
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton(
+              key: const Key('reset_password_button'),
+              onPressed: () => _submitResetPassword(),
+              child: Text(l10n.auth_reset_password),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildSuccessContent(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: FilledButton(
+            key: const Key('go_to_login_button'),
+            onPressed: () => context.go('/login'),
+            child: Text(l10n.auth_back_to_login),
+          ),
+        ),
+      ],
     );
   }
 }

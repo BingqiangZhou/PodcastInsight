@@ -21,7 +21,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Reset Password'), findsOneWidget);
       expect(find.text('Forgot Password'), findsOneWidget);
       expect(find.text('Email'), findsOneWidget);
       expect(find.text('Send Reset Link'), findsOneWidget);

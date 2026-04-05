@@ -414,7 +414,7 @@ class _GlassContainerState extends State<GlassContainer>
     if (isDark) {
       return Colors.white.withValues(alpha: borderOpacity * 0.3);
     } else {
-      return const Color(0xFFE0E0E8).withValues(alpha: borderOpacity * 0.5);
+      return const Color(0xFF8E8E9A).withValues(alpha: borderOpacity * 0.6);
     }
   }
 

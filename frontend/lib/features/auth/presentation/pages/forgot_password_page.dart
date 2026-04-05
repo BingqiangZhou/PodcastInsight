@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
@@ -22,7 +23,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   bool _emailSent = false;
   ProviderSubscription<AuthState>? _authSubscription;
 
-  static const String _fallbackResetPasswordTitle = 'Reset Password';
   static const String _fallbackForgotPasswordTitle = 'Forgot Password';
   static const String _fallbackResetPasswordSubtitle =
       'Enter your email to receive a password reset link.';
@@ -35,7 +35,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   static const String _fallbackCheckEmailMessage =
       'Please check your email and click the link to reset your password';
   static const String _fallbackBackToLogin = 'Back to Login';
-  static const String _fallbackResendEmail = 'Didn\'t receive the email? Resend';
+  static const String _fallbackResendEmail =
+      'Didn\'t receive the email? Resend';
 
   @override
   void initState() {
@@ -92,217 +93,141 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
 
+    final forgotTitle =
+        l10n?.auth_forgot_password ?? _fallbackForgotPasswordTitle;
+    final successTitle =
+        l10n?.auth_reset_email_sent ?? _fallbackResetEmailSent;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          l10n?.auth_reset_password ?? _fallbackResetPasswordTitle,
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/login'),
+      body: LoadingOverlay(
+        isLoading: isLoading,
+        child: AuthShell(
+          title: _emailSent ? successTitle : forgotTitle,
+          subtitle: _emailSent
+              ? l10n?.auth_reset_email_sent_to(
+                        _emailController.text.trim(),
+                      ) ??
+                  'We\'ve sent a password reset link to\n${_emailController.text.trim()}'
+              : l10n?.auth_reset_password_subtitle ??
+                  _fallbackResetPasswordSubtitle,
+          header: Column(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.go('/login'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: _emailSent
+                      ? AppColors.accentWarm.withValues(alpha: 0.1)
+                      : Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  _emailSent ? Icons.check_circle_outline : Icons.lock_reset,
+                  size: 40,
+                  color: _emailSent
+                      ? AppColors.accentWarm
+                      : Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          child: _emailSent ? _buildSuccessContent(l10n) : _buildFormContent(l10n),
         ),
       ),
-      body: SafeArea(
-        child: LoadingOverlay(
-          isLoading: isLoading,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 20),
+    );
+  }
 
-                  if (!_emailSent) ...[
-                    // Icon and title
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Icon(
-                              Icons.lock_reset,
-                              size: 40,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n?.auth_forgot_password ??
-                                _fallbackForgotPasswordTitle,
-                            style: Theme.of(context).textTheme.headlineLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n?.auth_reset_password_subtitle ??
-                                _fallbackResetPasswordSubtitle,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 48),
-
-                    // Email field
-                    CustomTextField(
-                      controller: _emailController,
-                      label: l10n?.auth_email ?? _fallbackEmailLabel,
-                      keyboardType: TextInputType.emailAddress,
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return l10n?.auth_enter_email ??
-                              _fallbackEnterEmail;
-                        }
-                        if (!value.contains('@')) {
-                          return l10n?.auth_enter_valid_email ??
-                              _fallbackEnterValidEmail;
-                        }
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Submit button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: FilledButton(
-                        key: const Key('forgot_password_submit_button'),
-                        onPressed: isLoading ? null : _submitForgotPassword,
-                        child: isLoading
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              )
-                            : Text(
-                                l10n?.auth_send_reset_link ??
-                                    _fallbackSendResetLink,
-                              ),
-                      ),
-                    ),
-                  ] else ...[
-                    // Success message
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: AppColors.accentWarm.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Icon(
-                              Icons.check_circle_outline,
-                              size: 40,
-                              color: AppColors.accentWarm,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n?.auth_reset_email_sent ??
-                                _fallbackResetEmailSent,
-                            style: Theme.of(context).textTheme.headlineLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.accentWarm,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n?.auth_reset_email_sent_to(
-                                      _emailController.text.trim(),
-                                    ) ??
-                                'We\'ve sent a password reset link to\n${_emailController.text.trim()}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n?.auth_check_email_fallback ??
-                                _fallbackCheckEmailMessage,
-                            key: const Key('forgot_password_success_message'),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 48),
-
-                    // Back to login button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton(
-                        key: const Key('back_to_login_button'),
-                        onPressed: () => context.go('/login'),
-                        child: Text(
-                          l10n?.auth_back_to_login ?? _fallbackBackToLogin,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Resend email
-                    TextButton(
-                      key: const Key('resend_email_button'),
-                      onPressed: () {
-                        setState(() {
-                          _emailSent = false;
-                        });
-                        ref.read(authProvider.notifier).clearError();
-                      },
-                      child: Text(
-                        l10n?.auth_resend_email ?? _fallbackResendEmail,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+  Widget _buildFormContent(AppLocalizations? l10n) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CustomTextField(
+            controller: _emailController,
+            label: l10n?.auth_email ?? _fallbackEmailLabel,
+            keyboardType: TextInputType.emailAddress,
+            prefixIcon: const Icon(Icons.email_outlined),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return l10n?.auth_enter_email ?? _fallbackEnterEmail;
+              }
+              if (!value.contains('@')) {
+                return l10n?.auth_enter_valid_email ??
+                    _fallbackEnterValidEmail;
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton(
+              key: const Key('forgot_password_submit_button'),
+              onPressed: () => _submitForgotPassword(),
+              child: Text(
+                l10n?.auth_send_reset_link ?? _fallbackSendResetLink,
               ),
             ),
           ),
-        ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildSuccessContent(AppLocalizations? l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n?.auth_check_email_fallback ?? _fallbackCheckEmailMessage,
+          key: const Key('forgot_password_success_message'),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color:
+                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: OutlinedButton(
+            key: const Key('back_to_login_button'),
+            onPressed: () => context.go('/login'),
+            child: Text(
+              l10n?.auth_back_to_login ?? _fallbackBackToLogin,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextButton(
+          key: const Key('resend_email_button'),
+          onPressed: () {
+            setState(() {
+              _emailSent = false;
+            });
+            ref.read(authProvider.notifier).clearError();
+          },
+          child: Text(
+            l10n?.auth_resend_email ?? _fallbackResendEmail,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+        ),
+      ],
     );
   }
 }

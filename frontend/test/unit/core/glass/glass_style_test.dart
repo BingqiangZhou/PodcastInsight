@@ -62,11 +62,11 @@ void main() {
         final style = GlassStyle.forTier(GlassTier.ultraHeavy, Brightness.light);
 
         expect(style.sigma, 28);
-        expect(style.fill, const Color(0x47FFFFFF));
-        expect(style.borderTop, const Color(0x38FFFFFF));
-        expect(style.borderBottom, const Color(0x1EFFFFFF));
-        expect(style.innerGlow, const Color(0x0FFFFFFF));
-        expect(style.shadow, const Color(0x14000000));
+        expect(style.fill, const Color(0x12000000));
+        expect(style.borderTop, const Color(0x1A000000));
+        expect(style.borderBottom, const Color(0x0D000000));
+        expect(style.innerGlow, const Color(0x0AFFFFFF));
+        expect(style.shadow, const Color(0x1A000000));
         expect(style.noiseOpacity, 0.04);
         expect(style.saturationBoost, 1.08);
       });
@@ -75,11 +75,11 @@ void main() {
         final style = GlassStyle.forTier(GlassTier.medium, Brightness.light);
 
         expect(style.sigma, 14);
-        expect(style.fill, const Color(0x33FFFFFF));
-        expect(style.borderTop, const Color(0x2EFFFFFF));
-        expect(style.borderBottom, const Color(0x14FFFFFF));
-        expect(style.innerGlow, const Color(0x0AFFFFFF));
-        expect(style.shadow, const Color(0x0F000000));
+        expect(style.fill, const Color(0x0D000000));
+        expect(style.borderTop, const Color(0x13000000));
+        expect(style.borderBottom, const Color(0x08000000));
+        expect(style.innerGlow, const Color(0x06FFFFFF));
+        expect(style.shadow, const Color(0x12000000));
         expect(style.noiseOpacity, 0.03);
         expect(style.saturationBoost, 1.05);
       });
