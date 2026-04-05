@@ -69,6 +69,7 @@ class _GlassContainerState extends State<GlassContainer>
   late AnimationController _hoverController;
   late AnimationController _pressController;
   late AnimationController _entryController;
+  late AnimationController _shimmerController;
 
   // Hover/press state
   bool _isHovered = false;
@@ -105,11 +106,17 @@ class _GlassContainerState extends State<GlassContainer>
       duration: const Duration(milliseconds: 150),
     );
 
-    // Entry: 400ms easeOut, play once
+    // Entry: 200ms easeOut, play once
     _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 200),
     )..forward();
+
+    // Shimmer: 400ms, for hover sweep effect
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
   }
 
   @override
@@ -170,6 +177,7 @@ class _GlassContainerState extends State<GlassContainer>
     _hoverController.dispose();
     _pressController.dispose();
     _entryController.dispose();
+    _shimmerController.dispose();
     _noiseImage?.dispose();
     super.dispose();
   }
@@ -199,8 +207,8 @@ class _GlassContainerState extends State<GlassContainer>
           onTapCancel: _handlePressCancel,
           child: AnimatedScale(
             scale: _isPressed ? 0.98 : 1.0,
-            duration: const Duration(milliseconds: 100),
-            curve: Curves.easeOut,
+            duration: Duration(milliseconds: _isPressed ? 100 : 300),
+            curve: _isPressed ? Curves.easeIn : Curves.easeOutBack,
             child: content,
           ),
         ),
@@ -220,17 +228,27 @@ class _GlassContainerState extends State<GlassContainer>
             if (!_disableAnimations) _lightFlowController,
             if (_isHovered && !_disableAnimations) _hoverController,
             if (_isPressed && !_disableAnimations) _pressController,
+            if (_isHovered && !_disableAnimations) _shimmerController,
           ]),
           builder: (context, child) {
             final entryValue = _entryController.value;
-            final currentSigma = _style.sigma * entryValue;
-            final currentBorderOpacity = entryValue;
+            final curvedEntry = Curves.easeOutCubic.transform(entryValue);
+            final currentSigma = _style.sigma * curvedEntry;
+            final currentBorderOpacity = curvedEntry;
+            final entryScale = 0.95 + 0.05 * curvedEntry;
+            final entryOpacity = curvedEntry;
 
-            return _buildLayer1Optical(
-              borderRadius,
-              currentSigma,
-              currentBorderOpacity,
-              child,
+            return Opacity(
+              opacity: entryOpacity,
+              child: Transform.scale(
+                scale: entryScale,
+                child: _buildLayer1Optical(
+                  borderRadius,
+                  currentSigma,
+                  currentBorderOpacity,
+                  child,
+                ),
+              ),
             );
           },
           child: widget.child,
@@ -400,6 +418,39 @@ class _GlassContainerState extends State<GlassContainer>
               },
             ),
           ),
+        // Shimmer sweep on hover
+        if (_isHovered && !_disableAnimations)
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _shimmerController,
+              builder: (context, _) {
+                final progress = _shimmerController.value;
+                // Shimmer sweeps from left to right at 30 degrees
+                final shimmerAlpha = math.sin(progress * math.pi) * 0.08;
+                return Transform.rotate(
+                  angle: -math.pi / 6, // 30 degrees
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          Colors.transparent,
+                          Colors.white.withValues(alpha: shimmerAlpha.clamp(0.0, 1.0)),
+                          Colors.transparent,
+                        ],
+                        stops: [
+                          (progress - 0.3).clamp(0.0, 1.0),
+                          progress.clamp(0.0, 1.0),
+                          (progress + 0.3).clamp(0.0, 1.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         // Tint overlay
         if (widget.tint != null)
           Positioned.fill(child: Container(color: widget.tint)),
@@ -453,6 +504,7 @@ class _GlassContainerState extends State<GlassContainer>
       _isHovered = true;
     });
     _hoverController.forward();
+    _shimmerController.forward(from: 0.0);
   }
 
   void _handleHoverExit() {
@@ -461,6 +513,7 @@ class _GlassContainerState extends State<GlassContainer>
       _isHovered = false;
     });
     _hoverController.reverse();
+    _shimmerController.reverse();
   }
 
   void _handlePressDown(TapDownDetails details) {
