@@ -96,8 +96,8 @@ class UserSession(Base):
     user_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    session_token = Column(String(255), unique=True, index=True, nullable=False)
-    refresh_token = Column(String(255), unique=True, index=True, nullable=True)
+    session_token = Column(Text, unique=True, index=True, nullable=False)
+    refresh_token = Column(Text, unique=True, index=True, nullable=True)
     device_info = Column(JSON, nullable=True)
     ip_address = Column(String(45), nullable=True)  # IPv6 compatible
     user_agent = Column(Text, nullable=True)
