@@ -235,8 +235,11 @@ class PodcastSummaryGenerationService:
 
         try:
             from sqlalchemy import select
+            from sqlalchemy.orm import selectinload
 
-            stmt = select(PodcastEpisode).where(PodcastEpisode.id == episode_id)
+            stmt = select(PodcastEpisode).where(PodcastEpisode.id == episode_id).options(
+                selectinload(PodcastEpisode.transcript)
+            )
             result = await self.db.execute(stmt)
             episode = result.scalar_one_or_none()
             if not episode:
