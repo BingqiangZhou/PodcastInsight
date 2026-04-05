@@ -120,7 +120,7 @@ class _CategoryChip extends StatelessWidget {
               : theme.colorScheme.onSurfaceVariant,
         ),
         selectedColor: selectedBackgroundColor,
-        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        backgroundColor: Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       ),
     );

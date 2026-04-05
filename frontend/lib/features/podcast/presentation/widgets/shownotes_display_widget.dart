@@ -564,7 +564,7 @@ class ShownotesDisplayWidgetState
 
         if (element.localName == 'pre' || element.localName == 'code') {
           styles['background-color'] = _colorToHex(
-            Theme.of(context).colorScheme.surfaceContainerHighest,
+            Colors.transparent,
           );
           styles['padding'] = '8px';
           styles['border-radius'] = '4px';

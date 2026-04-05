@@ -588,7 +588,7 @@ class _SearchModeToggle extends StatelessWidget {
       height: toggleHeight,
       padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(toggleHeight / 2),
       ),
       child: Row(
@@ -654,7 +654,7 @@ class _TabPill extends StatelessWidget {
       curve: Curves.easeOutCubic,
       height: height,
       decoration: BoxDecoration(
-        color: selected ? theme.colorScheme.surface : Colors.transparent,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(height / 2),
       ),
       child: Material(

@@ -78,7 +78,7 @@ class _PodcastMiniDock extends ConsumerWidget {
           constraints: BoxConstraints(maxWidth: viewportSpec.dockMaxWidth),
           child: Material(
             key: const Key('podcast_bottom_player_mini'),
-            color: theme.colorScheme.surfaceContainerLow,
+            color: Colors.transparent,
             elevation: 4,
             shadowColor: theme.shadowColor.withValues(alpha: 0.10),
             shape: RoundedRectangleBorder(
@@ -180,7 +180,7 @@ class _MiniDockBody extends ConsumerWidget {
                             child: _MiniProgressIndicator(
                               progressColor: theme.colorScheme.primary,
                               progressTrackColor:
-                                  theme.colorScheme.surfaceContainerHighest,
+                                  Colors.transparent,
                             ),
                           ),
                         ),
@@ -610,7 +610,7 @@ class _ExpandedProgressSectionState
           child: SliderTheme(
             data: theme.sliderTheme.copyWith(
               activeTrackColor: theme.colorScheme.primary,
-              inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+              inactiveTrackColor: Colors.transparent,
               thumbColor: theme.colorScheme.primary,
               overlayColor: theme.colorScheme.primary.withValues(alpha: 0.12),
               trackHeight: 3,

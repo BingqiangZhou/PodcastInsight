@@ -217,7 +217,7 @@ class _HighlightDetailContent extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: scheme.outline.withValues(alpha: 0.2),
@@ -244,7 +244,7 @@ class _HighlightDetailContent extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

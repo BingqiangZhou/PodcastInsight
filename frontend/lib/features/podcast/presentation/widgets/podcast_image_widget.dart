@@ -223,9 +223,7 @@ class _PodcastImageWidgetState extends State<PodcastImageWidget> {
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.5,
-            ),
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(extension.inputRadius),
           ),
           child: Center(

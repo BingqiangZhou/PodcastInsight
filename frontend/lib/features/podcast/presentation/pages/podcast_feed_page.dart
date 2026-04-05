@@ -170,7 +170,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
         message: l10n.podcast_daily_report_open,
         child: Material(
           key: const Key('library_daily_report_entry_tile'),
-          color: theme.colorScheme.surfaceContainerLow,
+          color: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
             side: BorderSide(

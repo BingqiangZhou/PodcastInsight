@@ -367,7 +367,7 @@ class TranscriptDisplayWidgetState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: scheme.surface,
+        color: Colors.transparent,
         border: Border(
           bottom: BorderSide(
             color: scheme.outlineVariant,
@@ -566,7 +566,7 @@ class TranscriptDisplayWidgetState
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -689,7 +689,7 @@ class TranscriptDisplayWidgetState
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(

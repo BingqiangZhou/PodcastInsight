@@ -88,7 +88,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
       key: const Key('podcast_discover_search_input_boundary'),
       child: Material(
         key: const Key('podcast_discover_search_bar'),
-        color: theme.colorScheme.surface,
+        color: Colors.transparent,
         shadowColor: _isFocused ? extension.shadowXs.color : Colors.transparent,
         elevation: _isFocused ? 1 : 0,
         shape: RoundedRectangleBorder(
@@ -192,7 +192,7 @@ class _CountryButton extends ConsumerWidget {
           height: height,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(height / 2),
           ),
           child: Row(

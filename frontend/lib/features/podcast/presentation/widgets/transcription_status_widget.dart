@@ -55,7 +55,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
         : scheme.primary;
     return Card(
       elevation: 0,
-      color: scheme.surfaceContainerHighest,
+      color: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(ext.cardRadius),
         side: BorderSide(color: scheme.outline.withValues(alpha: 0.2)),
@@ -123,7 +123,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(ext.buttonRadius),
               ),
               child: Row(
@@ -207,7 +207,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
         return Container(
           width: double.infinity,
           height: double.infinity,
-          color: scheme.surfaceContainerHighest,
+          color: Colors.transparent,
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -301,7 +301,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
         return Container(
           width: double.infinity,
           height: double.infinity,
-          color: scheme.surfaceContainerHighest,
+          color: Colors.transparent,
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(

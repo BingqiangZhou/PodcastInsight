@@ -37,7 +37,7 @@ class ChatInputArea extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: scheme.surface,
+        color: Colors.transparent,
         border: Border(
           top: BorderSide(
             color: scheme.outlineVariant,

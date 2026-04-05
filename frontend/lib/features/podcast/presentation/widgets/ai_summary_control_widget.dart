@@ -377,7 +377,7 @@ class _AISummaryControlWidgetState
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(extension.controlRadius),
       ),
       child: DropdownButtonFormField<SummaryModelInfo>(

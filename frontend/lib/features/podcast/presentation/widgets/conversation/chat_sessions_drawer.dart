@@ -35,7 +35,7 @@ class ChatSessionsDrawer extends ConsumerWidget {
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Colors.transparent,
             ),
             child: Center(
               child: Column(

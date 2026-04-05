@@ -138,8 +138,8 @@ class PodcastQueueSheet extends ConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Theme.of(context).colorScheme.surfaceContainerLowest,
-                Theme.of(context).colorScheme.surface,
+                Colors.transparent,
+                Colors.transparent,
               ],
             ),
           ),
@@ -218,7 +218,7 @@ class _QueueHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: Colors.transparent,
         border: Border(
           bottom: BorderSide(
             color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
@@ -303,7 +303,7 @@ class _QueueInfoChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: emphasized
             ? theme.colorScheme.primary.withValues(alpha: 0.12)
-            : theme.colorScheme.surfaceContainerLow,
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
@@ -382,7 +382,7 @@ class _QueueStateList extends StatelessWidget {
           key: const Key('queue_state_card'),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerLow,
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
@@ -394,7 +394,7 @@ class _QueueStateList extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
+                  color: Colors.transparent,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
@@ -652,9 +652,9 @@ class _QueueListItem extends ConsumerWidget {
     final cardColors = isCurrent
         ? [
             theme.colorScheme.primaryContainer.withValues(alpha: 0.72),
-            theme.colorScheme.surface,
+            Colors.transparent,
           ]
-        : [theme.colorScheme.surfaceContainerLow, theme.colorScheme.surface];
+        : [Colors.transparent, Colors.transparent];
 
     return Material(
       key: Key('queue_item_tile_${item.episodeId}'),
@@ -932,7 +932,7 @@ class _QueueItemCover extends StatelessWidget {
   Widget _fallback(ThemeData theme) {
     return Container(
       key: Key('queue_item_cover_fallback_${item.episodeId}'),
-      color: theme.colorScheme.surfaceContainerHighest,
+      color: Colors.transparent,
       alignment: Alignment.center,
       child: Icon(
         Icons.podcasts,
