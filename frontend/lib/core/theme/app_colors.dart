@@ -168,13 +168,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     // Legacy properties for backwards compatibility (non-nullable with defaults)
     this.shellGradient,
     required this.aiPrimary,
-    required this.glassSurfaceStrong,
-    required this.glassShadow,
-    required this.glassBorder,
-    this.glassSurface,
-    this.glassHighlight,
-    this.auroraGlow,
-    this.warmGlow,
     // AI accent tokens
     required this.aiBubbleUserColor,
     required this.aiBubbleAssistantColor,
@@ -207,13 +200,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   // Legacy properties for backwards compatibility
   final Gradient? shellGradient;
   final Color aiPrimary;
-  final Color glassSurfaceStrong;
-  final Color glassShadow;
-  final Color glassBorder;
-  final Color? glassSurface;
-  final Color? glassHighlight;
-  final Color? auroraGlow;
-  final Color? warmGlow;
 
   // AI accent tokens - warm amber & coral for AI-related elements
   final Color aiBubbleUserColor;
@@ -241,13 +227,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     List<Color>? chartColors,
     Gradient? shellGradient,
     Color? aiPrimary,
-    Color? glassSurfaceStrong,
-    Color? glassShadow,
-    Color? glassBorder,
-    Color? glassSurface,
-    Color? glassHighlight,
-    Color? auroraGlow,
-    Color? warmGlow,
     Color? aiBubbleUserColor,
     Color? aiBubbleAssistantColor,
     Color? aiChipColor,
@@ -272,13 +251,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       chartColors: chartColors ?? this.chartColors,
       shellGradient: shellGradient ?? this.shellGradient,
       aiPrimary: aiPrimary ?? this.aiPrimary,
-      glassSurfaceStrong: glassSurfaceStrong ?? this.glassSurfaceStrong,
-      glassShadow: glassShadow ?? this.glassShadow,
-      glassBorder: glassBorder ?? this.glassBorder,
-      glassSurface: glassSurface ?? this.glassSurface,
-      glassHighlight: glassHighlight ?? this.glassHighlight,
-      auroraGlow: auroraGlow ?? this.auroraGlow,
-      warmGlow: warmGlow ?? this.warmGlow,
       aiBubbleUserColor: aiBubbleUserColor ?? this.aiBubbleUserColor,
       aiBubbleAssistantColor: aiBubbleAssistantColor ?? this.aiBubbleAssistantColor,
       aiChipColor: aiChipColor ?? this.aiChipColor,
@@ -313,9 +285,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       shadowLg: BoxShadow.lerp(shadowLg, other.shadowLg, t)!,
       chartColors: other.chartColors,
       aiPrimary: Color.lerp(aiPrimary, other.aiPrimary, t)!,
-      glassSurfaceStrong: Color.lerp(glassSurfaceStrong, other.glassSurfaceStrong, t)!,
-      glassShadow: Color.lerp(glassShadow, other.glassShadow, t)!,
-      glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
       aiBubbleUserColor: Color.lerp(aiBubbleUserColor, other.aiBubbleUserColor, t)!,
       aiBubbleAssistantColor: Color.lerp(aiBubbleAssistantColor, other.aiBubbleAssistantColor, t)!,
       aiChipColor: Color.lerp(aiChipColor, other.aiChipColor, t)!,
@@ -359,9 +328,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     chartColors: AppColors.chartColors,
     // Legacy properties with fallback values
     aiPrimary: Color(0xFF6366F1),
-    glassSurfaceStrong: Color(0xFFFFFFFF),
-    glassShadow: Color(0xFF000000),
-    glassBorder: Color(0xFFE0E0EF),
     // AI accent tokens — light
     aiBubbleUserColor: Color(0xFFE0E7FF),
     aiBubbleAssistantColor: Color(0xFFF5F3FF),
@@ -405,9 +371,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     chartColors: AppColors.chartColors,
     // Legacy properties with fallback values
     aiPrimary: Color(0xFFA5B4FC),
-    glassSurfaceStrong: Color(0xFF1E1B35),
-    glassShadow: Color(0xFF000000),
-    glassBorder: Color(0xFF2D2B55),
     // AI accent tokens — dark
     aiBubbleUserColor: Color(0xFF1E1B4B),
     aiBubbleAssistantColor: Color(0xFF1E1B35),

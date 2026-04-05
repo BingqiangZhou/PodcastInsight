@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_container.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_style.dart';
+import 'package:personal_ai_assistant/core/glass/glass_container.dart';
+import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_score_indicator.dart';
 
@@ -36,8 +36,8 @@ class HighlightCard extends ConsumerWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(22),
-        child: LiquidGlassContainer(
-          tier: LiquidGlassTier.light,
+        child: GlassContainer(
+          tier: GlassTier.light,
           borderRadius: 22,
           padding: EdgeInsets.fromLTRB(
             isCompact ? 14 : 16,

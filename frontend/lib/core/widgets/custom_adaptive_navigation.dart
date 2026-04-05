@@ -5,8 +5,8 @@ import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_container.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_style.dart';
+import 'package:personal_ai_assistant/core/glass/glass_container.dart';
+import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 
 const Duration _kBottomAccessoryPaddingTransition = Duration(milliseconds: 220);
 
@@ -637,8 +637,8 @@ class _CleanSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LiquidGlassContainer(
-      tier: LiquidGlassTier.medium,
+    return GlassContainer(
+      tier: GlassTier.heavy,
       borderRadius: compact ? 16 : 20,
       animate: true,
       interactive: false,
@@ -658,8 +658,8 @@ class _CleanDock extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      child: LiquidGlassContainer(
-        tier: LiquidGlassTier.medium,
+      child: GlassContainer(
+        tier: GlassTier.medium,
         borderRadius: 16,
         animate: true,
         interactive: false,

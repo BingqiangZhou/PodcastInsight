@@ -7,9 +7,8 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_container.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_style.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_tokens.dart';
+import 'package:personal_ai_assistant/core/glass/glass_container.dart';
+import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
@@ -187,11 +186,11 @@ class _PodcastDailyReportPageState
             : l10n.refresh,
       ),
       style: FilledButton.styleFrom(
-        backgroundColor: LiquidGlassTokens.of(context).glassFill.withValues(
+        backgroundColor: GlassTokens.of(context).glassFill.withValues(
           alpha: theme.brightness == Brightness.dark ? 0.6 : 0.86,
         ),
         foregroundColor: theme.colorScheme.onSurface,
-        disabledBackgroundColor: LiquidGlassTokens.of(context).glassFill.withValues(
+        disabledBackgroundColor: GlassTokens.of(context).glassFill.withValues(
           alpha: 0.32,
         ),
         disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withValues(
@@ -277,8 +276,8 @@ class _PodcastDailyReportPageState
         context,
         title: EpisodeCardUtils.formatDate(targetDate),
         subtitle: l10n.podcast_daily_report_empty,
-        child: LiquidGlassContainer(
-          tier: LiquidGlassTier.light,
+        child: GlassContainer(
+          tier: GlassTier.light,
           borderRadius: 22,
           padding: const EdgeInsets.all(18),
           animate: true,
@@ -432,8 +431,8 @@ class _PodcastDailyReportPageState
           context.push('/podcast/episode/detail/${item.episodeId}');
         },
         borderRadius: BorderRadius.circular(22),
-        child: LiquidGlassContainer(
-          tier: LiquidGlassTier.light,
+        child: GlassContainer(
+          tier: GlassTier.light,
           borderRadius: 22,
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
           animate: true,
@@ -773,7 +772,7 @@ class _PodcastDailyReportPageState
         decoration: BoxDecoration(
           color: selected
               ? theme.colorScheme.primary
-              : LiquidGlassTokens.of(context).glassFill.withValues(
+              : GlassTokens.of(context).glassFill.withValues(
                   alpha: isOutside || isDisabled ? 0.18 : 0.22,
                 ),
           borderRadius: BorderRadius.circular(14),

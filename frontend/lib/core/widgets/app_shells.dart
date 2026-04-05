@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_container.dart';
-import 'package:personal_ai_assistant/core/theme/liquid_glass/liquid_glass_style.dart';
+import 'package:personal_ai_assistant/core/glass/glass_container.dart';
+import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
 
@@ -295,7 +295,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
 
 /// SurfacePanel - Liquid Glass surface panel
 ///
-/// Uses LiquidGlassContainer with light tier for cards and panels.
+/// Uses GlassContainer with light tier for cards and panels.
 /// Includes a subtle fade-in + slide-up entrance animation on first build.
 class SurfacePanel extends StatefulWidget {
   const SurfacePanel({
@@ -333,8 +333,8 @@ class _SurfacePanelState extends State<SurfacePanel> {
 
     final panel = Container(
       margin: widget.margin,
-      child: LiquidGlassContainer(
-        tier: LiquidGlassTier.light,
+      child: GlassContainer(
+        tier: GlassTier.light,
         borderRadius: radius,
         padding: widget.padding,
         tint: widget.backgroundColor,

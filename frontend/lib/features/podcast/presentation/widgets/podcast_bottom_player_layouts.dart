@@ -281,9 +281,9 @@ class _PodcastExpandedOverlay extends ConsumerWidget {
               duration: _kPlayerTransition,
               curve: Curves.easeOutCubic,
               opacity: visible ? 1 : 0,
-              child: LiquidGlassContainer(
+              child: GlassContainer(
                 key: visible ? const Key('podcast_player_mobile_sheet') : null,
-                tier: LiquidGlassTier.heavy,
+                tier: GlassTier.ultraHeavy,
                 borderRadius: viewportSpec.mobileDrawerBorderRadius,
                 animate: true,
                 interactive: false,

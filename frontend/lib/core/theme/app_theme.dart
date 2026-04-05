@@ -250,11 +250,11 @@ class AppTheme {
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: scheme.surface,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(extension.panelRadius),
-          side: BorderSide(color: scheme.outlineVariant),
+          borderRadius: BorderRadius.circular(24),
         ),
         titleTextStyle: _withHeading(textTheme.headlineSmall),
       ),
@@ -346,7 +346,6 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
         elevation: 0,
         height: 72,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -368,6 +367,13 @@ class AppTheme {
           );
         }),
         indicatorColor: scheme.primary.withValues(alpha: isDark ? 0.22 : 0.14),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
       ),
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: Colors.transparent,
