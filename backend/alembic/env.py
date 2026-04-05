@@ -7,6 +7,7 @@ import types
 from datetime import timedelta
 from functools import lru_cache
 from logging.config import fileConfig
+from unittest.mock import AsyncMock
 
 from pydantic_settings import BaseSettings
 from sqlalchemy import pool
@@ -196,7 +197,34 @@ mock_security_module.generate_api_key = MockSecurity.generate_api_key
 mock_security_module.generate_random_string = MockSecurity.generate_random_string
 mock_security_module.enable_ec256_optimized = MockSecurity.enable_ec256_optimized
 mock_security_module.OAuth2PasswordBearer = lambda token_url: None
+# Make mock behave like a package so sub-module imports still work
+mock_security_module.__path__ = ["app/core/security"]
+mock_security_module.__package__ = "app.core.security"
 sys.modules["app.core.security"] = mock_security_module
+
+# Mock sub-modules that auth_service imports from
+_mock_token_blacklist = types.ModuleType("app.core.security.token_blacklist")
+_mock_token_blacklist.revoke_token = AsyncMock()
+_mock_token_blacklist.is_token_revoked = AsyncMock(return_value=False)
+_mock_token_blacklist.revoke_all_user_tokens = AsyncMock()
+_mock_token_blacklist.register_user_token = AsyncMock()
+sys.modules["app.core.security.token_blacklist"] = _mock_token_blacklist
+
+_mock_jwt = types.ModuleType("app.core.security.jwt")
+_mock_jwt.verify_token = AsyncMock(return_value={"sub": "1"})
+_mock_jwt.create_access_token = AsyncMock(return_value="mock_token")
+_mock_jwt.create_refresh_token = AsyncMock(return_value="mock_refresh")
+sys.modules["app.core.security.jwt"] = _mock_jwt
+
+_mock_password = types.ModuleType("app.core.security.password")
+_mock_password.get_password_hash = MockSecurity.get_password_hash
+_mock_password.verify_password = MockSecurity.verify_password
+sys.modules["app.core.security.password"] = _mock_password
+
+_mock_encryption = types.ModuleType("app.core.security.encryption")
+_mock_encryption.encrypt_data = AsyncMock(return_value=b"encrypted")
+_mock_encryption.decrypt_data = AsyncMock(return_value=b"decrypted")
+sys.modules["app.core.security.encryption"] = _mock_encryption
 
 # === STEP 2: Import database module to get Base ===
 # Import after mocking config and security to avoid circular imports
