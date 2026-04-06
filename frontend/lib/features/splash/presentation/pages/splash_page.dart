@@ -60,8 +60,6 @@ class _SplashPageState extends ConsumerState<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       body: GlassBackground(
         theme: GlassBackgroundTheme.neutral,
