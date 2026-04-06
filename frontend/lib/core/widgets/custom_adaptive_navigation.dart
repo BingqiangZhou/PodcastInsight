@@ -182,7 +182,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
           SizedBox(
             width: 72,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
               child: _CleanSidebar(
                 expanded: false,
                 child: Column(
@@ -229,7 +229,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
             builder: (context, expanded, child) {
               return RepaintBoundary(
                 child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(end: expanded ? 240 : 60),
+                  tween: Tween<double>(end: expanded ? 240 : 72),
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutCubic,
                   builder: (context, animatedWidth, child) {
@@ -238,7 +238,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                       key: const ValueKey('desktop_navigation_sidebar'),
                       width: animatedWidth,
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                        padding: EdgeInsets.fromLTRB(showCompact ? 4 : 12, 12, showCompact ? 4 : 12, 12),
                         child: _CleanSidebar(
                           expanded: expanded,
                           child: showCompact
@@ -442,7 +442,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
       child: Tooltip(
         message: destination.label,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: _NavInkWell(
             onTap: onTap,
             borderRadius: extension.navItemRadius,
@@ -452,13 +452,16 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
               child: Container(
-                width: 52,
-                height: 52,
+                width: 44,
+                height: 44,
                 decoration: _buildNavDecoration(isSelected: isSelected, context: context),
                 child: Center(
-                  child: isSelected
-                      ? (destination.selectedIcon ?? destination.icon)
-                      : destination.icon,
+                  child: IconTheme(
+                    data: const IconThemeData(size: 20),
+                    child: isSelected
+                        ? (destination.selectedIcon ?? destination.icon)
+                        : destination.icon,
+                  ),
                 ),
               ),
             ),

@@ -3410,6 +3410,12 @@ abstract class AppLocalizations {
   /// **'Downloaded'**
   String get downloads_completed_title;
 
+  /// Download count subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 download} other{{count} downloads}}'**
+  String downloads_items(int count);
+
   /// Title for the Appearance settings page
   ///
   /// In en, this message translates to:

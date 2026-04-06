@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/database/app_database.dart';
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
+import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/services/audio_download_service.dart';
 import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
+import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_episodes_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
@@ -18,71 +23,106 @@ class PodcastDownloadsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final tokens = appThemeOf(context);
     final asyncDownloads = ref.watch(downloadsListProvider);
     final grouped = ref.watch(groupedDownloadsProvider);
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        const GlassBackground(theme: GlassBackgroundTheme.neutral, child: SizedBox.expand()),
-        Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            title: Text(l10n.downloads_page_title),
-            backgroundColor: Colors.transparent,
-            actions: [
-              if (grouped.completed.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.delete_sweep),
-                  tooltip: l10n.downloads_delete_all,
-                  onPressed: () =>
-                      _confirmDeleteAll(context, ref, grouped.completed),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Material(
+        color: Colors.transparent,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const GlassBackground(
+              theme: GlassBackgroundTheme.neutral,
+              child: SizedBox.expand(),
+            ),
+            SafeArea(
+              bottom: false,
+              child: ResponsiveContainer(
+                maxWidth: 1480,
+                alignment: Alignment.topCenter,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeaderPanel(context, ref, l10n, grouped),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: asyncDownloads.when(
+                        data: (tasks) {
+                          if (tasks.isEmpty) {
+                            return _buildEmptyState(context, l10n, tokens);
+                          }
+                          return _buildDownloadsPanel(
+                            context,
+                            grouped,
+                            l10n,
+                            theme,
+                            tokens,
+                          );
+                        },
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (e, _) => Center(child: Text(e.toString())),
+                      ),
+                    ),
+                  ],
                 ),
-            ],
-          ),
-          body: asyncDownloads.when(
-            data: (tasks) {
-              if (tasks.isEmpty) {
-                return const _EmptyState();
-              }
-
-              // Build flat list with section headers for lazy rendering
-              final items = _buildItems(grouped, l10n);
-
-              return ListView.builder(
-                padding: const EdgeInsets.only(bottom: 100),
-                itemCount: items.length,
-                itemBuilder: (context, index) => items[index],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text(e.toString())),
-          ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  /// Builds a flat list of [_ListItem]s mixing section headers and task tiles.
-  static List<Widget> _buildItems(
-    GroupedDownloads grouped,
+  Widget _buildHeaderPanel(
+    BuildContext context,
+    WidgetRef ref,
     AppLocalizations l10n,
+    GroupedDownloads grouped,
   ) {
-    final items = <Widget>[];
-    if (grouped.active.isNotEmpty) {
-      items.add(_SectionHeader(title: l10n.downloads_active_title));
-      items.addAll(grouped.active.map((t) => _DownloadTaskTile(task: t)));
-    }
-    if (grouped.failed.isNotEmpty) {
-      items.add(_SectionHeader(title: l10n.download_button_failed));
-      items.addAll(grouped.failed.map((t) => _DownloadTaskTile(task: t)));
-    }
-    if (grouped.completed.isNotEmpty) {
-      items.add(_SectionHeader(title: l10n.downloads_completed_title));
-      items.addAll(
-          grouped.completed.map((t) => _DownloadTaskTile(task: t)));
-    }
-    return items;
+    final isMobile = MediaQuery.sizeOf(context).width < Breakpoints.medium;
+
+    final deleteButton = grouped.completed.isNotEmpty
+        ? HeaderCapsuleActionButton(
+            icon: Icons.delete_sweep,
+            tooltip: l10n.downloads_delete_all,
+            circular: true,
+            onPressed: () =>
+                _confirmDeleteAll(context, ref, grouped.completed),
+          )
+        : null;
+
+    return CompactHeaderPanel(
+      title: l10n.downloads_page_title,
+      trailing: isMobile
+          ? deleteButton
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (deleteButton != null) ...[
+                  deleteButton,
+                  const SizedBox(width: 8),
+                ],
+                HeaderCapsuleActionButton(
+                  tooltip:
+                      MaterialLocalizations.of(context).backButtonTooltip,
+                  icon: Icons.arrow_back_rounded,
+                  onPressed: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/');
+                    }
+                  },
+                  circular: true,
+                ),
+              ],
+            ),
+    );
   }
 
   Future<void> _confirmDeleteAll(
@@ -105,34 +145,126 @@ class PodcastDownloadsPage extends ConsumerWidget {
       service.delete(task.episodeId);
     }
   }
-}
 
-class _SectionHeader extends StatelessWidget {
-
-  const _SectionHeader({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-      child: Text(
-        title.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontSize: 11,
-              letterSpacing: 1,
-              fontWeight: FontWeight.w700,
-              color: scheme.onSurfaceVariant,
+  Widget _buildEmptyState(
+    BuildContext context,
+    AppLocalizations l10n,
+    AppThemeExtension tokens,
+  ) {
+    final theme = Theme.of(context);
+    return SurfacePanel(
+      padding: EdgeInsets.zero,
+      showBorder: false,
+      borderRadius: tokens.cardRadius,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            child: AppSectionHeader(
+              title: l10n.downloads_page_title,
+              subtitle: l10n.downloads_empty,
+              hideTitle: true,
             ),
+          ),
+          Divider(
+            height: 1,
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: SurfaceCard(
+                borderRadius: 22,
+                padding: const EdgeInsets.all(18),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.download_outlined,
+                        size: 48,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.downloads_empty_subtitle,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDownloadsPanel(
+    BuildContext context,
+    GroupedDownloads grouped,
+    AppLocalizations l10n,
+    ThemeData theme,
+    AppThemeExtension tokens,
+  ) {
+    final totalDownloads = grouped.active.length +
+        grouped.failed.length +
+        grouped.completed.length;
+
+    final allTasks = [
+      ...grouped.active,
+      ...grouped.failed,
+      ...grouped.completed,
+    ];
+
+    return SurfacePanel(
+      padding: EdgeInsets.zero,
+      showBorder: false,
+      borderRadius: tokens.cardRadius,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            child: AppSectionHeader(
+              title: l10n.downloads_page_title,
+              subtitle: l10n.downloads_items(totalDownloads),
+              hideTitle: true,
+            ),
+          ),
+          Divider(
+            height: 1,
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.only(
+                left: 8,
+                right: 8,
+                top: 8,
+                bottom: 100,
+              ),
+              children: allTasks.map(
+                (task) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _DownloadTaskCard(task: task),
+                ),
+              ).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _DownloadTaskTile extends ConsumerWidget {
-
-  const _DownloadTaskTile({required this.task});
+class _DownloadTaskCard extends ConsumerWidget {
+  const _DownloadTaskCard({required this.task});
   final DownloadTask task;
 
   @override
@@ -142,11 +274,9 @@ class _DownloadTaskTile extends ConsumerWidget {
     final service = ref.read(downloadManagerProvider);
     final episodeAsync = ref.watch(episodeCacheMetaProvider(task.episodeId));
 
-    // When local cache is empty, watch API provider as fallback display
     final cached = episodeAsync.asData?.value;
-    final apiAsync = cached == null
-        ? ref.watch(episodeDetailProvider(task.episodeId))
-        : null;
+    final apiAsync =
+        cached == null ? ref.watch(episodeDetailProvider(task.episodeId)) : null;
 
     final episodeTitle = cached?.title ?? apiAsync?.asData?.value?.title;
     final podcastTitle = cached?.subscriptionTitle ??
@@ -163,89 +293,114 @@ class _DownloadTaskTile extends ConsumerWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
-        color: theme.colorScheme.error,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error,
+          borderRadius: BorderRadius.circular(22),
+        ),
         child: Icon(Icons.delete, color: theme.colorScheme.onError),
       ),
-      child: ListTile(
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (imageUrl != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
-                child: PodcastImageWidget(
-                  imageUrl: imageUrl,
-                  width: 44,
-                  height: 44,
-                  iconSize: 22,
-                ),
-              )
-            else
-              _StatusIcon(task: task),
-          ],
-        ),
-        title: Text(
-          episodeTitle ?? 'Episode #${task.episodeId}',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: podcastTitle != null
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    podcastTitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: () {},
+          child: SurfaceCard(
+            borderRadius: 22,
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+            child: Row(
+              children: [
+                // Leading image or status icon
+                if (imageUrl != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      appThemeOf(context).itemRadius,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  if (task.status == 'downloading') LinearProgressIndicator(value: task.progress) else Text(
+                    child: PodcastImageWidget(
+                      imageUrl: imageUrl,
+                      width: 44,
+                      height: 44,
+                      iconSize: 22,
+                    ),
+                  )
+                else
+                  _StatusIcon(task: task),
+                const SizedBox(width: 14),
+                // Title and subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        episodeTitle ?? 'Episode #${task.episodeId}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      if (podcastTitle != null) ...[
+                        Text(
+                          podcastTitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                      ],
+                      if (task.status == 'downloading')
+                        LinearProgressIndicator(value: task.progress)
+                      else
+                        Text(
                           _statusText(task, l10n),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                ],
-              )
-            : task.status == 'downloading'
-                ? LinearProgressIndicator(value: task.progress)
-                : Text(
-                    _statusText(task, l10n),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    ],
+                  ),
+                ),
+                // Trailing action
+                if (_trailingIcon(task) != null) ...[
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: IconButton(
+                      icon: Icon(_trailingIcon(task), size: 18),
+                      padding: EdgeInsets.zero,
+                      onPressed: _trailingAction(task, service),
                     ),
                   ),
-        trailing: _trailingAction(task, service, l10n),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget? _trailingAction(
+  IconData? _trailingIcon(DownloadTask task) {
+    return switch (task.status) {
+      'failed' => Icons.refresh,
+      'downloading' || 'pending' => Icons.close,
+      _ => null,
+    };
+  }
+
+  VoidCallback? _trailingAction(
     DownloadTask task,
     AudioDownloadService service,
-    AppLocalizations l10n,
   ) {
     return switch (task.status) {
-      'failed' => IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: l10n.download_button_retry,
-          onPressed: () => service.download(
+      'failed' => () => service.download(
             episodeId: task.episodeId,
             audioUrl: task.audioUrl,
           ),
-        ),
-      'downloading' || 'pending' => IconButton(
-          icon: const Icon(Icons.close),
-          tooltip: l10n.download_button_cancel,
-          onPressed: () => service.cancel(task.episodeId),
-        ),
+      'downloading' || 'pending' => () => service.cancel(task.episodeId),
       _ => null,
     };
   }
@@ -255,15 +410,13 @@ class _DownloadTaskTile extends ConsumerWidget {
       'completed' => l10n.download_button_downloaded,
       'failed' => l10n.download_button_failed,
       'pending' => l10n.download_button_download,
-      'downloading' =>
-        '${(task.progress * 100).toStringAsFixed(0)}%',
+      'downloading' => '${(task.progress * 100).toStringAsFixed(0)}%',
       _ => task.status,
     };
   }
 }
 
 class _StatusIcon extends StatelessWidget {
-
   const _StatusIcon({required this.task});
   final DownloadTask task;
 
@@ -273,8 +426,7 @@ class _StatusIcon extends StatelessWidget {
 
     return switch (task.status) {
       'completed' => CircleAvatar(
-          backgroundColor:
-              theme.colorScheme.primaryContainer,
+          backgroundColor: theme.colorScheme.primaryContainer,
           child: Icon(
             Icons.download_done,
             color: theme.colorScheme.onPrimaryContainer,
@@ -290,8 +442,7 @@ class _StatusIcon extends StatelessWidget {
           ),
         ),
       _ => CircleAvatar(
-          backgroundColor:
-              theme.colorScheme.secondaryContainer,
+          backgroundColor: theme.colorScheme.secondaryContainer,
           child: task.status == 'downloading'
               ? SizedBox(
                   width: 20,
@@ -299,56 +450,15 @@ class _StatusIcon extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: task.progress > 0 ? task.progress : null,
                     strokeWidth: 2,
-                    color:
-                        theme.colorScheme.onSecondaryContainer,
+                    color: theme.colorScheme.onSecondaryContainer,
                   ),
                 )
               : Icon(
                   Icons.downloading,
-                  color:
-                      theme.colorScheme.onSecondaryContainer,
+                  color: theme.colorScheme.onSecondaryContainer,
                   size: 20,
                 ),
         ),
     };
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = context.l10n;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.download_outlined,
-              size: 64,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.downloads_empty,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.downloads_empty_subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

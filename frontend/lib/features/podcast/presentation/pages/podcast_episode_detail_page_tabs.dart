@@ -218,6 +218,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         MediaQuery.sizeOf(context).width < Breakpoints.medium;
     final colorScheme = Theme.of(context).colorScheme;
     final textStyle = DefaultTextStyle.of(context).style.copyWith(
+      fontSize: isCompact ? null : 13,
       color: isSelected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
       decoration: TextDecoration.none,
@@ -230,7 +231,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
           ? colorScheme.primary.withValues(alpha: 0.16)
           : Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         side: BorderSide(
           color: isSelected
               ? colorScheme.primary.withValues(alpha: 0.35)
@@ -238,14 +239,14 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         ),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            isCompact ? 12 : 14,
-            isCompact ? 10 : 11,
-            isCompact ? 12 : 14,
-            isCompact ? 10 : 11,
+            isCompact ? 12 : 10,
+            isCompact ? 10 : 7,
+            isCompact ? 12 : 10,
+            isCompact ? 10 : 7,
           ),
           child: Text(text, style: textStyle),
         ),

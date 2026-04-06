@@ -458,7 +458,7 @@ void main() {
       final subscriptionsIcon = tester.widget<Icon>(
         find.byIcon(Icons.subscriptions_outlined).first,
       );
-      expect(subscriptionsIcon.color, equals(scheme.primary));
+      expect(subscriptionsIcon.color, equals(scheme.secondary));
 
       final avatar = tester.widget<CircleAvatar>(
         find.descendant(
@@ -522,7 +522,7 @@ void main() {
       final subscriptionsIcon = tester.widget<Icon>(
         find.byIcon(Icons.subscriptions_outlined).first,
       );
-      expect(subscriptionsIcon.color, equals(scheme.primary));
+      expect(subscriptionsIcon.color, equals(scheme.secondary));
 
       final avatar = tester.widget<CircleAvatar>(
         find.descendant(
