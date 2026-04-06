@@ -183,6 +183,7 @@ Widget _buildNavigation({
         ),
       ],
       selectedIndex: 0,
+      onDestinationSelected: (_) {},
       desktopNavExpanded: desktopNavExpanded,
       onDesktopNavToggle: () {},
       body: const SizedBox.expand(child: ColoredBox(color: Colors.white)),

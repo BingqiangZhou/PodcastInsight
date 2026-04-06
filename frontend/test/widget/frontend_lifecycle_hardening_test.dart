@@ -39,7 +39,6 @@ void main() {
     'LoginPage ignores delayed secure storage completion after dispose',
     (tester) async {
       final usernameCompleter = Completer<String?>();
-      final passwordCompleter = Completer<String?>();
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(_secureStorageChannel, (call) async {
@@ -53,8 +52,6 @@ void main() {
             switch (arguments['key']) {
               case AppConstants.savedUsernameKey:
                 return usernameCompleter.future;
-              case AppConstants.savedPasswordKey:
-                return passwordCompleter.future;
             }
 
             return null;
@@ -71,8 +68,6 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
 
       usernameCompleter.complete('tester@example.com');
-      await tester.pump();
-      passwordCompleter.complete('secret123');
       await tester.pump();
       await tester.pump();
 
