@@ -54,6 +54,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
     super.initState();
     // Initialize sidebar state from SharedPreferences
     _sidebarExpanded = ValueNotifier<bool>(widget.desktopNavExpanded);
+    // ignore: discarded_futures
     _loadSidebarState();
   }
 
