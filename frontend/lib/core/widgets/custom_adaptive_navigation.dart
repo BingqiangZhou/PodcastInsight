@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
-
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
-import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 
 const Duration _kBottomAccessoryPaddingTransition = Duration(milliseconds: 220);
 
@@ -19,7 +17,7 @@ class CustomAdaptiveNavigation extends ConsumerStatefulWidget {
     super.key,
     required this.destinations,
     required this.selectedIndex,
-    this.onDestinationSelected,
+    required this.onDestinationSelected,
     this.body,
     this.floatingActionButton,
     this.appBar,
@@ -74,6 +72,15 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
   }
 
   @override
+  void didUpdateWidget(covariant CustomAdaptiveNavigation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sync with external state changes if needed
+    if (oldWidget.desktopNavExpanded != widget.desktopNavExpanded) {
+      _sidebarExpanded.value = widget.desktopNavExpanded;
+    }
+  }
+
+  @override
   void dispose() {
     _sidebarExpanded.dispose();
     super.dispose();
@@ -97,10 +104,10 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
 
   Widget _buildMobileLayout(BuildContext context, double width) {
     final safeAreaBottom = MediaQuery.viewPaddingOf(context).bottom;
-    final double dockBottomPadding = safeAreaBottom > 0.0
+    final dockBottomPadding = safeAreaBottom > 0.0
         ? safeAreaBottom
         : kPodcastGlobalPlayerMobileViewportPadding;
-    final double dockReserve =
+    final dockReserve =
         dockBottomPadding +
         kPodcastGlobalPlayerMobileDockHeight +
         kPodcastGlobalPlayerMobileDockGap;
@@ -575,6 +582,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
   Widget _buildPinnedPodcastItem(BuildContext context, String podcastName) {
     final extension = appThemeOf(context);
     // Deterministically pick a color from the palette based on hash of name
+    // Deterministically pick a color from the palette based on hash of name
     final colorIndex = podcastName.hashCode % AppColors.podcastGradientColors.length;
     final gradientColors = AppColors.podcastGradientColors[colorIndex];
 
@@ -651,7 +659,6 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
     bool isSelected,
     VoidCallback onTap,
   ) {
-    final extension = appThemeOf(context);
     return Semantics(
       button: true,
       selected: isSelected,
@@ -690,14 +697,14 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ColorFiltered(
-                      colorFilter: ColorFilter.mode(
-                        isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
-                        BlendMode.srcIn,
-                      ),
-                      child: isSelected
-                          ? (destination.selectedIcon ?? destination.icon)
-                          : destination.icon,
-                    ),
+                  colorFilter: ColorFilter.mode(
+                    isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
+                    BlendMode.srcIn,
+                  ),
+                  child: isSelected
+                      ? (destination.selectedIcon ?? destination.icon)
+                      : destination.icon,
+                ),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -723,9 +730,9 @@ class ResponsiveContainer extends StatelessWidget {
   const ResponsiveContainer({
     super.key,
     required this.child,
+    this.alignment,
     this.maxWidth,
     this.padding,
-    this.alignment,
   });
 
   final Widget child;
@@ -736,28 +743,25 @@ class ResponsiveContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final tokens =
-        Theme.of(context).extension<AppThemeExtension>() ??
+    final tokens = Theme.of(context).extension<AppThemeExtension>() ??
         (Theme.of(context).brightness == Brightness.dark
             ? AppThemeExtension.dark
             : AppThemeExtension.light);
 
     final topPadding = MediaQuery.viewPaddingOf(context).top;
-    final resolvedPadding =
-        padding ??
+    final resolvedPadding = padding ??
         EdgeInsets.fromLTRB(
           width < Breakpoints.medium ? 16 : 24,
           (width < Breakpoints.medium ? 12 : 20) + topPadding,
           width < Breakpoints.medium ? 16 : 24,
           0,
         );
-    final resolvedMaxWidth =
-        maxWidth ??
+    final resolvedMaxWidth = maxWidth ??
         (width < Breakpoints.medium
             ? width
             : width < 900
-            ? 920
-            : tokens.contentMaxWidth);
+                ? 920
+                : tokens.contentMaxWidth);
 
     return Align(
       alignment: alignment ?? Alignment.topCenter,
@@ -796,10 +800,10 @@ class _CleanSidebar extends StatelessWidget {
 /// Nav item ink well with hover effect
 class _NavInkWell extends StatefulWidget {
   const _NavInkWell({
-    required this.onTap,
     required this.borderRadius,
-    required this.isSelected,
     required this.child,
+    required this.isSelected,
+    required this.onTap,
   });
 
   final VoidCallback onTap;

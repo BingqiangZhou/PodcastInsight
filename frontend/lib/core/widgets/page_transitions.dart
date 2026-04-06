@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-
 /// ============================================================
 /// Stella Design System - Page Transitions
 ///
@@ -44,9 +42,10 @@ class StellaPageRoute<T> extends PageRouteBuilder<T> {
     Widget child,
   ) {
     // Skip animation if explicitly disabled
-    if (settings.arguments is Map &&
-        (settings.arguments as Map).containsKey('disableTransitions') &&
-        (settings.arguments as Map)['disableTransitions'] == true) {
+    final args = settings.arguments;
+    if (args is Map &&
+        args.containsKey('disableTransitions') &&
+        args['disableTransitions'] == true) {
       return child;
     }
 

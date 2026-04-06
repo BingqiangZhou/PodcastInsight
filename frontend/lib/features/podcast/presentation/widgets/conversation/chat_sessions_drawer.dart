@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
@@ -186,10 +185,10 @@ class _SessionListTile extends ConsumerWidget {
                     .deleteSession(session.id);
               } catch (e) {
                 if (context.mounted) {
+                  final l10n = AppLocalizations.of(context);
                   showTopFloatingNotice(
                     context,
-                    message: AppLocalizations.of(context)!
-                            ?.session_delete_failed ??
+                    message: l10n?.session_delete_failed ??
                         'Failed to delete conversation',
                     isError: true,
                   );

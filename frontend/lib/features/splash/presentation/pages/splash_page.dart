@@ -72,7 +72,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
             child: CircularProgressIndicator(
               strokeWidth: 3,
               valueColor: AlwaysStoppedAnimation<Color>(
-                isDark ? AppColors.riverAccent : AppColors.primary,
+                Theme.of(context).colorScheme.primary,
               ),
             ),
           ),
