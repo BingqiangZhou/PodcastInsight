@@ -36,7 +36,7 @@ class _CountrySelectorDropdownState
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -123,11 +123,11 @@ class _CountrySelectorDropdownState
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
         child: Ink(
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
           ),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),

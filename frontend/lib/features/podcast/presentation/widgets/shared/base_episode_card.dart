@@ -49,6 +49,8 @@ class EpisodeCardConfig {
     this.heroTag,
     this.identityColor,
     this.showIdentityColorBar = false,
+    this.identityGradientColors,
+    this.useGradientIdentityBar = false,
   });
 
   final bool showImage;
@@ -98,6 +100,13 @@ class EpisodeCardConfig {
   /// Whether to show the identity color bar on the left edge.
   /// Requires [identityColor] to be set.
   final bool showIdentityColorBar;
+
+  /// Optional gradient colors for the left accent bar.
+  /// When provided, a gradient vertical bar is shown on the left edge.
+  final List<Color>? identityGradientColors;
+
+  /// Whether to use gradient for the identity color bar.
+  final bool useGradientIdentityBar;
 }
 
 /// A reusable base episode card with configurable layout.
@@ -178,20 +187,12 @@ class BaseEpisodeCard extends StatelessWidget {
 
     return Padding(
       padding: config.cardMargin ?? EdgeInsets.zero,
-      child: config.showIdentityColorBar && config.identityColor != null
+      child: (config.showIdentityColorBar || config.useGradientIdentityBar) &&
+              (config.identityColor != null || config.identityGradientColors != null)
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 3,
-                  decoration: BoxDecoration(
-                    color: config.identityColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(config.cornerRadius),
-                      bottomLeft: Radius.circular(config.cornerRadius),
-                    ),
-                  ),
-                ),
+                _buildIdentityBar(context),
                 Expanded(child: cardContent),
               ],
             )
