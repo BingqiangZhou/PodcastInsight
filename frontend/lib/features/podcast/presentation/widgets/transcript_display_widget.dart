@@ -691,7 +691,7 @@ class TranscriptDisplayWidgetState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
