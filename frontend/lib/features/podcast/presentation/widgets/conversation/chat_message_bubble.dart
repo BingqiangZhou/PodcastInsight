@@ -31,13 +31,12 @@ class ChatMessageBubble extends StatelessWidget {
     final scheme = theme.colorScheme;
     final extension = appThemeOf(context);
     final isUser = message.isUser;
-    final userTextColor = scheme.onSurface;
     final cardR = extension.cardRadius;
     final bubbleRadius = BorderRadius.only(
-      topLeft: Radius.circular(cardR),
-      topRight: Radius.circular(cardR),
-      bottomLeft: Radius.circular(isUser ? 4.0 : cardR),
-      bottomRight: Radius.circular(isUser ? cardR : 4.0),
+      topLeft: isUser ? Radius.circular(cardR) : const Radius.circular(4),
+      topRight: isUser ? const Radius.circular(4) : Radius.circular(cardR),
+      bottomLeft: Radius.circular(cardR),
+      bottomRight: Radius.circular(cardR),
     );
     final l10n = AppLocalizations.of(context)!;
     final roleLabel = isUser
@@ -56,19 +55,17 @@ class ChatMessageBubble extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: isUser
-                ? extension.aiBubbleUserColor
-                : extension.aiBubbleAssistantColor,
+                ? extension.cardTierFill
+                : extension.surfaceTierFill,
             borderRadius: bubbleRadius,
-            border: Border.all(
-              color: isSelectMode
-                  ? (isSelected
-                      ? scheme.primary
-                      : scheme.outlineVariant.withValues(alpha: 0.35))
-                  : (isUser
-                      ? scheme.primary.withValues(alpha: 0.3)
-                      : scheme.outlineVariant.withValues(alpha: 0.3)),
-              width: isSelectMode && isSelected ? 1.6 : 1,
-            ),
+            border: isUser
+                ? null
+                : Border(
+                    left: BorderSide(
+                      color: scheme.primary,
+                      width: 3,
+                    ),
+                  ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,13 +77,13 @@ class ChatMessageBubble extends StatelessWidget {
                   Icon(
                     isUser ? Icons.person_outline : Icons.smart_toy_outlined,
                     size: 14,
-                    color: isUser ? userTextColor : scheme.onSurfaceVariant,
+                    color: AppColors.darkOnBackground,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     roleLabel,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: isUser ? userTextColor : scheme.onSurfaceVariant,
+                      color: AppColors.darkOnBackground,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -98,7 +95,7 @@ class ChatMessageBubble extends StatelessWidget {
                           : Icons.radio_button_unchecked,
                       size: 16,
                       color:
-                          isSelected ? scheme.primary : scheme.onSurfaceVariant,
+                          isSelected ? scheme.primary : AppColors.darkOnSurface,
                     ),
                   ],
                 ],
@@ -108,7 +105,7 @@ class ChatMessageBubble extends StatelessWidget {
                   ? Text(
                       message.content,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isUser ? userTextColor : scheme.onSurface,
+                        color: AppColors.darkOnBackground,
                         height: 1.5,
                       ),
                     )
@@ -151,7 +148,7 @@ class ChatMessageBubble extends StatelessWidget {
                         );
                       },
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isUser ? userTextColor : scheme.onSurface,
+                        color: AppColors.darkOnBackground,
                         height: 1.5,
                       ),
                     ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
@@ -34,12 +34,8 @@ class ChatSessionsDrawer extends ConsumerWidget {
 
     return Drawer(
       width: MediaQuery.sizeOf(context).width * 0.75,
-      backgroundColor: Colors.transparent,
-      child: GlassContainer(
-        tier: GlassTier.overlay,
-        borderRadius: 0,
-        padding: EdgeInsets.zero,
-        child: Column(
+      backgroundColor: AppColors.darkSurface,
+      child: Column(
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
@@ -71,7 +67,7 @@ class ChatSessionsDrawer extends ConsumerWidget {
                     child: Text(
                       l10n.podcast_conversation_empty_title,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: AppColors.darkOnSurfaceMuted,
                       ),
                     ),
                   );
@@ -115,7 +111,6 @@ class ChatSessionsDrawer extends ConsumerWidget {
           ),
         ],
       ),
-      ),
     );
   }
 }
@@ -134,60 +129,84 @@ class _SessionListTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    return ListTile(
-      leading: Icon(
-        isSelected ? Icons.chat_bubble : Icons.chat_bubble_outline,
-        color: isSelected ? Theme.of(context).colorScheme.primary : null,
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final extension = appThemeOf(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isSelected
+            ? extension.surfaceTierFill
+            : Colors.transparent,
+        border: isSelected
+            ? Border(
+                left: BorderSide(
+                  color: scheme.primary,
+                  width: 3,
+                ),
+              )
+            : null,
       ),
-      title: Text(
-        session.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: isSelected ? Theme.of(context).colorScheme.primary : null,
-          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Icon(
+          isSelected ? Icons.chat_bubble : Icons.chat_bubble_outline,
+          color: isSelected ? scheme.primary : AppColors.darkOnSurface,
         ),
-      ),
-      subtitle: Text(
-        session.createdAt.substring(0, 10),
-        style: Theme.of(context).textTheme.labelSmall,
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline, size: 20),
-        onPressed: () async {
-          final confirm = await showGlassConfirmationDialog(
-            context: context,
-            title: l10n.podcast_conversation_delete_title,
-            message: l10n.podcast_conversation_delete_confirm,
-            confirmText: l10n.delete,
-            isDestructive: true,
-          );
-          if (confirm == true) {
-            try {
-              await ref
-                  .read(sessionListProvider(episodeId).notifier)
-                  .deleteSession(session.id);
-            } catch (e) {
-              if (context.mounted) {
-                showTopFloatingNotice(
-                  context,
-                  message: AppLocalizations.of(context)!
-                          ?.session_delete_failed ??
-                      'Failed to delete conversation',
-                  isError: true,
-                );
+        title: Text(
+          session.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: isSelected ? AppColors.darkOnBackground : AppColors.darkOnSurface,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+          ),
+        ),
+        subtitle: Text(
+          session.createdAt.substring(0, 10),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: AppColors.darkOnSurfaceMuted,
+          ),
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline, size: 20),
+          color: AppColors.darkOnSurfaceMuted,
+          onPressed: () async {
+            final confirm = await showGlassConfirmationDialog(
+              context: context,
+              title: l10n.podcast_conversation_delete_title,
+              message: l10n.podcast_conversation_delete_confirm,
+              confirmText: l10n.delete,
+              isDestructive: true,
+            );
+            if (confirm == true) {
+              try {
+                await ref
+                    .read(sessionListProvider(episodeId).notifier)
+                    .deleteSession(session.id);
+              } catch (e) {
+                if (context.mounted) {
+                  showTopFloatingNotice(
+                    context,
+                    message: AppLocalizations.of(context)!
+                            ?.session_delete_failed ??
+                        'Failed to delete conversation',
+                    isError: true,
+                  );
+                }
               }
             }
-          }
+          },
+        ),
+        selected: isSelected,
+        selectedTileColor: extension.surfaceTierFill,
+        onTap: () {
+          ref
+              .read(currentSessionIdProvider(episodeId).notifier)
+              .set(session.id);
+          Navigator.pop(context); // Close drawer
         },
       ),
-      selected: isSelected,
-      onTap: () {
-        ref
-            .read(currentSessionIdProvider(episodeId).notifier)
-            .set(session.id);
-        Navigator.pop(context); // Close drawer
-      },
     );
   }
 }

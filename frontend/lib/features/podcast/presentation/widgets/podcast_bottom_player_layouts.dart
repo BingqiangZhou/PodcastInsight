@@ -62,7 +62,6 @@ class _PodcastMiniDock extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final content = Padding(
       key: const Key('podcast_bottom_player_mini_wrapper'),
@@ -80,13 +79,8 @@ class _PodcastMiniDock extends ConsumerWidget {
             key: const Key('podcast_bottom_player_mini'),
             color: Colors.transparent,
             elevation: 4,
-            shadowColor: theme.shadowColor.withValues(alpha: 0.10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(22),
-              side: BorderSide(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
-              ),
-            ),
+            shadowColor: Colors.black.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(14),
             clipBehavior: Clip.antiAlias,
             child: _MiniDockBody(
               episode: episode,
@@ -127,9 +121,16 @@ class _MiniDockBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    return Padding(
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: AppColors.violetColors,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
       padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
       child: Row(
         children: [
@@ -165,8 +166,10 @@ class _MiniDockBody extends ConsumerWidget {
                     episode.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -177,22 +180,11 @@ class _MiniDockBody extends ConsumerWidget {
                         Expanded(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(999),
-                            child: _MiniProgressIndicator(
-                              progressColor: theme.colorScheme.primary,
-                              progressTrackColor:
-                                  Colors.transparent,
-                            ),
+                            child: const _MiniProgressIndicator(),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _MiniProgressText(
-                          textStyle:
-                              theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                              ) ??
-                              const TextStyle(),
-                        ),
+                        const _MiniProgressText(),
                       ],
                     ),
                   ),
@@ -202,15 +194,8 @@ class _MiniDockBody extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _MiniPlayPauseButton(
-            key: showPrimaryKeys
-                ? const Key('podcast_bottom_player_mini_play_pause')
-                : const ValueKey(
-                    'podcast_bottom_player_mini_play_pause_overlay',
-                  ),
-            iconColor: theme.colorScheme.onSurfaceVariant,
-            pauseTooltip: pauseTooltip,
-            playTooltip: playTooltip,
+          const _MiniPlayPauseButton(
+            key: Key('podcast_bottom_player_mini_play_pause'),
           ),
           const SizedBox(width: 6),
           // Queue button: isolated Consumer so the dock body does not
@@ -229,7 +214,8 @@ class _MiniDockBody extends ConsumerWidget {
                 onPressed: queueSheetOpen
                     ? null
                     : () => _showQueueSheet(context, ref),
-                icon: const Icon(Icons.playlist_play_rounded),
+                icon: const Icon(Icons.playlist_play_rounded, color: Colors.white),
+                iconSize: 24,
               );
             },
           ),
