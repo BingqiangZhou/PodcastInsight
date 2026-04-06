@@ -205,7 +205,7 @@ void main() {
       await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('glass container has light tier and correct border radius', (tester) async {
+    testWidgets('glass container has standard tier and correct border radius', (tester) async {
       await _pumpHost(tester);
 
       await tester.tap(find.byKey(const Key('show_notice_default')));
@@ -214,9 +214,8 @@ void main() {
       final glassContainer = tester.widget<GlassContainer>(
         find.byKey(const Key('top_floating_notice')),
       );
-      expect(glassContainer.tier, GlassTier.light);
+      expect(glassContainer.tier, GlassTier.standard);
       expect(glassContainer.borderRadius, 12);
-      expect(glassContainer.animate, false);
       await tester.pump(const Duration(seconds: 4));
     });
 

@@ -64,10 +64,9 @@ void showTopFloatingNotice(
             constraints: const BoxConstraints(maxWidth: 720),
             child: GlassContainer(
               key: const Key('top_floating_notice'),
-              tier: GlassTier.light,
+              tier: GlassTier.standard,
               borderRadius: 12,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              animate: false,
               tint: isError ? theme.colorScheme.error.withValues(alpha: 0.08) : null,
               child: Row(
                 mainAxisSize: MainAxisSize.min,

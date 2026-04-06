@@ -283,10 +283,8 @@ class _PodcastExpandedOverlay extends ConsumerWidget {
               opacity: visible ? 1 : 0,
               child: GlassContainer(
                 key: visible ? const Key('podcast_player_mobile_sheet') : null,
-                tier: GlassTier.ultraHeavy,
+                tier: GlassTier.overlay,
                 borderRadius: viewportSpec.mobileDrawerBorderRadius,
-                animate: true,
-                interactive: false,
                 child: Material(
                   type: MaterialType.transparency,
                   child: _ExpandedPanelContent(

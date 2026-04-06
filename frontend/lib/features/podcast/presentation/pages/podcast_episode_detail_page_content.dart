@@ -342,7 +342,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
         key: const Key('podcast_episode_detail_chat_drawer'),
         backgroundColor: Colors.transparent,
         child: GlassContainer(
-          tier: GlassTier.heavy,
+          tier: GlassTier.overlay,
           borderRadius: 0,
           padding: EdgeInsets.zero,
           child: SafeArea(

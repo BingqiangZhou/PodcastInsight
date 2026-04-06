@@ -36,7 +36,7 @@ class ChatSessionsDrawer extends ConsumerWidget {
       width: MediaQuery.sizeOf(context).width * 0.75,
       backgroundColor: Colors.transparent,
       child: GlassContainer(
-        tier: GlassTier.heavy,
+        tier: GlassTier.overlay,
         borderRadius: 0,
         padding: EdgeInsets.zero,
         child: Column(

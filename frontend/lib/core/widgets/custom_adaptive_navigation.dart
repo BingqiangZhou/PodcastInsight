@@ -638,10 +638,8 @@ class _CleanSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassContainer(
-      tier: GlassTier.heavy,
+      tier: GlassTier.overlay,
       borderRadius: compact ? 16 : 20,
-      animate: true,
-      interactive: false,
       child: child,
     );
   }
@@ -659,10 +657,8 @@ class _CleanDock extends StatelessWidget {
     return SizedBox(
       width: width,
       child: GlassContainer(
-        tier: GlassTier.medium,
+        tier: GlassTier.standard,
         borderRadius: 16,
-        animate: true,
-        interactive: false,
         child: child,
       ),
     );

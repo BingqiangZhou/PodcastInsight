@@ -1,542 +1,79 @@
-import 'dart:math' as math;
-import 'dart:ui' as ui;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import 'package:personal_ai_assistant/core/glass/glass_painter.dart';
-import 'package:personal_ai_assistant/core/glass/glass_style.dart';
 import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 
 /// Glass Container
 ///
-/// A 5-layer rendering widget that creates Apple Liquid Glass effects:
-/// 1. Optical Layer: BackdropFilter with blur and saturation boost
-/// 2. Material Layer: Gradient border, fill, inner glow, outer shadow
-/// 3. Specular Layer: Fresnel edge highlight + moving specular highlight
-/// 4. Dynamic Layer: Noise texture + rotating light flow gradient sweep
-/// 5. Content Layer: Child widget
+/// A simple StatelessWidget that creates a glass effect using
+/// backdrop blur, semi-transparent fill, and a subtle border.
 ///
 /// Example:
 /// ```dart
 /// GlassContainer(
-///   tier: GlassTier.medium,
-///   borderRadius: 16,
+///   tier: GlassTier.standard,
+///   borderRadius: 14,
 ///   padding: const EdgeInsets.all(16),
 ///   child: Text('Glass content'),
 /// )
 /// ```
-class GlassContainer extends StatefulWidget {
+class GlassContainer extends StatelessWidget {
   const GlassContainer({
     super.key,
-    required this.child,
-    this.tier = GlassTier.medium,
-    this.borderRadius = 16,
-    this.padding = const EdgeInsets.all(16),
-    this.animate = true,
-    this.interactive = false,
+    this.child,
+    this.tier = GlassTier.standard,
+    this.borderRadius = 14,
+    this.padding,
     this.tint,
   });
 
   /// The content to display inside the glass container
-  final Widget child;
+  final Widget? child;
 
   /// The blur intensity tier
   final GlassTier tier;
 
-  /// Border radius (defaults to 16)
+  /// Border radius (defaults to 14)
   final double borderRadius;
 
   /// Internal padding for the child
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
 
-  /// Enable light flow animation (default: true)
-  final bool animate;
-
-  /// Enable hover/press interactions (default: false)
-  final bool interactive;
-
-  /// Optional tint color overlay (for selected states)
+  /// Optional tint color overlay (for selected/error states)
   final Color? tint;
 
   @override
-  State<GlassContainer> createState() => _GlassContainerState();
-}
-
-class _GlassContainerState extends State<GlassContainer>
-    with TickerProviderStateMixin {
-  // Animation controllers
-  late AnimationController _lightFlowController;
-  late AnimationController _hoverController;
-  late AnimationController _pressController;
-  late AnimationController _entryController;
-  late AnimationController _shimmerController;
-
-  // Hover/press state
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  // Noise texture
-  ui.Image? _noiseImage;
-
-  // Current style
-  late GlassStyle _style;
-
-  // Disable animations flag
-  bool _disableAnimations = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Light flow: 4s repeating
-    _lightFlowController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    );
-
-    // Hover: 200ms easeOut
-    _hoverController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-
-    // Press: 150ms easeIn
-    _pressController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-
-    // Entry: 200ms easeOut, play once
-    _entryController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    )..forward();
-
-    // Shimmer: 400ms, for hover sweep effect
-    _shimmerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final shouldDisable = MediaQuery.of(context).disableAnimations;
-    if (shouldDisable != _disableAnimations) {
-      _disableAnimations = shouldDisable;
-      if (_disableAnimations) {
-        _lightFlowController.stop();
-      } else if (widget.animate) {
-        _lightFlowController.repeat();
-      }
-    }
-
-    // Resolve effective tier (degrade to light when animations disabled)
-    final effectiveTier = _disableAnimations ? GlassTier.light : widget.tier;
-
-    // Update style when theme changes
-    _style = GlassStyle.forTier(
-      effectiveTier,
-      Theme.of(context).brightness,
-    );
-
-    // Generate noise texture once (skip if animations disabled)
-    if (_noiseImage == null && !_disableAnimations) {
-      _generateNoiseTexture();
-    }
-  }
-
-  @override
-  void didUpdateWidget(GlassContainer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    final effectiveTier = _disableAnimations ? GlassTier.light : widget.tier;
-
-    // Update style if tier changed
-    if (oldWidget.tier != widget.tier || _disableAnimations) {
-      _style = GlassStyle.forTier(
-        effectiveTier,
-        Theme.of(context).brightness,
-      );
-    }
-
-    // Handle animation state changes
-    if (oldWidget.animate != widget.animate) {
-      if (widget.animate && !_disableAnimations) {
-        _lightFlowController.repeat();
-      } else {
-        _lightFlowController.stop();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _lightFlowController.dispose();
-    _hoverController.dispose();
-    _pressController.dispose();
-    _entryController.dispose();
-    _shimmerController.dispose();
-    _noiseImage?.dispose();
-    super.dispose();
-  }
-
-  Future<void> _generateNoiseTexture() async {
-    final image = await generateNoiseImage(seed: 42);
-    if (mounted) {
-      setState(() {
-        _noiseImage = image;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final borderRadius = BorderRadius.circular(widget.borderRadius);
-
-    final content = _buildGlassLayers(borderRadius);
-
-    if (widget.interactive) {
-      return MouseRegion(
-        onEnter: (_) => _handleHoverEnter(),
-        onExit: (_) => _handleHoverExit(),
-        child: GestureDetector(
-          onTapDown: _handlePressDown,
-          onTapUp: _handlePressUp,
-          onTapCancel: _handlePressCancel,
-          child: AnimatedScale(
-            scale: _isPressed ? 0.98 : 1.0,
-            duration: Duration(milliseconds: _isPressed ? 100 : 300),
-            curve: _isPressed ? Curves.easeIn : Curves.easeOutBack,
-            child: content,
-          ),
-        ),
-      );
-    }
-
-    return content;
-  }
-
-  Widget _buildGlassLayers(BorderRadius borderRadius) {
+    final sigma = tier.sigma;
     return ClipRRect(
-      borderRadius: borderRadius,
-      child: RepaintBoundary(
-        child: AnimatedBuilder(
-          animation: Listenable.merge([
-            _entryController,
-            if (!_disableAnimations) _lightFlowController,
-            if (_isHovered && !_disableAnimations) _hoverController,
-            if (_isPressed && !_disableAnimations) _pressController,
-            if (_isHovered && !_disableAnimations) _shimmerController,
-          ]),
-          builder: (context, child) {
-            final entryValue = _entryController.value;
-            final curvedEntry = Curves.easeOutCubic.transform(entryValue);
-            final currentSigma = _style.sigma * curvedEntry;
-            final currentBorderOpacity = curvedEntry;
-            final entryScale = 0.95 + 0.05 * curvedEntry;
-            final entryOpacity = curvedEntry;
-
-            return Opacity(
-              opacity: entryOpacity,
-              child: Transform.scale(
-                scale: entryScale,
-                child: _buildLayer1Optical(
-                  borderRadius,
-                  currentSigma,
-                  currentBorderOpacity,
-                  child,
-                ),
-              ),
-            );
-          },
-          child: widget.child,
-        ),
-      ),
-    );
-  }
-
-  /// Layer 1: Optical - BackdropFilter with blur and saturation
-  Widget _buildLayer1Optical(
-    BorderRadius borderRadius,
-    double sigma,
-    double borderOpacity,
-    Widget? child,
-  ) {
-    return BackdropFilter(
-      filter: ui.ImageFilter.blur(
-        sigmaX: sigma,
-        sigmaY: sigma,
-      ),
-      child: _buildLayer2Material(
-        borderRadius,
-        sigma,
-        borderOpacity,
-        child,
-      ),
-    );
-  }
-
-  /// Layer 2: Material - Border, fill, shadows
-  Widget _buildLayer2Material(
-    BorderRadius borderRadius,
-    double sigma,
-    double borderOpacity,
-    Widget? child,
-  ) {
-    final effectiveStyle = _getEffectiveStyle();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: effectiveStyle.fill,
-        borderRadius: borderRadius,
-        border: Border.all(
-          width: 1.5,
-          color: _getBorderColor(borderOpacity),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: effectiveStyle.shadow,
-            blurRadius: sigma / 2,
-            offset: Offset(0, sigma / 4),
-          ),
-        ],
-      ),
-      child: Container(
-        margin: const EdgeInsets.all(1.5),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(widget.borderRadius - 1.5),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              effectiveStyle.borderTop.withValues(alpha: borderOpacity),
-              effectiveStyle.borderBottom.withValues(alpha: borderOpacity * 0.25),
-            ],
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(widget.borderRadius - 1.5),
-          child: _buildLayer3Specular(
-            borderRadius,
-            borderOpacity,
-            child,
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Layer 3: Specular - Fresnel and moving highlight
-  Widget _buildLayer3Specular(
-    BorderRadius borderRadius,
-    double borderOpacity,
-    Widget? child,
-  ) {
-    final effectiveStyle = _getEffectiveStyle();
-
-    return Stack(
-      fit: StackFit.passthrough,
-      children: [
-        // Fresnel painter
-        Positioned.fill(
-          child: CustomPaint(
-            painter: FresnelPainter(
-              borderRadius: borderRadius,
-              borderTopColor: effectiveStyle.borderTop,
-              borderBottomColor: effectiveStyle.borderBottom,
-              opacity: borderOpacity,
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        child: Container(
+          decoration: BoxDecoration(
+            color: tier == GlassTier.overlay
+                ? const Color(0x0AFFFFFF) // rgba 0.04
+                : const Color(0x0FFFFFFF), // rgba 0.06
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(
+              color: const Color(0x0FFFFFFF), // rgba 0.06
+              width: 0.5,
             ),
           ),
-        ),
-        // Specular highlight
-        if (!_disableAnimations)
-          Positioned.fill(
-            child: CustomPaint(
-              painter: SpecularPainter(
-                animationValue: _lightFlowController.value,
-                opacity: 0.05,
-              ),
-            ),
-          ),
-        _buildLayer4Dynamic(child),
-      ],
-    );
-  }
-
-  /// Layer 4: Dynamic - Noise and light flow
-  Widget _buildLayer4Dynamic(Widget? child) {
-    final effectiveStyle = _getEffectiveStyle();
-
-    return Stack(
-      children: [
-        // Noise texture
-        if (_noiseImage != null)
-          Positioned.fill(
-            child: Opacity(
-              opacity: _disableAnimations ? 0.0 : effectiveStyle.noiseOpacity,
-              child: CustomPaint(
-                painter: NoisePainter(
-                  noiseImage: _noiseImage,
-                  opacity: effectiveStyle.noiseOpacity,
-                ),
-              ),
-            ),
-          ),
-        // Light flow gradient sweep
-        if (widget.animate && !_disableAnimations)
-          Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _lightFlowController,
-              builder: (context, _) {
-                final angle = _lightFlowController.value * 2 * math.pi;
-                final isDark = Theme.of(context).brightness == Brightness.dark;
-                final maxOpacity = isDark ? 0.06 : 0.04;
-                final opacity = math.sin(_lightFlowController.value * math.pi) * maxOpacity;
-
-                return Transform.rotate(
-                  angle: angle,
-                  child: Opacity(
-                    opacity: opacity.clamp(0.0, 1.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.transparent,
-                            Colors.white,
-                            Colors.transparent,
-                          ],
-                          stops: const [0.0, 0.5, 1.0],
-                        ),
-                      ),
+          padding: padding,
+          child: tint != null
+              ? Stack(
+                  children: [
+                    if (child != null) child!,
+                    Positioned.fill(
+                      child: Container(color: tint),
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
-        // Shimmer sweep on hover
-        if (_isHovered && !_disableAnimations)
-          Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _shimmerController,
-              builder: (context, _) {
-                final progress = _shimmerController.value;
-                // Shimmer sweeps from left to right at 30 degrees
-                final shimmerAlpha = math.sin(progress * math.pi) * 0.08;
-                return Transform.rotate(
-                  angle: -math.pi / 6, // 30 degrees
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          Colors.transparent,
-                          Colors.white.withValues(alpha: shimmerAlpha.clamp(0.0, 1.0)),
-                          Colors.transparent,
-                        ],
-                        stops: [
-                          (progress - 0.3).clamp(0.0, 1.0),
-                          progress.clamp(0.0, 1.0),
-                          (progress + 0.3).clamp(0.0, 1.0),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        // Tint overlay
-        if (widget.tint != null)
-          Positioned.fill(child: Container(color: widget.tint)),
-        // Content scrim — text contrast backing
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              color: effectiveStyle.contentScrim,
-              borderRadius: BorderRadius.circular(widget.borderRadius - 1.5),
-            ),
-          ),
+                  ],
+                )
+              : child,
         ),
-        // Content layer
-        _buildLayer5Content(child),
-      ],
+      ),
     );
-  }
-
-  Color _getBorderColor(double borderOpacity) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (isDark) {
-      return Colors.white.withValues(alpha: borderOpacity * 0.3);
-    } else {
-      return const Color(0xFF8E8E9A).withValues(alpha: borderOpacity * 0.6);
-    }
-  }
-
-  /// Layer 5: Content
-  Widget _buildLayer5Content(Widget? child) {
-    return Padding(
-      padding: widget.padding,
-      child: child,
-    );
-  }
-
-  GlassStyle _getEffectiveStyle() {
-    var style = _style;
-
-    if (_isPressed) {
-      style = style.withPress();
-    } else if (_isHovered) {
-      style = style.withHover();
-    }
-
-    return style;
-  }
-
-  void _handleHoverEnter() {
-    if (_isHovered) return;
-    setState(() {
-      _isHovered = true;
-    });
-    _hoverController.forward();
-    _shimmerController.forward(from: 0.0);
-  }
-
-  void _handleHoverExit() {
-    if (!_isHovered) return;
-    setState(() {
-      _isHovered = false;
-    });
-    _hoverController.reverse();
-    _shimmerController.reverse();
-  }
-
-  void _handlePressDown(TapDownDetails details) {
-    if (_isPressed) return;
-    setState(() {
-      _isPressed = true;
-    });
-    _pressController.forward();
-  }
-
-  void _handlePressUp(TapUpDetails details) {
-    if (!_isPressed) return;
-    setState(() {
-      _isPressed = false;
-    });
-    _pressController.reverse();
-  }
-
-  void _handlePressCancel() {
-    if (!_isPressed) return;
-    setState(() {
-      _isPressed = false;
-    });
-    _pressController.reverse();
   }
 }

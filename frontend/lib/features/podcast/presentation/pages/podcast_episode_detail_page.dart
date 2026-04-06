@@ -379,10 +379,9 @@ class _PodcastEpisodeDetailPageState
       key: const Key('podcast_episode_detail_scroll_to_top_button'),
       padding: EdgeInsets.only(right: rightMargin, bottom: bottomMargin),
       child: GlassContainer(
-        tier: GlassTier.light,
+        tier: GlassTier.standard,
         borderRadius: 16,
         padding: EdgeInsets.zero,
-        animate: false,
         child: InkWell(
           onTap: _scrollToTop,
           child: SizedBox(

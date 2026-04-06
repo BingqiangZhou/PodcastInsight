@@ -69,7 +69,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       child: GlassContainer(
-        tier: GlassTier.heavy,
+        tier: GlassTier.overlay,
         borderRadius: 28,
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(

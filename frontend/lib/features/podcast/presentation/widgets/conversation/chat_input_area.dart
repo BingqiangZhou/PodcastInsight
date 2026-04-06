@@ -37,7 +37,7 @@ class ChatInputArea extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final extension = appThemeOf(context);
     return GlassContainer(
-      tier: GlassTier.medium,
+      tier: GlassTier.standard,
       borderRadius: 0,
       padding: const EdgeInsets.all(16),
       child: SafeArea(

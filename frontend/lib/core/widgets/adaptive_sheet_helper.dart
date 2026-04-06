@@ -44,7 +44,7 @@ Future<T?> showAdaptiveSheet<T>({
               maxHeight: size.height * desktopMaxHeightFraction,
             ),
             child: GlassContainer(
-              tier: GlassTier.heavy,
+              tier: GlassTier.overlay,
               borderRadius: 28,
               padding: EdgeInsets.zero,
               child: builder(dialogCtx),
@@ -68,7 +68,7 @@ Future<T?> showAdaptiveSheet<T>({
     ),
     builder: (sheetCtx) {
       return GlassContainer(
-        tier: GlassTier.heavy,
+        tier: GlassTier.overlay,
         borderRadius: 28,
         padding: EdgeInsets.zero,
         child: builder(sheetCtx),
