@@ -107,6 +107,16 @@ void main() {
     ) async {
       await _pumpAuthPage(tester, const RegisterPage());
 
+      // Fill required fields so validation reaches confirm-password
+      await tester.enterText(
+        _customTextFieldByLabel('Full Name'),
+        'Test User',
+      );
+      await tester.enterText(
+        _customTextFieldByLabel('Email'),
+        'test@example.com',
+      );
+
       final passwordField = _customTextFieldByLabel('Password');
       final confirmPasswordField = _customTextFieldByLabel('Confirm Password');
       await _setTermsAgreed(tester, true);
@@ -114,11 +124,13 @@ void main() {
       await tester.enterText(passwordField, 'Password123');
       await tester.enterText(confirmPasswordField, 'DifferentPassword');
       await _tapButtonByKey(tester, const Key('register_button'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Passwords do not match'), findsOneWidget);
 
       await tester.enterText(confirmPasswordField, 'Password123');
       await _tapButtonByKey(tester, const Key('register_button'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Passwords do not match'), findsNothing);
     });

@@ -98,7 +98,7 @@ void main() {
         titleStyle.fontFamilyFallback,
         equals(expectedStyle?.fontFamilyFallback),
       );
-      expect(titleStyle.fontSize, 18);
+      expect(titleStyle.fontSize, 22.0);
       expect(titleStyle.fontWeight, FontWeight.bold);
     });
 

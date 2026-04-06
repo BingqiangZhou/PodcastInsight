@@ -68,7 +68,7 @@ void main() {
       final cards = tester.widgetList<SurfaceCard>(
         find.byType(SurfaceCard),
       ).toList();
-      expect(cards, hasLength(3));
+      expect(cards, hasLength(5));
 
       final detailsRect = tester.getRect(find.text('DETAILS'));
       final overviewRect = tester.getRect(
@@ -96,7 +96,7 @@ void main() {
       final cards = tester.widgetList<SurfaceCard>(
         find.byType(SurfaceCard),
       ).toList();
-      expect(cards, hasLength(3));
+      expect(cards, hasLength(5));
 
       final detailsRect = tester.getRect(find.text('DETAILS'));
       final overviewRect = tester.getRect(

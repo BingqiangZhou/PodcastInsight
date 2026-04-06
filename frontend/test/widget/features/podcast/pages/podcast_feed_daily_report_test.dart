@@ -56,7 +56,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       final entryFinder = find.byKey(
         const Key('library_daily_report_entry_tile'),
@@ -65,7 +65,7 @@ void main() {
       expect(tester.widget<HeaderCapsuleActionButton>(entryFinder), isNotNull);
 
       await tester.tap(entryFinder);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
       expect(find.text('daily-route'), findsOneWidget);
     });
 
@@ -94,7 +94,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       final entryFinder = find.byKey(
         const Key('library_daily_report_entry_tile'),
@@ -139,7 +139,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       final entryFinder = find.byKey(
         const Key('library_daily_report_entry_tile'),

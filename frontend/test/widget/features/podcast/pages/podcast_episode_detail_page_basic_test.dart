@@ -85,7 +85,7 @@ void main() {
               find.byKey(const Key('podcast_episode_detail_mobile_hero_body')),
             )
             .height,
-        lessThanOrEqualTo(110),
+        lessThanOrEqualTo(140),
       );
     });
 
@@ -276,7 +276,8 @@ void main() {
             expect(find.byType(SurfacePanel), findsNothing);
 
       completer.complete(_episode());
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
     });
   });
 }

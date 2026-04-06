@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:riverpod/riverpod.dart' show Override;
 import 'package:personal_ai_assistant/core/services/audio_download_service.dart';
 import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
@@ -527,7 +526,7 @@ class _FakeAudioDownloadService implements AudioDownloadService {
 }
 
 /// Common provider overrides shared by all queue-controller tests.
-List<Override> _testOverrides({
+_testOverrides({
   required PodcastRepository repository,
   AudioPlayerNotifier? audioNotifier,
 }) {

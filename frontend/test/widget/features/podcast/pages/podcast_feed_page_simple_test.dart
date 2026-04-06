@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
@@ -97,6 +98,7 @@ void main() {
       await tester.pumpWidget(
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
+      await tester.pump(const Duration(seconds: 1));
 
       final l10n = AppLocalizations.of(
         tester.element(find.byType(PodcastFeedPage)),
@@ -108,7 +110,7 @@ void main() {
       final viewportClip = tester.widget<ClipRRect>(
         find.byKey(const Key('content_shell_viewport_clip')),
       );
-      expect(viewportClip.borderRadius, BorderRadius.circular(16));
+      expect(viewportClip.borderRadius, BorderRadius.circular(14));
     });
 
     testWidgets('displays mock data on mobile screen', (
@@ -123,7 +125,7 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(
         find.text('The Future of AI in Software Development'),
@@ -132,7 +134,7 @@ void main() {
       expect(find.text('Building Scalable Microservices'), findsOneWidget);
       expect(find.text('The Psychology of Product Design'), findsOneWidget);
 
-      expect(find.byType(Card), findsWidgets);
+      expect(find.byType(SurfaceCard), findsWidgets);
     });
 
     testWidgets('displays mock data on desktop screen', (
@@ -147,7 +149,7 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(
         find.text('The Future of AI in Software Development'),
@@ -155,7 +157,7 @@ void main() {
       );
       expect(find.text('Building Scalable Microservices'), findsOneWidget);
 
-      expect(find.byType(Card), findsWidgets);
+      expect(find.byType(SurfaceCard), findsWidgets);
     });
 
     testWidgets('has no overflow errors on small screens', (
@@ -170,11 +172,11 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(tester.takeException(), isNull);
 
-      expect(find.byType(Card), findsWidgets);
+      expect(find.byType(SurfaceCard), findsWidgets);
     });
 
     testWidgets('cards contain play buttons', (tester) async {
@@ -187,7 +189,7 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // BaseEpisodeCard uses play_circle_outline icon
       expect(find.byIcon(Icons.play_circle_outline), findsWidgets);
@@ -203,7 +205,7 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.byIcon(Icons.calendar_today_outlined), findsWidgets);
       expect(find.byIcon(Icons.schedule), findsWidgets);

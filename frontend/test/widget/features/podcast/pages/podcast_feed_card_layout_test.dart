@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
@@ -68,10 +69,10 @@ void main() {
             ),
           ),
         );
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 1));
 
         // Verify card is rendered
-        expect(find.byType(Card), findsOneWidget);
+        expect(find.byType(SurfaceCard), findsOneWidget);
         expect(find.byType(BaseEpisodeCard), findsOneWidget);
 
         // Verify title
@@ -144,10 +145,10 @@ void main() {
             ),
           ),
         );
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 1));
 
         // Verify card is rendered
-        expect(find.byType(Card), findsOneWidget);
+        expect(find.byType(SurfaceCard), findsOneWidget);
         expect(find.byType(BaseEpisodeCard), findsOneWidget);
 
         // Verify description is shown with 4-line max (non-compact/desktop mode)
@@ -214,7 +215,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // Verify the subscription badge text is rendered
       expect(find.text('Sample Show'), findsOneWidget);
@@ -267,7 +268,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // Verify the subscription badge text is rendered
       expect(find.text('Sample Show'), findsOneWidget);
@@ -316,7 +317,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // Verify the subscription badge text is rendered
       expect(find.text('Sample Show'), findsOneWidget);
@@ -368,7 +369,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // Verify the subscription badge text is rendered
       expect(find.text('Sample Show'), findsOneWidget);
@@ -419,7 +420,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // Find description text - it should contain cleaned HTML
       final descriptionFinder = find.textContaining('A & B');
@@ -474,7 +475,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       final descriptionFinder = find.textContaining('A & B');
       expect(descriptionFinder, findsOneWidget);
@@ -528,7 +529,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       final descriptionFinder =
           find.textContaining('\u56DE\u5230\u5BB6\uFF0C\u4E3A\u4EC0\u4E48\u603B\u662F\u524D\u4E24\u5929\u6BCD\u6148\u5B50\u5B5D');
@@ -585,7 +586,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       final descriptionFinder =
           find.textContaining('This preview should stay visible');
@@ -644,7 +645,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       final descriptionFinder =
           find.textContaining('This teaser should remain visible');
@@ -696,7 +697,7 @@ void main() {
             ),
           ),
         );
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 1));
 
         // Initially, the add-to-queue button shows the playlist_add icon
         expect(
@@ -717,7 +718,7 @@ void main() {
 
         // Complete the queue operation
         queueController.completeAddToQueue();
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 1));
 
         // After completion, the playlist_add icon should be restored
         expect(

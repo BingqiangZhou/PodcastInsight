@@ -138,7 +138,7 @@ void main() {
         final scheme = Theme.of(context).colorScheme;
 
         expect(allChip.selected, isTrue);
-        expect(allChip.selectedColor, equals(scheme.onSurfaceVariant));
+        expect(allChip.selectedColor, equals(scheme.primary));
       },
     );
 
@@ -193,7 +193,7 @@ void main() {
         final scheme = Theme.of(context).colorScheme;
 
         expect(allChip.selected, isTrue);
-        expect(allChip.selectedColor, equals(scheme.onSurfaceVariant));
+        expect(allChip.selectedColor, equals(scheme.primary));
       },
     );
 

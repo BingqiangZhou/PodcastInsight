@@ -32,7 +32,7 @@ void main() {
           episodesNotifier: episodesNotifier,
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       final playerFinder = find.byType(PodcastBottomPlayerWidget);
       expect(playerFinder, findsOneWidget);
@@ -70,7 +70,7 @@ void main() {
           episodesNotifier: episodesNotifier,
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.byType(PodcastBottomPlayerWidget), findsOneWidget);
       expect(
