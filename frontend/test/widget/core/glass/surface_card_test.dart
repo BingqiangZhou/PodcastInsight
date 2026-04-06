@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/glass/surface_card.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 
 void main() {
   group('SurfaceCard', () {
@@ -127,7 +128,7 @@ void main() {
     });
 
     group('Variants', () {
-      testWidgets('normal variant uses secondarySystemGroupedBackground in light mode',
+      testWidgets('normal variant uses card tier fill in light mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -149,10 +150,11 @@ void main() {
         );
 
         final decoration = container.decoration! as BoxDecoration;
-        expect(decoration.color, const Color(0xFFFFFFFF));
+        // normal variant maps to CardTier.card → lightCardTierFill
+        expect(decoration.color, AppColors.lightCardTierFill);
       });
 
-      testWidgets('normal variant uses secondarySystemGroupedBackground in dark mode',
+      testWidgets('normal variant uses card tier fill in dark mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -174,10 +176,11 @@ void main() {
         );
 
         final decoration = container.decoration! as BoxDecoration;
-        expect(decoration.color, const Color(0xFF1C1C1E));
+        // normal variant maps to CardTier.card → cardTierFill
+        expect(decoration.color, AppColors.cardTierFill);
       });
 
-      testWidgets('elevated variant uses same colors as normal',
+      testWidgets('elevated variant uses elevated tier fill in light mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -199,10 +202,11 @@ void main() {
         );
 
         final decoration = container.decoration! as BoxDecoration;
-        expect(decoration.color, const Color(0xFFFFFFFF));
+        // elevated variant maps to CardTier.elevated → lightElevatedTierFill
+        expect(decoration.color, AppColors.lightElevatedTierFill);
       });
 
-      testWidgets('flat variant uses tertiarySystemGroupedBackground in light mode',
+      testWidgets('flat variant uses surface tier fill in light mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -224,10 +228,11 @@ void main() {
         );
 
         final decoration = container.decoration! as BoxDecoration;
-        expect(decoration.color, const Color(0xFFF2F2F7));
+        // flat variant maps to CardTier.surface → lightSurfaceTierFill
+        expect(decoration.color, AppColors.lightSurfaceTierFill);
       });
 
-      testWidgets('flat variant uses tertiarySystemGroupedBackground in dark mode',
+      testWidgets('flat variant uses surface tier fill in dark mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -249,12 +254,13 @@ void main() {
         );
 
         final decoration = container.decoration! as BoxDecoration;
-        expect(decoration.color, const Color(0xFF2C2C2E));
+        // flat variant maps to CardTier.surface → surfaceTierFill
+        expect(decoration.color, AppColors.surfaceTierFill);
       });
     });
 
     group('Border', () {
-      testWidgets('applies border with correct color in light mode',
+      testWidgets('applies border with card tier border color in light mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -277,11 +283,11 @@ void main() {
         final decoration = container.decoration! as BoxDecoration;
         expect(decoration.border, isNotNull);
         final border = decoration.border! as Border;
-        // Border color should be tertiarySystemFill with 12% opacity
-        expect(border.top.color, const Color(0x1E767680));
+        // Default tier is card → lightCardTierBorder
+        expect(border.top.color, AppColors.lightCardTierBorder);
       });
 
-      testWidgets('applies border with correct color in dark mode',
+      testWidgets('applies border with card tier border color in dark mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -304,8 +310,8 @@ void main() {
         final decoration = container.decoration! as BoxDecoration;
         expect(decoration.border, isNotNull);
         final border = decoration.border! as Border;
-        // Border color should be tertiarySystemFill with 24% opacity
-        expect(border.top.color, const Color(0x3D767680));
+        // Default tier is card → cardTierBorder
+        expect(border.top.color, AppColors.cardTierBorder);
       });
 
       testWidgets('applies ClipRRect for border radius',
@@ -377,7 +383,7 @@ void main() {
 
         final decoration = container.decoration! as BoxDecoration;
         expect(decoration.color, customColor);
-        expect(decoration.color, isNot(const Color(0xFFF2F2F7)));
+        expect(decoration.color, isNot(AppColors.lightSurfaceTierFill));
       });
     });
   });

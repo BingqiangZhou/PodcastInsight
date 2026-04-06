@@ -105,7 +105,7 @@ void main() {
         );
       });
 
-      testWidgets('applies 60% base alpha on overlay tier in light mode',
+      testWidgets('applies boosted alpha on overlay tier in light mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -114,8 +114,8 @@ void main() {
               builder: (context) {
                 final overlayColor =
                     GlassVibrancy.secondaryText(context, tier: GlassTier.overlay);
-                // 60% of 255 = 153
-                expect(overlayColor.alpha, 153);
+                // (0.6 + 0.10) * 255 = 178.5 → 179
+                expect(overlayColor.alpha, 179);
                 return const SizedBox();
               },
             ),
@@ -123,7 +123,7 @@ void main() {
         );
       });
 
-      testWidgets('boosts alpha to 70% on standard tier in light mode',
+      testWidgets('boosts alpha to 75% on standard tier in light mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -134,8 +134,8 @@ void main() {
                   context,
                   tier: GlassTier.standard,
                 );
-                // (0.6 + 0.1) * 255 = 178.5 = 179
-                expect(color.alpha, 179);
+                // (0.6 + 0.15) * 255 = 191.25 → 191
+                expect(color.alpha, 191);
                 return const SizedBox();
               },
             ),
@@ -187,7 +187,7 @@ void main() {
         );
       });
 
-      testWidgets('applies 30% base alpha on overlay tier in light mode',
+      testWidgets('applies boosted alpha on overlay tier in light mode',
           (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -196,8 +196,8 @@ void main() {
               builder: (context) {
                 final overlayColor =
                     GlassVibrancy.tertiaryText(context, tier: GlassTier.overlay);
-                // 30% of 255 = 76.5 = 77
-                expect(overlayColor.alpha, 77);
+                // (0.3 + 0.10) * 255 = 102
+                expect(overlayColor.alpha, 102);
                 return const SizedBox();
               },
             ),

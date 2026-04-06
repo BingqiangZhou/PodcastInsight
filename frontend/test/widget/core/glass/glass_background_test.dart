@@ -40,7 +40,7 @@ void main() {
         );
 
         final boxDecoration = container.decoration as BoxDecoration?;
-        expect(boxDecoration?.color, const Color(0xFF000000));
+        expect(boxDecoration?.color, const Color(0xFF0f0f1a));
       });
 
       testWidgets('renders gradient orbs', (tester) async {
@@ -86,7 +86,7 @@ void main() {
         );
 
         final boxDecoration = container.decoration as BoxDecoration?;
-        expect(boxDecoration?.color, const Color(0xFFF2F2F7));
+        expect(boxDecoration?.color, const Color(0xFFF8F9FA));
       });
     });
 

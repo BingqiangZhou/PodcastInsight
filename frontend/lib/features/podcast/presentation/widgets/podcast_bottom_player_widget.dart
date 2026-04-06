@@ -60,7 +60,7 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
           podcastPlayerHostLayoutProvider
               .select((l) => l.miniPlayerVisible),
         );
-    if (!miniPlayerVisible) {
+    if (!(miniPlayerVisible ?? false)) {
       return const SizedBox.shrink();
     }
 
@@ -70,10 +70,10 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
     final layout =
         layoutOverride ?? ref.read(podcastPlayerHostLayoutProvider);
     final isExpanded =
-        isExpandedOverride ?? ref.watch(podcastPlayerExpandedProvider);
+        isExpandedOverride ?? ref.watch(podcastPlayerExpandedProvider) ?? false;
 
     final spec =
-        viewportSpec ?? resolvePodcastPlayerViewportSpec(context, layout);
+        viewportSpec ?? resolvePodcastPlayerViewportSpec(context, layout!);
     final dock = _PodcastMiniDock(
       episode: episode!,
       viewportSpec: spec,

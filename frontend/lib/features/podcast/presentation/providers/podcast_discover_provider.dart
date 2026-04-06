@@ -165,7 +165,7 @@ class PodcastDiscoverState extends Equatable {
 }
 
 final applePodcastRssServiceProvider = Provider<ApplePodcastRssService>((ref) {
-  return ApplePodcastRssService.ref(ref);
+  return ApplePodcastRssService.ref();
 });
 
 final podcastDiscoverProvider =

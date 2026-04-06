@@ -250,7 +250,7 @@ PodcastPlayerViewportSpec resolvePodcastPlayerViewportSpec(
   double desktopPanelGap = 20;
   double desktopPanelInnerPadding = 20;
   final fullScreenHorizontalPadding =
-      layoutMode == PodcastPlayerLayoutMode.mobile ? 16 : 24;
+      layoutMode == PodcastPlayerLayoutMode.mobile ? 16.0 : 24.0;
   final mobileDrawerMaxHeight = MediaQuery.sizeOf(context).height * 0.88;
   const double mobileDrawerBorderRadius = 30;
 

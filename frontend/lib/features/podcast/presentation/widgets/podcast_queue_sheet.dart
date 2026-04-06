@@ -482,9 +482,9 @@ class _QueueListState extends ConsumerState<_QueueList> {
       return;
     }
 
-    final targetOffset = math.max(0, index * ScrollConstants.queueItemExtent - 96);
+    final targetOffset = math.max<double>(0, index * ScrollConstants.queueItemExtent - 96);
     final maxOffset = _scrollController.position.maxScrollExtent;
-    final clampedOffset = math.min(targetOffset, maxOffset);
+    final clampedOffset = math.min<double>(targetOffset, maxOffset);
 
     if (animate) {
       await _scrollController.animateTo(
