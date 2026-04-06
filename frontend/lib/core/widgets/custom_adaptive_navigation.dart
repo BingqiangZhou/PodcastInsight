@@ -1,22 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
+import 'dart:ui';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/core/theme/apple_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const Duration _kBottomAccessoryPaddingTransition = Duration(milliseconds: 220);
 
-class CustomAdaptiveNavigation extends StatelessWidget {
+class CustomAdaptiveNavigation extends ConsumerStatefulWidget {
   const CustomAdaptiveNavigation({
-    super.key,
-    required this.destinations,
-    required this.selectedIndex,
-    this.onDestinationSelected,
+    required this.destinations, required this.selectedIndex, required this.onDestinationSelected, super.key,
     this.body,
     this.floatingActionButton,
     this.appBar,
@@ -40,6 +37,53 @@ class CustomAdaptiveNavigation extends StatelessWidget {
   final VoidCallback? onDesktopNavToggle;
 
   @override
+  ConsumerState<CustomAdaptiveNavigation> createState() => _CustomAdaptiveNavigationState();
+}
+
+class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigation> {
+  late final ValueNotifier<bool> _sidebarExpanded;
+
+  static const String _sidebarExpandedKey = 'sidebar_expanded';
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize sidebar state from SharedPreferences
+    _sidebarExpanded = ValueNotifier<bool>(widget.desktopNavExpanded);
+    // ignore: discarded_futures
+    _loadSidebarState();
+  }
+
+  Future<void> _loadSidebarState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(_sidebarExpandedKey);
+    if (saved != null) {
+      _sidebarExpanded.value = saved;
+    }
+  }
+
+  Future<void> _toggleSidebar() async {
+    _sidebarExpanded.value = !_sidebarExpanded.value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_sidebarExpandedKey, _sidebarExpanded.value);
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomAdaptiveNavigation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sync with external state changes if needed
+    if (oldWidget.desktopNavExpanded != widget.desktopNavExpanded) {
+      _sidebarExpanded.value = widget.desktopNavExpanded;
+    }
+  }
+
+  @override
+  void dispose() {
+    _sidebarExpanded.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -50,28 +94,28 @@ class CustomAdaptiveNavigation extends StatelessWidget {
         if (width < Breakpoints.mediumLarge) {
           return _buildTabletLayout(context);
         }
-        return _buildDesktopLayout(context, expanded: desktopNavExpanded);
+        return _buildDesktopLayout(context);
       },
     );
   }
 
   Widget _buildMobileLayout(BuildContext context, double width) {
     final safeAreaBottom = MediaQuery.viewPaddingOf(context).bottom;
-    final double dockBottomPadding = safeAreaBottom > 0.0
+    final dockBottomPadding = safeAreaBottom > 0.0
         ? safeAreaBottom
         : kPodcastGlobalPlayerMobileViewportPadding;
-    final double dockReserve =
+    final dockReserve =
         dockBottomPadding +
         kPodcastGlobalPlayerMobileDockHeight +
         kPodcastGlobalPlayerMobileDockGap;
-    final accessoryBodyPadding = bottomAccessory != null
-        ? bottomAccessoryBodyPadding
+    final accessoryBodyPadding = widget.bottomAccessory != null
+        ? widget.bottomAccessoryBodyPadding
         : 0.0;
-    final totalBottomReserve = dockReserve + accessoryBodyPadding + globalOverlayBodyPadding;
+    final totalBottomReserve = dockReserve + accessoryBodyPadding + widget.globalOverlayBodyPadding;
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
-      appBar: appBar,
+      appBar: widget.appBar,
       body: Stack(
         children: [
           Stack(
@@ -83,21 +127,21 @@ class CustomAdaptiveNavigation extends StatelessWidget {
                   padding: EdgeInsets.only(
                     bottom: totalBottomReserve,
                   ),
-                  child: body ?? const SizedBox.shrink(),
+                  child: widget.body ?? const SizedBox.shrink(),
                 ),
               ),
-              if (floatingActionButton != null)
+              if (widget.floatingActionButton != null)
                 Positioned(
                   right: 20,
-                  bottom: accessoryBodyPadding + globalOverlayBodyPadding + 108,
-                  child: floatingActionButton!,
+                  bottom: accessoryBodyPadding + widget.globalOverlayBodyPadding + 108,
+                  child: widget.floatingActionButton!,
                 ),
-              if (bottomAccessory != null)
+              if (widget.bottomAccessory != null)
                 Positioned(
                   left: 0,
                   right: 0,
                   bottom: dockReserve,
-                  child: bottomAccessory!,
+                  child: widget.bottomAccessory!,
                 ),
             ],
           ),
@@ -132,15 +176,15 @@ class CustomAdaptiveNavigation extends StatelessWidget {
   Widget _buildTabletLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: appBar,
+      appBar: widget.appBar,
       body: Row(
         children: [
           SizedBox(
             width: 72,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
               child: _CleanSidebar(
-                compact: true,
+                expanded: false,
                 child: Column(
                   children: [
                     const SizedBox(height: 18),
@@ -148,7 +192,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
                     const SizedBox(height: 18),
                     ..._buildNavigationItems(context, compact: true),
                     const Spacer(),
-                    if (destinations.isNotEmpty)
+                    if (widget.destinations.isNotEmpty)
                       _buildProfileNavigationItem(context, compact: true),
                     const SizedBox(height: 12),
                   ],
@@ -160,11 +204,11 @@ class CustomAdaptiveNavigation extends StatelessWidget {
           Expanded(
             child: _buildContentStack(
               bottomPadding:
-                  globalOverlayBodyPadding +
-                  (bottomAccessory != null ? bottomAccessoryBodyPadding : 0),
+                  widget.globalOverlayBodyPadding +
+                  (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0),
               fabBottom:
-                  globalOverlayBodyPadding +
-                  (bottomAccessory != null ? bottomAccessoryBodyPadding : 0) +
+                  widget.globalOverlayBodyPadding +
+                  (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
                   28,
             ),
           ),
@@ -174,45 +218,50 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, {required bool expanded}) {
+  Widget _buildDesktopLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: appBar,
+      appBar: widget.appBar,
       body: Row(
         children: [
-          RepaintBoundary(
-            child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(end: expanded ? 256 : 72),
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            builder: (context, animatedWidth, child) {
-              final showCompact = animatedWidth < 196;
-              return SizedBox(
-                key: const ValueKey('desktop_navigation_sidebar'),
-                width: animatedWidth,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                  child: _CleanSidebar(
-                    compact: showCompact,
-                    child: showCompact
-                        ? _buildDesktopCollapsedSidebar(context)
-                        : _buildDesktopExpandedSidebar(context),
-                  ),
+          ValueListenableBuilder<bool>(
+            valueListenable: _sidebarExpanded,
+            builder: (context, expanded, child) {
+              return RepaintBoundary(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(end: expanded ? 240 : 72),
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, animatedWidth, child) {
+                    final showCompact = animatedWidth < 120;
+                    return SizedBox(
+                      key: const ValueKey('desktop_navigation_sidebar'),
+                      width: animatedWidth,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(showCompact ? 4 : 12, 12, showCompact ? 4 : 12, 12),
+                        child: _CleanSidebar(
+                          expanded: expanded,
+                          child: showCompact
+                              ? _buildDesktopCollapsedSidebar(context)
+                              : _buildDesktopExpandedSidebar(context),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             },
-          ),
           ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
               child: _buildContentStack(
                 bottomPadding:
-                    globalOverlayBodyPadding +
-                    (bottomAccessory != null ? bottomAccessoryBodyPadding : 0),
+                    widget.globalOverlayBodyPadding +
+                    (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0),
                 fabBottom:
-                    globalOverlayBodyPadding +
-                    (bottomAccessory != null ? bottomAccessoryBodyPadding : 0) +
+                    widget.globalOverlayBodyPadding +
+                    (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
                     28,
               ),
             ),
@@ -233,17 +282,17 @@ class CustomAdaptiveNavigation extends StatelessWidget {
             duration: _kBottomAccessoryPaddingTransition,
             curve: Curves.easeOutCubic,
             padding: EdgeInsets.only(bottom: bottomPadding),
-            child: body ?? const SizedBox.shrink(),
+            child: widget.body ?? const SizedBox.shrink(),
           ),
         ),
-        if (floatingActionButton != null)
+        if (widget.floatingActionButton != null)
           Positioned(
             right: 20,
             bottom: fabBottom,
-            child: floatingActionButton!,
+            child: widget.floatingActionButton!,
           ),
-        if (bottomAccessory != null)
-          Positioned(left: 0, right: 0, bottom: 0, child: bottomAccessory!),
+        if (widget.bottomAccessory != null)
+          Positioned(left: 0, right: 0, bottom: 0, child: widget.bottomAccessory!),
       ],
     );
   }
@@ -268,7 +317,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: onDesktopNavToggle,
+                onPressed: _toggleSidebar,
                 tooltip: l10n.sidebarCollapseMenu,
                 icon: const Icon(Icons.chevron_left),
               ),
@@ -278,7 +327,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
         const SizedBox(height: 8),
         ..._buildNavigationItems(context, compact: false),
         const Spacer(),
-        if (destinations.isNotEmpty)
+        if (widget.destinations.isNotEmpty)
           _buildProfileNavigationItem(context, compact: false),
       ],
     );
@@ -291,14 +340,14 @@ class CustomAdaptiveNavigation extends StatelessWidget {
         const SizedBox(height: 10),
         _buildBrandLogoBadge(context),
         IconButton(
-          onPressed: onDesktopNavToggle,
+          onPressed: _toggleSidebar,
           tooltip: l10n.sidebarExpandMenu,
           icon: const Icon(Icons.chevron_right),
         ),
         const SizedBox(height: 8),
         ..._buildNavigationItems(context, compact: true),
         const Spacer(),
-        if (destinations.isNotEmpty)
+        if (widget.destinations.isNotEmpty)
           _buildProfileNavigationItem(context, compact: true),
       ],
     );
@@ -319,28 +368,22 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     BuildContext context, {
     required bool compact,
   }) {
-    if (destinations.length <= 1) {
+    if (widget.destinations.length <= 1) {
       return const <Widget>[];
     }
 
     final items = <Widget>[];
-    for (var index = 0; index < destinations.length - 1; index++) {
-      final destination = destinations[index];
-      final isSelected = index == selectedIndex;
+    for (var index = 0; index < widget.destinations.length - 1; index++) {
+      final destination = widget.destinations[index];
+      final isSelected = index == widget.selectedIndex;
       items.add(
-        compact
-            ? _buildCompactNavItem(
-                context,
-                destination,
-                isSelected,
-                () => onDestinationSelected?.call(index),
-              )
-            : _buildExpandedNavItem(
-                context,
-                destination,
-                isSelected,
-                () => onDestinationSelected?.call(index),
-              ),
+        _buildNavItem(
+          context,
+          destination,
+          isSelected,
+          compact,
+          () => widget.onDestinationSelected?.call(index),
+        ),
       );
     }
     return items;
@@ -350,22 +393,39 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     BuildContext context, {
     required bool compact,
   }) {
-    final profileIndex = destinations.length - 1;
-    final destination = destinations[profileIndex];
-    final isSelected = profileIndex == selectedIndex;
-    return compact
-        ? _buildCompactNavItem(
-            context,
-            destination,
-            isSelected,
-            () => onDestinationSelected?.call(profileIndex),
-          )
-        : _buildExpandedNavItem(
-            context,
-            destination,
-            isSelected,
-            () => onDestinationSelected?.call(profileIndex),
-          );
+    final profileIndex = widget.destinations.length - 1;
+    final destination = widget.destinations[profileIndex];
+    final isSelected = profileIndex == widget.selectedIndex;
+    return _buildNavItem(
+      context,
+      destination,
+      isSelected,
+      compact,
+      () => widget.onDestinationSelected?.call(profileIndex),
+    );
+  }
+
+  Widget _buildNavItem(
+    BuildContext context,
+    NavigationDestination destination,
+    bool isSelected,
+    bool compact,
+    VoidCallback onTap,
+  ) {
+    if (compact) {
+      return _buildCompactNavItem(
+        context,
+        destination,
+        isSelected,
+        onTap,
+      );
+    }
+    return _buildExpandedNavItem(
+      context,
+      destination,
+      isSelected,
+      onTap,
+    );
   }
 
   Widget _buildCompactNavItem(
@@ -374,7 +434,6 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     bool isSelected,
     VoidCallback onTap,
   ) {
-    final scheme = Theme.of(context).colorScheme;
     final extension = appThemeOf(context);
     return Semantics(
       button: true,
@@ -383,34 +442,30 @@ class CustomAdaptiveNavigation extends StatelessWidget {
       child: Tooltip(
         message: destination.label,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          child: InkWell(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: _NavInkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(extension.navItemRadius),
-            splashColor: scheme.primary.withValues(alpha: 0.12),
-            highlightColor: scheme.primary.withValues(alpha: 0.08),
-            hoverColor: scheme.primary.withValues(alpha: 0.05),
-          child: AnimatedScale(
-            scale: isSelected ? 1.05 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            child: Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? scheme.primary.withValues(alpha: 0.14)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(extension.navItemRadius),
-              ),
-              child: Center(
-                child: isSelected
-                    ? (destination.selectedIcon ?? destination.icon)
-                    : destination.icon,
+            borderRadius: extension.navItemRadius,
+            isSelected: isSelected,
+            child: AnimatedScale(
+              scale: isSelected ? 1.05 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: _buildNavDecoration(isSelected: isSelected, context: context),
+                child: Center(
+                  child: IconTheme(
+                    data: const IconThemeData(size: 20),
+                    child: isSelected
+                        ? (destination.selectedIcon ?? destination.icon)
+                        : destination.icon,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
         ),
       ),
     );
@@ -423,7 +478,6 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     VoidCallback onTap,
   ) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final extension = appThemeOf(context);
 
     return Semantics(
@@ -432,12 +486,10 @@ class CustomAdaptiveNavigation extends StatelessWidget {
       label: destination.label,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        child: InkWell(
+        child: _NavInkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(extension.navItemRadius),
-          splashColor: scheme.primary.withValues(alpha: 0.12),
-          highlightColor: scheme.primary.withValues(alpha: 0.08),
-          hoverColor: scheme.primary.withValues(alpha: 0.05),
+          borderRadius: extension.navItemRadius,
+          isSelected: isSelected,
           child: AnimatedScale(
             scale: isSelected ? 1.02 : 1.0,
             duration: const Duration(milliseconds: 200),
@@ -445,12 +497,7 @@ class CustomAdaptiveNavigation extends StatelessWidget {
             child: Container(
               height: 56,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? scheme.primary.withValues(alpha: 0.14)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(extension.navItemRadius),
-              ),
+              decoration: _buildNavDecoration(isSelected: isSelected, context: context),
               child: Row(
                 children: [
                   SizedBox(
@@ -466,21 +513,12 @@ class CustomAdaptiveNavigation extends StatelessWidget {
                       destination.label,
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: isSelected
-                            ? scheme.onSurface
-                            : scheme.onSurfaceVariant,
+                            ? Theme.of(context).colorScheme.onSurface
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: isSelected ? FontWeight.w700 : null,
                       ),
                     ),
                   ),
-                  if (isSelected)
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppleColors.systemOrange.of(context),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -490,21 +528,43 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     );
   }
 
+  BoxDecoration _buildNavDecoration({
+    required bool isSelected,
+    required BuildContext context,
+  }) {
+    final extension = appThemeOf(context);
+    if (isSelected) {
+      // Gradient background for active state
+      return BoxDecoration(
+        gradient: const LinearGradient(
+          colors: AppColors.violetColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(extension.navItemRadius),
+      );
+    }
+    return BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(extension.navItemRadius),
+    );
+  }
+
   Widget _buildMobileNavBar(BuildContext context) {
     return SizedBox(
       key: const Key('custom_adaptive_navigation_mobile_nav_bar'),
       height: kPodcastGlobalPlayerMobileDockHeight,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(destinations.length, (index) {
-          final destination = destinations[index];
-          final isSelected = index == selectedIndex;
+        children: List.generate(widget.destinations.length, (index) {
+          final destination = widget.destinations[index];
+          final isSelected = index == widget.selectedIndex;
           return Expanded(
             child: _buildMobileNavItem(
               context,
               destination,
               isSelected,
-              () => onDestinationSelected?.call(index),
+              () => widget.onDestinationSelected?.call(index),
             ),
           );
         }),
@@ -518,7 +578,6 @@ class CustomAdaptiveNavigation extends StatelessWidget {
     bool isSelected,
     VoidCallback onTap,
   ) {
-    final scheme = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
       selected: isSelected,
@@ -528,9 +587,8 @@ class CustomAdaptiveNavigation extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          splashColor: scheme.primary.withValues(alpha: 0.12),
-          highlightColor: scheme.primary.withValues(alpha: 0.08),
-          hoverColor: scheme.primary.withValues(alpha: 0.05),
+          splashColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+          highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(
@@ -547,21 +605,32 @@ class CustomAdaptiveNavigation extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? scheme.primary.withValues(alpha: 0.14)
-                          : Colors.transparent,
+                      gradient: isSelected
+                          ? const LinearGradient(
+                              colors: AppColors.violetColors,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color: isSelected ? null : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: isSelected
-                        ? (destination.selectedIcon ?? destination.icon)
-                        : destination.icon,
+                    child: ColorFiltered(
+                  colorFilter: ColorFilter.mode(
+                    isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
+                    BlendMode.srcIn,
+                  ),
+                  child: isSelected
+                      ? (destination.selectedIcon ?? destination.icon)
+                      : destination.icon,
+                ),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   destination.label,
                   style: AppTheme.navLabel(
-                    isSelected ? scheme.onSurface : scheme.onSurfaceVariant,
+                    isSelected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant,
                     weight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),
                   maxLines: 1,
@@ -578,11 +647,10 @@ class CustomAdaptiveNavigation extends StatelessWidget {
 
 class ResponsiveContainer extends StatelessWidget {
   const ResponsiveContainer({
-    super.key,
-    required this.child,
+    required this.child, super.key,
+    this.alignment,
     this.maxWidth,
     this.padding,
-    this.alignment,
   });
 
   final Widget child;
@@ -593,28 +661,25 @@ class ResponsiveContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final tokens =
-        Theme.of(context).extension<AppThemeExtension>() ??
+    final tokens = Theme.of(context).extension<AppThemeExtension>() ??
         (Theme.of(context).brightness == Brightness.dark
             ? AppThemeExtension.dark
             : AppThemeExtension.light);
 
     final topPadding = MediaQuery.viewPaddingOf(context).top;
-    final resolvedPadding =
-        padding ??
+    final resolvedPadding = padding ??
         EdgeInsets.fromLTRB(
           width < Breakpoints.medium ? 16 : 24,
           (width < Breakpoints.medium ? 12 : 20) + topPadding,
           width < Breakpoints.medium ? 16 : 24,
           0,
         );
-    final resolvedMaxWidth =
-        maxWidth ??
+    final resolvedMaxWidth = maxWidth ??
         (width < Breakpoints.medium
             ? width
             : width < 900
-            ? 920
-            : tokens.contentMaxWidth);
+                ? 920
+                : tokens.contentMaxWidth);
 
     return Align(
       alignment: alignment ?? Alignment.topCenter,
@@ -629,42 +694,103 @@ class ResponsiveContainer extends StatelessWidget {
   }
 }
 
-/// Glass sidebar with liquid glass effect
+/// Arc+Linear style sidebar with theme-aware surface
 class _CleanSidebar extends StatelessWidget {
-  const _CleanSidebar({required this.child, required this.compact});
+  const _CleanSidebar({required this.child, required this.expanded});
 
   final Widget child;
-  final bool compact;
+  final bool expanded;
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      tier: GlassTier.heavy,
-      borderRadius: compact ? 16 : 20,
-      animate: true,
-      interactive: false,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurfaceVariant,
+        borderRadius: expanded
+            ? const BorderRadius.horizontal(right: Radius.circular(14))
+            : BorderRadius.circular(16),
+      ),
       child: child,
     );
   }
 }
 
-/// Glass dock with liquid glass effect
+/// Nav item ink well with hover effect
+class _NavInkWell extends StatefulWidget {
+  const _NavInkWell({
+    required this.borderRadius,
+    required this.child,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final VoidCallback onTap;
+  final double borderRadius;
+  final bool isSelected;
+  final Widget child;
+
+  @override
+  State<_NavInkWell> createState() => _NavInkWellState();
+}
+
+class _NavInkWellState extends State<_NavInkWell> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final overlayColor = isDark ? Colors.white : Colors.black;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        splashColor: overlayColor.withValues(alpha: 0.12),
+        highlightColor: overlayColor.withValues(alpha: 0.08),
+        hoverColor: Colors.transparent, // We handle hover manually
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            color: _isHovered && !widget.isSelected
+                ? overlayColor.withValues(alpha: 0.06)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+          ),
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
+/// Arc+Linear style dock with theme-aware surface + blur
 class _CleanDock extends StatelessWidget {
-  const _CleanDock({super.key, required this.child, required this.width});
+  const _CleanDock({required this.child, required this.width, super.key});
 
   final Widget child;
   final double width;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     return SizedBox(
       width: width,
-      child: GlassContainer(
-        tier: GlassTier.medium,
-        borderRadius: 16,
-        animate: true,
-        interactive: false,
-        child: child,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            height: 64,
+            decoration: BoxDecoration(
+              color: surfaceColor.withValues(alpha: 0.9),
+            ),
+            child: child,
+          ),
+        ),
       ),
     );
   }

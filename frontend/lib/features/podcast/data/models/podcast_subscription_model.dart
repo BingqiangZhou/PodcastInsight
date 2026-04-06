@@ -7,6 +7,30 @@ part 'podcast_subscription_model.g.dart';
 
 @JsonSerializable()
 class PodcastSubscriptionModel extends Equatable {
+
+  const PodcastSubscriptionModel({
+    required this.id,
+    required this.userId,
+    required this.title,
+    required this.sourceUrl, required this.status, required this.fetchInterval, required this.createdAt, this.description,
+    this.lastFetchedAt,
+    this.errorMessage,
+    this.episodeCount = 0,
+    this.unplayedCount = 0,
+    this.latestEpisode,
+    this.categories,
+    this.imageUrl,
+    this.author,
+    this.platform,
+    this.updateFrequency,
+    this.updateTime,
+    this.updateDayOfWeek,
+    this.nextUpdateAt,
+    this.updatedAt,
+  });
+
+  factory PodcastSubscriptionModel.fromJson(Map<String, dynamic> json) =>
+      _$PodcastSubscriptionModelFromJson(json);
   final int id;
   @JsonKey(name: 'user_id')
   final int userId;
@@ -44,34 +68,6 @@ class PodcastSubscriptionModel extends Equatable {
   final DateTime createdAt;
   @JsonKey(name: 'updated_at')
   final DateTime? updatedAt;
-
-  const PodcastSubscriptionModel({
-    required this.id,
-    required this.userId,
-    required this.title,
-    this.description,
-    required this.sourceUrl,
-    required this.status,
-    this.lastFetchedAt,
-    this.errorMessage,
-    required this.fetchInterval,
-    this.episodeCount = 0,
-    this.unplayedCount = 0,
-    this.latestEpisode,
-    this.categories,
-    this.imageUrl,
-    this.author,
-    this.platform,
-    this.updateFrequency,
-    this.updateTime,
-    this.updateDayOfWeek,
-    this.nextUpdateAt,
-    required this.createdAt,
-    this.updatedAt,
-  });
-
-  factory PodcastSubscriptionModel.fromJson(Map<String, dynamic> json) =>
-      _$PodcastSubscriptionModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$PodcastSubscriptionModelToJson(this);
 
@@ -154,11 +150,6 @@ class PodcastSubscriptionModel extends Equatable {
 
 @JsonSerializable()
 class PodcastSubscriptionListResponse extends Equatable {
-  final List<PodcastSubscriptionModel> subscriptions;
-  final int total;
-  final int page;
-  final int size;
-  final int pages;
 
   const PodcastSubscriptionListResponse({
     required this.subscriptions,
@@ -180,6 +171,11 @@ class PodcastSubscriptionListResponse extends Equatable {
     }
     return _$PodcastSubscriptionListResponseFromJson(json);
   }
+  final List<PodcastSubscriptionModel> subscriptions;
+  final int total;
+  final int page;
+  final int size;
+  final int pages;
 
   Map<String, dynamic> toJson() => _$PodcastSubscriptionListResponseToJson(this);
 
@@ -189,15 +185,15 @@ class PodcastSubscriptionListResponse extends Equatable {
 
 @JsonSerializable()
 class PodcastSubscriptionCreateRequest extends Equatable {
-  @JsonKey(name: 'feed_url')
-  final String feedUrl;
-  @JsonKey(name: 'category_ids')
-  final List<int>? categoryIds;
 
   const PodcastSubscriptionCreateRequest({
     required this.feedUrl,
     this.categoryIds,
   });
+  @JsonKey(name: 'feed_url')
+  final String feedUrl;
+  @JsonKey(name: 'category_ids')
+  final List<int>? categoryIds;
 
   Map<String, dynamic> toJson() => _$PodcastSubscriptionCreateRequestToJson(this);
 
@@ -207,9 +203,6 @@ class PodcastSubscriptionCreateRequest extends Equatable {
 
 @JsonSerializable()
 class ReparseResponse extends Equatable {
-  @JsonKey(defaultValue: false)
-  final bool success;
-  final Map<String, dynamic> result;
 
   const ReparseResponse({
     required this.success,
@@ -218,6 +211,9 @@ class ReparseResponse extends Equatable {
 
   factory ReparseResponse.fromJson(Map<String, dynamic> json) =>
       _$ReparseResponseFromJson(json);
+  @JsonKey(defaultValue: false)
+  final bool success;
+  final Map<String, dynamic> result;
 
   Map<String, dynamic> toJson() => _$ReparseResponseToJson(this);
 
@@ -227,7 +223,6 @@ class ReparseResponse extends Equatable {
 
 @JsonSerializable()
 class SimpleResponse extends Equatable {
-  final Map<String, dynamic> data;
 
   const SimpleResponse({
     required this.data,
@@ -235,6 +230,7 @@ class SimpleResponse extends Equatable {
 
   factory SimpleResponse.fromJson(Map<String, dynamic> json) =>
       _$SimpleResponseFromJson(json);
+  final Map<String, dynamic> data;
 
   Map<String, dynamic> toJson() => _$SimpleResponseToJson(this);
 
@@ -244,8 +240,6 @@ class SimpleResponse extends Equatable {
 
 @JsonSerializable()
 class PodcastSubscriptionBulkDeleteRequest extends Equatable {
-  @JsonKey(name: 'subscription_ids')
-  final List<int> subscriptionIds;
 
   const PodcastSubscriptionBulkDeleteRequest({
     required this.subscriptionIds,
@@ -253,6 +247,8 @@ class PodcastSubscriptionBulkDeleteRequest extends Equatable {
 
   factory PodcastSubscriptionBulkDeleteRequest.fromJson(Map<String, dynamic> json) =>
       _$PodcastSubscriptionBulkDeleteRequestFromJson(json);
+  @JsonKey(name: 'subscription_ids')
+  final List<int> subscriptionIds;
 
   Map<String, dynamic> toJson() => _$PodcastSubscriptionBulkDeleteRequestToJson(this);
 
@@ -262,13 +258,6 @@ class PodcastSubscriptionBulkDeleteRequest extends Equatable {
 
 @JsonSerializable()
 class PodcastSubscriptionBulkDeleteResponse extends Equatable {
-  @JsonKey(name: 'success_count')
-  final int successCount;
-  @JsonKey(name: 'failed_count')
-  final int failedCount;
-  final List<Map<String, dynamic>> errors;
-  @JsonKey(name: 'deleted_subscription_ids')
-  final List<int> deletedSubscriptionIds;
 
   const PodcastSubscriptionBulkDeleteResponse({
     required this.successCount,
@@ -279,6 +268,13 @@ class PodcastSubscriptionBulkDeleteResponse extends Equatable {
 
   factory PodcastSubscriptionBulkDeleteResponse.fromJson(Map<String, dynamic> json) =>
       _$PodcastSubscriptionBulkDeleteResponseFromJson(json);
+  @JsonKey(name: 'success_count')
+  final int successCount;
+  @JsonKey(name: 'failed_count')
+  final int failedCount;
+  final List<Map<String, dynamic>> errors;
+  @JsonKey(name: 'deleted_subscription_ids')
+  final List<int> deletedSubscriptionIds;
 
   Map<String, dynamic> toJson() => _$PodcastSubscriptionBulkDeleteResponseToJson(this);
 

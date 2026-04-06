@@ -249,10 +249,10 @@ PodcastPlayerViewportSpec resolvePodcastPlayerViewportSpec(
   double desktopPanelWidth = 0;
   double desktopPanelGap = 20;
   double desktopPanelInnerPadding = 20;
-  double fullScreenHorizontalPadding =
-      layoutMode == PodcastPlayerLayoutMode.mobile ? 16 : 24;
-  double mobileDrawerMaxHeight = MediaQuery.sizeOf(context).height * 0.88;
-  double mobileDrawerBorderRadius = 30;
+  final fullScreenHorizontalPadding =
+      layoutMode == PodcastPlayerLayoutMode.mobile ? 16.0 : 24.0;
+  final mobileDrawerMaxHeight = MediaQuery.sizeOf(context).height * 0.88;
+  const double mobileDrawerBorderRadius = 30;
 
   switch (layoutMode) {
     case PodcastPlayerLayoutMode.mobile:
@@ -262,14 +262,12 @@ PodcastPlayerViewportSpec resolvePodcastPlayerViewportSpec(
           surfaceContext == PodcastPlayerSurfaceContext.homeShell
           ? 0
           : kPodcastGlobalPlayerMobileViewportPadding;
-      break;
     case PodcastPlayerLayoutMode.tablet:
       dockHorizontalPadding = 16;
       dockBottomSpacing = 16;
       desktopPanelWidth = 356;
       desktopPanelGap = 18;
       desktopPanelInnerPadding = 18;
-      break;
     case PodcastPlayerLayoutMode.desktop:
       desktopPanelWidth =
           surfaceContext == PodcastPlayerSurfaceContext.episodeDetail
@@ -281,7 +279,6 @@ PodcastPlayerViewportSpec resolvePodcastPlayerViewportSpec(
           ? 20
           : 24;
       desktopPanelInnerPadding = 20;
-      break;
   }
 
   final dockMaxWidth = _resolvePlayerMaxWidth(

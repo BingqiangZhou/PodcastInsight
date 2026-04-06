@@ -6,28 +6,21 @@ import 'package:personal_ai_assistant/shared/models/paginated_state.dart';
 const Object _stateNoChange = Object();
 
 class PodcastFeedState extends PaginatedState<PodcastEpisodeModel> {
-  final String? nextCursor;
 
   const PodcastFeedState({
     List<PodcastEpisodeModel> episodes = const [],
-    bool hasMore = true,
-    int? nextPage,
+    super.hasMore,
+    super.nextPage,
     this.nextCursor,
-    int total = 0,
-    bool isLoading = false,
-    bool isLoadingMore = false,
-    String? error,
-    DateTime? lastRefreshTime,
+    super.total,
+    super.isLoading,
+    super.isLoadingMore,
+    super.error,
+    super.lastRefreshTime,
   }) : super(
           items: episodes,
-          hasMore: hasMore,
-          nextPage: nextPage,
-          total: total,
-          isLoading: isLoading,
-          isLoadingMore: isLoadingMore,
-          error: error,
-          lastRefreshTime: lastRefreshTime,
         );
+  final String? nextCursor;
 
   List<PodcastEpisodeModel> get episodes => items;
 
@@ -75,34 +68,26 @@ class PodcastFeedState extends PaginatedState<PodcastEpisodeModel> {
 }
 
 class PodcastEpisodesState extends PaginatedState<PodcastEpisodeModel> {
-  final int? cachedSubscriptionId;
-  final String? cachedStatus;
-  final bool? cachedHasSummary;
 
   const PodcastEpisodesState({
     List<PodcastEpisodeModel> episodes = const [],
-    bool hasMore = true,
-    int? nextPage,
-    int currentPage = 1,
-    int total = 0,
-    bool isLoading = false,
-    bool isLoadingMore = false,
-    String? error,
+    super.hasMore,
+    super.nextPage,
+    super.currentPage,
+    super.total,
+    super.isLoading,
+    super.isLoadingMore,
+    super.error,
     this.cachedSubscriptionId,
     this.cachedStatus,
     this.cachedHasSummary,
-    DateTime? lastRefreshTime,
+    super.lastRefreshTime,
   }) : super(
           items: episodes,
-          hasMore: hasMore,
-          nextPage: nextPage,
-          currentPage: currentPage,
-          total: total,
-          isLoading: isLoading,
-          isLoadingMore: isLoadingMore,
-          error: error,
-          lastRefreshTime: lastRefreshTime,
         );
+  final int? cachedSubscriptionId;
+  final String? cachedStatus;
+  final bool? cachedHasSummary;
 
   List<PodcastEpisodeModel> get episodes => items;
 
@@ -149,31 +134,23 @@ class PodcastEpisodesState extends PaginatedState<PodcastEpisodeModel> {
 
 class PodcastSubscriptionState
     extends PaginatedState<PodcastSubscriptionModel> {
-  /// Set of Feed URLs currently being subscribed
-  final Set<String> subscribingFeedUrls;
 
   const PodcastSubscriptionState({
     List<PodcastSubscriptionModel> subscriptions = const [],
-    bool hasMore = true,
-    int? nextPage,
-    int currentPage = 1,
-    int total = 0,
-    bool isLoading = false,
-    bool isLoadingMore = false,
-    String? error,
+    super.hasMore,
+    super.nextPage,
+    super.currentPage,
+    super.total,
+    super.isLoading,
+    super.isLoadingMore,
+    super.error,
     this.subscribingFeedUrls = const {},
-    DateTime? lastRefreshTime,
+    super.lastRefreshTime,
   }) : super(
           items: subscriptions,
-          hasMore: hasMore,
-          nextPage: nextPage,
-          currentPage: currentPage,
-          total: total,
-          isLoading: isLoading,
-          isLoadingMore: isLoadingMore,
-          error: error,
-          lastRefreshTime: lastRefreshTime,
         );
+  /// Set of Feed URLs currently being subscribed
+  final Set<String> subscribingFeedUrls;
 
   List<PodcastSubscriptionModel> get subscriptions => items;
 

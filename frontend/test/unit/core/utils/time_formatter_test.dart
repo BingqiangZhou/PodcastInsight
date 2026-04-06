@@ -5,7 +5,7 @@ void main() {
   group('TimeFormatter - UTC to Local Conversion Tests', () {
     test('parseUtcTime should convert UTC time string to local DateTime', () {
       // 模拟 API 返回的 UTC 时间字符串（带 +00:00 时区）
-      final utcTimeString = '2025-12-26T14:16:36+00:00';
+      const utcTimeString = '2025-12-26T14:16:36+00:00';
       final result = TimeFormatter.parseUtcTime(utcTimeString);
 
       // 解析后的 DateTime 应该转换为本地时间
@@ -48,7 +48,7 @@ void main() {
 
     test('formatFullDateTime should convert UTC to local', () {
       // 创建一个 UTC 时间字符串
-      final utcTimeString = '2025-12-26T14:16:36+00:00';
+      const utcTimeString = '2025-12-26T14:16:36+00:00';
 
       final result = TimeFormatter.formatFullDateTime(utcTimeString);
 
@@ -58,7 +58,7 @@ void main() {
     });
 
     test('formatShortDate should convert UTC to local', () {
-      final utcTimeString = '2025-12-26T14:16:36+00:00';
+      const utcTimeString = '2025-12-26T14:16:36+00:00';
       final result = TimeFormatter.formatShortDate(utcTimeString);
 
       expect(result, isNotEmpty);
@@ -66,7 +66,7 @@ void main() {
     });
 
     test('formatTime should convert UTC to local', () {
-      final utcTimeString = '2025-12-26T14:16:36+00:00';
+      const utcTimeString = '2025-12-26T14:16:36+00:00';
       final result = TimeFormatter.formatTime(utcTimeString);
 
       expect(result, isNotEmpty);

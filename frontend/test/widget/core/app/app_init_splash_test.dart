@@ -118,7 +118,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          authProvider.overrideWith(() => _TestAuthNotifier()),
+          authProvider.overrideWith(_TestAuthNotifier.new),
           localStorageServiceProvider.overrideWithValue(
             _MemoryLocalStorageService(),
           ),

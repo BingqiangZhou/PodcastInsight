@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_en.dart';
 
@@ -16,6 +15,14 @@ import 'package:personal_ai_assistant/core/localization/app_localizations_en.dar
 /// - Scroll-to-top capability
 /// - State persistence with AutomaticKeepAliveClientMixin
 class SummaryDisplayWidget extends ConsumerStatefulWidget {
+
+  const SummaryDisplayWidget({
+    required this.episodeTitle, required this.summary, super.key,
+    this.compact = false,
+    this.onShareAll,
+    this.onShareSelected,
+    this.useInternalScrolling = true,
+  });
   /// Title of the podcast episode (used for sharing)
   final String episodeTitle;
 
@@ -40,16 +47,6 @@ class SummaryDisplayWidget extends ConsumerStatefulWidget {
   /// When false, the widget content will not be wrapped in SingleChildScrollView.
   final bool useInternalScrolling;
 
-  const SummaryDisplayWidget({
-    super.key,
-    required this.episodeTitle,
-    required this.summary,
-    this.compact = false,
-    this.onShareAll,
-    this.onShareSelected,
-    this.useInternalScrolling = true,
-  });
-
   @override
   ConsumerState<SummaryDisplayWidget> createState() =>
       SummaryDisplayWidgetState();
@@ -68,7 +65,7 @@ class SummaryDisplayWidgetState
   void scrollToTop() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        0.0,
+        0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );

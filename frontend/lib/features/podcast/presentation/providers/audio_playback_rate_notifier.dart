@@ -73,8 +73,7 @@ extension AudioPlaybackRateNotifier on AudioPlayerNotifier {
   }
 
   Future<double> _resolveEffectivePlaybackRate({
-    int? subscriptionId,
-    required double fallbackRate,
+    required double fallbackRate, int? subscriptionId,
   }) async {
     final effective = await _fetchEffectivePlaybackRatePreference(
       subscriptionId: subscriptionId,
@@ -87,10 +86,8 @@ extension AudioPlaybackRateNotifier on AudioPlayerNotifier {
         effective?.effectivePlaybackRate ?? fallbackRate;
     _cachePlaybackRateSelection(
       speed: resolvedPlaybackRate,
-      applyToSubscription: subscriptionId != null
-          ? (effective?.source == 'subscription' ||
-                (effective == null && fallbackSelection.applyToSubscription))
-          : false,
+      applyToSubscription: subscriptionId != null && (effective?.source == 'subscription' ||
+                (effective == null && fallbackSelection.applyToSubscription)),
       subscriptionId: subscriptionId,
     );
     return resolvedPlaybackRate;
@@ -136,10 +133,8 @@ extension AudioPlaybackRateNotifier on AudioPlayerNotifier {
     );
     final resolvedSelection = (
       speed: effective?.effectivePlaybackRate ?? fallbackSelection.speed,
-      applyToSubscription: currentEpisode != null
-          ? (effective?.source == 'subscription' ||
-                (effective == null && fallbackSelection.applyToSubscription))
-          : false,
+      applyToSubscription: currentEpisode != null && (effective?.source == 'subscription' ||
+                (effective == null && fallbackSelection.applyToSubscription)),
     );
     _cachePlaybackRateSelection(
       speed: resolvedSelection.speed,

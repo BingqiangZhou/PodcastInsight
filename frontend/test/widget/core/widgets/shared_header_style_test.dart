@@ -65,10 +65,7 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             () => _FixedPodcastSubscriptionNotifier(
               const PodcastSubscriptionState(
-                subscriptions: [],
                 hasMore: false,
-                total: 0,
-                isLoading: false,
               ),
             ),
           ),
@@ -81,10 +78,7 @@ void main() {
           podcastFeedProvider.overrideWith(
             () => _FixedPodcastFeedNotifier(
               const PodcastFeedState(
-                episodes: [],
                 hasMore: false,
-                total: 0,
-                isLoading: false,
               ),
             ),
           ),
@@ -101,10 +95,7 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             () => _FixedPodcastSubscriptionNotifier(
               const PodcastSubscriptionState(
-                subscriptions: [],
                 hasMore: false,
-                total: 0,
-                isLoading: false,
               ),
             ),
           ),
@@ -250,7 +241,7 @@ class _FixedPodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
 class _FixedAuthNotifier extends AuthNotifier {
   @override
   AuthState build() {
-    return const AuthState(isAuthenticated: false);
+    return const AuthState();
   }
 }
 

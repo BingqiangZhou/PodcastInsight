@@ -8,10 +8,9 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     return SurfacePanel(
       key: key,
       padding: EdgeInsets.zero,
-      borderRadius: tokens.panelRadius,
+      borderRadius: tokens.cardRadius,
       backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.22),
       showBorder: false,
-      showHighlight: false,
       child: child,
     );
   }
@@ -162,7 +161,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     String episodeTitle,
     String fullSummaryMarkdown,
   ) async {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     final markdownSelection = await extractMarkdownSelectionAsync(
       markdown: fullSummaryMarkdown,
       selectedText: _selectedSummaryText,
@@ -190,7 +189,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     String episodeTitle,
     String summary,
   ) async {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     try {
       await ContentImageShareService.shareAsImage(
         context,
@@ -320,7 +319,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildAiSummaryEmptyState(BuildContext context) {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return AppEmptyState(
       icon: Icons.auto_awesome,
       title: l10n.podcast_summary_no_summary,
@@ -329,7 +328,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildChatDrawer(PodcastEpisodeModel episode) {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     final width = MediaQuery.sizeOf(context).width;
     final drawerWidth =
         width >= _PodcastEpisodeDetailPageState._wideLayoutBreakpoint
@@ -342,7 +341,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
         key: const Key('podcast_episode_detail_chat_drawer'),
         backgroundColor: Colors.transparent,
         child: GlassContainer(
-          tier: GlassTier.heavy,
+          tier: GlassTier.overlay,
           borderRadius: 0,
           padding: EdgeInsets.zero,
           child: SafeArea(
@@ -411,7 +410,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
   }
 
   Widget _buildErrorState(BuildContext context, dynamic error) {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return Stack(
       fit: StackFit.expand,
       children: [

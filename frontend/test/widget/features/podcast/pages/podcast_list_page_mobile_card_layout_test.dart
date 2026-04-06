@@ -33,7 +33,7 @@ void main() {
             _FakeApplePodcastRssService(),
           ),
           podcastSubscriptionProvider.overrideWith(
-            () => _TestPodcastSubscriptionNotifier(),
+            _TestPodcastSubscriptionNotifier.new,
           ),
           search.podcastSearchProvider.overrideWithValue(
             const search.PodcastSearchState(),
@@ -45,10 +45,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -97,7 +97,7 @@ void main() {
               _FakeApplePodcastRssService(),
             ),
             podcastSubscriptionProvider.overrideWith(
-              () => _TestPodcastSubscriptionNotifier(),
+              _TestPodcastSubscriptionNotifier.new,
             ),
             search.podcastSearchProvider.overrideWithValue(
               const search.PodcastSearchState(),
@@ -109,10 +109,10 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: container,
-            child: MaterialApp(
+            child: const MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: const PodcastListPage(),
+              home: PodcastListPage(),
             ),
           ),
         );
@@ -310,9 +310,7 @@ class _TestPodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
   @override
   PodcastSubscriptionState build() {
     return const PodcastSubscriptionState(
-      subscriptions: [],
       hasMore: false,
-      total: 0,
     );
   }
 

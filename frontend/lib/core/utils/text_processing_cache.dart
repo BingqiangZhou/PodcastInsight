@@ -1,9 +1,9 @@
 /// LRU cache entry that tracks access time for eviction.
 class _CacheEntry<T> {
-  T value;
-  int lastAccess;
 
   _CacheEntry(this.value) : lastAccess = DateTime.now().millisecondsSinceEpoch;
+  T value;
+  int lastAccess;
 }
 
 /// Text processing cache utility class.
@@ -102,7 +102,7 @@ class TextProcessingCache {
     if (cache.isEmpty) return;
 
     String? oldestKey;
-    int oldestTime = DateTime.now().millisecondsSinceEpoch;
+    var oldestTime = DateTime.now().millisecondsSinceEpoch;
 
     for (final entry in cache.entries) {
       if (entry.value.lastAccess < oldestTime) {
@@ -137,7 +137,7 @@ class TextProcessingCache {
       RegExp(r'</li\s*>', caseSensitive: false),
       '\n',
     ).replaceAll(
-      RegExp(r'<[^>]*>'),
+      RegExp('<[^>]*>'),
       '',
     );
 
@@ -198,7 +198,7 @@ class TextProcessingCache {
     );
     // Handle hex entities like &#x1F600;
     decoded = decoded.replaceAllMapped(
-      RegExp(r'&#x([0-9a-fA-F]+);'),
+      RegExp('&#x([0-9a-fA-F]+);'),
       (match) => String.fromCharCode(
         int.tryParse(match.group(1) ?? '0', radix: 16) ?? 0,
       ),
@@ -218,7 +218,7 @@ class TextProcessingCache {
     final segments = <String>[];
 
     // Use regex to split by sentence delimiters
-    final sentencePattern = RegExp(r'[^。.！!？?]+[。.！!？?]+[^。.！!？?]*');
+    final sentencePattern = RegExp('[^。.！!？?]+[。.！!？?]+[^。.！!？?]*');
 
     final matches = sentencePattern.allMatches(text);
 

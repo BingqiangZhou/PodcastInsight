@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/utils/debounce.dart';
-import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
+import 'package:personal_ai_assistant/core/widgets/linear_section_header.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episode_lookup_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
@@ -17,9 +17,9 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/country_selector_dropdown.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover/discover_charts_list.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover/discover_search_input.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover/discover_top_charts_section.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover/discover_charts_list.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover_episode_detail_sheet.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover_show_episodes_sheet.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/search/podcast_search_results_list.dart';
@@ -473,7 +473,6 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
           subtitle: '',
           headerSpacing: headerSpacing,
           roundedViewport: true,
-          badges: const [],
           trailing: _SearchModeToggle(
             searchMode: searchMode,
             isDense: isDense,
@@ -525,7 +524,12 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
           onCategorySelected: _handleDiscoverCategorySelected,
           isDense: isDense,
         ),
-        SizedBox(height: isDense ? 10 : 14),
+        SizedBox(height: isDense ? 8 : 12),
+        LinearSectionHeader.label(
+          l10n.podcast_discover_browse_by_category,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        ),
+        SizedBox(height: isDense ? 6 : 8),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () => ref.read(podcastDiscoverProvider.notifier).refresh(),
@@ -630,6 +634,7 @@ class _TabPill extends StatelessWidget {
     required this.onTap,
   });
 
+  @override
   final Key key;
   final String label;
   final IconData icon;

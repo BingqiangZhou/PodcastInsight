@@ -291,7 +291,6 @@ void main() {
       test('not equal when isLoading differs', () {
         const a = CountrySelectorState(
           selectedCountry: PodcastCountry.china,
-          isLoading: false,
         );
         const b = CountrySelectorState(
           selectedCountry: PodcastCountry.china,

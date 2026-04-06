@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 
 /// ============================================================
-/// Arctic Garden Design System - 形状与圆角系统
+/// Arc+Linear Design System - 形状与圆角系统
 ///
 /// Design Philosophy:
-/// - 有机形态：使用更大的圆角，避免尖锐的边角
-/// - 柔和曲线：所有形状都应该感觉自然、流畅
+/// - Clean geometric radii aligned with Apple HIG
+/// - Arc+Linear: consistent, intentional radius scale
 /// ============================================================
 
 /// Design tokens for border radius throughout the app.
@@ -22,18 +22,18 @@ class AppRadius {
   // CORE RADIUS VALUES — aligned with AppThemeExtension
   // ============================================================
 
-  static const double cardValue = 12.0;
-  static const double panelValue = 16.0;
-  static const double buttonValue = 10.0;
+  static const double cardValue = 14;
+  static const double buttonValue = 10;
+  static const double itemValue = 8;
 
   // Incremental scale
-  static const double xs = 6.0;
-  static const double sm = 8.0;
-  static const double md = 10.0;
-  static const double lg = 14.0;
-  static const double xl = 20.0;
-  static const double xxl = 28.0;
-  static const double pill = 999.0;
+  static const double xs = 6;
+  static const double sm = 8;
+  static const double md = 10;
+  static const double lg = 14;
+  static const double xl = 20;
+  static const double xxl = 28;
+  static const double pill = 999;
 
   // ============================================================
   // PRE-BUILT BORDER RADIUS INSTANCES - 预构建圆角实例
@@ -46,27 +46,9 @@ class AppRadius {
   static BorderRadius get xlRadius => BorderRadius.circular(xl);
   static BorderRadius get xxlRadius => BorderRadius.circular(xxl);
   static BorderRadius get card => BorderRadius.circular(cardValue);
-  static BorderRadius get panel => BorderRadius.circular(panelValue);
   static BorderRadius get button => BorderRadius.circular(buttonValue);
+  static BorderRadius get item => BorderRadius.circular(itemValue);
   static BorderRadius get pillRadius => BorderRadius.circular(pill);
-
-  // ============================================================
-  // ORGANIC SHAPES - 有机形状（不对称圆角）
-  // ============================================================
-
-  /// 有机卡片形状 - 左上角稍大，更有动感
-  static BorderRadius get organicCard => const BorderRadius.only(
-    topLeft: Radius.circular(24),
-    topRight: Radius.circular(20),
-    bottomLeft: Radius.circular(20),
-    bottomRight: Radius.circular(16),
-  );
-
-  /// 有机按钮形状 - 更圆润
-  static BorderRadius get organicButton => BorderRadius.horizontal(
-    left: const Radius.circular(20),
-    right: const Radius.circular(14),
-  );
 
   // ============================================================
   // ROUNDED RECTANGLE BORDER SHAPES - 预构建形状
@@ -86,14 +68,10 @@ class AppRadius {
       RoundedRectangleBorder(borderRadius: xxlRadius);
   static RoundedRectangleBorder get cardShape =>
       RoundedRectangleBorder(borderRadius: card);
-  static RoundedRectangleBorder get panelShape =>
-      RoundedRectangleBorder(borderRadius: panel);
   static RoundedRectangleBorder get buttonShape =>
       RoundedRectangleBorder(borderRadius: button);
   static RoundedRectangleBorder get pillShape =>
       RoundedRectangleBorder(borderRadius: pillRadius);
-  static RoundedRectangleBorder get organicCardShape =>
-      RoundedRectangleBorder(borderRadius: organicCard);
 }
 
 /// Extension to easily access radius from BuildContext.
@@ -103,12 +81,5 @@ extension AppRadiusExtension on BuildContext {
     final extension =
         Theme.of(this).extension<AppThemeExtension>();
     return extension?.cardRadius ?? AppRadius.cardValue;
-  }
-
-  /// Get the panel radius from the current theme.
-  double get panelRadius {
-    final extension =
-        Theme.of(this).extension<AppThemeExtension>();
-    return extension?.panelRadius ?? AppRadius.panelValue;
   }
 }

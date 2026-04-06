@@ -5,6 +5,20 @@ part 'podcast_playback_model.g.dart';
 
 @JsonSerializable()
 class PodcastPlaybackStateResponse extends Equatable {
+
+  const PodcastPlaybackStateResponse({
+    required this.episodeId,
+    required this.currentPosition,
+    required this.isPlaying,
+    required this.playbackRate,
+    required this.playCount,
+    required this.lastUpdatedAt,
+    required this.progressPercentage,
+    required this.remainingTime,
+  });
+
+  factory PodcastPlaybackStateResponse.fromJson(Map<String, dynamic> json) =>
+      _$PodcastPlaybackStateResponseFromJson(json);
   @JsonKey(name: 'episode_id')
   final int episodeId;
   @JsonKey(name: 'current_position')
@@ -21,20 +35,6 @@ class PodcastPlaybackStateResponse extends Equatable {
   final double progressPercentage;
   @JsonKey(name: 'remaining_time')
   final int remainingTime;
-
-  const PodcastPlaybackStateResponse({
-    required this.episodeId,
-    required this.currentPosition,
-    required this.isPlaying,
-    required this.playbackRate,
-    required this.playCount,
-    required this.lastUpdatedAt,
-    required this.progressPercentage,
-    required this.remainingTime,
-  });
-
-  factory PodcastPlaybackStateResponse.fromJson(Map<String, dynamic> json) =>
-      _$PodcastPlaybackStateResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$PodcastPlaybackStateResponseToJson(this);
 
@@ -53,17 +53,17 @@ class PodcastPlaybackStateResponse extends Equatable {
 
 @JsonSerializable()
 class PodcastPlaybackUpdateRequest extends Equatable {
-  final int position;
-  @JsonKey(name: 'is_playing', defaultValue: false)
-  final bool isPlaying;
-  @JsonKey(name: 'playback_rate')
-  final double playbackRate;
 
   const PodcastPlaybackUpdateRequest({
     required this.position,
     required this.isPlaying,
     this.playbackRate = 1.0,
   });
+  final int position;
+  @JsonKey(name: 'is_playing', defaultValue: false)
+  final bool isPlaying;
+  @JsonKey(name: 'playback_rate')
+  final double playbackRate;
 
   Map<String, dynamic> toJson() => _$PodcastPlaybackUpdateRequestToJson(this);
 
@@ -73,13 +73,6 @@ class PodcastPlaybackUpdateRequest extends Equatable {
 
 @JsonSerializable()
 class PlaybackRateEffectiveResponse extends Equatable {
-  @JsonKey(name: 'global_playback_rate')
-  final double globalPlaybackRate;
-  @JsonKey(name: 'subscription_playback_rate')
-  final double? subscriptionPlaybackRate;
-  @JsonKey(name: 'effective_playback_rate')
-  final double effectivePlaybackRate;
-  final String source;
 
   const PlaybackRateEffectiveResponse({
     required this.globalPlaybackRate,
@@ -90,6 +83,13 @@ class PlaybackRateEffectiveResponse extends Equatable {
 
   factory PlaybackRateEffectiveResponse.fromJson(Map<String, dynamic> json) =>
       _$PlaybackRateEffectiveResponseFromJson(json);
+  @JsonKey(name: 'global_playback_rate')
+  final double globalPlaybackRate;
+  @JsonKey(name: 'subscription_playback_rate')
+  final double? subscriptionPlaybackRate;
+  @JsonKey(name: 'effective_playback_rate')
+  final double effectivePlaybackRate;
+  final String source;
 
   Map<String, dynamic> toJson() => _$PlaybackRateEffectiveResponseToJson(this);
 
@@ -104,12 +104,6 @@ class PlaybackRateEffectiveResponse extends Equatable {
 
 @JsonSerializable()
 class PlaybackRateApplyRequest extends Equatable {
-  @JsonKey(name: 'playback_rate')
-  final double playbackRate;
-  @JsonKey(name: 'subscription_id')
-  final int? subscriptionId;
-  @JsonKey(name: 'apply_to_subscription')
-  final bool applyToSubscription;
 
   const PlaybackRateApplyRequest({
     required this.playbackRate,
@@ -119,6 +113,12 @@ class PlaybackRateApplyRequest extends Equatable {
 
   factory PlaybackRateApplyRequest.fromJson(Map<String, dynamic> json) =>
       _$PlaybackRateApplyRequestFromJson(json);
+  @JsonKey(name: 'playback_rate')
+  final double playbackRate;
+  @JsonKey(name: 'subscription_id')
+  final int? subscriptionId;
+  @JsonKey(name: 'apply_to_subscription')
+  final bool applyToSubscription;
 
   Map<String, dynamic> toJson() => _$PlaybackRateApplyRequestToJson(this);
 
@@ -132,6 +132,18 @@ class PlaybackRateApplyRequest extends Equatable {
 
 @JsonSerializable()
 class PodcastSummaryResponse extends Equatable {
+
+  const PodcastSummaryResponse({
+    required this.episodeId,
+    required this.summary,
+    required this.version,
+    required this.transcriptUsed, required this.generatedAt, required this.wordCount, this.confidenceScore,
+    this.modelUsed,
+    this.processingTime,
+  });
+
+  factory PodcastSummaryResponse.fromJson(Map<String, dynamic> json) =>
+      _$PodcastSummaryResponseFromJson(json);
   @JsonKey(name: 'episode_id')
   final int episodeId;
   final String summary;
@@ -148,21 +160,6 @@ class PodcastSummaryResponse extends Equatable {
   final String? modelUsed;
   @JsonKey(name: 'processing_time')
   final double? processingTime;
-
-  const PodcastSummaryResponse({
-    required this.episodeId,
-    required this.summary,
-    required this.version,
-    this.confidenceScore,
-    required this.transcriptUsed,
-    required this.generatedAt,
-    required this.wordCount,
-    this.modelUsed,
-    this.processingTime,
-  });
-
-  factory PodcastSummaryResponse.fromJson(Map<String, dynamic> json) =>
-      _$PodcastSummaryResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$PodcastSummaryResponseToJson(this);
 
@@ -182,16 +179,6 @@ class PodcastSummaryResponse extends Equatable {
 
 @JsonSerializable()
 class PodcastSummaryStartResponse extends Equatable {
-  @JsonKey(name: 'episode_id')
-  final int episodeId;
-  @JsonKey(name: 'summary_status')
-  final String summaryStatus;
-  @JsonKey(name: 'accepted_at')
-  final DateTime acceptedAt;
-  @JsonKey(name: 'message_en')
-  final String messageEn;
-  @JsonKey(name: 'message_zh')
-  final String messageZh;
 
   const PodcastSummaryStartResponse({
     required this.episodeId,
@@ -203,6 +190,16 @@ class PodcastSummaryStartResponse extends Equatable {
 
   factory PodcastSummaryStartResponse.fromJson(Map<String, dynamic> json) =>
       _$PodcastSummaryStartResponseFromJson(json);
+  @JsonKey(name: 'episode_id')
+  final int episodeId;
+  @JsonKey(name: 'summary_status')
+  final String summaryStatus;
+  @JsonKey(name: 'accepted_at')
+  final DateTime acceptedAt;
+  @JsonKey(name: 'message_en')
+  final String messageEn;
+  @JsonKey(name: 'message_zh')
+  final String messageZh;
 
   Map<String, dynamic> toJson() => _$PodcastSummaryStartResponseToJson(this);
 
@@ -218,6 +215,13 @@ class PodcastSummaryStartResponse extends Equatable {
 
 @JsonSerializable()
 class PodcastSummaryRequest extends Equatable {
+
+  const PodcastSummaryRequest({
+    this.forceRegenerate = false,
+    this.useTranscript,
+    this.summaryModel,
+    this.customPrompt,
+  });
   @JsonKey(name: 'force_regenerate')
   final bool forceRegenerate;
   @JsonKey(name: 'use_transcript')
@@ -226,13 +230,6 @@ class PodcastSummaryRequest extends Equatable {
   final String? summaryModel;
   @JsonKey(name: 'custom_prompt')
   final String? customPrompt;
-
-  const PodcastSummaryRequest({
-    this.forceRegenerate = false,
-    this.useTranscript,
-    this.summaryModel,
-    this.customPrompt,
-  });
 
   Map<String, dynamic> toJson() => _$PodcastSummaryRequestToJson(this);
 
@@ -247,6 +244,20 @@ class PodcastSummaryRequest extends Equatable {
 
 @JsonSerializable()
 class PodcastStatsResponse extends Equatable {
+
+  const PodcastStatsResponse({
+    required this.totalSubscriptions,
+    required this.totalEpisodes,
+    required this.totalPlaytime,
+    required this.summariesGenerated,
+    required this.pendingSummaries,
+    required this.recentlyPlayed,
+    required this.topCategories,
+    required this.listeningStreak,
+  });
+
+  factory PodcastStatsResponse.fromJson(Map<String, dynamic> json) =>
+      _$PodcastStatsResponseFromJson(json);
   @JsonKey(name: 'total_subscriptions')
   final int totalSubscriptions;
   @JsonKey(name: 'total_episodes')
@@ -263,20 +274,6 @@ class PodcastStatsResponse extends Equatable {
   final List<Map<String, dynamic>> topCategories;
   @JsonKey(name: 'listening_streak')
   final int listeningStreak;
-
-  const PodcastStatsResponse({
-    required this.totalSubscriptions,
-    required this.totalEpisodes,
-    required this.totalPlaytime,
-    required this.summariesGenerated,
-    required this.pendingSummaries,
-    required this.recentlyPlayed,
-    required this.topCategories,
-    required this.listeningStreak,
-  });
-
-  factory PodcastStatsResponse.fromJson(Map<String, dynamic> json) =>
-      _$PodcastStatsResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$PodcastStatsResponseToJson(this);
 
@@ -295,6 +292,19 @@ class PodcastStatsResponse extends Equatable {
 
 @JsonSerializable()
 class PodcastSearchFilter extends Equatable {
+
+  const PodcastSearchFilter({
+    this.query,
+    this.categoryId,
+    this.status,
+    this.hasSummary,
+    this.dateFrom,
+    this.dateTo,
+    this.subscriptionId,
+    this.isPlayed,
+    this.durationMin,
+    this.durationMax,
+  });
   final String? query;
   @JsonKey(name: 'category_id')
   final int? categoryId;
@@ -313,19 +323,6 @@ class PodcastSearchFilter extends Equatable {
   final int? durationMin;
   @JsonKey(name: 'duration_max')
   final int? durationMax;
-
-  const PodcastSearchFilter({
-    this.query,
-    this.categoryId,
-    this.status,
-    this.hasSummary,
-    this.dateFrom,
-    this.dateTo,
-    this.subscriptionId,
-    this.isPlayed,
-    this.durationMin,
-    this.durationMax,
-  });
 
   Map<String, dynamic> toJson() => _$PodcastSearchFilterToJson(this);
 
@@ -347,15 +344,6 @@ class PodcastSearchFilter extends Equatable {
 /// AI总结模型信息
 @JsonSerializable()
 class SummaryModelInfo extends Equatable {
-  final int id;
-  final String name;
-  @JsonKey(name: 'display_name')
-  final String displayName;
-  final String provider;
-  @JsonKey(name: 'model_id')
-  final String modelId;
-  @JsonKey(name: 'is_default')
-  final bool isDefault;
 
   const SummaryModelInfo({
     required this.id,
@@ -368,6 +356,15 @@ class SummaryModelInfo extends Equatable {
 
   factory SummaryModelInfo.fromJson(Map<String, dynamic> json) =>
       _$SummaryModelInfoFromJson(json);
+  final int id;
+  final String name;
+  @JsonKey(name: 'display_name')
+  final String displayName;
+  final String provider;
+  @JsonKey(name: 'model_id')
+  final String modelId;
+  @JsonKey(name: 'is_default')
+  final bool isDefault;
 
   Map<String, dynamic> toJson() => _$SummaryModelInfoToJson(this);
 
@@ -385,13 +382,13 @@ class SummaryModelInfo extends Equatable {
 /// 可用总结模型列表响应
 @JsonSerializable()
 class SummaryModelsResponse extends Equatable {
-  final List<SummaryModelInfo> models;
-  final int total;
 
   const SummaryModelsResponse({required this.models, required this.total});
 
   factory SummaryModelsResponse.fromJson(Map<String, dynamic> json) =>
       _$SummaryModelsResponseFromJson(json);
+  final List<SummaryModelInfo> models;
+  final int total;
 
   Map<String, dynamic> toJson() => _$SummaryModelsResponseToJson(this);
 

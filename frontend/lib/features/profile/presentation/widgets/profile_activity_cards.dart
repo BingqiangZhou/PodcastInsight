@@ -62,7 +62,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.subscriptions_outlined,
             label: l10n.profile_subscriptions,
             value: subscriptionCount,
-            color: scheme.primary,
+            color: scheme.secondary,
             onTap: () => context.push('/profile/subscriptions'),
             showChevron: true,
             cardKey: const Key('profile_subscriptions_card'),
@@ -73,7 +73,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.podcasts,
             label: l10n.podcast_episodes,
             value: episodeCount,
-            color: scheme.primary,
+            color: scheme.secondary,
           ),
           const SizedBox(height: 12),
           _buildActivityCard(
@@ -81,7 +81,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.auto_awesome,
             label: l10n.profile_ai_summary,
             value: summaryCount,
-            color: scheme.primary,
+            color: scheme.secondary,
           ),
           const SizedBox(height: 12),
           _buildActivityCard(
@@ -100,7 +100,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.summarize_outlined,
             label: l10n.podcast_daily_report_title,
             value: latestDailyReportDateText,
-            color: scheme.primary,
+            color: scheme.secondary,
             onTap: () =>
                 PodcastNavigation.goToDailyReport(context, source: 'profile'),
             showChevron: true,
@@ -112,7 +112,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.lightbulb_outline,
             label: l10n.podcast_highlights_title,
             value: highlightsCount,
-            color: scheme.primary,
+            color: scheme.secondary,
             onTap: () => PodcastNavigation.goToHighlights(context, source: 'profile'),
             showChevron: true,
             cardKey: const Key('profile_highlights_card'),
@@ -133,7 +133,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.subscriptions_outlined,
             label: l10n.profile_subscriptions,
             value: subscriptionCount,
-            color: scheme.primary,
+            color: scheme.secondary,
             onTap: () => context.push('/profile/subscriptions'),
             showChevron: true,
             cardKey: const Key('profile_subscriptions_card'),
@@ -143,14 +143,14 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.podcasts,
             label: l10n.podcast_episodes,
             value: episodeCount,
-            color: scheme.primary,
+            color: scheme.secondary,
           ),
           _buildActivityCard(
             context,
             icon: Icons.auto_awesome,
             label: l10n.profile_ai_summary,
             value: summaryCount,
-            color: scheme.primary,
+            color: scheme.secondary,
           ),
           _buildActivityCard(
             context,
@@ -167,7 +167,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.summarize_outlined,
             label: l10n.podcast_daily_report_title,
             value: latestDailyReportDateText,
-            color: scheme.primary,
+            color: scheme.secondary,
             onTap: () =>
                 PodcastNavigation.goToDailyReport(context, source: 'profile'),
             showChevron: true,
@@ -178,7 +178,7 @@ class ProfileActivityCards extends ConsumerWidget {
             icon: Icons.lightbulb_outline,
             label: l10n.podcast_highlights_title,
             value: highlightsCount,
-            color: scheme.primary,
+            color: scheme.secondary,
             onTap: () => PodcastNavigation.goToHighlights(context, source: 'profile'),
             showChevron: true,
             cardKey: const Key('profile_highlights_card'),
@@ -219,7 +219,6 @@ class ProfileActivityCards extends ConsumerWidget {
         child: SurfacePanel(
           borderRadius: extension.cardRadius,
           showBorder: false,
-          showHighlight: false,
           child: Row(
             children: [
               Container(

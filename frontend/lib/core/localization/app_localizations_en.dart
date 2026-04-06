@@ -1837,6 +1837,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get downloads_completed_title => 'Downloaded';
 
   @override
+  String downloads_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads',
+      one: '1 download',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get appearance_title => 'Appearance';
 
   @override

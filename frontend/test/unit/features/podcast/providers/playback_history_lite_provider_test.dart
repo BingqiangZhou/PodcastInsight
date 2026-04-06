@@ -20,8 +20,8 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(playbackHistoryLiteProvider.notifier);
-      await notifier.load(forceRefresh: false);
-      await notifier.load(forceRefresh: false);
+      await notifier.load();
+      await notifier.load();
 
       expect(repository.getPlaybackHistoryLiteCalls, 1);
       expect(container.read(playbackHistoryLiteProvider).value?.total, 10);
@@ -40,7 +40,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(playbackHistoryLiteProvider.notifier);
-      await notifier.load(forceRefresh: false);
+      await notifier.load();
       await notifier.load(forceRefresh: true);
 
       expect(repository.getPlaybackHistoryLiteCalls, 2);
@@ -64,7 +64,7 @@ void main() {
 
         final notifier = container.read(playbackHistoryLiteProvider.notifier);
         async.run((_) {
-          notifier.load(forceRefresh: false);
+          notifier.load();
         });
         async.flushMicrotasks();
 
@@ -72,7 +72,7 @@ void main() {
         async.elapse(CacheConstants.defaultListCacheDuration + const Duration(seconds: 1));
 
         async.run((_) {
-          notifier.load(forceRefresh: false);
+          notifier.load();
         });
         async.flushMicrotasks();
 
@@ -105,7 +105,7 @@ class _FakePodcastRepository extends PodcastRepository {
 }
 
 PlaybackHistoryLiteResponse _historyResponse(int total) {
-  final now = DateTime(2026, 2, 14, 10, 0, 0);
+  final now = DateTime(2026, 2, 14, 10);
   return PlaybackHistoryLiteResponse(
     episodes: <PlaybackHistoryLiteItem>[
       PlaybackHistoryLiteItem(

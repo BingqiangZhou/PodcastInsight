@@ -16,11 +16,7 @@ import 'package:flutter/services.dart';
 /// Only active when [enabled] is true (typically when a text field is NOT focused).
 class PlaybackShortcuts extends StatelessWidget {
   const PlaybackShortcuts({
-    super.key,
-    required this.child,
-    required this.onTogglePlayPause,
-    required this.onSeekBackward,
-    required this.onSeekForward,
+    required this.child, required this.onTogglePlayPause, required this.onSeekBackward, required this.onSeekForward, super.key,
     this.onVolumeUp,
     this.onVolumeDown,
     this.onNextEpisode,

@@ -42,6 +42,22 @@ enum PodcastCountry {
 /// iTunes 搜索结果模型
 @JsonSerializable()
 class PodcastSearchResult extends Equatable {
+
+  const PodcastSearchResult({
+    this.collectionId,
+    this.collectionName,
+    this.artistName,
+    this.artworkUrl100,
+    this.artworkUrl600,
+    this.feedUrl,
+    this.collectionViewUrl,
+    this.primaryGenreName,
+    this.trackCount,
+    this.releaseDate,
+  });
+
+  factory PodcastSearchResult.fromJson(Map<String, dynamic> json) =>
+      _$PodcastSearchResultFromJson(json);
   @JsonKey(name: 'collectionId')
   final int? collectionId;
   @JsonKey(name: 'collectionName')
@@ -63,22 +79,6 @@ class PodcastSearchResult extends Equatable {
   @JsonKey(name: 'releaseDate')
   final String? releaseDate;
 
-  const PodcastSearchResult({
-    this.collectionId,
-    this.collectionName,
-    this.artistName,
-    this.artworkUrl100,
-    this.artworkUrl600,
-    this.feedUrl,
-    this.collectionViewUrl,
-    this.primaryGenreName,
-    this.trackCount,
-    this.releaseDate,
-  });
-
-  factory PodcastSearchResult.fromJson(Map<String, dynamic> json) =>
-      _$PodcastSearchResultFromJson(json);
-
   Map<String, dynamic> toJson() => _$PodcastSearchResultToJson(this);
 
   @override
@@ -99,8 +99,6 @@ class PodcastSearchResult extends Equatable {
 /// iTunes Search API 响应模型
 @JsonSerializable()
 class ITunesSearchResponse extends Equatable {
-  final int resultCount;
-  final List<PodcastSearchResult> results;
 
   const ITunesSearchResponse({
     required this.resultCount,
@@ -109,6 +107,8 @@ class ITunesSearchResponse extends Equatable {
 
   factory ITunesSearchResponse.fromJson(Map<String, dynamic> json) =>
       _$ITunesSearchResponseFromJson(json);
+  final int resultCount;
+  final List<PodcastSearchResult> results;
 
   Map<String, dynamic> toJson() => _$ITunesSearchResponseToJson(this);
 

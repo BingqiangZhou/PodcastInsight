@@ -21,6 +21,18 @@ import 'package:personal_ai_assistant/core/constants/cache_constants.dart';
 /// }
 /// ```
 class PaginatedState<T> extends Equatable {
+
+  const PaginatedState({
+    this.items = const [],
+    this.hasMore = true,
+    this.nextPage,
+    this.currentPage = 1,
+    this.total = 0,
+    this.isLoading = false,
+    this.isLoadingMore = false,
+    this.error,
+    this.lastRefreshTime,
+  });
   /// The currently loaded items.
   final List<T> items;
 
@@ -47,18 +59,6 @@ class PaginatedState<T> extends Equatable {
 
   /// Timestamp of the last successful refresh.
   final DateTime? lastRefreshTime;
-
-  const PaginatedState({
-    this.items = const [],
-    this.hasMore = true,
-    this.nextPage,
-    this.currentPage = 1,
-    this.total = 0,
-    this.isLoading = false,
-    this.isLoadingMore = false,
-    this.error,
-    this.lastRefreshTime,
-  });
 
   /// Whether the data is still considered fresh within [cacheDuration].
   bool isDataFresh({

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 void main() {
   group('Podcast Route Tests', () {
-    testWidgets('should navigate to podcast episodes page with correct route', (WidgetTester tester) async {
+    testWidgets('should navigate to podcast episodes page with correct route', (tester) async {
       // Build the app with router
       await tester.pumpWidget(
         ProviderScope(
@@ -60,7 +60,7 @@ void main() {
       expect(find.text('Episode 2'), findsOneWidget);
     });
 
-    testWidgets('should reject invalid route /podcasts/episodes/1', (WidgetTester tester) async {
+    testWidgets('should reject invalid route /podcasts/episodes/1', (tester) async {
       // Build the app with router
       await tester.pumpWidget(
         ProviderScope(
@@ -84,7 +84,7 @@ void main() {
                 ),
               ],
               errorBuilder: (context, state) => Scaffold(
-                body: Text('Route Error: ${state.error?.toString()}'),
+                body: Text('Route Error: ${state.error}'),
               ),
             ),
           ),

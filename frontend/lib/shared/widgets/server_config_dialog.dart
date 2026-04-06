@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,18 +9,17 @@ import 'package:personal_ai_assistant/core/localization/app_localizations_extens
 import 'package:personal_ai_assistant/core/network/server_health_service.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
-
-import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Server configuration dialog widget
 /// Can be used in both settings page and login screen
 class ServerConfigDialog extends ConsumerStatefulWidget {
-  final String? initialUrl;
-  final VoidCallback? onSave;
 
   const ServerConfigDialog({super.key, this.initialUrl, this.onSave});
+  final String? initialUrl;
+  final VoidCallback? onSave;
 
   @override
   ConsumerState<ServerConfigDialog> createState() => _ServerConfigDialogState();

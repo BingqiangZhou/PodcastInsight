@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Internal state for top floating notice
 class TopFloatingNoticeState {
-  final OverlayEntry? entry;
-  final Timer? timer;
 
   const TopFloatingNoticeState({this.entry, this.timer});
+  final OverlayEntry? entry;
+  final Timer? timer;
 
   TopFloatingNoticeState copyWith({OverlayEntry? entry, Timer? timer}) {
     return TopFloatingNoticeState(

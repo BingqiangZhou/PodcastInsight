@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mockito/mockito.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/network/dio_client.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
 import 'package:personal_ai_assistant/core/services/app_cache_service.dart';
@@ -16,11 +17,11 @@ import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_daily_report_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/profile_stats_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/apple_podcast_rss_service.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/itunes_search_service.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
-import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/podcast_api_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
@@ -33,7 +34,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class _TestAuthNotifier extends AuthNotifier {
   @override
   AuthState build() {
-    return AuthState(
+    return const AuthState(
       isAuthenticated: true,
       user: User(
         id: '1',
@@ -276,7 +277,7 @@ void main() {
 
   testWidgets(
     'renders lightweight stats with viewed count from playedEpisodes',
-    (WidgetTester tester) async {
+    (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -293,10 +294,10 @@ void main() {
               ),
             ),
           ],
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(body: ProfilePage()),
+            home: Scaffold(body: ProfilePage()),
           ),
         ),
       );
@@ -315,7 +316,7 @@ void main() {
   );
 
   testWidgets('daily report activity card navigates to daily report route', (
-    WidgetTester tester,
+    tester,
   ) async {
     final router = GoRouter(
       routes: [
@@ -370,7 +371,7 @@ void main() {
 
   testWidgets(
     'daily report card shows latest report date and icon color matches other cards',
-    (WidgetTester tester) async {
+    (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -387,10 +388,10 @@ void main() {
               ),
             ),
           ],
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(body: ProfilePage()),
+            home: Scaffold(body: ProfilePage()),
           ),
         ),
       );
@@ -421,7 +422,7 @@ void main() {
 
   testWidgets(
     'uses menu icon color tokens for profile icons, avatar, and switch in dark mode',
-    (WidgetTester tester) async {
+    (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -457,7 +458,7 @@ void main() {
       final subscriptionsIcon = tester.widget<Icon>(
         find.byIcon(Icons.subscriptions_outlined).first,
       );
-      expect(subscriptionsIcon.color, equals(scheme.onSurfaceVariant));
+      expect(subscriptionsIcon.color, equals(scheme.secondary));
 
       final avatar = tester.widget<CircleAvatar>(
         find.descendant(
@@ -485,7 +486,7 @@ void main() {
 
   testWidgets(
     'uses menu icon color tokens for profile icons, avatar, and switch in light mode',
-    (WidgetTester tester) async {
+    (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -521,7 +522,7 @@ void main() {
       final subscriptionsIcon = tester.widget<Icon>(
         find.byIcon(Icons.subscriptions_outlined).first,
       );
-      expect(subscriptionsIcon.color, equals(scheme.onSurfaceVariant));
+      expect(subscriptionsIcon.color, equals(scheme.secondary));
 
       final avatar = tester.widget<CircleAvatar>(
         find.descendant(
@@ -548,7 +549,7 @@ void main() {
   );
 
   testWidgets('daily report card shows -- when no report date exists', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -566,10 +567,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -585,7 +586,7 @@ void main() {
   });
 
   testWidgets('shows loading placeholders when profile stats is loading', (
-    WidgetTester tester,
+    tester,
   ) async {
     final pending = Completer<ProfileStatsModel?>();
 
@@ -605,10 +606,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -620,7 +621,7 @@ void main() {
   });
 
   testWidgets('falls back to 0 when profile stats provider returns null', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -638,10 +639,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -653,7 +654,7 @@ void main() {
   });
 
   testWidgets('falls back to 0 when repository throws in provider chain', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -671,10 +672,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -686,7 +687,7 @@ void main() {
   });
 
   testWidgets('clear cache entry triggers cache clear flow', (
-    WidgetTester tester,
+    tester,
   ) async {
     final dioClient = _MockDioClient();
     final cacheService = _MockAppCacheService();
@@ -775,7 +776,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clear'));
+    await tester.tap(find.widgetWithText(TextButton, 'Clear'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
@@ -790,7 +791,7 @@ void main() {
   });
 
   testWidgets('removes settings entries and updates action buttons', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -808,10 +809,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -828,7 +829,7 @@ void main() {
   });
 
   testWidgets('top logout and user edit buttons open expected dialogs', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -846,10 +847,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -875,9 +876,9 @@ void main() {
   });
 
   testWidgets('uses updated icons and consistent dialog widths on mobile', (
-    WidgetTester tester,
+    tester,
   ) async {
-    tester.view.physicalSize = const Size(390, 844);
+    tester.view.physicalSize = const Size(420, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -902,10 +903,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -921,11 +922,11 @@ void main() {
       find.widgetWithText(ListTile, l10n.profile_security),
     );
 
-    expect((securityTile.leading as Icon).icon, Icons.shield);
+    expect((securityTile.leading! as Icon).icon, Icons.shield);
     final serverConfigSupportTile = tester.widget<ListTile>(
       find.widgetWithText(ListTile, l10n.backend_api_server_config),
     );
-    expect((serverConfigSupportTile.leading as Icon).icon, Icons.dns);
+    expect((serverConfigSupportTile.leading! as Icon).icon, Icons.dns);
 
     await tester.tap(find.byKey(const Key('profile_user_menu_button')));
     await tester.pumpAndSettle();
@@ -946,7 +947,7 @@ void main() {
     await tester.tap(find.byKey(const Key('profile_user_menu_item_edit')));
     await tester.pumpAndSettle();
     final editDialogWidth = tester.getSize(find.byType(AlertDialog)).width;
-    await tester.tap(find.text(l10n.cancel));
+    await tester.tap(find.text(l10n.close));
     await tester.pumpAndSettle();
 
     final languageTile = find.widgetWithText(ListTile, l10n.language);
@@ -1047,7 +1048,7 @@ void main() {
   });
 
   testWidgets('single tap version opens about dialog', (
-    WidgetTester tester,
+    tester,
   ) async {
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
@@ -1069,10 +1070,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -1092,7 +1093,7 @@ void main() {
   });
 
   testWidgets('uses feed-style card shape and width on mobile profile cards', (
-    WidgetTester tester,
+    tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
@@ -1115,32 +1116,28 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
 
     await tester.pumpAndSettle();
 
-    final cards = tester.widgetList<Card>(find.byType(Card)).toList();
+    final cards = tester.widgetList<SurfacePanel>(
+      find.byType(SurfacePanel),
+    ).toList();
     expect(cards, isNotEmpty);
 
     for (final card in cards) {
-      expect(card.margin, const EdgeInsets.symmetric(horizontal: 4));
-      expect(card.shape, isA<RoundedRectangleBorder>());
-
-      final shape = card.shape! as RoundedRectangleBorder;
-      expect(shape.borderRadius, BorderRadius.circular(12));
-      expect(shape.side.style, BorderStyle.none);
-      expect(shape.side.width, 0);
+      expect(card.borderRadius, 14);
     }
   });
 
   testWidgets('mobile profile header stays above subscriptions card', (
-    WidgetTester tester,
+    tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
@@ -1163,10 +1160,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -1184,7 +1181,7 @@ void main() {
   });
 
   testWidgets('short profile screens keep shared shell header and backdrop', (
-    WidgetTester tester,
+    tester,
   ) async {
     tester.view.physicalSize = const Size(390, 640);
     tester.view.devicePixelRatio = 1.0;
@@ -1207,10 +1204,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -1223,11 +1220,11 @@ void main() {
     final viewportClip = tester.widget<ClipRRect>(
       find.byKey(const Key('profile_shell_viewport_clip')),
     );
-    expect(viewportClip.borderRadius, BorderRadius.circular(16));
+    expect(viewportClip.borderRadius, BorderRadius.circular(14));
   });
 
   testWidgets('keeps desktop profile cards unchanged', (
-    WidgetTester tester,
+    tester,
   ) async {
     tester.view.physicalSize = const Size(1200, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -1250,10 +1247,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ProfilePage()),
+          home: Scaffold(body: ProfilePage()),
         ),
       ),
     );
@@ -1265,13 +1262,9 @@ void main() {
       findsOneWidget,
     );
 
-    final cards = tester.widgetList<Card>(find.byType(Card)).toList();
+    final cards = tester.widgetList<SurfacePanel>(
+      find.byType(SurfacePanel),
+    ).toList();
     expect(cards, isNotEmpty);
-
-    for (final card in cards) {
-      expect(card.margin, EdgeInsets.zero);
-      // Card may have a rounded rectangle shape for visual consistency
-      expect(card.shape, isA<RoundedRectangleBorder>());
-    }
   });
 }

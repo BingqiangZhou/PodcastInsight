@@ -20,7 +20,7 @@ Future<T?> showGlassDialog<T>({
   required Widget Function(BuildContext) builder,
   bool barrierDismissible = true,
   Color barrierColor = Colors.black54,
-  GlassTier tier = GlassTier.heavy,
+  GlassTier tier = GlassTier.overlay,
   double borderRadius = 28,
   bool useRootNavigator = false,
 }) {
@@ -60,7 +60,7 @@ Future<bool?> showGlassConfirmationDialog({
   String? cancelText,
   String? confirmText,
   bool isDestructive = false,
-  GlassTier tier = GlassTier.heavy,
+  GlassTier tier = GlassTier.overlay,
   double borderRadius = 28,
 }) {
   final theme = Theme.of(context);

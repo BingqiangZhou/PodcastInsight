@@ -47,5 +47,5 @@ void main() {
 
 class _UnauthenticatedAuthNotifier extends AuthNotifier {
   @override
-  AuthState build() => const AuthState(isAuthenticated: false);
+  AuthState build() => const AuthState();
 }

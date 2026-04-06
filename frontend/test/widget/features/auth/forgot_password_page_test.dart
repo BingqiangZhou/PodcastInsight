@@ -84,15 +84,12 @@ class _TestAuthNotifier extends AuthNotifier {
   Future<void> forgotPassword(String email) async {
     state = state.copyWith(
       isLoading: true,
-      error: null,
       clearFieldErrors: true,
       currentOperation: AuthOperation.forgotPassword,
     );
     await Future<void>.microtask(() {});
     state = state.copyWith(
       isLoading: false,
-      error: null,
-      currentOperation: null,
     );
   }
 

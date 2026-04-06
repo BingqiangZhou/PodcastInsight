@@ -75,7 +75,7 @@ class $DownloadTasksTable extends DownloadTasks
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(0.0),
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _fileSizeMeta = const VerificationMeta(
     'fileSize',
@@ -592,7 +592,7 @@ class $PlaybackStatesTable extends PlaybackStates
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(1.0),
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _playCountMeta = const VerificationMeta(
     'playCount',

@@ -27,15 +27,14 @@ void main() {
             _FakeApplePodcastRssService(),
           ),
           podcastSubscriptionProvider.overrideWith(
-            () => _TestPodcastSubscriptionNotifier(),
+            _TestPodcastSubscriptionNotifier.new,
           ),
           search.podcastSearchProvider.overrideWithValue(
-            search.PodcastSearchState(
+            const search.PodcastSearchState(
               hasSearched: true,
-              isLoading: false,
               searchMode: search.PodcastSearchMode.podcasts,
               podcastResults: [
-                const PodcastSearchResult(
+                PodcastSearchResult(
                   collectionId: 100,
                   collectionName: 'Test Podcast',
                   artistName: 'Tester',
@@ -54,10 +53,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -86,13 +85,11 @@ void main() {
             _FakeApplePodcastRssService(),
           ),
           podcastSubscriptionProvider.overrideWith(
-            () => _TestPodcastSubscriptionNotifier(),
+            _TestPodcastSubscriptionNotifier.new,
           ),
           search.podcastSearchProvider.overrideWithValue(
             search.PodcastSearchState(
               hasSearched: true,
-              isLoading: false,
-              searchMode: search.PodcastSearchMode.episodes,
               episodeResults: [
                 ITunesPodcastEpisodeResult(
                   trackId: 200,
@@ -115,10 +112,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -269,9 +266,7 @@ class _TestPodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
   @override
   PodcastSubscriptionState build() {
     return const PodcastSubscriptionState(
-      subscriptions: [],
       hasMore: false,
-      total: 0,
     );
   }
 

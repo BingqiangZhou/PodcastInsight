@@ -1,12 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:personal_ai_assistant/core/utils/debounce.dart' as utils;
 import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episode_lookup_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/itunes_search_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'podcast_search_provider.g.dart';
 
@@ -17,14 +16,6 @@ final podcastSearchDebounceDurationProvider = Provider<Duration>((ref) {
 });
 
 class PodcastSearchState extends Equatable {
-  final List<PodcastSearchResult> podcastResults;
-  final List<ITunesPodcastEpisodeResult> episodeResults;
-  final bool isLoading;
-  final bool hasSearched;
-  final String? error;
-  final String currentQuery;
-  final PodcastCountry searchCountry;
-  final PodcastSearchMode searchMode;
 
   const PodcastSearchState({
     this.podcastResults = const [],
@@ -36,6 +27,14 @@ class PodcastSearchState extends Equatable {
     this.searchCountry = PodcastCountry.china,
     this.searchMode = PodcastSearchMode.episodes,
   });
+  final List<PodcastSearchResult> podcastResults;
+  final List<ITunesPodcastEpisodeResult> episodeResults;
+  final bool isLoading;
+  final bool hasSearched;
+  final String? error;
+  final String currentQuery;
+  final PodcastCountry searchCountry;
+  final PodcastSearchMode searchMode;
 
   PodcastSearchState copyWith({
     List<PodcastSearchResult>? podcastResults,
@@ -107,7 +106,6 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
     final hasQuery = state.currentQuery.trim().isNotEmpty;
     state = state.copyWith(
       searchMode: mode,
-      error: null,
       isLoading: hasQuery,
       hasSearched: hasQuery,
       podcastResults: mode == PodcastSearchMode.podcasts
@@ -140,7 +138,6 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
     state = state.copyWith(
       isLoading: true,
       hasSearched: true,
-      error: null,
       currentQuery: normalizedQuery,
       searchMode: mode,
     );
@@ -165,7 +162,6 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
         final response = await searchService.searchPodcasts(
           term: query,
           country: country,
-          limit: 25,
         );
         if (!_isRequestActive(requestId, query, mode)) {
           return;
@@ -175,7 +171,6 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
           episodeResults: const [],
           isLoading: false,
           searchCountry: country,
-          error: null,
           searchMode: mode,
         );
         return;
@@ -184,7 +179,6 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
       final episodes = await searchService.searchPodcastEpisodes(
         term: query,
         country: country,
-        limit: 25,
       );
       if (!_isRequestActive(requestId, query, mode)) {
         return;
@@ -194,7 +188,6 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
         episodeResults: episodes,
         isLoading: false,
         searchCountry: country,
-        error: null,
         searchMode: mode,
       );
     } catch (error) {
@@ -233,7 +226,7 @@ class PodcastSearchNotifier extends _$PodcastSearchNotifier {
       return;
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
     final requestId = ++_activeSearchRequestId;
     await _performSearch(
       state.currentQuery,

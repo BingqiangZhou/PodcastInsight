@@ -8,7 +8,6 @@ void main() {
       const state = ConnectivityState(
         isOnline: true,
         connectionType: [],
-        lastChangedAt: null,
       );
       expect(state.isOnline, isTrue);
       expect(state.connectionType, isEmpty);
@@ -19,7 +18,6 @@ void main() {
       const original = ConnectivityState(
         isOnline: true,
         connectionType: [ConnectivityResult.wifi],
-        lastChangedAt: null,
       );
       final updated = original.copyWith(isOnline: false);
 
@@ -53,10 +51,9 @@ void main() {
         connectionType: [ConnectivityResult.mobile],
         lastChangedAt: DateTime(2026),
       );
-      final c = ConnectivityState(
+      const c = ConnectivityState(
         isOnline: false,
         connectionType: [ConnectivityResult.wifi],
-        lastChangedAt: null,
       );
 
       expect(a, equals(b));

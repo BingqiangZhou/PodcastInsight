@@ -11,6 +11,18 @@ import 'package:personal_ai_assistant/core/services/download_provider.dart';
 /// - Downloading: progress indicator, tap to cancel
 /// - Downloaded: check icon, tap to delete
 class DownloadButton extends ConsumerWidget {
+
+  const DownloadButton({
+    required this.episodeId, required this.audioUrl, super.key,
+    this.size = 20,
+    this.title,
+    this.subscriptionTitle,
+    this.imageUrl,
+    this.subscriptionImageUrl,
+    this.subscriptionId,
+    this.audioDuration,
+    this.publishedAt,
+  });
   final int episodeId;
   final String audioUrl;
   final double size;
@@ -21,20 +33,6 @@ class DownloadButton extends ConsumerWidget {
   final int? subscriptionId;
   final int? audioDuration;
   final DateTime? publishedAt;
-
-  const DownloadButton({
-    super.key,
-    required this.episodeId,
-    required this.audioUrl,
-    this.size = 20,
-    this.title,
-    this.subscriptionTitle,
-    this.imageUrl,
-    this.subscriptionImageUrl,
-    this.subscriptionId,
-    this.audioDuration,
-    this.publishedAt,
-  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -98,11 +96,11 @@ class DownloadButton extends ConsumerWidget {
           child: SizedBox(
             width: size,
             height: size,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: const CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
       ),
-      error: (_, __) => _IconButton(
+      error: (_, _) => _IconButton(
         icon: Icons.download_outlined,
         size: size,
         color: theme.colorScheme.onSurfaceVariant,
@@ -137,11 +135,6 @@ class DownloadButton extends ConsumerWidget {
 
 /// Simple icon button with tooltip.
 class _IconButton extends StatelessWidget {
-  final IconData icon;
-  final double size;
-  final Color color;
-  final String tooltip;
-  final VoidCallback onPressed;
 
   const _IconButton({
     required this.icon,
@@ -150,6 +143,11 @@ class _IconButton extends StatelessWidget {
     required this.tooltip,
     required this.onPressed,
   });
+  final IconData icon;
+  final double size;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -162,22 +160,22 @@ class _IconButton extends StatelessWidget {
         minWidth: size + 16,
         minHeight: size + 16,
       ),
-      padding: EdgeInsets.all(4),
+      padding: const EdgeInsets.all(4),
     );
   }
 }
 
 /// Animated progress indicator during active download.
 class _StreamProgress extends ConsumerWidget {
-  final int episodeId;
-  final double size;
-  final VoidCallback onCancel;
 
   const _StreamProgress({
     required this.episodeId,
     required this.size,
     required this.onCancel,
   });
+  final int episodeId;
+  final double size;
+  final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/database/app_database.dart';
 import 'package:personal_ai_assistant/core/database/database_provider.dart';
 import 'package:personal_ai_assistant/core/services/audio_download_service.dart';
+import 'package:riverpod/src/providers/future_provider.dart';
+import 'package:riverpod/src/providers/stream_provider.dart';
 
 /// Provides the [AudioDownloadService] singleton.
 final downloadManagerProvider = Provider<AudioDownloadService>((ref) {
@@ -24,7 +26,7 @@ final downloadsListProvider =
 /// Watches the download status for a specific episode.
 ///
 /// Returns null if no download task exists for this episode.
-final episodeDownloadStatusProvider =
+final StreamProviderFamily<DownloadTask?, int> episodeDownloadStatusProvider =
     StreamProvider.family<DownloadTask?, int>((ref, episodeId) {
   final db = ref.watch(appDatabaseProvider);
   return db.downloadDao.watchByEpisodeId(episodeId);
@@ -33,7 +35,7 @@ final episodeDownloadStatusProvider =
 /// Fetches cached episode metadata for a given episode ID.
 ///
 /// Returns null if the episode is not in the local cache.
-final episodeCacheMetaProvider =
+final FutureProviderFamily<EpisodesCacheData?, int> episodeCacheMetaProvider =
     FutureProvider.family<EpisodesCacheData?, int>((ref, episodeId) {
   final db = ref.watch(appDatabaseProvider);
   return db.episodeCacheDao.getById(episodeId);

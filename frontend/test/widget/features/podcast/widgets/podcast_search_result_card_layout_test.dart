@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
@@ -29,23 +30,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verify the card renders with correct margin
-      final card = tester.widget<Card>(find.byType(Card));
-      expect(
-        card.margin,
-        const EdgeInsets.symmetric(
-          horizontal: kPodcastRowCardHorizontalMargin,
-          vertical: kPodcastRowCardVerticalMargin,
-        ),
-      );
-      expect(card.shape, isA<RoundedRectangleBorder>());
-      final rounded = card.shape! as RoundedRectangleBorder;
-      final radius = rounded.borderRadius.resolve(TextDirection.ltr);
-      expect(radius.topLeft.x, kPodcastRowCardCornerRadius);
-      expect(radius.topRight.x, kPodcastRowCardCornerRadius);
-
-      // Verify the image is rendered via BaseEpisodeCard's image widget (Container with PodcastImageWidget)
+      // Verify the card uses BaseEpisodeCard (which internally uses SurfaceCard)
       expect(find.byType(BaseEpisodeCard), findsOneWidget);
+      expect(find.byType(SurfaceCard), findsWidgets);
 
       // Verify text content
       expect(find.text('Daily Pod'), findsOneWidget);

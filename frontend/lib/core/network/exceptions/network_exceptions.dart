@@ -20,11 +20,11 @@ enum NetworkErrorCode {
 }
 
 abstract class AppException implements Exception {
+
+  const AppException(this.message, {this.statusCode, this.errorCode});
   final String message;
   final int? statusCode;
   final NetworkErrorCode? errorCode;
-
-  const AppException(this.message, {this.statusCode, this.errorCode});
 
   @override
   String toString() => message;
@@ -57,7 +57,7 @@ class NetworkException extends AppException {
         );
       case DioExceptionType.badResponse:
         final data = error.response?.data;
-        String message = 'Server error';
+        var message = 'Server error';
 
         if (data is Map) {
           message = data['detail']?.toString() ??
@@ -80,8 +80,8 @@ class ServerException extends AppException {
   const ServerException(super.message, {super.statusCode});
 
   static ServerException fromDioError(DioException error) {
-    String message = 'Server error';
-    int? statusCode = error.response?.statusCode;
+    var message = 'Server error';
+    final statusCode = error.response?.statusCode;
 
     final data = error.response?.data;
     if (data is Map) {
@@ -103,7 +103,7 @@ class AuthenticationException extends AppException {
 
   static AuthenticationException fromDioError(DioException error) {
     final data = error.response?.data;
-    String backendMessage = '';
+    var backendMessage = '';
 
     if (data is Map) {
       backendMessage = data['detail']?.toString() ??
@@ -133,7 +133,7 @@ class AuthorizationException extends AppException {
 
   static AuthorizationException fromDioError(DioException error) {
     final data = error.response?.data;
-    String message = 'Access denied';
+    var message = 'Access denied';
 
     if (data is Map) {
       message = data['detail']?.toString() ??
@@ -153,7 +153,7 @@ class NotFoundException extends AppException {
 
   static NotFoundException fromDioError(DioException error) {
     final data = error.response?.data;
-    String message = 'Resource not found';
+    var message = 'Resource not found';
 
     if (data is Map) {
       message = data['detail']?.toString() ??
@@ -173,7 +173,7 @@ class ConflictException extends AppException {
 
   static ConflictException fromDioError(DioException error) {
     final data = error.response?.data;
-    String message = 'Resource conflict';
+    var message = 'Resource conflict';
 
     if (data is Map) {
       message = data['detail']?.toString() ??
@@ -188,14 +188,14 @@ class ConflictException extends AppException {
 }
 
 class ValidationException extends AppException {
-  final Map<String, dynamic>? fieldErrors;
 
   const ValidationException(super.message, {this.fieldErrors})
       : super(statusCode: 422, errorCode: NetworkErrorCode.validation);
+  final Map<String, dynamic>? fieldErrors;
 
   static ValidationException fromDioError(DioException error) {
     final data = error.response?.data;
-    String message = 'Validation failed';
+    var message = 'Validation failed';
 
     if (data is Map) {
       message = data['message']?.toString() ??
@@ -206,20 +206,20 @@ class ValidationException extends AppException {
     }
 
     // Parse field errors from the errors array
-    Map<String, String> fieldErrors = {};
+    final fieldErrors = <String, String>{};
     if (data is Map && data['errors'] != null && data['errors'] is List) {
       final errors = data['errors'] as List;
-      for (var error in errors) {
+      for (final error in errors) {
         if (error is! Map) continue;
 
         // Extract field name (remove "body -> " prefix)
-        String field = error['field']?.toString() ?? '';
+        var field = error['field']?.toString() ?? '';
         if (field.startsWith('body -> ')) {
           field = field.substring(7);
         }
 
         // Clean up the message (remove "Value error, " prefix)
-        String errorMsg = error['message']?.toString() ?? '';
+        var errorMsg = error['message']?.toString() ?? '';
         if (errorMsg.startsWith('Value error, ')) {
           errorMsg = errorMsg.substring(13);
         }

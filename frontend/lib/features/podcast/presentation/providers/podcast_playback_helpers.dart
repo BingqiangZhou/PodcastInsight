@@ -5,13 +5,13 @@ part of 'podcast_playback_providers.dart';
 // ---------------------------------------------------------------------------
 
 class PlaybackPersistPayload {
-  final int positionSec;
-  final bool isPlaying;
 
   const PlaybackPersistPayload({
     required this.positionSec,
     required this.isPlaying,
   });
+  final int positionSec;
+  final bool isPlaying;
 }
 
 int normalizeResumePositionMs(int? savedPositionSec, int? durationSec) {
@@ -78,7 +78,7 @@ double _effectiveFallbackPlaybackRate({
   if (currentValue > 0) {
     return currentValue;
   }
-  return 1.0;
+  return 1;
 }
 
 String? _extractSubscriptionTitle(Map<String, dynamic>? subscription) {
@@ -220,11 +220,6 @@ Future<PodcastEpisodeModel> resolveEpisodeForPlayback(
 }
 
 class _LastPlaybackSnapshot {
-  final PodcastEpisodeModel episode;
-  final int positionMs;
-  final int durationMs;
-  final double playbackRate;
-  final DateTime? savedAt;
 
   const _LastPlaybackSnapshot({
     required this.episode,
@@ -233,4 +228,9 @@ class _LastPlaybackSnapshot {
     required this.playbackRate,
     this.savedAt,
   });
+  final PodcastEpisodeModel episode;
+  final int positionMs;
+  final int durationMs;
+  final double playbackRate;
+  final DateTime? savedAt;
 }

@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-
-import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episode_lookup_model.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episode_lookup_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/base_episode_card.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/episode_card_utils.dart';
 
 class PodcastEpisodeSearchResultCard extends StatelessWidget {
   const PodcastEpisodeSearchResultCard({
-    super.key,
-    required this.episode,
+    required this.episode, super.key,
     this.onTap,
     this.onPlay,
     this.dense = false,
@@ -30,11 +28,8 @@ class PodcastEpisodeSearchResultCard extends StatelessWidget {
 
     return BaseEpisodeCard(
       config: EpisodeCardConfig(
-        showImage: true,
         imageUrl: episode.artworkUrl100 ?? episode.artworkUrl600,
         imageSize: imageSize,
-        imageIconSize: 24,
-        imageBorderRadius: kPodcastRowCardImageRadius,
         dense: dense,
         cardMargin: EdgeInsets.symmetric(
           horizontal: kPodcastRowCardHorizontalMargin,

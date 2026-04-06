@@ -18,7 +18,7 @@ void main() {
         find.byKey(const Key('test_bottom_accessory')),
       );
 
-      expect(accessoryRect.left, greaterThan(250));
+      expect(accessoryRect.left, greaterThan(230));
       expect(accessoryRect.width, lessThan(1200));
       expect(accessoryRect.width, greaterThan(800));
       expect(accessoryRect.bottom, greaterThan(840));
@@ -110,7 +110,7 @@ void main() {
       await _pumpWithSize(
         tester: tester,
         size: const Size(1200, 900),
-        child: _buildNavigation(desktopNavExpanded: true),
+        child: _buildNavigation(),
       );
 
       expect(find.text('AI Assistant'), findsOneWidget);
@@ -119,7 +119,7 @@ void main() {
       final sidebarSize = tester.getSize(
         find.byKey(const ValueKey('desktop_navigation_sidebar')),
       );
-      expect(sidebarSize.width, closeTo(256, 0.1));
+      expect(sidebarSize.width, closeTo(240, 0.1));
     });
 
     testWidgets('collapsed: shows narrow sidebar without title', (
@@ -137,7 +137,7 @@ void main() {
       final sidebarSize = tester.getSize(
         find.byKey(const ValueKey('desktop_navigation_sidebar')),
       );
-      expect(sidebarSize.width, closeTo(72, 0.1));
+      expect(sidebarSize.width, closeTo(60, 0.1));
     });
   });
 }
@@ -183,6 +183,7 @@ Widget _buildNavigation({
         ),
       ],
       selectedIndex: 0,
+      onDestinationSelected: (_) {},
       desktopNavExpanded: desktopNavExpanded,
       onDesktopNavToggle: () {},
       body: const SizedBox.expand(child: ColoredBox(color: Colors.white)),

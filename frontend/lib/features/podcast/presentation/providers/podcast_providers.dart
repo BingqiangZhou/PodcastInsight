@@ -4,9 +4,9 @@ export 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_episodes_providers.dart';
 export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_feed_providers.dart';
 export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_highlights_providers.dart';
+export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_playback_providers.dart';
 export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_player_host_layout_provider.dart';
 export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_player_ui_state.dart';
-export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_playback_providers.dart';
 export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart';
 export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_stats_providers.dart';
 export 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_subscription_providers.dart';

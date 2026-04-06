@@ -89,10 +89,10 @@ PodcastSummaryResponse _$PodcastSummaryResponseFromJson(
   episodeId: (json['episode_id'] as num).toInt(),
   summary: json['summary'] as String,
   version: json['version'] as String,
-  confidenceScore: (json['confidence_score'] as num?)?.toDouble(),
   transcriptUsed: json['transcript_used'] as bool? ?? false,
   generatedAt: DateTime.parse(json['generated_at'] as String),
   wordCount: (json['word_count'] as num).toInt(),
+  confidenceScore: (json['confidence_score'] as num?)?.toDouble(),
   modelUsed: json['model_used'] as String?,
   processingTime: (json['processing_time'] as num?)?.toDouble(),
 );

@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
-import 'package:personal_ai_assistant/core/theme/apple_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
-import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
-import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
+import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
+import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -37,7 +35,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       'Please check your email and click the link to reset your password';
   static const String _fallbackBackToLogin = 'Back to Login';
   static const String _fallbackResendEmail =
-      'Didn\'t receive the email? Resend';
+      "Didn't receive the email? Resend";
 
   @override
   void initState() {
@@ -108,7 +106,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               ? l10n?.auth_reset_email_sent_to(
                         _emailController.text.trim(),
                       ) ??
-                  'We\'ve sent a password reset link to\n${_emailController.text.trim()}'
+                  "We've sent a password reset link to\n${_emailController.text.trim()}"
               : l10n?.auth_reset_password_subtitle ??
                   _fallbackResetPasswordSubtitle,
           header: Column(
@@ -126,7 +124,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 height: 80,
                 decoration: BoxDecoration(
                   color: _emailSent
-                      ? AppleColors.systemOrange.of(context).withValues(alpha: 0.1)
+                      ? AppColors.accentWarm.withValues(alpha: 0.1)
                       : Theme.of(
                           context,
                         ).colorScheme.primary.withValues(alpha: 0.1),
@@ -136,7 +134,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   _emailSent ? Icons.check_circle_outline : Icons.lock_reset,
                   size: 40,
                   color: _emailSent
-                      ? AppleColors.systemOrange.of(context)
+                      ? AppColors.accentWarm
                       : Theme.of(context).colorScheme.primary,
                 ),
               ),
@@ -176,7 +174,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             height: 48,
             child: FilledButton(
               key: const Key('forgot_password_submit_button'),
-              onPressed: () => _submitForgotPassword(),
+              onPressed: _submitForgotPassword,
               child: Text(
                 l10n?.auth_send_reset_link ?? _fallbackSendResetLink,
               ),

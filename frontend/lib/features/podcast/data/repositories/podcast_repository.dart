@@ -1,24 +1,23 @@
 import 'package:dio/dio.dart';
-
 import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/playback_history_lite_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_daily_report_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_transcription_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/schedule_config_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/profile_stats_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/playback_history_lite_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/schedule_config_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/podcast_api_service.dart';
 
 class PodcastRepository {
-  final PodcastApiService _apiService;
 
   PodcastRepository(this._apiService);
+  final PodcastApiService _apiService;
 
   static const String _dailyReportTimezone = 'Asia/Shanghai';
   static const String _dailyReportScheduleTime = '03:30';
@@ -97,10 +96,8 @@ class PodcastRepository {
         // Backward compatibility: old backend may not provide daily report API yet.
         return const PodcastDailyReportResponse(
           available: false,
-          reportDate: null,
           timezone: _dailyReportTimezone,
           scheduleTimeLocal: _dailyReportScheduleTime,
-          generatedAt: null,
           totalItems: 0,
           items: [],
         );
@@ -228,7 +225,7 @@ class PodcastRepository {
   // === Queue Management ===
 
   Future<PodcastQueueModel> getQueue() =>
-      _apiCall(() => _apiService.getQueue());
+      _apiCall(_apiService.getQueue);
 
   Future<PodcastQueueModel> addQueueItem(int episodeId) =>
       _apiCall(() => _apiService.addQueueItem(
@@ -279,7 +276,7 @@ class PodcastRepository {
       _apiCall(() async => (await _apiService.getSummaryModels()).models);
 
   Future<void> getPendingSummaries() =>
-      _apiCall(() => _apiService.getPendingSummaries());
+      _apiCall(_apiService.getPendingSummaries);
 
   // === Search ===
 
@@ -294,10 +291,10 @@ class PodcastRepository {
   // === Statistics ===
 
   Future<PodcastStatsResponse> getStats() =>
-      _apiCall(() => _apiService.getStats());
+      _apiCall(_apiService.getStats);
 
   Future<ProfileStatsModel> getProfileStats() =>
-      _apiCall(() => _apiService.getProfileStats());
+      _apiCall(_apiService.getProfileStats);
 
   // === Transcription Management ===
 
@@ -386,7 +383,7 @@ class PodcastRepository {
 
   /// Get all subscription schedules
   Future<List<ScheduleConfigResponse>> getAllSubscriptionSchedules() =>
-      _apiCall(() => _apiService.getAllSubscriptionSchedules());
+      _apiCall(_apiService.getAllSubscriptionSchedules);
 
   /// Batch update subscription schedules
   Future<List<ScheduleConfigResponse>> batchUpdateSubscriptionSchedules(
@@ -414,10 +411,10 @@ class PodcastRepository {
           ));
 
   Future<HighlightDatesResponse> getHighlightDates() =>
-      _apiCall(() => _apiService.getHighlightDates());
+      _apiCall(_apiService.getHighlightDates);
 
   Future<HighlightStatsResponse> getHighlightStats() =>
-      _apiCall(() => _apiService.getHighlightStats());
+      _apiCall(_apiService.getHighlightStats);
 
   Future<void> toggleHighlightFavorite(int highlightId) =>
       _apiCall(() => _apiService.toggleHighlightFavorite(highlightId));

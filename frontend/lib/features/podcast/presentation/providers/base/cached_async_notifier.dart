@@ -57,8 +57,7 @@ abstract class CachedAsyncNotifier<T> extends AsyncNotifier<T> {
   /// The [onError] callback allows subclasses to handle specific errors
   /// (e.g., authentication errors) before the generic fallback applies.
   Future<T?> runWithCache({
-    bool forceRefresh = false,
-    required Future<T> Function() fetcher,
+    required Future<T> Function() fetcher, bool forceRefresh = false,
     void Function(Object error, StackTrace stackTrace)? onError,
   }) async {
     final previousData = state.value;

@@ -17,8 +17,8 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(dailyReportProvider.notifier);
-      await notifier.load(forceRefresh: false);
-      await notifier.load(forceRefresh: false);
+      await notifier.load();
+      await notifier.load();
 
       expect(repository.dailyReportCalls, 1);
       expect(container.read(dailyReportProvider).value?.available, isTrue);
@@ -32,7 +32,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(dailyReportProvider.notifier);
-      await notifier.load(forceRefresh: false);
+      await notifier.load();
       container
           .read(selectedDailyReportDateProvider.notifier)
           .setDate(DateTime(2026, 2, 19));
@@ -52,7 +52,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(dailyReportProvider.notifier);
-      await notifier.load(forceRefresh: false);
+      await notifier.load();
       await notifier.load(forceRefresh: true);
 
       expect(repository.dailyReportCalls, 2);
@@ -68,8 +68,8 @@ void main() {
         addTearDown(container.dispose);
 
         final notifier = container.read(dailyReportDatesProvider.notifier);
-        await notifier.load(forceRefresh: false);
-        await notifier.load(forceRefresh: false);
+        await notifier.load();
+        await notifier.load();
 
         expect(repository.dailyReportDatesCalls, 1);
         expect(repository.requestedDatePages, [1]);
@@ -90,7 +90,7 @@ void main() {
               pages: 2,
             ),
             2: _datesPage(
-              dates: [DateTime(2026, 1, 10), DateTime(2026, 1, 1)],
+              dates: [DateTime(2026, 1, 10), DateTime(2026)],
               total: 4,
               page: 2,
               pages: 2,
@@ -103,7 +103,7 @@ void main() {
         addTearDown(container.dispose);
 
         final notifier = container.read(dailyReportDatesProvider.notifier);
-        await notifier.load(forceRefresh: false);
+        await notifier.load();
         await notifier.ensureMonthCoverage(DateTime(2026, 1, 15));
 
         final merged = container.read(dailyReportDatesProvider).value!;
@@ -140,7 +140,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(dailyReportDatesProvider.notifier);
-      await notifier.load(forceRefresh: false);
+      await notifier.load();
       await notifier.ensureMonthCoverage(DateTime(2026, 1, 15));
 
       final merged = container.read(dailyReportDatesProvider).value!;
@@ -177,7 +177,7 @@ void main() {
         addTearDown(container.dispose);
 
         final notifier = container.read(dailyReportDatesProvider.notifier);
-        await notifier.load(forceRefresh: false);
+        await notifier.load();
         await notifier.ensureMonthCoverage(DateTime(2025, 11, 15));
 
         expect(repository.requestedDatePages, [1, 2]);
@@ -195,9 +195,9 @@ void main() {
         addTearDown(container.dispose);
 
         final notifier = container.read(dailyReportDatesProvider.notifier);
-        await notifier.load(forceRefresh: false);
-        await notifier.ensureMonthCoverage(DateTime(2026, 2, 1));
-        await notifier.load(forceRefresh: false);
+        await notifier.load();
+        await notifier.ensureMonthCoverage(DateTime(2026, 2));
+        await notifier.load();
 
         expect(repository.dailyReportDatesCalls, 1);
         expect(repository.requestedDatePages, [1]);
@@ -346,7 +346,7 @@ class _FakePodcastRepository extends PodcastRepository {
       reportDate: reportDate,
       timezone: 'Asia/Shanghai',
       scheduleTimeLocal: '03:30',
-      generatedAt: DateTime(2026, 2, 21, 4, 0),
+      generatedAt: DateTime(2026, 2, 21, 4),
       totalItems: 1,
       items: [
         PodcastDailyReportItem(

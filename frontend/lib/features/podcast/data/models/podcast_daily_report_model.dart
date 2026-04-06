@@ -10,23 +10,12 @@ DateTime? _parseDateOnly(String? value) {
 }
 
 class PodcastDailyReportItem extends Equatable {
-  final int episodeId;
-  final int subscriptionId;
-  final String episodeTitle;
-  final String? subscriptionTitle;
-  final String oneLineSummary;
-  final bool isCarryover;
-  final DateTime episodeCreatedAt;
-  final DateTime? episodePublishedAt;
 
   const PodcastDailyReportItem({
     required this.episodeId,
     required this.subscriptionId,
     required this.episodeTitle,
-    this.subscriptionTitle,
-    required this.oneLineSummary,
-    required this.isCarryover,
-    required this.episodeCreatedAt,
+    required this.oneLineSummary, required this.isCarryover, required this.episodeCreatedAt, this.subscriptionTitle,
     this.episodePublishedAt,
   });
 
@@ -44,6 +33,14 @@ class PodcastDailyReportItem extends Equatable {
           : DateTime.parse(json['episode_published_at'] as String),
     );
   }
+  final int episodeId;
+  final int subscriptionId;
+  final String episodeTitle;
+  final String? subscriptionTitle;
+  final String oneLineSummary;
+  final bool isCarryover;
+  final DateTime episodeCreatedAt;
+  final DateTime? episodePublishedAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -72,22 +69,11 @@ class PodcastDailyReportItem extends Equatable {
 }
 
 class PodcastDailyReportResponse extends Equatable {
-  final bool available;
-  final DateTime? reportDate;
-  final String timezone;
-  final String scheduleTimeLocal;
-  final DateTime? generatedAt;
-  final int totalItems;
-  final List<PodcastDailyReportItem> items;
 
   const PodcastDailyReportResponse({
     required this.available,
-    this.reportDate,
-    required this.timezone,
-    required this.scheduleTimeLocal,
+    required this.timezone, required this.scheduleTimeLocal, required this.totalItems, required this.items, this.reportDate,
     this.generatedAt,
-    required this.totalItems,
-    required this.items,
   });
 
   factory PodcastDailyReportResponse.fromJson(Map<String, dynamic> json) {
@@ -108,6 +94,13 @@ class PodcastDailyReportResponse extends Equatable {
           .toList(),
     );
   }
+  final bool available;
+  final DateTime? reportDate;
+  final String timezone;
+  final String scheduleTimeLocal;
+  final DateTime? generatedAt;
+  final int totalItems;
+  final List<PodcastDailyReportItem> items;
 
   Map<String, dynamic> toJson() {
     return {
@@ -134,9 +127,6 @@ class PodcastDailyReportResponse extends Equatable {
 }
 
 class PodcastDailyReportDateItem extends Equatable {
-  final DateTime reportDate;
-  final int totalItems;
-  final DateTime? generatedAt;
 
   const PodcastDailyReportDateItem({
     required this.reportDate,
@@ -148,13 +138,16 @@ class PodcastDailyReportDateItem extends Equatable {
     return PodcastDailyReportDateItem(
       reportDate:
           _parseDateOnly(json['report_date'] as String?) ??
-          DateTime(1970, 1, 1),
+          DateTime(1970),
       totalItems: json['total_items'] as int? ?? 0,
       generatedAt: json['generated_at'] == null
           ? null
           : DateTime.parse(json['generated_at'] as String),
     );
   }
+  final DateTime reportDate;
+  final int totalItems;
+  final DateTime? generatedAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -169,11 +162,6 @@ class PodcastDailyReportDateItem extends Equatable {
 }
 
 class PodcastDailyReportDatesResponse extends Equatable {
-  final List<PodcastDailyReportDateItem> dates;
-  final int total;
-  final int page;
-  final int size;
-  final int pages;
 
   const PodcastDailyReportDatesResponse({
     required this.dates,
@@ -198,6 +186,11 @@ class PodcastDailyReportDatesResponse extends Equatable {
       pages: json['pages'] as int? ?? 0,
     );
   }
+  final List<PodcastDailyReportDateItem> dates;
+  final int total;
+  final int page;
+  final int size;
+  final int pages;
 
   Map<String, dynamic> toJson() {
     return {

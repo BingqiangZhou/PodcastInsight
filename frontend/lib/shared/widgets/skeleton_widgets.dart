@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/base_episode_card.dart' show BaseEpisodeCard;
 
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 
@@ -76,7 +77,7 @@ class EpisodeCardSkeleton extends StatelessWidget {
     final titleFontSize = titleFont?.fontSize ?? 14;
     final titleHeight = titleFont?.height ?? 1.0;
     final coverSize = 2 * (titleFontSize * titleHeight);
-    final coverRadius = 8.0;
+    const coverRadius = 8.0;
 
     return ShimmerLoading(
       child: Card(
@@ -89,7 +90,6 @@ class EpisodeCardSkeleton extends StatelessWidget {
             children: [
               // Header row: [image skeleton, title lines]
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SkeletonBox(
                     width: coverSize,
@@ -111,19 +111,19 @@ class EpisodeCardSkeleton extends StatelessWidget {
               ),
               if (showDescription) ...[
                 const SizedBox(height: 8),
-                SkeletonBox(height: 12, width: double.infinity),
+                const SkeletonBox(height: 12, width: double.infinity),
                 const SizedBox(height: 4),
                 SkeletonBox(height: 12, width: compact ? 200 : 280),
               ],
               const SizedBox(height: 8),
               // Meta row
-              Row(
+              const Row(
                 children: [
-                  const SkeletonBox(height: 10, width: 60, borderRadius: 6),
-                  const SizedBox(width: 8),
-                  const SkeletonBox(height: 10, width: 40, borderRadius: 6),
-                  const Spacer(),
-                  const SkeletonCircle(size: 20),
+                  SkeletonBox(height: 10, width: 60, borderRadius: 6),
+                  SizedBox(width: 8),
+                  SkeletonBox(height: 10, width: 40, borderRadius: 6),
+                  Spacer(),
+                  SkeletonCircle(size: 20),
                 ],
               ),
             ],
@@ -164,9 +164,8 @@ class SkeletonCardList extends StatelessWidget {
 /// A grid of skeleton cards for desktop layout.
 class SkeletonCardGrid extends StatelessWidget {
   const SkeletonCardGrid({
-    super.key,
+    required this.crossAxisCount, super.key,
     this.itemCount = 8,
-    required this.crossAxisCount,
     this.childAspectRatio = 2.0,
   });
 
@@ -187,8 +186,7 @@ class SkeletonCardGrid extends StatelessWidget {
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) => const EpisodeCardSkeleton(
-        compact: false,
-        showDescription: true,
+        
       ),
     );
   }

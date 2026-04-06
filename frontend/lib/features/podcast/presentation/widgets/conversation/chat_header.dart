@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
@@ -13,21 +14,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/su
 /// select mode, share, reload).
 class ChatHeader extends ConsumerWidget {
   const ChatHeader({
-    super.key,
-    required this.hasMessages,
-    required this.isSending,
-    required this.isReady,
-    required this.hasError,
-    required this.isMessageSelectMode,
-    required this.selectedMessageCount,
-    required this.selectedModel,
-    required this.onNewChat,
-    required this.onToggleSelectMode,
-    required this.onShareSelected,
-    required this.onShareAll,
-    required this.onReload,
-    required this.onModelChanged,
-    required this.onOpenHistory,
+    required this.hasMessages, required this.isSending, required this.isReady, required this.hasError, required this.isMessageSelectMode, required this.selectedMessageCount, required this.selectedModel, required this.onNewChat, required this.onToggleSelectMode, required this.onShareSelected, required this.onShareAll, required this.onReload, required this.onModelChanged, required this.onOpenHistory, super.key,
   });
 
   final bool hasMessages;
@@ -51,14 +38,14 @@ class ChatHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final availableModelsAsync = ref.watch(availableModelsProvider);
+    final extension = appThemeOf(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.transparent,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
+            color: extension.surfaceTierBorder,
           ),
         ),
       ),
@@ -231,11 +218,13 @@ class _ModelSelectorState extends State<_ModelSelector> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final extension = appThemeOf(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        color: extension.surfaceTierFill,
+        borderRadius: BorderRadius.circular(extension.itemRadius),
       ),
       child: DropdownButton<SummaryModelInfo>(
         value: widget.selectedModel,
@@ -245,12 +234,14 @@ class _ModelSelectorState extends State<_ModelSelector> {
         icon: const Icon(Icons.expand_more, size: 18),
         hint: Text(
           l10n.podcast_ai_model,
-          style: theme.textTheme.bodySmall,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AppColors.darkOnSurface,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurface,
+          color: AppColors.darkOnBackground,
         ),
         selectedItemBuilder: (context) {
           return widget.models
@@ -262,7 +253,7 @@ class _ModelSelectorState extends State<_ModelSelector> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface,
+                      color: AppColors.darkOnBackground,
                     ),
                   ),
                 ),
@@ -293,15 +284,13 @@ class _ModelSelectorState extends State<_ModelSelector> {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
+                          color: extension.surfaceTierFill,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           l10n.podcast_default_model,
                           style: AppTheme.navLabel(
-                            theme.colorScheme.primary,
+                            scheme.primary,
                             weight: FontWeight.w600,
                           ),
                         ),

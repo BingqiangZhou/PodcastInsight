@@ -2,26 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/core/utils/episode_description_helper.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/base_episode_card.dart';
 
 /// Simplified episode card without podcast image and name (for episodes list page)
 class SimplifiedEpisodeCard extends ConsumerWidget {
-  final PodcastEpisodeModel episode;
-  final VoidCallback? onTap;
-  final VoidCallback? onPlay;
-  final VoidCallback? onAddToQueue;
-  final bool isAddingToQueue;
 
   const SimplifiedEpisodeCard({
-    super.key,
-    required this.episode,
+    required this.episode, super.key,
     this.onTap,
     this.onPlay,
     this.onAddToQueue,
     this.isAddingToQueue = false,
   });
+  final PodcastEpisodeModel episode;
+  final VoidCallback? onTap;
+  final VoidCallback? onPlay;
+  final VoidCallback? onAddToQueue;
+  final bool isAddingToQueue;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,7 +48,6 @@ class SimplifiedEpisodeCard extends ConsumerWidget {
           showDescription: displayDescription.isNotEmpty,
           description: displayDescription.isNotEmpty ? displayDescription : null,
           descriptionMaxLines: isMobile ? 2 : 4,
-          showPlayButton: true,
           showQueueButton: true,
           isAddingToQueue: isAddingToQueue,
           showDownloadButton: true,

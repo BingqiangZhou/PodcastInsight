@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
 import 'package:personal_ai_assistant/core/constants/cache_constants.dart';
+import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
@@ -11,6 +10,7 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highl
 import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/base/cached_async_notifier.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
+import 'package:riverpod/src/providers/future_provider.dart';
 
 /// 选中的高光日期
 final selectedHighlightDateProvider =
@@ -19,7 +19,7 @@ final selectedHighlightDateProvider =
 );
 
 /// 单集高光 Provider (用于转录页面集成)
-final episodeHighlightsProvider =
+final FutureProviderFamily<HighlightsListResponse?, int> episodeHighlightsProvider =
     FutureProvider.autoDispose.family<HighlightsListResponse?, int>((ref, episodeId) async {
   final repository = ref.read(podcastRepositoryProvider);
   // Let errors propagate so AsyncValue.when() can handle them via error callback
@@ -173,8 +173,8 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
           items: updatedItems,
           total: previousData.total,
           page: previousData.page,
-          perPage: previousData.perPage,
-          hasMore: previousData.hasMore,
+          size: previousData.size,
+          pages: previousData.pages,
         ),
       );
     } catch (error) {
@@ -203,8 +203,8 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
           items: updatedItems,
           total: previousData.total - 1,
           page: previousData.page,
-          perPage: previousData.perPage,
-          hasMore: previousData.hasMore,
+          size: previousData.size,
+          pages: previousData.pages,
         ),
       );
 
@@ -230,7 +230,7 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
       final newData = await _repository.getHighlights(
         date: targetDate,
         page: nextPage,
-        perPage: currentData.perPage,
+        perPage: currentData.size,
       );
 
       final combinedItems = [...currentData.items, ...newData.items];
@@ -240,8 +240,8 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
           items: combinedItems,
           total: newData.total,
           page: newData.page,
-          perPage: newData.perPage,
-          hasMore: newData.hasMore,
+          size: newData.size,
+          pages: newData.pages,
         ),
       );
     } catch (error) {
@@ -257,7 +257,7 @@ class HighlightDatesNotifier
 
   @override
   FutureOr<HighlightDatesResponse?> build() {
-    return load(forceRefresh: false);
+    return load();
   }
 
   Future<HighlightDatesResponse?> load({
@@ -278,12 +278,12 @@ class HighlightDatesNotifier
   Future<void> ensureMonthCoverage(DateTime date) async {
     final currentData = state.value;
     if (currentData == null) {
-      await load(forceRefresh: false);
+      await load();
       return;
     }
 
-    final monthStart = DateTime(date.year, date.month, 1);
-    final monthEnd = DateTime(date.year, date.month + 1, 1)
+    final monthStart = DateTime(date.year, date.month);
+    final monthEnd = DateTime(date.year, date.month + 1)
         .subtract(const Duration(days: 1));
 
     final hasCoverage = currentData.dates.any((d) =>
@@ -304,7 +304,7 @@ class HighlightStatsNotifier
 
   @override
   FutureOr<HighlightStatsResponse?> build() {
-    return load(forceRefresh: false);
+    return load();
   }
 
   Future<HighlightStatsResponse?> load({

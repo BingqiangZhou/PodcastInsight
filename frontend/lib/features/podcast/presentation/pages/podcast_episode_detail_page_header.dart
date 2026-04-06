@@ -51,7 +51,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     required bool isWide,
     Key? key,
   }) {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     final theme = Theme.of(context);
     final title = episode.title.trim().isEmpty
         ? l10n.episode_unknown_title
@@ -81,7 +81,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
         key: key,
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _buildHeroArtwork(episode, isWide: true),
             const SizedBox(width: 14),
@@ -311,9 +310,8 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     required Key key,
     required String label,
     required IconData icon,
-    Color? color,
+    required VoidCallback onTap, Color? color,
     bool iconOnly = false,
-    required VoidCallback onTap,
   }) {
     final scheme = Theme.of(context).colorScheme;
     final resolvedColor = color ?? scheme.primary;
@@ -426,7 +424,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           .read(podcastQueueControllerProvider.notifier)
           .addToQueue(widget.episodeId);
       if (mounted) {
-        final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+        final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
         showTopFloatingNotice(
           context,
           message: l10n.added_to_queue,
@@ -435,7 +433,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       }
     } catch (error) {
       if (mounted) {
-        final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+        final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
         showTopFloatingNotice(
           context,
           message: l10n.failed_to_add_to_queue(error.toString()),
@@ -579,12 +577,11 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       density: _isCompactPhoneLayout
           ? HeaderCapsuleActionButtonDensity.compact
           : HeaderCapsuleActionButtonDensity.regular,
-      style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
   }
 
   Widget _buildBackButton() {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return HeaderCapsuleActionButton(
       tooltip: l10n.back_button,
       icon: Icons.arrow_back,
@@ -593,7 +590,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       density: _isCompactPhoneLayout
           ? HeaderCapsuleActionButtonDensity.compact
           : HeaderCapsuleActionButtonDensity.regular,
-      style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
   }
 
@@ -645,12 +641,13 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     AppLocalizations l10n,
   ) {
     final theme = Theme.of(context);
+    final extension = appThemeOf(context);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         key: const Key('podcast_episode_detail_source_button'),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.itemRadius),
         onTap: () {
           unawaited(_launchEpisodeSource(episode));
         },
@@ -697,7 +694,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     return Consumer(
       builder: (context, ref, _) {
         final asyncTask = ref.watch(episodeDownloadStatusProvider(episode.id));
-        final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+        final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
 
         return asyncTask.when(
           data: (task) {
@@ -710,7 +707,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                 density: _isCompactPhoneLayout
                     ? HeaderCapsuleActionButtonDensity.compact
                     : HeaderCapsuleActionButtonDensity.regular,
-                style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
               );
             }
 
@@ -755,7 +751,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                   density: _isCompactPhoneLayout
                       ? HeaderCapsuleActionButtonDensity.compact
                       : HeaderCapsuleActionButtonDensity.regular,
-                  style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
                 ),
               _ => HeaderCapsuleActionButton(
                   tooltip: l10n.download_button_download,
@@ -765,7 +760,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                   density: _isCompactPhoneLayout
                       ? HeaderCapsuleActionButtonDensity.compact
                       : HeaderCapsuleActionButtonDensity.regular,
-                  style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
                 ),
             };
           },
@@ -777,9 +771,8 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
             density: _isCompactPhoneLayout
                 ? HeaderCapsuleActionButtonDensity.compact
                 : HeaderCapsuleActionButtonDensity.regular,
-            style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
           ),
-          error: (_, __) => HeaderCapsuleActionButton(
+          error: (_, _) => HeaderCapsuleActionButton(
             tooltip: l10n.download_button_download,
             icon: Icons.download_outlined,
             onPressed: () => _startDownload(episode),
@@ -787,7 +780,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
             density: _isCompactPhoneLayout
                 ? HeaderCapsuleActionButtonDensity.compact
                 : HeaderCapsuleActionButtonDensity.regular,
-            style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
           ),
         );
       },

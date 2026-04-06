@@ -4,9 +4,7 @@ import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 
 class SettingsSectionCard extends StatelessWidget {
   const SettingsSectionCard({
-    super.key,
-    required this.title,
-    required this.children,
+    required this.title, required this.children, super.key,
     this.cardMargin = EdgeInsets.zero,
     this.cardShape,
   });

@@ -18,11 +18,8 @@ enum PodcastDiscoverKind {
 }
 
 class ApplePodcastGenre {
-  final String? genreId;
-  final String name;
-  final String? url;
 
-  const ApplePodcastGenre({this.genreId, required this.name, this.url});
+  const ApplePodcastGenre({required this.name, this.genreId, this.url});
 
   factory ApplePodcastGenre.fromJson(Map<String, dynamic> json) {
     return ApplePodcastGenre(
@@ -31,27 +28,20 @@ class ApplePodcastGenre {
       url: json['url'] as String?,
     );
   }
+  final String? genreId;
+  final String name;
+  final String? url;
 }
 
 class ApplePodcastChartEntry {
-  final String id;
-  final String name;
-  final String artistName;
-  final String kind;
-  final String? contentAdvisoryRating;
-  final String? artworkUrl100;
-  final String url;
-  final List<ApplePodcastGenre> genres;
 
   const ApplePodcastChartEntry({
     required this.id,
     required this.name,
     required this.artistName,
     required this.kind,
-    this.contentAdvisoryRating,
+    required this.url, required this.genres, this.contentAdvisoryRating,
     this.artworkUrl100,
-    required this.url,
-    required this.genres,
   });
 
   factory ApplePodcastChartEntry.fromJson(Map<String, dynamic> json) {
@@ -70,19 +60,22 @@ class ApplePodcastChartEntry {
           .toList(),
     );
   }
+  final String id;
+  final String name;
+  final String artistName;
+  final String kind;
+  final String? contentAdvisoryRating;
+  final String? artworkUrl100;
+  final String url;
+  final List<ApplePodcastGenre> genres;
 }
 
 class ApplePodcastChartFeed {
-  final String title;
-  final String country;
-  final String? updated;
-  final List<ApplePodcastChartEntry> results;
 
   const ApplePodcastChartFeed({
     required this.title,
     required this.country,
-    this.updated,
-    required this.results,
+    required this.results, this.updated,
   });
 
   factory ApplePodcastChartFeed.fromJson(Map<String, dynamic> json) {
@@ -97,10 +90,13 @@ class ApplePodcastChartFeed {
           .toList(),
     );
   }
+  final String title;
+  final String country;
+  final String? updated;
+  final List<ApplePodcastChartEntry> results;
 }
 
 class ApplePodcastChartResponse {
-  final ApplePodcastChartFeed feed;
 
   const ApplePodcastChartResponse({required this.feed});
 
@@ -110,17 +106,10 @@ class ApplePodcastChartResponse {
       feed: ApplePodcastChartFeed.fromJson(feedJson),
     );
   }
+  final ApplePodcastChartFeed feed;
 }
 
 class PodcastDiscoverItem extends Equatable {
-  final String itemId;
-  final int? itunesId;
-  final String title;
-  final String artist;
-  final String? artworkUrl;
-  final String url;
-  final List<String> genres;
-  final PodcastDiscoverKind kind;
 
   const PodcastDiscoverItem({
     required this.itemId,
@@ -132,13 +121,6 @@ class PodcastDiscoverItem extends Equatable {
     required this.genres,
     required this.kind,
   });
-
-  bool get isPodcastShow => kind == PodcastDiscoverKind.podcasts;
-
-  bool hasGenre(String genre) {
-    final normalized = genre.trim().toLowerCase();
-    return genres.any((item) => item.toLowerCase() == normalized);
-  }
 
   factory PodcastDiscoverItem.fromChartEntry(
     ApplePodcastChartEntry entry, {
@@ -162,6 +144,21 @@ class PodcastDiscoverItem extends Equatable {
           .toList(),
       kind: entry.kind.isNotEmpty ? resolvedKind : defaultKind,
     );
+  }
+  final String itemId;
+  final int? itunesId;
+  final String title;
+  final String artist;
+  final String? artworkUrl;
+  final String url;
+  final List<String> genres;
+  final PodcastDiscoverKind kind;
+
+  bool get isPodcastShow => kind == PodcastDiscoverKind.podcasts;
+
+  bool hasGenre(String genre) {
+    final normalized = genre.trim().toLowerCase();
+    return genres.any((item) => item.toLowerCase() == normalized);
   }
 
   @override

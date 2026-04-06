@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/providers/route_provider.dart';
 
 void main() {
@@ -217,7 +217,7 @@ void main() {
         final notifier = container.read(currentRouteProvider.notifier);
 
         // Simulate rapid navigation
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           notifier.setRoute('/route/$i');
           expect(container.read(currentRouteProvider), '/route/$i');
         }

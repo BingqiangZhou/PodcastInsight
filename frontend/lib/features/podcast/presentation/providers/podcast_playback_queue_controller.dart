@@ -321,8 +321,6 @@ class PodcastQueueController extends AsyncNotifier<PodcastQueueModel> {
     try {
       return await _loadQueueInternal(
         forceRefresh: forceRefresh,
-        trackSyncing: true,
-        setErrorStateOnFailure: true,
       );
     } finally {
       _clearQueueOperation();

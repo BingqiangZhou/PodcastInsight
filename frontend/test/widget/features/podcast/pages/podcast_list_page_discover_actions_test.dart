@@ -47,10 +47,10 @@ void main() {
               () => _TestPodcastSearchNotifier(const search.PodcastSearchState()),
             ),
           ],
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -88,16 +88,16 @@ void main() {
                 fakeLookupService,
               ),
               podcastSubscriptionProvider.overrideWith(
-                () => _FakePodcastSubscriptionNotifier(),
+                _FakePodcastSubscriptionNotifier.new,
               ),
               search.podcastSearchProvider.overrideWith(
                 () => _TestPodcastSearchNotifier(const search.PodcastSearchState()),
               ),
             ],
-            child: MaterialApp(
+            child: const MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: const PodcastListPage(),
+              home: PodcastListPage(),
             ),
           ),
         );
@@ -142,17 +142,17 @@ void main() {
               _FakeITunesSearchService(),
             ),
             podcastSubscriptionProvider.overrideWith(
-              () => _FakePodcastSubscriptionNotifier(),
+              _FakePodcastSubscriptionNotifier.new,
             ),
             audioPlayerProvider.overrideWith(() => audioNotifier),
             search.podcastSearchProvider.overrideWith(
               () => _TestPodcastSearchNotifier(const search.PodcastSearchState()),
             ),
           ],
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -351,9 +351,7 @@ class _FakePodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
 
   @override
   PodcastSubscriptionState build() => const PodcastSubscriptionState(
-    subscriptions: [],
     hasMore: false,
-    total: 0,
   );
 
   @override
@@ -385,8 +383,6 @@ class _FakePodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
       sourceUrl: feedUrl,
       status: 'active',
       fetchInterval: 3600,
-      episodeCount: 0,
-      unplayedCount: 0,
       createdAt: now,
     );
   }

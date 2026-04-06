@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 
-import 'package:personal_ai_assistant/core/theme/apple_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 
 class PasswordRequirementItem extends StatelessWidget {
+
+  const PasswordRequirementItem({
+    required this.text, required this.isValid, super.key,
+  });
   final String text;
   final bool isValid;
 
-  const PasswordRequirementItem({
-    super.key,
-    required this.text,
-    required this.isValid,
-  });
-
   @override
   Widget build(BuildContext context) {
-    final validColor = AppleColors.systemOrange.of(context);
+    const validColor = AppColors.accentWarm;
     return Padding(
       padding: EdgeInsets.zero,
       child: Row(

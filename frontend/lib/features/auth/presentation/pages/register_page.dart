@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
-import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
-import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/widgets/password_text_field.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/widgets/password_requirement_item.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/widgets/password_text_field.dart';
+import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
+import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -193,13 +192,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         if (value.length < 8) {
                           return l10n.auth_password_too_short;
                         }
-                        if (!value.contains(RegExp(r'[A-Z]'))) {
+                        if (!value.contains(RegExp('[A-Z]'))) {
                           return l10n.auth_password_requirement_uppercase;
                         }
-                        if (!value.contains(RegExp(r'[a-z]'))) {
+                        if (!value.contains(RegExp('[a-z]'))) {
                           return l10n.auth_password_requirement_lowercase;
                         }
-                        if (!value.contains(RegExp(r'[0-9]'))) {
+                        if (!value.contains(RegExp('[0-9]'))) {
                           return l10n.auth_password_requirement_number;
                         }
                         return null;
@@ -231,19 +230,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           PasswordRequirementItem(
                             text: l10n.auth_password_req_uppercase_short,
                             isValid: _passwordController.text.contains(
-                              RegExp(r'[A-Z]'),
+                              RegExp('[A-Z]'),
                             ),
                           ),
                           PasswordRequirementItem(
                             text: l10n.auth_password_req_lowercase_short,
                             isValid: _passwordController.text.contains(
-                              RegExp(r'[a-z]'),
+                              RegExp('[a-z]'),
                             ),
                           ),
                           PasswordRequirementItem(
                             text: l10n.auth_password_req_number_short,
                             isValid: _passwordController.text.contains(
-                              RegExp(r'[0-9]'),
+                              RegExp('[0-9]'),
                             ),
                           ),
                         ],
@@ -388,10 +387,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      l10n.auth_already_have_account,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                    Flexible(
+                      child: Text(
+                        l10n.auth_already_have_account,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                    const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () => context.go('/login'),
                       child: Text(

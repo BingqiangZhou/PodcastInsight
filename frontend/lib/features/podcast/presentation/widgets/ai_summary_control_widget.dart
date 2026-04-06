@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -11,18 +10,16 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/su
 
 /// AI summary controls for generating and regenerating summaries.
 class AISummaryControlWidget extends ConsumerStatefulWidget {
+
+  const AISummaryControlWidget({
+    required this.episodeId, required this.hasTranscript, super.key,
+    this.onSummaryGenerated,
+    this.compact = false,
+  });
   final int episodeId;
   final bool hasTranscript;
   final VoidCallback? onSummaryGenerated;
   final bool compact;
-
-  const AISummaryControlWidget({
-    super.key,
-    required this.episodeId,
-    required this.hasTranscript,
-    this.onSummaryGenerated,
-    this.compact = false,
-  });
 
   @override
   ConsumerState<AISummaryControlWidget> createState() =>
@@ -141,7 +138,7 @@ class _AISummaryControlWidgetState
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.errorContainer.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(extension.controlRadius),
+        borderRadius: BorderRadius.circular(extension.cardRadius),
         border: Border.all(
           color: scheme.error.withValues(alpha: 0.3),
         ),
@@ -257,7 +254,7 @@ class _AISummaryControlWidgetState
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: scheme.secondaryContainer.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(extension.controlRadius),
+              borderRadius: BorderRadius.circular(extension.cardRadius),
             ),
             child: Wrap(
               spacing: 16,
@@ -378,13 +375,13 @@ class _AISummaryControlWidgetState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(extension.controlRadius),
+        borderRadius: BorderRadius.circular(extension.cardRadius),
       ),
       child: DropdownButtonFormField<SummaryModelInfo>(
         initialValue: _selectedModel,
         decoration: InputDecoration(
           labelText: l10n.podcast_ai_model,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(extension.controlRadius)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(extension.cardRadius)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
             vertical: 8,
@@ -453,7 +450,7 @@ class _AISummaryControlWidgetState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: scheme.errorContainer.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(extension.controlRadius),
+        borderRadius: BorderRadius.circular(extension.cardRadius),
         border: Border.all(
           color: scheme.error.withValues(alpha: 0.3),
         ),

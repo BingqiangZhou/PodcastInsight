@@ -28,7 +28,7 @@ void main() {
 
     testWidgets('empty queue keeps state card styling', (tester) async {
       final controller = TestPodcastQueueController(
-        const PodcastQueueModel(currentEpisodeId: null, items: []),
+        const PodcastQueueModel(),
       );
       await tester.pumpWidget(_createWidget(controller));
       await tester.pumpAndSettle();
@@ -79,7 +79,7 @@ void main() {
     testWidgets('shows fallback podcast icon when item has no image', (
       tester,
     ) async {
-      final controller = TestPodcastQueueController(_queue(withImages: false));
+      final controller = TestPodcastQueueController(_queue());
       await tester.pumpWidget(_createWidget(controller));
       await tester.pumpAndSettle();
 
@@ -282,10 +282,10 @@ Widget _createWidget(
             audioNotifier ?? TestAudioPlayerNotifier(const AudioPlayerState()),
       ),
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const Scaffold(
+      home: Scaffold(
         body: SizedBox(width: 430, height: 760, child: PodcastQueueSheet()),
       ),
     ),
@@ -327,7 +327,6 @@ PodcastQueueModel _queue({bool withImages = false}) {
         title: 'Episode 3',
         podcastId: 12,
         audioUrl: 'https://example.com/3.mp3',
-        duration: null,
         subscriptionTitle: 'Podcast C',
       ),
     ],

@@ -5,7 +5,6 @@ import 'dart:ui';
 ///
 /// 用于延迟执行函数，避免频繁触发
 class DebounceTimer {
-  Timer? _timer;
 
   /// 创建防抖定时器
   ///
@@ -15,6 +14,7 @@ class DebounceTimer {
   DebounceTimer(Duration duration, VoidCallback callback) {
     _timer = Timer(duration, callback);
   }
+  Timer? _timer;
 
   /// 取消定时器
   void cancel() {

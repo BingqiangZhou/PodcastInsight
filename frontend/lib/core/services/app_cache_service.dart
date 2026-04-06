@@ -40,8 +40,6 @@ abstract class AppCacheService {
 }
 
 class AppMediaCacheManager extends CacheManager {
-  static const String key = 'app_media_cache';
-  static final AppMediaCacheManager instance = AppMediaCacheManager._();
 
   AppMediaCacheManager._()
       : super(
@@ -53,6 +51,8 @@ class AppMediaCacheManager extends CacheManager {
             fileService: HttpFileService(),
           ),
         );
+  static const String key = 'app_media_cache';
+  static final AppMediaCacheManager instance = AppMediaCacheManager._();
 
   /// Gets current cache statistics
   Future<Map<String, dynamic>> getStats() async {

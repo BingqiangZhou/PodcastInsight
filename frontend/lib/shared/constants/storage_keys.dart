@@ -2,6 +2,7 @@
 ///
 /// Centralizes keys that are referenced by multiple features to prevent
 /// duplication and ensure consistency.
+library;
 
 /// Storage key prefix for persisting last playback snapshot.
 ///

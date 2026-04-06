@@ -26,14 +26,14 @@ abstract class SecureStorageService {
 }
 
 class SecureStorageServiceImpl implements SecureStorageService {
+
+  SecureStorageServiceImpl(this._secureStorage);
   final FlutterSecureStorage _secureStorage;
 
   static const String _accessTokenKey = config.AppConstants.accessTokenKey;
   static const String _refreshTokenKey = config.AppConstants.refreshTokenKey;
   static const String _userIdKey = 'user_id';
   static const String _tokenExpiryKey = config.AppConstants.tokenExpiryKey;
-
-  SecureStorageServiceImpl(this._secureStorage);
 
   @override
   Future<void> saveAccessToken(String token) async {
@@ -42,7 +42,7 @@ class SecureStorageServiceImpl implements SecureStorageService {
 
   @override
   Future<String?> getAccessToken() async {
-    return await _secureStorage.read(key: _accessTokenKey);
+    return _secureStorage.read(key: _accessTokenKey);
   }
 
   @override
@@ -52,7 +52,7 @@ class SecureStorageServiceImpl implements SecureStorageService {
 
   @override
   Future<String?> getRefreshToken() async {
-    return await _secureStorage.read(key: _refreshTokenKey);
+    return _secureStorage.read(key: _refreshTokenKey);
   }
 
   @override
@@ -62,7 +62,7 @@ class SecureStorageServiceImpl implements SecureStorageService {
 
   @override
   Future<String?> getUserId() async {
-    return await _secureStorage.read(key: _userIdKey);
+    return _secureStorage.read(key: _userIdKey);
   }
 
   @override
@@ -107,7 +107,7 @@ class SecureStorageServiceImpl implements SecureStorageService {
 
   @override
   Future<String?> get(String key) async {
-    return await _secureStorage.read(key: key);
+    return _secureStorage.read(key: key);
   }
 
   @override

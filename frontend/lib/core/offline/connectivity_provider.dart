@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'connectivity_provider.g.dart';
 
@@ -66,13 +65,12 @@ class ConnectivityNotifier extends _$ConnectivityNotifier {
     return const ConnectivityState(
       isOnline: true,
       connectionType: [],
-      lastChangedAt: null,
     );
   }
 
   void _startMonitoring() {
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
-      (List<ConnectivityResult> results) {
+      (results) {
         final isOnline = _isOnline(results);
         logger.AppLogger.debug(
           'Connectivity changed: ${isOnline ? "online" : "offline"} ($results)',

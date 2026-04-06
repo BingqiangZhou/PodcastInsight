@@ -7,8 +7,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shar
 
 class PodcastSearchResultCard extends StatelessWidget {
   const PodcastSearchResultCard({
-    super.key,
-    required this.result,
+    required this.result, super.key,
     this.onSubscribe,
     this.isSubscribed = false,
     this.isSubscribing = false,
@@ -48,11 +47,8 @@ class PodcastSearchResultCard extends StatelessWidget {
       child: BaseEpisodeCard(
         key: ValueKey('podcast_search_result_${result.feedUrl}'),
         config: EpisodeCardConfig(
-          showImage: true,
           imageUrl: result.artworkUrl100,
           imageSize: imageSize,
-          imageIconSize: 24,
-          imageBorderRadius: kPodcastRowCardImageRadius,
           dense: dense,
           cardMargin: EdgeInsets.symmetric(
             horizontal: kPodcastRowCardHorizontalMargin,
@@ -64,7 +60,6 @@ class PodcastSearchResultCard extends StatelessWidget {
           ),
           cornerRadius: kPodcastRowCardCornerRadius,
           titleMaxLines: 1,
-          subtitleMaxLines: 1,
           showPlayButton: false,
           showSubscribeAction: true,
           isSubscribed: isSubscribed,

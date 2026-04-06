@@ -59,15 +59,16 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
   }
 
   Widget _buildHeaderCover(String? fallbackImageUrl) {
+    final extension = appThemeOf(context);
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.itemRadius),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.itemRadius),
         child: Builder(
           builder: (context) {
             final sub = widget.subscription;
@@ -349,7 +350,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
                   ),
                 ],
                 selected: {_selectedFilter},
-                onSelectionChanged: (Set<String> selection) {
+                onSelectionChanged: (selection) {
                   setDialogState(() {
                     _selectedFilter = selection.first;
                   });

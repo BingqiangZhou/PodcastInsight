@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/summary_display_widget.dart';
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
   testWidgets('SummaryDisplayWidget renders markdown content', (tester) async {
@@ -18,7 +17,6 @@ void main() {
             body: SummaryDisplayWidget(
               episodeTitle: 'Test Episode',
               summary: '# Hello\n\nThis is **bold** text.\n\n- Item 1\n- Item 2',
-              compact: false,
             ),
           ),
         ),
@@ -82,8 +80,6 @@ void main() {
               child: SummaryDisplayWidget(
                 episodeTitle: 'Test Episode',
                 summary: longContent,
-                compact: false,
-                useInternalScrolling: true,
               ),
             ),
           ),
@@ -128,7 +124,6 @@ void main() {
             body: SummaryDisplayWidget(
               episodeTitle: 'Test Episode',
               summary: 'Test summary content',
-              compact: false,
             ),
           ),
         ),
@@ -158,7 +153,6 @@ void main() {
             body: SummaryDisplayWidget(
               episodeTitle: 'Test Episode',
               summary: 'Test summary content for selection',
-              compact: false,
               onShareSelected: (episodeTitle, summary, selectedText) async {
                 // Callback works
               },

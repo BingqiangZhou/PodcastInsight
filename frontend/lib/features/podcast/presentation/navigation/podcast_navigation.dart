@@ -1,4 +1,3 @@
-// ignore_for_file: use_null_aware_elements
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -9,9 +8,6 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shar
 
 /// Navigation arguments for podcast episodes page
 class PodcastEpisodesPageArgs {
-  final int subscriptionId;
-  final String? podcastTitle;
-  final PodcastSubscriptionModel? subscription;
 
   const PodcastEpisodesPageArgs({
     required this.subscriptionId,
@@ -29,6 +25,9 @@ class PodcastEpisodesPageArgs {
       subscription: subscription,
     );
   }
+  final int subscriptionId;
+  final String? podcastTitle;
+  final PodcastSubscriptionModel? subscription;
 
   /// Extracts args from GoRouter state
   static PodcastEpisodesPageArgs? extractFromState(GoRouterState state) {
@@ -50,15 +49,15 @@ class PodcastEpisodesPageArgs {
 
 /// Navigation arguments for podcast episode detail page
 class PodcastEpisodeDetailPageArgs {
-  final int episodeId;
-  final int subscriptionId;
-  final String? episodeTitle;
 
   const PodcastEpisodeDetailPageArgs({
     required this.episodeId,
     required this.subscriptionId,
     this.episodeTitle,
   });
+  final int episodeId;
+  final int subscriptionId;
+  final String? episodeTitle;
 
   /// Extracts args from GoRouter state
   static PodcastEpisodeDetailPageArgs? extractFromState(GoRouterState state) {

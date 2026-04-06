@@ -6,9 +6,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 /// Horizontal scrollable category chips for discover page
 class DiscoverCategoryChips extends StatelessWidget {
   const DiscoverCategoryChips({
-    super.key,
-    required this.state,
-    required this.onCategorySelected,
+    required this.state, required this.onCategorySelected, super.key,
   });
 
   final PodcastDiscoverState state;
@@ -65,7 +63,7 @@ class DiscoverCategoryChips extends StatelessWidget {
 
   String _normalizeCategoryKey(String value) {
     final normalized = value.toLowerCase().replaceAll(
-      RegExp(r'[^a-z0-9]+'),
+      RegExp('[^a-z0-9]+'),
       '_',
     );
     final trimmed = normalized.replaceAll(RegExp(r'^_+|_+$'), '');
@@ -128,7 +126,7 @@ class _CategoryChip extends StatelessWidget {
 
   String _normalizeCategoryKey(String value) {
     final normalized = value.toLowerCase().replaceAll(
-      RegExp(r'[^a-z0-9]+'),
+      RegExp('[^a-z0-9]+'),
       '_',
     );
     final trimmed = normalized.replaceAll(RegExp(r'^_+|_+$'), '');

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_cache_management_page.dart';
 
@@ -64,14 +65,10 @@ void main() {
       );
       expect(contentRect.top - headerRect.bottom, closeTo(12, 0.1));
 
-      final cards = tester.widgetList<Card>(find.byType(Card)).toList();
-      expect(cards, hasLength(3));
-      for (final card in cards) {
-        expect(
-          card.margin,
-          const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        );
-      }
+      final cards = tester.widgetList<SurfaceCard>(
+        find.byType(SurfaceCard),
+      ).toList();
+      expect(cards, hasLength(5));
 
       final detailsRect = tester.getRect(find.text('DETAILS'));
       final overviewRect = tester.getRect(
@@ -96,14 +93,10 @@ void main() {
 
       expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
 
-      final cards = tester.widgetList<Card>(find.byType(Card)).toList();
-      expect(cards, hasLength(3));
-      for (final card in cards) {
-        expect(
-          card.margin,
-          const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
-        );
-      }
+      final cards = tester.widgetList<SurfaceCard>(
+        find.byType(SurfaceCard),
+      ).toList();
+      expect(cards, hasLength(5));
 
       final detailsRect = tester.getRect(find.text('DETAILS'));
       final overviewRect = tester.getRect(
@@ -152,7 +145,7 @@ void main() {
       final audioLegend = tester.widget<Container>(
         find.byKey(const Key('cache_legend_audio')),
       );
-      final audioLegendDecoration = audioLegend.decoration as BoxDecoration;
+      final audioLegendDecoration = audioLegend.decoration! as BoxDecoration;
       expect(
         audioLegendDecoration.color,
         _buildTestTheme(brightness: Brightness.light).colorScheme.tertiary,
@@ -179,7 +172,7 @@ void main() {
       final noticeBox = tester.widget<Container>(
         find.byKey(const Key('cache_manage_notice_box')),
       );
-      final noticeDecoration = noticeBox.decoration as BoxDecoration;
+      final noticeDecoration = noticeBox.decoration! as BoxDecoration;
       expect(
         noticeDecoration.color,
         _buildTestTheme(brightness: Brightness.light).colorScheme.onSurfaceVariant.withValues(
@@ -248,7 +241,7 @@ void main() {
       final noticeBox = tester.widget<Container>(
         find.byKey(const Key('cache_manage_notice_box')),
       );
-      final noticeDecoration = noticeBox.decoration as BoxDecoration;
+      final noticeDecoration = noticeBox.decoration! as BoxDecoration;
       expect(
         noticeDecoration.color,
         _buildTestTheme(brightness: Brightness.dark).colorScheme.onSurfaceVariant.withValues(alpha: 0.24),
@@ -279,9 +272,7 @@ ThemeData _buildTestTheme({required Brightness brightness}) {
     brightness: brightness,
     colorScheme: colorScheme,
     extensions: [
-      brightness == Brightness.dark
-          ? AppThemeExtension.dark
-          : AppThemeExtension.light,
+      if (brightness == Brightness.dark) AppThemeExtension.dark else AppThemeExtension.light,
     ],
   );
 }

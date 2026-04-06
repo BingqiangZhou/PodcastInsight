@@ -10,14 +10,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/disc
 /// Charts list widget for displaying discover items with pagination
 class DiscoverChartsList extends ConsumerWidget {
   const DiscoverChartsList({
-    super.key,
-    required this.state,
-    required this.scrollController,
-    required this.onItemTap,
-    required this.onItemSubscribe,
-    required this.onItemPlay,
-    required this.subscribingShowIds,
-    required this.subscribedShowIds,
+    required this.state, required this.scrollController, required this.onItemTap, required this.onItemSubscribe, required this.onItemPlay, required this.subscribingShowIds, required this.subscribedShowIds, super.key,
     this.isDense = false,
   });
 

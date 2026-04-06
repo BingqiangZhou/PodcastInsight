@@ -12,17 +12,16 @@ void main() {
   group('Podcast Transcription Flow - End to End Tests', () {
     testWidgets(
       'User Journey: Start transcription and see progress through all stages',
-      (WidgetTester tester) async {
+      (tester) async {
         // Stage 1: User sees "Start Transcription" button
         await tester.pumpWidget(
           MaterialApp(
             theme: AppTheme.lightTheme,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
+            home: const Scaffold(
               body: TranscriptionStatusWidget(
                 episodeId: 1,
-                transcription: null,
               ),
             ),
           ),
@@ -78,7 +77,7 @@ void main() {
           id: 1,
           episodeId: 1,
           status: 'downloading',
-          processingProgress: 15.0,
+          processingProgress: 15,
           createdAt: DateTime.now(),
         );
 
@@ -106,7 +105,7 @@ void main() {
           id: 1,
           episodeId: 1,
           status: 'converting',
-          processingProgress: 30.0,
+          processingProgress: 30,
           createdAt: DateTime.now(),
         );
 
@@ -133,7 +132,7 @@ void main() {
           id: 1,
           episodeId: 1,
           status: 'transcribing',
-          processingProgress: 65.0,
+          processingProgress: 65,
           wordCount: 1200,
           debugMessage: 'Processing chunk 5/10',
           createdAt: DateTime.now(),
@@ -166,7 +165,7 @@ void main() {
           transcriptContent: 'Full transcript content...',
           wordCount: 3500,
           durationSeconds: 1200,
-          processingProgress: 100.0,
+          processingProgress: 100,
           completedAt: DateTime.now(),
           createdAt: DateTime.now().subtract(const Duration(minutes: 20)),
         );
@@ -202,13 +201,13 @@ void main() {
 
     testWidgets(
       'Error Journey: Transcription fails with network error and user retries',
-      (WidgetTester tester) async {
+      (tester) async {
         // Stage 1: Transcription starts normally
         final processingTranscription = PodcastTranscriptionResponse(
           id: 1,
           episodeId: 1,
           status: 'downloading',
-          processingProgress: 10.0,
+          processingProgress: 10,
           createdAt: DateTime.now(),
         );
 
@@ -268,7 +267,7 @@ void main() {
     );
 
     testWidgets('User Journey: Server restart during transcription', (
-      WidgetTester tester,
+      tester,
     ) async {
       // Transcription was in progress when server restarted
       final failedTranscription = PodcastTranscriptionResponse(
@@ -305,7 +304,7 @@ void main() {
 
     testWidgets(
       'User Journey: Completed transcription allows viewing and deleting',
-      (WidgetTester tester) async {
+      (tester) async {
         final completedTranscription = PodcastTranscriptionResponse(
           id: 1,
           episodeId: 1,
@@ -313,7 +312,7 @@ void main() {
           transcriptContent: 'Sample transcript content',
           wordCount: 5000,
           durationSeconds: 1800,
-          processingProgress: 100.0,
+          processingProgress: 100,
           completedAt: DateTime(2024, 12, 22, 14, 30),
           createdAt: DateTime(2024, 12, 22, 14, 10),
         );
@@ -346,14 +345,14 @@ void main() {
 
     testWidgets(
       'User Journey: Transcription with missing stats still shows completion',
-      (WidgetTester tester) async {
+      (tester) async {
         // Some transcriptions may not have all stats populated
         final completedTranscription = PodcastTranscriptionResponse(
           id: 1,
           episodeId: 1,
           status: 'completed',
           transcriptContent: 'Transcript',
-          processingProgress: 100.0,
+          processingProgress: 100,
           completedAt: DateTime.now(),
           createdAt: DateTime.now(),
         );
@@ -382,7 +381,7 @@ void main() {
 
     testWidgets(
       'Visual Journey: Progress indicators update correctly through stages',
-      (WidgetTester tester) async {
+      (tester) async {
         final stages = [
           {'status': 'downloading', 'progress': 10.0, 'icon': 'Download'},
           {'status': 'converting', 'progress': 30.0, 'icon': 'Convert'},
@@ -399,8 +398,8 @@ void main() {
           final transcription = PodcastTranscriptionResponse(
             id: 1,
             episodeId: 1,
-            status: stage['status'] as String,
-            processingProgress: stage['progress'] as double,
+            status: stage['status']! as String,
+            processingProgress: stage['progress']! as double,
             createdAt: DateTime.now(),
           );
 
@@ -420,7 +419,7 @@ void main() {
 
           // Verify progress percentage
           final progressText =
-              '${(stage['progress'] as double).toStringAsFixed(0)}%';
+              '${(stage['progress']! as double).toStringAsFixed(0)}%';
           expect(find.text(progressText), findsOneWidget);
 
           // Verify step indicators exist
@@ -440,15 +439,15 @@ void main() {
     );
 
     testWidgets('UX Journey: Auto-transcription hint is shown to users', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.lightTheme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: TranscriptionStatusWidget(episodeId: 1, transcription: null),
+          home: const Scaffold(
+            body: TranscriptionStatusWidget(episodeId: 1),
           ),
         ),
       );

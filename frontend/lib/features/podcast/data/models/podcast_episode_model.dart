@@ -6,6 +6,44 @@ part 'podcast_episode_model.g.dart';
 
 @JsonSerializable()
 class PodcastEpisodeModel extends Equatable {
+
+  const PodcastEpisodeModel({
+    required this.id,
+    required this.subscriptionId,
+    required this.title, required this.audioUrl, required this.publishedAt, required this.createdAt, this.subscriptionImageUrl,
+    this.subscriptionTitle,
+    this.description,
+    this.audioDuration,
+    this.audioFileSize,
+    this.imageUrl,
+    this.itemLink,
+    this.transcriptUrl,
+    this.transcriptContent,
+    this.aiSummary,
+    this.summaryVersion,
+    this.aiConfidenceScore,
+    this.playCount = 0,
+    this.lastPlayedAt,
+    this.season,
+    this.episodeNumber,
+    this.explicit = false,
+    this.status = 'published',
+    this.metadata,
+    this.playbackPosition,
+    this.isPlaying = false,
+    this.playbackRate = 1.0,
+    this.isPlayed = false,
+    this.updatedAt,
+    this.summaryStatus,
+    this.summaryErrorMessage,
+    this.summaryModelUsed,
+    this.summaryProcessingTime,
+    this.subscription,
+    this.relatedEpisodes,
+  });
+
+  factory PodcastEpisodeModel.fromJson(Map<String, dynamic> json) =>
+      _$PodcastEpisodeModelFromJson(json);
   final int id;
   @JsonKey(name: 'subscription_id')
   final int subscriptionId;
@@ -75,48 +113,6 @@ class PodcastEpisodeModel extends Equatable {
   final Map<String, dynamic>? subscription;
   @JsonKey(name: 'related_episodes')
   final List<dynamic>? relatedEpisodes;
-
-  const PodcastEpisodeModel({
-    required this.id,
-    required this.subscriptionId,
-    this.subscriptionImageUrl,
-    required this.title,
-    this.subscriptionTitle,
-    this.description,
-    required this.audioUrl,
-    this.audioDuration,
-    this.audioFileSize,
-    required this.publishedAt,
-    this.imageUrl,
-    this.itemLink,
-    this.transcriptUrl,
-    this.transcriptContent,
-    this.aiSummary,
-    this.summaryVersion,
-    this.aiConfidenceScore,
-    this.playCount = 0,
-    this.lastPlayedAt,
-    this.season,
-    this.episodeNumber,
-    this.explicit = false,
-    this.status = 'published',
-    this.metadata,
-    this.playbackPosition,
-    this.isPlaying = false,
-    this.playbackRate = 1.0,
-    this.isPlayed = false,
-    required this.createdAt,
-    this.updatedAt,
-    this.summaryStatus,
-    this.summaryErrorMessage,
-    this.summaryModelUsed,
-    this.summaryProcessingTime,
-    this.subscription,
-    this.relatedEpisodes,
-  });
-
-  factory PodcastEpisodeModel.fromJson(Map<String, dynamic> json) =>
-      _$PodcastEpisodeModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$PodcastEpisodeModelToJson(this);
 
@@ -215,7 +211,7 @@ class PodcastEpisodeModel extends Equatable {
   double get progressPercentage {
     final duration = audioDuration;
     final position = playbackPosition;
-    if (duration == null || position == null) return 0.0;
+    if (duration == null || position == null) return 0;
     return (position / duration).clamp(0.0, 1.0);
   }
 
@@ -273,15 +269,6 @@ class PodcastEpisodeModel extends Equatable {
 
 @JsonSerializable()
 class PodcastEpisodeListResponse extends Equatable {
-  final List<PodcastEpisodeModel> episodes;
-  final int total;
-  final int page;
-  final int size;
-  final int pages;
-  @JsonKey(name: 'subscription_id')
-  final int subscriptionId;
-  @JsonKey(name: 'next_cursor')
-  final String? nextCursor;
 
   const PodcastEpisodeListResponse({
     required this.episodes,
@@ -295,6 +282,15 @@ class PodcastEpisodeListResponse extends Equatable {
 
   factory PodcastEpisodeListResponse.fromJson(Map<String, dynamic> json) =>
       _$PodcastEpisodeListResponseFromJson(json);
+  final List<PodcastEpisodeModel> episodes;
+  final int total;
+  final int page;
+  final int size;
+  final int pages;
+  @JsonKey(name: 'subscription_id')
+  final int subscriptionId;
+  @JsonKey(name: 'next_cursor')
+  final String? nextCursor;
 
   Map<String, dynamic> toJson() => _$PodcastEpisodeListResponseToJson(this);
 
@@ -312,23 +308,22 @@ class PodcastEpisodeListResponse extends Equatable {
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class PodcastFeedResponse extends Equatable {
+
+  const PodcastFeedResponse({
+    required this.items,
+    required this.hasMore,
+    required this.total, this.nextPage,
+    this.nextCursor,
+  });
+
+  factory PodcastFeedResponse.fromJson(Map<String, dynamic> json) =>
+      _$PodcastFeedResponseFromJson(json);
   final List<PodcastEpisodeModel> items;
   @JsonKey(defaultValue: false)
   final bool hasMore;
   final int? nextPage;
   final String? nextCursor;
   final int total;
-
-  const PodcastFeedResponse({
-    required this.items,
-    required this.hasMore,
-    this.nextPage,
-    this.nextCursor,
-    required this.total,
-  });
-
-  factory PodcastFeedResponse.fromJson(Map<String, dynamic> json) =>
-      _$PodcastFeedResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$PodcastFeedResponseToJson(this);
 

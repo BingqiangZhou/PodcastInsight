@@ -98,7 +98,7 @@ class _FakePodcastRepository extends PodcastRepository {
 }
 
 PodcastEpisodeModel _episode({required int id, required int subId}) {
-  final now = DateTime(2026, 2, 14, 10, 0, 0);
+  final now = DateTime(2026, 2, 14, 10);
   return PodcastEpisodeModel(
     id: id,
     subscriptionId: subId,

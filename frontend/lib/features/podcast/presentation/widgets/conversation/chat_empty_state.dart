@@ -8,8 +8,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 /// Displays an icon, title, hint text, and an optional AI summary preview.
 class ChatEmptyState extends StatelessWidget {
   const ChatEmptyState({
-    super.key,
-    required this.aiSummary,
+    required this.aiSummary, super.key,
   });
 
   final String? aiSummary;
@@ -30,7 +29,7 @@ class ChatEmptyState extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: scheme.primary.withValues(alpha: 0.1),
+                color: ext.surfaceTierFill,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -42,13 +41,15 @@ class ChatEmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               l10n.podcast_conversation_empty_title,
-              style: theme.textTheme.titleLarge,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: AppColors.darkOnBackground,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               l10n.podcast_conversation_empty_hint,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
+                color: AppColors.darkOnSurfaceMuted,
               ),
               textAlign: TextAlign.center,
             ),
@@ -57,7 +58,7 @@ class ChatEmptyState extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: ext.aiHighlightSurfaceColor,
+                  color: ext.surfaceTierFill,
                   borderRadius: BorderRadius.circular(ext.cardRadius),
                   border: Border(
                     left: BorderSide(color: scheme.primary, width: 3),
@@ -89,7 +90,7 @@ class ChatEmptyState extends StatelessWidget {
                           ? '${summary.substring(0, 200)}...'
                           : summary,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
+                        color: AppColors.darkOnSurfaceMuted,
                         height: 1.5,
                       ),
                     ),

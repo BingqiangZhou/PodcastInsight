@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/font_combination.dart';
 import 'package:personal_ai_assistant/core/theme/font_provider.dart';
@@ -23,6 +25,7 @@ class AppearancePage extends ConsumerWidget {
       title: l10n.appearance_title,
       subtitle: '',
       summary: const SizedBox.shrink(),
+      trailing: _buildBackButton(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -56,9 +59,9 @@ class AppearancePage extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: const _FontDropdown(),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: _FontDropdown(),
               ),
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -68,6 +71,17 @@ class AppearancePage extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget? _buildBackButton(BuildContext context) {
+    final isMobile = context.isMobile;
+    if (isMobile) return null;
+    return HeaderCapsuleActionButton(
+      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+      icon: Icons.arrow_back_rounded,
+      onPressed: () => context.canPop() ? context.pop() : context.go('/'),
+      circular: true,
     );
   }
 }

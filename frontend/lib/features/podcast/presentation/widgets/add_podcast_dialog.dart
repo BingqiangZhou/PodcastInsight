@@ -69,7 +69,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       child: GlassContainer(
-        tier: GlassTier.heavy,
+        tier: GlassTier.overlay,
         borderRadius: 28,
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
@@ -90,7 +90,6 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                     TextFormField(
                       controller: _feedUrlController,
                       minLines: 1,
-                      maxLines: 1,
                       decoration: InputDecoration(
                         labelText: l10n.podcast_rss_feed_url,
                         hintText: l10n.podcast_feed_url_hint,

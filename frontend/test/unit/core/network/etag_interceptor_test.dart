@@ -14,8 +14,6 @@ void main() {
     setUp(() {
       interceptor = ETagInterceptor(
         maxEntries: 100,
-        defaultTtl: const Duration(hours: 1),
-        enabled: true,
       );
       mockAdapter = _MockHttpClientAdapter();
       // Don't use validateStatus globally - configure per test
@@ -140,7 +138,6 @@ void main() {
         // Second request should have If-None-Match header
         mockAdapter.response = _response(
           statusCode: 304,
-          body: null,
           headers: {},
         );
 
@@ -226,7 +223,6 @@ void main() {
         // Second request returns 304
         mockAdapter.response = _response(
           statusCode: 304,
-          body: null,
           headers: {'date': ['Mon, 24 Mar 2026 12:00:00 GMT']},
         );
 
@@ -255,7 +251,6 @@ void main() {
 
         mockAdapter.response = _response(
           statusCode: 304,
-          body: null,
           headers: {
             'date': ['Mon, 24 Mar 2026 12:00:00 GMT'],
             'x-new-header': ['new-value'],
@@ -274,7 +269,6 @@ void main() {
         // Don't cache anything first
         mockAdapter.response = _response(
           statusCode: 304,
-          body: null,
           headers: {},
         );
 
@@ -412,7 +406,7 @@ void main() {
           ..interceptors.add(smallCacheInterceptor);
 
         // Add 3 entries (max is 2)
-        for (int i = 1; i <= 3; i++) {
+        for (var i = 1; i <= 3; i++) {
           mockAdapter.response = _response(
             statusCode: 200,
             body: {'id': i},
@@ -446,7 +440,6 @@ void main() {
         // Access first again to update its position
         mockAdapter.response = _response(
           statusCode: 304,
-          body: null,
           headers: {},
         );
 
@@ -495,7 +488,7 @@ void main() {
         await dio.get('/short-maxage-test');
 
         // Cache should have the entry (check immediately before it expires)
-        var stats = interceptor.getStats();
+        final stats = interceptor.getStats();
         expect(stats['cacheSize'], 1);
 
         // Second request should not use fresh cache (max-age=0 means no fresh window)
@@ -886,7 +879,6 @@ void main() {
       test('handles DELETE request (should not cache)', () async {
         mockAdapter.response = _response(
           statusCode: 204,
-          body: null,
           headers: {},
         );
 
@@ -915,8 +907,7 @@ void main() {
 ({int statusCode, Map<String, dynamic>? body, Map<String, List<String>> headers})
 _response({
   required int statusCode,
-  Map<String, dynamic>? body,
-  required Map<String, List<String>> headers,
+  required Map<String, List<String>> headers, Map<String, dynamic>? body,
 }) {
   return (
     statusCode: statusCode,

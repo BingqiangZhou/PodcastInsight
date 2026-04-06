@@ -6,6 +6,22 @@ part 'podcast_highlight_model.g.dart';
 /// 高光响应模型
 @JsonSerializable()
 class HighlightResponse extends Equatable {
+
+  const HighlightResponse({
+    required this.id,
+    required this.episodeId,
+    required this.episodeTitle,
+    required this.originalText, required this.insightScore, required this.noveltyScore, required this.actionabilityScore, required this.overallScore, required this.createdAt, this.subscriptionTitle,
+    this.contextBefore,
+    this.contextAfter,
+    this.speakerHint,
+    this.timestampHint,
+    this.topicTags = const [],
+    this.isUserFavorited = false,
+  });
+
+  factory HighlightResponse.fromJson(Map<String, dynamic> json) =>
+      _$HighlightResponseFromJson(json);
   final int id;
   @JsonKey(name: 'episode_id')
   final int episodeId;
@@ -37,28 +53,6 @@ class HighlightResponse extends Equatable {
   final bool isUserFavorited;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
-
-  const HighlightResponse({
-    required this.id,
-    required this.episodeId,
-    required this.episodeTitle,
-    this.subscriptionTitle,
-    required this.originalText,
-    this.contextBefore,
-    this.contextAfter,
-    required this.insightScore,
-    required this.noveltyScore,
-    required this.actionabilityScore,
-    required this.overallScore,
-    this.speakerHint,
-    this.timestampHint,
-    this.topicTags = const [],
-    this.isUserFavorited = false,
-    required this.createdAt,
-  });
-
-  factory HighlightResponse.fromJson(Map<String, dynamic> json) =>
-      _$HighlightResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$HighlightResponseToJson(this);
 
@@ -124,35 +118,36 @@ class HighlightResponse extends Equatable {
 /// 高光列表响应
 @JsonSerializable()
 class HighlightsListResponse extends Equatable {
-  final List<HighlightResponse> items;
-  final int total;
-  final int page;
-  @JsonKey(name: 'per_page')
-  final int perPage;
-  @JsonKey(name: 'has_more')
-  final bool hasMore;
 
   const HighlightsListResponse({
     required this.items,
     required this.total,
     required this.page,
-    required this.perPage,
-    required this.hasMore,
+    required this.size,
+    required this.pages,
   });
 
   factory HighlightsListResponse.fromJson(Map<String, dynamic> json) =>
       _$HighlightsListResponseFromJson(json);
+  final List<HighlightResponse> items;
+  final int total;
+  final int page;
+  @JsonKey(name: 'size')
+  final int size;
+  @JsonKey(name: 'pages')
+  final int pages;
+
+  bool get hasMore => page < pages;
 
   Map<String, dynamic> toJson() => _$HighlightsListResponseToJson(this);
 
   @override
-  List<Object?> get props => [items, total, page, perPage, hasMore];
+  List<Object?> get props => [items, total, page, size, pages];
 }
 
 /// 高光日期响应
 @JsonSerializable()
 class HighlightDatesResponse extends Equatable {
-  final List<DateTime> dates;
 
   const HighlightDatesResponse({
     required this.dates,
@@ -160,6 +155,7 @@ class HighlightDatesResponse extends Equatable {
 
   factory HighlightDatesResponse.fromJson(Map<String, dynamic> json) =>
       _$HighlightDatesResponseFromJson(json);
+  final List<DateTime> dates;
 
   Map<String, dynamic> toJson() => _$HighlightDatesResponseToJson(this);
 
@@ -170,12 +166,6 @@ class HighlightDatesResponse extends Equatable {
 /// 高光统计响应
 @JsonSerializable()
 class HighlightStatsResponse extends Equatable {
-  @JsonKey(name: 'total_highlights')
-  final int totalHighlights;
-  @JsonKey(name: 'avg_score')
-  final double avgScore;
-  @JsonKey(name: 'latest_extraction_date')
-  final DateTime? latestExtractionDate;
 
   const HighlightStatsResponse({
     required this.totalHighlights,
@@ -185,6 +175,12 @@ class HighlightStatsResponse extends Equatable {
 
   factory HighlightStatsResponse.fromJson(Map<String, dynamic> json) =>
       _$HighlightStatsResponseFromJson(json);
+  @JsonKey(name: 'total_highlights')
+  final int totalHighlights;
+  @JsonKey(name: 'avg_score')
+  final double avgScore;
+  @JsonKey(name: 'latest_extraction_date')
+  final DateTime? latestExtractionDate;
 
   Map<String, dynamic> toJson() => _$HighlightStatsResponseToJson(this);
 
@@ -195,9 +191,6 @@ class HighlightStatsResponse extends Equatable {
 /// 高光提取响应
 @JsonSerializable()
 class HighlightExtractResponse extends Equatable {
-  @JsonKey(name: 'task_id')
-  final String taskId;
-  final String status;
 
   const HighlightExtractResponse({
     required this.taskId,
@@ -206,6 +199,9 @@ class HighlightExtractResponse extends Equatable {
 
   factory HighlightExtractResponse.fromJson(Map<String, dynamic> json) =>
       _$HighlightExtractResponseFromJson(json);
+  @JsonKey(name: 'task_id')
+  final String taskId;
+  final String status;
 
   Map<String, dynamic> toJson() => _$HighlightExtractResponseToJson(this);
 

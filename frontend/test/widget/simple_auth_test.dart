@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/pages/login_page.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/pages/register_page.dart';
-import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/widgets/password_text_field.dart';
+import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
 
 import '../test_helpers.dart';
 
@@ -23,7 +23,7 @@ GoRouter _router(String initialLocation) {
 
 void main() {
   group('Simple Auth Widget Tests', () {
-    testWidgets('Login page renders correctly', (WidgetTester tester) async {
+    testWidgets('Login page renders correctly', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/login')));
       await tester.pumpAndSettle();
 
@@ -33,7 +33,7 @@ void main() {
       expect(find.text('Sign In'), findsWidgets);
     });
 
-    testWidgets('Register page renders correctly', (WidgetTester tester) async {
+    testWidgets('Register page renders correctly', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/register')));
       await tester.pumpAndSettle();
 
@@ -43,7 +43,7 @@ void main() {
       expect(find.text('Create Account'), findsWidgets);
     });
 
-    testWidgets('Login page has email and password fields', (WidgetTester tester) async {
+    testWidgets('Login page has email and password fields', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/login')));
       await tester.pumpAndSettle();
 
@@ -56,7 +56,7 @@ void main() {
       expect(passwordFields, findsWidgets);
     });
 
-    testWidgets('Register page has multiple fields', (WidgetTester tester) async {
+    testWidgets('Register page has multiple fields', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/register')));
       await tester.pumpAndSettle();
 
@@ -69,7 +69,7 @@ void main() {
       expect(passwordFields, findsWidgets);
     });
 
-    testWidgets('Password visibility toggle works', (WidgetTester tester) async {
+    testWidgets('Password visibility toggle works', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/login')));
       await tester.pumpAndSettle();
 

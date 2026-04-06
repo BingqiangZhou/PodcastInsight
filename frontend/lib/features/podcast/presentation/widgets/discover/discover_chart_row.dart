@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:personal_ai_assistant/core/theme/apple_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
@@ -8,12 +7,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podc
 /// Chart row widget for displaying a single discover item with rank and actions
 class DiscoverChartRow extends StatelessWidget {
   const DiscoverChartRow({
-    super.key,
-    required this.rank,
-    required this.item,
-    required this.onTap,
-    required this.onSubscribe,
-    required this.onPlay,
+    required this.rank, required this.item, required this.onTap, required this.onSubscribe, required this.onPlay, super.key,
     this.isSubscribing = false,
     this.isSubscribed = false,
     this.isDense = false,
@@ -31,7 +25,6 @@ class DiscoverChartRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final extension = appThemeOf(context);
     final showSubscribe = item.isPodcastShow;
     final rankLabel = '$rank';
@@ -47,6 +40,48 @@ class DiscoverChartRow extends StatelessWidget {
         (isDense ? theme.textTheme.bodySmall : theme.textTheme.bodyMedium)
             ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
+    // Determine rank colors with gradient accents for top 3
+    Color rankColor;
+    Decoration? rowDecoration;
+
+    if (rank == 1) {
+      rankColor = AppColors.accentWarm;
+      rowDecoration = BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.goldColors[0].withValues(alpha: 0.12),
+            AppColors.goldColors[1].withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(extension.cardRadius),
+      );
+    } else if (rank == 2) {
+      rankColor = AppColors.coralColors[0];
+      rowDecoration = BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.coralColors[0].withValues(alpha: 0.1),
+            AppColors.coralColors[1].withValues(alpha: 0.06),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(extension.cardRadius),
+      );
+    } else if (rank == 3) {
+      rankColor = AppColors.violetColors[0];
+      rowDecoration = BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.violetColors[0].withValues(alpha: 0.1),
+            AppColors.violetColors[1].withValues(alpha: 0.06),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(extension.cardRadius),
+      );
+    } else {
+      rankColor = theme.colorScheme.onSurfaceVariant;
+      rowDecoration = null;
+    }
+
     return Padding(
       key: Key('podcast_discover_chart_row_${item.itemId}'),
       padding: EdgeInsets.symmetric(vertical: rowOuterPadding),
@@ -54,12 +89,7 @@ class DiscoverChartRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(extension.cardRadius),
         onTap: onTap,
         child: Container(
-          decoration: BoxDecoration(
-            color: rank <= 3
-                ? scheme.primary.withValues(alpha: rank == 1 ? 0.08 : 0.04)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(extension.cardRadius),
-          ),
+          decoration: rowDecoration,
           padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: rowInnerPadding),
@@ -76,11 +106,7 @@ class DiscoverChartRow extends StatelessWidget {
                         maxLines: 1,
                         textAlign: TextAlign.center,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: rank == 1
-                              ? AppleColors.systemOrange.of(context)
-                              : rank <= 3
-                                  ? scheme.primary
-                                  : theme.colorScheme.onSurfaceVariant,
+                          color: rankColor,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -90,7 +116,7 @@ class DiscoverChartRow extends StatelessWidget {
                 SizedBox(width: isDense ? 4 : 6),
                 RepaintBoundary(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(extension.inputRadius),
+                    borderRadius: BorderRadius.circular(extension.buttonRadius),
                     child: PodcastImageWidget(
                       imageUrl: item.artworkUrl,
                       width: imageSize,

@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class LoadingWidget extends StatelessWidget {
-  final double? size;
-  final Color? color;
-  final double strokeWidth;
 
   const LoadingWidget({
     super.key,
@@ -12,6 +9,9 @@ class LoadingWidget extends StatelessWidget {
     this.color,
     this.strokeWidth = 2.5,
   });
+  final double? size;
+  final Color? color;
+  final double strokeWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -92,16 +92,14 @@ class LoadingStatusContent extends StatelessWidget {
 }
 
 class LoadingOverlay extends StatelessWidget {
+
+  const LoadingOverlay({
+    required this.child, required this.isLoading, super.key,
+    this.loadingText,
+  });
   final Widget child;
   final bool isLoading;
   final String? loadingText;
-
-  const LoadingOverlay({
-    super.key,
-    required this.child,
-    required this.isLoading,
-    this.loadingText,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +108,7 @@ class LoadingOverlay extends StatelessWidget {
       children: [
         child,
         if (isLoading)
-          Container(
+          ColoredBox(
             color: scheme.scrim.withValues(alpha: 0.5),
             child: Center(
               child: Padding(
@@ -118,7 +116,6 @@ class LoadingOverlay extends StatelessWidget {
                 child: LoadingStatusContent(
                   key: const Key('loading_overlay_content'),
                   subtitle: loadingText,
-                  spinnerSize: 48,
                   spinnerColor: scheme.primary,
                 ),
               ),
@@ -130,16 +127,15 @@ class LoadingOverlay extends StatelessWidget {
 }
 
 class ShimmerLoading extends StatelessWidget {
-  final Widget child;
-  final Color? baseColor;
-  final Color? highlightColor;
 
   const ShimmerLoading({
-    super.key,
-    required this.child,
+    required this.child, super.key,
     this.baseColor,
     this.highlightColor,
   });
+  final Widget child;
+  final Color? baseColor;
+  final Color? highlightColor;
 
   @override
   Widget build(BuildContext context) {
@@ -152,8 +148,8 @@ class ShimmerLoading extends StatelessWidget {
       gradient: LinearGradient(
         colors: [resolvedBaseColor, resolvedHighlightColor, resolvedBaseColor],
         stops: const [0.0, 0.5, 1.0],
-        begin: const Alignment(-1.0, -0.3),
-        end: const Alignment(1.0, 0.3),
+        begin: const Alignment(-1, -0.3),
+        end: const Alignment(1, 0.3),
       ),
       child: child,
     );

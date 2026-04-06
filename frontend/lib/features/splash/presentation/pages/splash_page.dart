@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
-import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
+import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 
 /// Minimal splash page that immediately redirects
 /// The native splash screen (with app icon) is shown during Flutter initialization
@@ -29,7 +27,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     });
   }
 
-  void _navigateToNextScreen() async {
+  Future<void> _navigateToNextScreen() async {
     if (!mounted) return;
 
     // Request notification permission for media controls (Android 13+ / iOS)
@@ -60,8 +58,6 @@ class _SplashPageState extends ConsumerState<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       body: GlassBackground(
         theme: GlassBackgroundTheme.neutral,
@@ -72,7 +68,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
             child: CircularProgressIndicator(
               strokeWidth: 3,
               valueColor: AlwaysStoppedAnimation<Color>(
-                isDark ? AppColors.riverAccent : AppColors.primary,
+                Theme.of(context).colorScheme.primary,
               ),
             ),
           ),

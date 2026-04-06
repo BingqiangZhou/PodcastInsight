@@ -45,7 +45,7 @@ final class CountrySelectorNotifierProvider
 }
 
 String _$countrySelectorNotifierHash() =>
-    r'1718547545d4f819c0e4bddf1d0684708ca34d07';
+    r'a65bbed8ac9754d9ef3b9d9ece51cbc30b9f9902';
 
 /// 国家选择器 Notifier
 

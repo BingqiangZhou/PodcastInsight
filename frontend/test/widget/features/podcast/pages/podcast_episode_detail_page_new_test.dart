@@ -113,24 +113,24 @@ Widget _createWidget({required PodcastEpisodeModel? episode}) {
     overrides: [
       audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
       episodeDetailProvider.overrideWith((ref, episodeId) async => episode),
-      summaryProvider(1).overrideWith(() => _SummaryWithContentNotifier()),
+      summaryProvider(1).overrideWith(_SummaryWithContentNotifier.new),
       transcriptionProvider(
         1,
       ).overrideWith(() => _NoopTranscriptionNotifier(1)),
       conversationProvider(
         1,
-      ).overrideWith(() => _ConversationWithoutMessagesNotifier()),
-      sessionListProvider(1).overrideWith(() => _EmptySessionListNotifier()),
+      ).overrideWith(_ConversationWithoutMessagesNotifier.new),
+      sessionListProvider(1).overrideWith(_EmptySessionListNotifier.new),
       currentSessionIdProvider(
         1,
-      ).overrideWith(() => _NullSessionIdNotifier()),
+      ).overrideWith(_NullSessionIdNotifier.new),
       availableModelsProvider.overrideWith((ref) async => <SummaryModelInfo>[]),
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: const PodcastEpisodeDetailPage(episodeId: 1),
+      locale: Locale('en'),
+      home: PodcastEpisodeDetailPage(episodeId: 1),
     ),
   );
 }
@@ -149,7 +149,6 @@ PodcastEpisodeModel _episode() {
     publishedAt: now,
     aiSummary: 'summary',
     transcriptContent: 'Transcript content',
-    status: 'published',
     metadata: const {'podcast_title': 'Test Podcast'},
     createdAt: now,
     updatedAt: now,
@@ -212,7 +211,7 @@ class _ConversationWithoutMessagesNotifier extends ConversationNotifier {
 
   @override
   ConversationState build() {
-    return const ConversationState(messages: []);
+    return const ConversationState();
   }
 }
 

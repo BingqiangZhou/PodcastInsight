@@ -25,7 +25,7 @@ class RetryInterceptor extends Interceptor {
   static const int _maxRetryKeys = 50;
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
     final retryKey = _getRetryKey(err.requestOptions);
     final currentAttempt = _retryAttempts[retryKey] ?? 0;
 
@@ -35,7 +35,7 @@ class RetryInterceptor extends Interceptor {
       _evictRetryKeysIfNeeded();
 
       // Respect Retry-After header for 429 responses
-      Duration delay = _options.getDelay(currentAttempt);
+      var delay = _options.getDelay(currentAttempt);
       final statusCode = err.response?.statusCode;
       if (statusCode == 429) {
         final retryAfterHeader =
@@ -82,7 +82,7 @@ class RetryInterceptor extends Interceptor {
   }
 
   String _getRetryKey(RequestOptions options) {
-    return '${options.method}:${options.path}:${options.queryParameters.toString()}';
+    return '${options.method}:${options.path}:${options.queryParameters}';
   }
 
   void _evictRetryKeysIfNeeded() {

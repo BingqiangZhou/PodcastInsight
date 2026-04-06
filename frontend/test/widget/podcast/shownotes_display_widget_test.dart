@@ -8,8 +8,8 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/show
 
 void main() {
   group('ShownotesDisplayWidget Widget Tests', () {
-    final testPublishedAt = DateTime(2024, 1, 1);
-    final testCreatedAt = DateTime(2024, 1, 1);
+    final testPublishedAt = DateTime(2024);
+    final testCreatedAt = DateTime(2024);
 
     Future<void> pumpShownotes(
       WidgetTester tester,
@@ -46,7 +46,7 @@ void main() {
     testWidgets('renders empty state when no description is provided', (
       tester,
     ) async {
-      await pumpShownotes(tester, buildEpisode(description: null));
+      await pumpShownotes(tester, buildEpisode());
       final context = tester.element(find.byType(ShownotesDisplayWidget));
       final l10n = AppLocalizations.of(context)!;
 
@@ -98,7 +98,7 @@ void main() {
         titleStyle.fontFamilyFallback,
         equals(expectedStyle?.fontFamilyFallback),
       );
-      expect(titleStyle.fontSize, 18);
+      expect(titleStyle.fontSize, 22.0);
       expect(titleStyle.fontWeight, FontWeight.bold);
     });
 
@@ -107,7 +107,7 @@ void main() {
     ) async {
       await pumpShownotes(
         tester,
-        buildEpisode(description: null, aiSummary: 'AI Generated Summary'),
+        buildEpisode(aiSummary: 'AI Generated Summary'),
       );
       final context = tester.element(find.byType(ShownotesDisplayWidget));
       final l10n = AppLocalizations.of(context)!;

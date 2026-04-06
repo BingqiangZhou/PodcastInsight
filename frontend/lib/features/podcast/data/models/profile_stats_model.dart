@@ -1,13 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class ProfileStatsModel extends Equatable {
-  final int totalSubscriptions;
-  final int totalEpisodes;
-  final int summariesGenerated;
-  final int pendingSummaries;
-  final int playedEpisodes;
-  final String? latestDailyReportDate;
-  final int totalHighlights;
 
   const ProfileStatsModel({
     required this.totalSubscriptions,
@@ -30,6 +23,13 @@ class ProfileStatsModel extends Equatable {
       totalHighlights: (json['total_highlights'] as num?)?.toInt() ?? 0,
     );
   }
+  final int totalSubscriptions;
+  final int totalEpisodes;
+  final int summariesGenerated;
+  final int pendingSummaries;
+  final int playedEpisodes;
+  final String? latestDailyReportDate;
+  final int totalHighlights;
 
   @override
   List<Object?> get props => [

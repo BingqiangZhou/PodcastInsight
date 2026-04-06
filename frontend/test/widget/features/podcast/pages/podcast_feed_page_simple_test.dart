@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_feed_page.dart';
-import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 
 class _TestPodcastFeedNotifier extends PodcastFeedNotifier {
@@ -33,7 +33,7 @@ class _TestPodcastFeedNotifier extends PodcastFeedNotifier {
 
 class _TestAuthNotifier extends AuthNotifier {
   @override
-  AuthState build() => const AuthState(isAuthenticated: false);
+  AuthState build() => const AuthState();
 }
 
 void main() {
@@ -93,11 +93,12 @@ void main() {
     }
 
     testWidgets('renders with localized page title and page structure', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
+      await tester.pump(const Duration(seconds: 1));
 
       final l10n = AppLocalizations.of(
         tester.element(find.byType(PodcastFeedPage)),
@@ -109,11 +110,11 @@ void main() {
       final viewportClip = tester.widget<ClipRRect>(
         find.byKey(const Key('content_shell_viewport_clip')),
       );
-      expect(viewportClip.borderRadius, BorderRadius.circular(16));
+      expect(viewportClip.borderRadius, BorderRadius.circular(14));
     });
 
     testWidgets('displays mock data on mobile screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(360, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -124,7 +125,7 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(
         find.text('The Future of AI in Software Development'),
@@ -133,11 +134,11 @@ void main() {
       expect(find.text('Building Scalable Microservices'), findsOneWidget);
       expect(find.text('The Psychology of Product Design'), findsOneWidget);
 
-      expect(find.byType(Card), findsWidgets);
+      expect(find.byType(SurfaceCard), findsWidgets);
     });
 
     testWidgets('displays mock data on desktop screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1200, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -148,7 +149,7 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(
         find.text('The Future of AI in Software Development'),
@@ -156,11 +157,11 @@ void main() {
       );
       expect(find.text('Building Scalable Microservices'), findsOneWidget);
 
-      expect(find.byType(Card), findsWidgets);
+      expect(find.byType(SurfaceCard), findsWidgets);
     });
 
     testWidgets('has no overflow errors on small screens', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(320, 480);
       tester.view.devicePixelRatio = 1.0;
@@ -171,14 +172,14 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(tester.takeException(), isNull);
 
-      expect(find.byType(Card), findsWidgets);
+      expect(find.byType(SurfaceCard), findsWidgets);
     });
 
-    testWidgets('cards contain play buttons', (WidgetTester tester) async {
+    testWidgets('cards contain play buttons', (tester) async {
       tester.view.physicalSize = const Size(800, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -188,13 +189,13 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // BaseEpisodeCard uses play_circle_outline icon
       expect(find.byIcon(Icons.play_circle_outline), findsWidgets);
     });
 
-    testWidgets('cards contain metadata icons', (WidgetTester tester) async {
+    testWidgets('cards contain metadata icons', (tester) async {
       tester.view.physicalSize = const Size(800, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -204,7 +205,7 @@ void main() {
         wrapWidget(const PodcastFeedPage(), feedState: createFeedState()),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.byIcon(Icons.calendar_today_outlined), findsWidgets);
       expect(find.byIcon(Icons.schedule), findsWidgets);

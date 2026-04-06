@@ -2400,6 +2400,15 @@
     "@downloads_completed_title":  {
                                            "description":  "Section title for completed downloads"
                                        },
+    "downloads_items":  "{count, plural, one{1 download} other{{count} downloads}}",
+    "@downloads_items":  {
+                                    "description":  "Download count subtitle",
+                                    "placeholders":  {
+                                        "count":  {
+                                            "type":  "int"
+                                        }
+                                    }
+                                },
     "appearance_title":  "Appearance",
     "@appearance_title":  {
                                     "description":  "Title for the Appearance settings page"

@@ -1,17 +1,16 @@
 import 'package:dio/dio.dart';
-import 'package:retrofit/retrofit.dart';
-
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/playback_history_lite_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_daily_report_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/schedule_config_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_transcription_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/profile_stats_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/playback_history_lite_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/schedule_config_model.dart';
+import 'package:retrofit/retrofit.dart';
 
 part 'podcast_api_service.g.dart';
 

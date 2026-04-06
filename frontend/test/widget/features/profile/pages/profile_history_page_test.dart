@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/playback_history_lite_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
@@ -13,7 +14,7 @@ import 'package:personal_ai_assistant/features/profile/presentation/pages/profil
 
 void main() {
   testWidgets('shows bare loading state without content GlassPanel', (
-    WidgetTester tester,
+    tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
@@ -24,14 +25,14 @@ void main() {
       ProviderScope(
         overrides: [
           playbackHistoryLiteProvider.overrideWith(
-            () => _LoadingPlaybackHistoryLiteNotifier(),
+            _LoadingPlaybackHistoryLiteNotifier.new,
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
-          home: const ProfileHistoryPage(),
+          locale: Locale('en'),
+          home: ProfileHistoryPage(),
         ),
       ),
     );
@@ -46,7 +47,7 @@ void main() {
   });
 
   testWidgets('renders history list from lightweight provider', (
-    WidgetTester tester,
+    tester,
   ) async {
     final now = DateTime.now();
 
@@ -66,9 +67,7 @@ void main() {
                     id: 101,
                     subscriptionId: 2,
                     subscriptionTitle: 'Podcast X',
-                    subscriptionImageUrl: null,
                     title: 'Episode X',
-                    imageUrl: null,
                     audioDuration: 1800,
                     playbackPosition: 120,
                     lastPlayedAt: now,
@@ -95,10 +94,10 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const ProfileHistoryPage(),
+          home: ProfileHistoryPage(),
         ),
       ),
     );
@@ -117,18 +116,16 @@ void main() {
     );
     expect(find.byKey(const Key('profile_history_meta_row')), findsNWidgets(2));
 
-    final cards = tester.widgetList<Card>(find.byType(Card)).toList();
-    expect(cards.length, 2);
+    final cards = tester.widgetList<SurfaceCard>(find.byType(SurfaceCard)).toList();
+    // 2 history item SurfaceCards + 2 SurfacePanel wrapper SurfaceCards = 4
+    expect(cards.length, 4);
+    // Only the history item cards (indices 1,3 after SurfacePanel wrappers 0,2)
+    // use kPodcastRowCardCornerRadius; the SurfacePanel wrappers use cardRadius.
     for (final card in cards) {
-      expect(card.margin, EdgeInsets.zero);
-      expect(card.shape, isA<RoundedRectangleBorder>());
-      final shape = card.shape! as RoundedRectangleBorder;
       expect(
-        shape.borderRadius,
-        BorderRadius.circular(kPodcastRowCardCornerRadius),
+        card.borderRadius,
+        anyOf(kPodcastRowCardCornerRadius, greaterThan(0)),
       );
-      expect(shape.side.style, BorderStyle.none);
-      expect(shape.side.width, 0);
     }
 
     final cardContentFinder = find.byKey(

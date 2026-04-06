@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 
 class PodcastEmptyState extends StatelessWidget {
   const PodcastEmptyState({
-    super.key,
-    required this.icon,
-    required this.title,
+    required this.icon, required this.title, super.key,
     this.subtitle,
     this.padding = EdgeInsets.zero,
     this.titleStyle,

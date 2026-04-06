@@ -1,10 +1,9 @@
 import 'dart:collection';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
 import 'package:personal_ai_assistant/features/podcast/data/utils/podcast_url_utils.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
@@ -112,8 +111,6 @@ class PodcastSubscriptionNotifier extends Notifier<PodcastSubscriptionState> {
   Future<void> refreshSubscriptions({int? categoryId, String? status}) async {
     state = const PodcastSubscriptionState();
     await loadSubscriptions(
-      page: 1,
-      size: 10,
       categoryId: categoryId,
       status: status,
     );

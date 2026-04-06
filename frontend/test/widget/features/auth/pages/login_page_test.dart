@@ -11,8 +11,7 @@ class MockAuthNotifier extends AuthNotifier {
   @override
   AuthState build() {
     return const AuthState(
-      isLoading: false,
-      isAuthenticated: false,
+      
     );
   }
 }
@@ -36,10 +35,10 @@ void main() {
     Widget createTestWidget() {
       return UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const LoginPage(),
+          home: LoginPage(),
         ),
       );
     }

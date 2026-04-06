@@ -160,24 +160,24 @@ Widget _createWidget({
       episodeDetailProvider.overrideWith(
         (ref, episodeId) async => resolvedDetail,
       ),
-      summaryProvider(1).overrideWith(() => _SummaryWithContentNotifier()),
+      summaryProvider(1).overrideWith(_SummaryWithContentNotifier.new),
       transcriptionProvider(
         1,
       ).overrideWith(() => _NoopTranscriptionNotifier(1)),
       conversationProvider(
         1,
-      ).overrideWith(() => _ConversationWithoutMessagesNotifier()),
-      sessionListProvider(1).overrideWith(() => _EmptySessionListNotifier()),
+      ).overrideWith(_ConversationWithoutMessagesNotifier.new),
+      sessionListProvider(1).overrideWith(_EmptySessionListNotifier.new),
       currentSessionIdProvider(
         1,
-      ).overrideWith(() => _NullSessionIdNotifier()),
+      ).overrideWith(_NullSessionIdNotifier.new),
       availableModelsProvider.overrideWith((ref) async => <SummaryModelInfo>[]),
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: const PodcastPlayerLayoutFrame(
+      locale: Locale('en'),
+      home: PodcastPlayerLayoutFrame(
         child: PodcastEpisodeDetailPage(episodeId: 1),
       ),
     ),
@@ -196,7 +196,6 @@ PodcastEpisodeModel _detail({int? playbackPosition}) {
     publishedAt: now,
     aiSummary: 'summary',
     transcriptContent: 'Transcript content',
-    status: 'published',
     playbackPosition: playbackPosition,
     createdAt: now,
     updatedAt: now,
@@ -269,7 +268,7 @@ class _ConversationWithoutMessagesNotifier extends ConversationNotifier {
   _ConversationWithoutMessagesNotifier() : super(1);
 
   @override
-  ConversationState build() => const ConversationState(messages: []);
+  ConversationState build() => const ConversationState();
 }
 
 class _EmptySessionListNotifier extends SessionListNotifier {

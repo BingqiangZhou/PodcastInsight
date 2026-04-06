@@ -2,28 +2,16 @@ import 'package:equatable/equatable.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 
 class PlaybackHistoryLiteItem extends Equatable {
-  final int id;
-  final int subscriptionId;
-  final String? subscriptionTitle;
-  final String? subscriptionImageUrl;
-  final String title;
-  final String? imageUrl;
-  final int? audioDuration;
-  final int? playbackPosition;
-  final DateTime? lastPlayedAt;
-  final DateTime publishedAt;
 
   const PlaybackHistoryLiteItem({
     required this.id,
     required this.subscriptionId,
-    this.subscriptionTitle,
+    required this.title, required this.publishedAt, this.subscriptionTitle,
     this.subscriptionImageUrl,
-    required this.title,
     this.imageUrl,
     this.audioDuration,
     this.playbackPosition,
     this.lastPlayedAt,
-    required this.publishedAt,
   });
 
   factory PlaybackHistoryLiteItem.fromJson(Map<String, dynamic> json) {
@@ -43,6 +31,16 @@ class PlaybackHistoryLiteItem extends Equatable {
           DateTime.tryParse(json['published_at'] as String) ?? DateTime(1970),
     );
   }
+  final int id;
+  final int subscriptionId;
+  final String? subscriptionTitle;
+  final String? subscriptionImageUrl;
+  final String title;
+  final String? imageUrl;
+  final int? audioDuration;
+  final int? playbackPosition;
+  final DateTime? lastPlayedAt;
+  final DateTime publishedAt;
 
   String get formattedDuration {
     final duration = audioDuration;
@@ -66,11 +64,6 @@ class PlaybackHistoryLiteItem extends Equatable {
 }
 
 class PlaybackHistoryLiteResponse extends Equatable {
-  final List<PlaybackHistoryLiteItem> episodes;
-  final int total;
-  final int page;
-  final int size;
-  final int pages;
 
   const PlaybackHistoryLiteResponse({
     required this.episodes,
@@ -95,6 +88,11 @@ class PlaybackHistoryLiteResponse extends Equatable {
       pages: (json['pages'] as num?)?.toInt() ?? 0,
     );
   }
+  final List<PlaybackHistoryLiteItem> episodes;
+  final int total;
+  final int page;
+  final int size;
+  final int pages;
 
   @override
   List<Object?> get props => [episodes, total, page, size, pages];

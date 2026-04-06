@@ -1,13 +1,13 @@
+import 'package:dio/dio.dart';
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/services/podcast_api_service.dart';
 import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
+import 'package:personal_ai_assistant/features/podcast/data/services/podcast_api_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
 
 void main() {
   test('summary polling stops after episode detail is updated', () {
@@ -27,7 +27,7 @@ void main() {
       final provider = summaryProvider(1001);
       final subscription = container.listen(
         provider,
-        (_, __) {},
+        (_, _) {},
         fireImmediately: true,
       );
       addTearDown(() {
@@ -87,7 +87,7 @@ void main() {
         final provider = summaryProvider(1002);
         final subscription = container.listen(
           provider,
-          (_, __) {},
+          (_, _) {},
           fireImmediately: true,
         );
         addTearDown(() {
@@ -179,7 +179,7 @@ void main() {
       final provider = summaryProvider(1004);
       final subscription = container.listen(
         provider,
-        (_, __) {},
+        (_, _) {},
         fireImmediately: true,
       );
       addTearDown(() {

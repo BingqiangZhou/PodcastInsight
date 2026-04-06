@@ -2355,6 +2355,15 @@
     "@downloads_completed_title":  {
                                            "description":  "已下载区域标题"
                                        },
+    "downloads_items":  "{count} 个下载",
+    "@downloads_items":  {
+                                    "description":  "下载数量副标题",
+                                    "placeholders":  {
+                                        "count":  {
+                                            "type":  "int"
+                                        }
+                                    }
+                                },
     "appearance_title":  "外观",
     "@appearance_title":  {
                                     "description":  "外观设置页面标题"

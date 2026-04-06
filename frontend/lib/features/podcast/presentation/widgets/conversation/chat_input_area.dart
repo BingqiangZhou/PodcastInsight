@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 
@@ -11,14 +9,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 /// and disables input when no summary is available.
 class ChatInputArea extends StatelessWidget {
   const ChatInputArea({
-    super.key,
-    required this.controller,
-    required this.focusNode,
-    required this.inputTextNotifier,
-    required this.isReady,
-    required this.isSending,
-    required this.hasSummary,
-    required this.onSend,
+    required this.controller, required this.focusNode, required this.inputTextNotifier, required this.isReady, required this.isSending, required this.hasSummary, required this.onSend, super.key,
   });
 
   final TextEditingController controller;
@@ -34,11 +25,14 @@ class ChatInputArea extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
     final extension = appThemeOf(context);
-    return GlassContainer(
-      tier: GlassTier.medium,
-      borderRadius: 0,
+    const gradient = LinearGradient(
+      colors: AppColors.violetColors,
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+    return Container(
+      color: const Color(0xFF252540),
       padding: const EdgeInsets.all(16),
       child: SafeArea(
       top: false,
@@ -50,7 +44,7 @@ class ChatInputArea extends StatelessWidget {
                 focusNode: focusNode,
                 enabled: isReady && hasSummary,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface,
+                  color: AppColors.darkOnBackground,
                 ),
                 cursorColor: scheme.primary,
                 maxLines: null,
@@ -61,20 +55,23 @@ class ChatInputArea extends StatelessWidget {
                   hintText: !hasSummary
                       ? l10n.podcast_conversation_no_summary_hint
                       : l10n.podcast_conversation_send_hint,
+                  hintStyle: const TextStyle(color: AppColors.darkOnSurfaceMuted),
+                  filled: true,
+                  fillColor: Colors.transparent,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(extension.pillRadius),
-                    borderSide: BorderSide(
-                      color: scheme.outline,
+                    borderRadius: BorderRadius.circular(extension.cardRadius),
+                    borderSide: const BorderSide(
+                      color: AppColors.darkBorder,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(extension.pillRadius),
-                    borderSide: BorderSide(
-                      color: scheme.outline,
+                    borderRadius: BorderRadius.circular(extension.cardRadius),
+                    borderSide: const BorderSide(
+                      color: AppColors.darkBorder,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(extension.pillRadius),
+                    borderRadius: BorderRadius.circular(extension.cardRadius),
                     borderSide: BorderSide(
                       color: scheme.primary,
                       width: 2,
@@ -91,22 +88,32 @@ class ChatInputArea extends StatelessWidget {
             ValueListenableBuilder<String>(
               valueListenable: inputTextNotifier,
               builder: (context, inputText, child) {
-                return IconButton.filled(
-                  onPressed:
-                      (isReady && inputText.trim().isNotEmpty && hasSummary)
-                          ? onSend
-                          : null,
-                  icon: isSending
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: scheme.onSurfaceVariant,
+                final canSend = isReady && inputText.trim().isNotEmpty && hasSummary;
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: canSend ? gradient : null,
+                    color: canSend ? null : AppColors.darkSurfaceVariant,
+                    borderRadius: BorderRadius.circular(extension.cardRadius),
+                  ),
+                  child: IconButton(
+                    onPressed: canSend ? onSend : null,
+                    icon: isSending
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: canSend
+                                  ? AppColors.darkOnBackground
+                                  : AppColors.darkOnSurfaceMuted,
+                            ),
+                          )
+                        : Icon(
+                            Icons.send,
+                            color: canSend
+                                ? AppColors.darkOnBackground
+                                : AppColors.darkOnSurfaceMuted,
                           ),
-                        )
-                      : const Icon(Icons.send),
-                  style: IconButton.styleFrom(
                     padding: const EdgeInsets.all(12),
                   ),
                 );

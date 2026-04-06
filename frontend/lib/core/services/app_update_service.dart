@@ -1,11 +1,12 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:personal_ai_assistant/core/constants/app_constants.dart';
-import 'package:personal_ai_assistant/shared/models/github_release.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/shared/models/github_release.dart';
 
 /// App Update Service
 /// Checks for app updates from GitHub releases.

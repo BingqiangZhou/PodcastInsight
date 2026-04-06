@@ -1763,6 +1763,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get downloads_completed_title => '已下载';
 
   @override
+  String downloads_items(int count) {
+    return '$count 个下载';
+  }
+
+  @override
   String get appearance_title => '外观';
 
   @override

@@ -12,7 +12,6 @@ import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.da
 import 'package:personal_ai_assistant/core/widgets/keyboard_shortcuts.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 
 /// Shell widget for the main tab navigation using StatefulShellRoute.
@@ -20,9 +19,9 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podc
 /// Replaces the old `HomePage` which used local `IndexedStack` + `setState`.
 /// GoRouter's `StatefulNavigationShell` now manages branch state persistence.
 class HomeShellWidget extends ConsumerStatefulWidget {
-  final StatefulNavigationShell navigationShell;
 
-  const HomeShellWidget({super.key, required this.navigationShell});
+  const HomeShellWidget({required this.navigationShell, super.key});
+  final StatefulNavigationShell navigationShell;
 
   @override
   ConsumerState<HomeShellWidget> createState() => _HomeShellWidgetState();
@@ -193,7 +192,6 @@ class _HomeShellWidgetState extends ConsumerState<HomeShellWidget>
         destinations: _buildDestinations(context),
         selectedIndex: widget.navigationShell.currentIndex,
         onDestinationSelected: _handleNavigation,
-        appBar: null,
         floatingActionButton: _buildFloatingActionButton(),
         desktopNavExpanded: _desktopNavExpanded,
         onDesktopNavToggle: () {
@@ -202,7 +200,6 @@ class _HomeShellWidgetState extends ConsumerState<HomeShellWidget>
           });
         },
         body: PodcastPlayerLayoutFrame(
-          includeMiniPlayer: true,
           applyMiniPlayerSafeArea: false,
           child: widget.navigationShell,
         ),

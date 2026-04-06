@@ -1,11 +1,20 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:personal_ai_assistant/core/services/app_update_service.dart';
 import 'package:personal_ai_assistant/shared/models/github_release.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_update_provider.g.dart';
 
 /// App Update State / 应用更新状态
 class AppUpdateState {
+
+  const AppUpdateState({
+    this.isLoading = false,
+    this.latestRelease,
+    this.hasUpdate = false,
+    this.error,
+    this.currentVersion = '0.0.0',
+    this.platformAsset,
+  });
   /// Whether a check is in progress
   final bool isLoading;
 
@@ -26,15 +35,6 @@ class AppUpdateState {
 
   /// Whether the current platform has a downloadable asset
   bool get hasPlatformAsset => platformAsset != null;
-
-  const AppUpdateState({
-    this.isLoading = false,
-    this.latestRelease,
-    this.hasUpdate = false,
-    this.error,
-    this.currentVersion = '0.0.0',
-    this.platformAsset,
-  });
 
   AppUpdateState copyWith({
     bool? isLoading,
@@ -88,7 +88,7 @@ class AppUpdate extends _$AppUpdate {
     bool forceRefresh = false,
     bool includePrerelease = false,
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       final release = await _updateService.checkForUpdates(
@@ -103,7 +103,6 @@ class AppUpdate extends _$AppUpdate {
           isLoading: false,
           latestRelease: release,
           hasUpdate: true,
-          error: null,
           platformAsset: asset,
           clearPlatformAsset: asset == null,
         );
@@ -111,7 +110,6 @@ class AppUpdate extends _$AppUpdate {
         state = state.copyWith(
           isLoading: false,
           hasUpdate: false,
-          error: null,
         );
       }
     } catch (e) {
@@ -130,7 +128,6 @@ class AppUpdate extends _$AppUpdate {
       if (!ref.mounted) return;
       state = state.copyWith(
         hasUpdate: false,
-        latestRelease: null,
       );
     }
   }
@@ -182,15 +179,13 @@ Future<AppUpdateState> autoUpdateCheck(Ref ref) async {
 
   // Perform initial check
   final release = await service.checkForUpdates(
-    forceRefresh: false,
-    includePrerelease: false,
+    
   );
 
   final asset =
       release != null ? service.getAssetForCurrentPlatform(release) : null;
 
   return AppUpdateState(
-    isLoading: false,
     latestRelease: release,
     hasUpdate: release != null,
     currentVersion: currentVersion,
@@ -228,7 +223,7 @@ class ManualUpdateCheck extends _$ManualUpdateCheck {
   }
 
   Future<void> check() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       // Clear skipped version for manual check
@@ -236,7 +231,6 @@ class ManualUpdateCheck extends _$ManualUpdateCheck {
 
       final release = await _updateService.checkForUpdates(
         forceRefresh: true, // Always force refresh on manual check
-        includePrerelease: false,
       );
       if (!ref.mounted) return;
 
@@ -246,7 +240,6 @@ class ManualUpdateCheck extends _$ManualUpdateCheck {
           isLoading: false,
           latestRelease: release,
           hasUpdate: true,
-          error: null,
           platformAsset: asset,
           clearPlatformAsset: asset == null,
         );
@@ -254,7 +247,6 @@ class ManualUpdateCheck extends _$ManualUpdateCheck {
         state = state.copyWith(
           isLoading: false,
           hasUpdate: false,
-          error: null,
         );
       }
     } catch (e) {
@@ -272,7 +264,6 @@ class ManualUpdateCheck extends _$ManualUpdateCheck {
       if (!ref.mounted) return;
       state = state.copyWith(
         hasUpdate: false,
-        latestRelease: null,
       );
     }
   }

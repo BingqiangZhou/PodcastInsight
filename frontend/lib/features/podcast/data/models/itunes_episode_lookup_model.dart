@@ -18,6 +18,27 @@ class ITunesPodcastEpisodeResult {
     this.artworkUrl600,
   });
 
+  factory ITunesPodcastEpisodeResult.fromJson(Map<String, dynamic> json) {
+    return ITunesPodcastEpisodeResult(
+      trackId: (json['trackId'] as num?)?.toInt() ?? 0,
+      collectionId: (json['collectionId'] as num?)?.toInt() ?? 0,
+      trackName: (json['trackName'] as String?)?.trim() ?? '',
+      collectionName: (json['collectionName'] as String?)?.trim() ?? '',
+      feedUrl: (json['feedUrl'] as String?)?.trim(),
+      description: (json['description'] as String?)?.trim(),
+      shortDescription: (json['shortDescription'] as String?)?.trim(),
+      releaseDate: DateTime.tryParse((json['releaseDate'] as String?) ?? ''),
+      episodeUrl: (json['episodeUrl'] as String?)?.trim(),
+      previewUrl: (json['previewUrl'] as String?)?.trim(),
+      trackTimeMillis: (json['trackTimeMillis'] as num?)?.toInt(),
+      trackViewUrl: (json['trackViewUrl'] as String?)?.trim(),
+      artworkUrl60: (json['artworkUrl60'] as String?)?.trim(),
+      artworkUrl100: (json['artworkUrl100'] as String?)?.trim(),
+      artworkUrl160: (json['artworkUrl160'] as String?)?.trim(),
+      artworkUrl600: (json['artworkUrl600'] as String?)?.trim(),
+    );
+  }
+
   final int trackId;
   final int collectionId;
   final String trackName;
@@ -46,27 +67,6 @@ class ITunesPodcastEpisodeResult {
     }
     return null;
   }
-
-  factory ITunesPodcastEpisodeResult.fromJson(Map<String, dynamic> json) {
-    return ITunesPodcastEpisodeResult(
-      trackId: (json['trackId'] as num?)?.toInt() ?? 0,
-      collectionId: (json['collectionId'] as num?)?.toInt() ?? 0,
-      trackName: (json['trackName'] as String?)?.trim() ?? '',
-      collectionName: (json['collectionName'] as String?)?.trim() ?? '',
-      feedUrl: (json['feedUrl'] as String?)?.trim(),
-      description: (json['description'] as String?)?.trim(),
-      shortDescription: (json['shortDescription'] as String?)?.trim(),
-      releaseDate: DateTime.tryParse((json['releaseDate'] as String?) ?? ''),
-      episodeUrl: (json['episodeUrl'] as String?)?.trim(),
-      previewUrl: (json['previewUrl'] as String?)?.trim(),
-      trackTimeMillis: (json['trackTimeMillis'] as num?)?.toInt(),
-      trackViewUrl: (json['trackViewUrl'] as String?)?.trim(),
-      artworkUrl60: (json['artworkUrl60'] as String?)?.trim(),
-      artworkUrl100: (json['artworkUrl100'] as String?)?.trim(),
-      artworkUrl160: (json['artworkUrl160'] as String?)?.trim(),
-      artworkUrl600: (json['artworkUrl600'] as String?)?.trim(),
-    );
-  }
 }
 
 class ITunesPodcastLookupResult {
@@ -78,22 +78,6 @@ class ITunesPodcastLookupResult {
     required this.collectionViewUrl,
     required this.episodes,
   });
-
-  final int showId;
-  final String? collectionName;
-  final String? artistName;
-  final String? feedUrl;
-  final String? collectionViewUrl;
-  final List<ITunesPodcastEpisodeResult> episodes;
-
-  ITunesPodcastEpisodeResult? findEpisodeByTrackId(int trackId) {
-    for (final episode in episodes) {
-      if (episode.trackId == trackId) {
-        return episode;
-      }
-    }
-    return null;
-  }
 
   factory ITunesPodcastLookupResult.fromLookupJson(
     Map<String, dynamic> json, {
@@ -128,5 +112,21 @@ class ITunesPodcastLookupResult {
       collectionViewUrl: (showEntry['collectionViewUrl'] as String?)?.trim(),
       episodes: episodes,
     );
+  }
+
+  final int showId;
+  final String? collectionName;
+  final String? artistName;
+  final String? feedUrl;
+  final String? collectionViewUrl;
+  final List<ITunesPodcastEpisodeResult> episodes;
+
+  ITunesPodcastEpisodeResult? findEpisodeByTrackId(int trackId) {
+    for (final episode in episodes) {
+      if (episode.trackId == trackId) {
+        return episode;
+      }
+    }
+    return null;
   }
 }

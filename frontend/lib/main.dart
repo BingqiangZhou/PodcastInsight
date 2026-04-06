@@ -7,17 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:personal_ai_assistant/core/app/app.dart';
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
-import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/theme/font_provider.dart';
+import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/features/auth/presentation/providers/onboarding_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/audio_handler.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runZonedGuarded(
@@ -61,10 +60,8 @@ void main() {
             androidNotificationChannelName: 'Podcast Playback',
             androidNotificationChannelDescription:
                 'Podcast audio playback controls',
-            androidNotificationIcon: 'mipmap/ic_launcher',
             androidShowNotificationBadge: true,
             androidStopForegroundOnPause: false,
-            androidResumeOnClick: true,
           ),
         );
         logger.AppLogger.info('AudioService initialized (mobile platform)');

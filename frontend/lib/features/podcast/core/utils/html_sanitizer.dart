@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:html/parser.dart' as parser;
 import 'package:html/dom.dart' as dom;
+import 'package:html/parser.dart' as parser;
 
 /// HTML Sanitizer utility for podcast shownotes
 ///
@@ -322,7 +322,7 @@ class HtmlSanitizer {
 
     var cleaned = input;
     final patterns = <RegExp>[
-      RegExp(r'<thinking>.*?</thinking>', caseSensitive: false, dotAll: true),
+      RegExp('<thinking>.*?</thinking>', caseSensitive: false, dotAll: true),
       RegExp(r'<think\b[^>]*>.*?</think\b[^>]*>', caseSensitive: false, dotAll: true),
     ];
 

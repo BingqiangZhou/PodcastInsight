@@ -28,7 +28,7 @@ final podcastRepositoryProvider = Provider<PodcastRepository>((ref) {
 /// audio playback. It is disposed when the provider scope is disposed.
 final audioHandlerProvider = Provider<PodcastAudioHandler>((ref) {
   final handler = PodcastAudioHandler();
-  ref.onDispose(() => handler.stopService());
+  ref.onDispose(handler.stopService);
   return handler;
 });
 

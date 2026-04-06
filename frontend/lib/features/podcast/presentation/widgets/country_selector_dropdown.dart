@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
 
@@ -36,7 +37,7 @@ class _CountrySelectorDropdownState
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -123,11 +124,11 @@ class _CountrySelectorDropdownState
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
         child: Ink(
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
           ),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),

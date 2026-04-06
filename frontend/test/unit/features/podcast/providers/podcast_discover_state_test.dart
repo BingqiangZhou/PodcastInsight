@@ -48,12 +48,10 @@ void main() {
       const a = PodcastDiscoverPaginationState(
         loadedCount: 10,
         isLoadingMore: true,
-        hasMore: false,
       );
       const b = PodcastDiscoverPaginationState(
         loadedCount: 10,
         isLoadingMore: true,
-        hasMore: false,
       );
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -176,7 +174,7 @@ void main() {
           isFalse,
         );
         expect(
-          state.isDataFresh(cacheDuration: const Duration(minutes: 5)),
+          state.isDataFresh(),
           isTrue,
         );
       });
@@ -253,7 +251,7 @@ void main() {
         final state = defaultState().copyWith(
           selectedTab: PodcastDiscoverTab.episodes,
           episodesPagination: const PodcastDiscoverPaginationState(
-            isLoadingMore: false,
+            
           ),
         );
         expect(state.isCurrentTabLoadingMore, isFalse);
@@ -274,7 +272,7 @@ void main() {
       test('returns false when hasMore is false', () {
         final state = defaultState().copyWith(
           selectedTab: PodcastDiscoverTab.podcasts,
-          showsPagination: const PodcastDiscoverPaginationState(hasMore: false),
+          showsPagination: const PodcastDiscoverPaginationState(),
         );
         expect(state.currentTabHasMore, isFalse);
       });
@@ -414,7 +412,6 @@ void main() {
         final a = PodcastDiscoverState(
           country: PodcastCountry.usa,
           isLoading: true,
-          isRefreshing: false,
           error: 'err',
           selectedTab: PodcastDiscoverTab.podcasts,
           selectedCategory: 'Tech',
@@ -431,7 +428,6 @@ void main() {
         final b = PodcastDiscoverState(
           country: PodcastCountry.usa,
           isLoading: true,
-          isRefreshing: false,
           error: 'err',
           selectedTab: PodcastDiscoverTab.podcasts,
           selectedCategory: 'Tech',

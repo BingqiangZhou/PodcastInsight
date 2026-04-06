@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_ai_assistant/core/glass/surface_card.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 
 void main() {
   group('SurfaceCard', () {
     group('Rendering', () {
-      testWidgets('renders child widget', (WidgetTester tester) async {
+      testWidgets('renders child widget', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SurfaceCard(
-                child: const Text('Test content'),
+                child: Text('Test content'),
               ),
             ),
           ),
@@ -20,12 +21,12 @@ void main() {
       });
 
       testWidgets('applies default border radius of 16',
-          (WidgetTester tester) async {
+          (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SurfaceCard(
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -38,18 +39,18 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
-        final borderRadius = decoration.borderRadius as BorderRadius;
+        final decoration = container.decoration! as BoxDecoration;
+        final borderRadius = decoration.borderRadius! as BorderRadius;
         expect(borderRadius.topLeft.x, 16);
       });
 
-      testWidgets('applies custom border radius', (WidgetTester tester) async {
+      testWidgets('applies custom border radius', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SurfaceCard(
                 borderRadius: 24,
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -62,18 +63,18 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
-        final borderRadius = decoration.borderRadius as BorderRadius;
+        final decoration = container.decoration! as BoxDecoration;
+        final borderRadius = decoration.borderRadius! as BorderRadius;
         expect(borderRadius.topLeft.x, 24);
       });
 
-      testWidgets('applies padding when provided', (WidgetTester tester) async {
+      testWidgets('applies padding when provided', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SurfaceCard(
-                padding: const EdgeInsets.all(16),
-                child: const Text('Test'),
+                padding: EdgeInsets.all(16),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -97,17 +98,17 @@ void main() {
         );
 
         expect(clipRRect.child, isA<Padding>());
-        final padding = clipRRect.child as Padding;
+        final padding = clipRRect.child! as Padding;
         expect(padding.padding, const EdgeInsets.all(16));
       });
 
       testWidgets('renders without padding when not provided',
-          (WidgetTester tester) async {
+          (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SurfaceCard(
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -127,15 +128,15 @@ void main() {
     });
 
     group('Variants', () {
-      testWidgets('normal variant uses secondarySystemGroupedBackground in light mode',
-          (WidgetTester tester) async {
+      testWidgets('normal variant uses card tier fill in light mode',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
-            home: Scaffold(
+            home: const Scaffold(
               body: SurfaceCard(
                 variant: SurfaceCardVariant.normal,
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -148,19 +149,20 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
-        expect(decoration.color, const Color(0xFFFFFFFF));
+        final decoration = container.decoration! as BoxDecoration;
+        // normal variant maps to CardTier.card → lightCardTierFill
+        expect(decoration.color, AppColors.lightCardTierFill);
       });
 
-      testWidgets('normal variant uses secondarySystemGroupedBackground in dark mode',
-          (WidgetTester tester) async {
+      testWidgets('normal variant uses card tier fill in dark mode',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
-            home: Scaffold(
+            home: const Scaffold(
               body: SurfaceCard(
                 variant: SurfaceCardVariant.normal,
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -173,19 +175,20 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
-        expect(decoration.color, const Color(0xFF1C1C1E));
+        final decoration = container.decoration! as BoxDecoration;
+        // normal variant maps to CardTier.card → cardTierFill
+        expect(decoration.color, AppColors.cardTierFill);
       });
 
-      testWidgets('elevated variant uses same colors as normal',
-          (WidgetTester tester) async {
+      testWidgets('elevated variant uses elevated tier fill in light mode',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
-            home: Scaffold(
+            home: const Scaffold(
               body: SurfaceCard(
                 variant: SurfaceCardVariant.elevated,
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -198,19 +201,20 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
-        expect(decoration.color, const Color(0xFFFFFFFF));
+        final decoration = container.decoration! as BoxDecoration;
+        // elevated variant maps to CardTier.elevated → lightElevatedTierFill
+        expect(decoration.color, AppColors.lightElevatedTierFill);
       });
 
-      testWidgets('flat variant uses tertiarySystemGroupedBackground in light mode',
-          (WidgetTester tester) async {
+      testWidgets('flat variant uses surface tier fill in light mode',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
-            home: Scaffold(
+            home: const Scaffold(
               body: SurfaceCard(
                 variant: SurfaceCardVariant.flat,
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -223,19 +227,20 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
-        expect(decoration.color, const Color(0xFFF2F2F7));
+        final decoration = container.decoration! as BoxDecoration;
+        // flat variant maps to CardTier.surface → lightSurfaceTierFill
+        expect(decoration.color, AppColors.lightSurfaceTierFill);
       });
 
-      testWidgets('flat variant uses tertiarySystemGroupedBackground in dark mode',
-          (WidgetTester tester) async {
+      testWidgets('flat variant uses surface tier fill in dark mode',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
-            home: Scaffold(
+            home: const Scaffold(
               body: SurfaceCard(
                 variant: SurfaceCardVariant.flat,
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -248,20 +253,21 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
-        expect(decoration.color, const Color(0xFF2C2C2E));
+        final decoration = container.decoration! as BoxDecoration;
+        // flat variant maps to CardTier.surface → surfaceTierFill
+        expect(decoration.color, AppColors.surfaceTierFill);
       });
     });
 
     group('Border', () {
-      testWidgets('applies border with correct color in light mode',
-          (WidgetTester tester) async {
+      testWidgets('applies border with card tier border color in light mode',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
-            home: Scaffold(
+            home: const Scaffold(
               body: SurfaceCard(
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -274,21 +280,21 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
+        final decoration = container.decoration! as BoxDecoration;
         expect(decoration.border, isNotNull);
-        final border = decoration.border as Border;
-        // Border color should be tertiarySystemFill with 12% opacity
-        expect(border.top.color, const Color(0x1E767680));
+        final border = decoration.border! as Border;
+        // Default tier is card → lightCardTierBorder
+        expect(border.top.color, AppColors.lightCardTierBorder);
       });
 
-      testWidgets('applies border with correct color in dark mode',
-          (WidgetTester tester) async {
+      testWidgets('applies border with card tier border color in dark mode',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
-            home: Scaffold(
+            home: const Scaffold(
               body: SurfaceCard(
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -301,20 +307,20 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
+        final decoration = container.decoration! as BoxDecoration;
         expect(decoration.border, isNotNull);
-        final border = decoration.border as Border;
-        // Border color should be tertiarySystemFill with 24% opacity
-        expect(border.top.color, const Color(0x3D767680));
+        final border = decoration.border! as Border;
+        // Default tier is card → cardTierBorder
+        expect(border.top.color, AppColors.cardTierBorder);
       });
 
       testWidgets('applies ClipRRect for border radius',
-          (WidgetTester tester) async {
+          (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SurfaceCard(
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -326,15 +332,15 @@ void main() {
 
     group('Custom Background Color', () {
       testWidgets('uses custom background color when provided',
-          (WidgetTester tester) async {
+          (tester) async {
         const customColor = Color(0xFFFF0000);
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SurfaceCard(
                 backgroundColor: customColor,
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -347,22 +353,22 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
+        final decoration = container.decoration! as BoxDecoration;
         expect(decoration.color, customColor);
       });
 
       testWidgets('custom background color overrides variant color',
-          (WidgetTester tester) async {
+          (tester) async {
         const customColor = Color(0xFF00FF00);
 
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
-            home: Scaffold(
+            home: const Scaffold(
               body: SurfaceCard(
                 variant: SurfaceCardVariant.flat,
                 backgroundColor: customColor,
-                child: const Text('Test'),
+                child: Text('Test'),
               ),
             ),
           ),
@@ -375,9 +381,9 @@ void main() {
           ),
         );
 
-        final decoration = container.decoration as BoxDecoration;
+        final decoration = container.decoration! as BoxDecoration;
         expect(decoration.color, customColor);
-        expect(decoration.color, isNot(const Color(0xFFF2F2F7)));
+        expect(decoration.color, isNot(AppColors.lightSurfaceTierFill));
       });
     });
   });

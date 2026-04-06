@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
+import 'package:riverpod/src/providers/async_notifier.dart';
+import 'package:riverpod/src/providers/notifier.dart';
 
 // === Providers ===
 // All three providers use family.autoDispose for automatic lifecycle management.
@@ -12,21 +14,21 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 // longer watched.
 
 /// Episode-scoped conversation (messages) provider.
-final conversationProvider = NotifierProvider.autoDispose
+final NotifierProviderFamily<ConversationNotifier, ConversationState, int> conversationProvider = NotifierProvider.autoDispose
     .family<ConversationNotifier, ConversationState, int>(
-  (int episodeId) => ConversationNotifier(episodeId),
+  ConversationNotifier.new,
 );
 
 /// Episode-scoped session list provider.
-final sessionListProvider = AsyncNotifierProvider.autoDispose
+final AsyncNotifierProviderFamily<SessionListNotifier, List<ConversationSession>, int> sessionListProvider = AsyncNotifierProvider.autoDispose
     .family<SessionListNotifier, List<ConversationSession>, int>(
-  (int episodeId) => SessionListNotifier(episodeId),
+  SessionListNotifier.new,
 );
 
 /// Episode-scoped current session ID provider.
-final currentSessionIdProvider = NotifierProvider.autoDispose
+final NotifierProviderFamily<SessionIdNotifier, int?, int> currentSessionIdProvider = NotifierProvider.autoDispose
     .family<SessionIdNotifier, int?, int>(
-  (int episodeId) => SessionIdNotifier(episodeId),
+  SessionIdNotifier.new,
 );
 
 class SessionIdNotifier extends Notifier<int?> {
@@ -45,13 +47,7 @@ class SessionIdNotifier extends Notifier<int?> {
 // === State Classes ===
 
 /// Conversation state class
-class ConversationState extends Equatable {
-  final List<PodcastConversationMessage> messages;
-  final bool isLoading;
-  final bool isSending;
-  final String? errorMessage;
-  final int? currentSendingTurn;
-  final int? sessionId; // Active session ID
+class ConversationState extends Equatable { // Active session ID
 
   const ConversationState({
     this.messages = const [],
@@ -61,6 +57,12 @@ class ConversationState extends Equatable {
     this.currentSendingTurn,
     this.sessionId,
   });
+  final List<PodcastConversationMessage> messages;
+  final bool isLoading;
+  final bool isSending;
+  final String? errorMessage;
+  final int? currentSendingTurn;
+  final int? sessionId;
 
   bool get hasError => errorMessage != null;
   bool get hasMessages => messages.isNotEmpty;
@@ -105,9 +107,9 @@ class ConversationState extends Equatable {
 
 /// Notifier for managing the list of sessions
 class SessionListNotifier extends AsyncNotifier<List<ConversationSession>> {
-  final int episodeId;
 
   SessionListNotifier(this.episodeId);
+  final int episodeId;
 
   @override
   Future<List<ConversationSession>> build() async {
@@ -132,7 +134,7 @@ class SessionListNotifier extends AsyncNotifier<List<ConversationSession>> {
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _loadSessions());
+    state = await AsyncValue.guard(_loadSessions);
   }
 
   /// Create a new session and switch to it.
@@ -186,11 +188,11 @@ class SessionListNotifier extends AsyncNotifier<List<ConversationSession>> {
 
 /// Notifier for managing conversation state (messages)
 class ConversationNotifier extends Notifier<ConversationState> {
+
+  ConversationNotifier(this.episodeId);
   final int episodeId;
   Completer<void>? _loadCompleter;
   int? _loadingSessionId;
-
-  ConversationNotifier(this.episodeId);
 
   @override
   ConversationState build() {
@@ -232,14 +234,11 @@ class ConversationNotifier extends Notifier<ConversationState> {
 
       state = ConversationState(
         messages: response.messages,
-        isLoading: false,
         sessionId: sessionId,
       );
       _loadCompleter?.complete();
     } catch (e) {
       state = ConversationState(
-        messages: const [],
-        isLoading: false,
         errorMessage: e.toString(),
         sessionId: sessionId,
       );
@@ -306,8 +305,6 @@ class ConversationNotifier extends Notifier<ConversationState> {
 
       state = ConversationState(
         messages: historyResponse.messages,
-        isSending: false,
-        currentSendingTurn: null,
         sessionId: historyResponse.sessionId ?? sessionId,
       );
     } catch (e) {
@@ -317,8 +314,6 @@ class ConversationNotifier extends Notifier<ConversationState> {
 
       state = ConversationState(
         messages: updatedMessages,
-        isSending: false,
-        currentSendingTurn: null,
         errorMessage: e.toString(),
         sessionId: sessionId,
       );
@@ -338,8 +333,6 @@ class ConversationNotifier extends Notifier<ConversationState> {
       );
 
       state = ConversationState(
-        messages: [],
-        isLoading: false,
         sessionId: sessionId,
       );
     } catch (e) {

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
@@ -18,14 +17,14 @@ class ApplePodcastRssService {
     );
   }
 
+  factory ApplePodcastRssService.ref() {
+    return ApplePodcastRssService();
+  }
+
   final Dio _dio;
   static const Duration _cacheTtl = Duration(minutes: 30);
   static const String _baseUrl = 'https://rss.marketingtools.apple.com/api/v2';
   final Map<String, _CachedChartResponse> _cache = {};
-
-  factory ApplePodcastRssService.ref(Ref ref) {
-    return ApplePodcastRssService();
-  }
 
   Future<ApplePodcastChartResponse> fetchTopShows({
     required PodcastCountry country,

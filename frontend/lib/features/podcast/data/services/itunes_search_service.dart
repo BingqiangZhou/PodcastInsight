@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episode_lookup_model.dart';
@@ -12,13 +11,6 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_searc
 ///
 /// Calls iTunes Search and Lookup APIs directly from frontend.
 class ITunesSearchService {
-  final Dio _dio;
-
-  static const Duration _cacheExpiration = Duration(hours: 1);
-
-  final Map<String, _CachedResponse> _cache = {};
-  final Map<String, _CachedEpisodeSearchResponse> _episodeSearchCache = {};
-  final Map<String, _CachedEpisodeLookupResponse> _episodeLookupCache = {};
 
   ITunesSearchService({Dio? dio}) : _dio = dio ?? Dio() {
     _dio.options = BaseOptions(
@@ -30,9 +22,16 @@ class ITunesSearchService {
     );
   }
 
-  factory ITunesSearchService.ref(Ref ref) {
+  factory ITunesSearchService.ref() {
     return ITunesSearchService();
   }
+  final Dio _dio;
+
+  static const Duration _cacheExpiration = Duration(hours: 1);
+
+  final Map<String, _CachedResponse> _cache = {};
+  final Map<String, _CachedEpisodeSearchResponse> _episodeSearchCache = {};
+  final Map<String, _CachedEpisodeLookupResponse> _episodeLookupCache = {};
 
   Future<ITunesSearchResponse> searchPodcasts({
     required String term,
@@ -78,23 +77,17 @@ class ITunesSearchService {
         case DioExceptionType.connectionTimeout:
           errorMsg =
               'Connection timeout. Please check your network or try using a VPN.';
-          break;
         case DioExceptionType.sendTimeout:
           errorMsg = 'Send timeout. Please try again.';
-          break;
         case DioExceptionType.receiveTimeout:
           errorMsg = 'Receive timeout. Server response too slow.';
-          break;
         case DioExceptionType.badResponse:
           errorMsg = 'Server error: ${dioError.response?.statusCode}';
-          break;
         case DioExceptionType.cancel:
           errorMsg = 'Request was cancelled.';
-          break;
         case DioExceptionType.connectionError:
           errorMsg =
               'Connection failed. iTunes API may be blocked in your region. Try using a VPN.';
-          break;
         default:
           errorMsg = 'Network error: ${dioError.message}';
       }
@@ -154,23 +147,17 @@ class ITunesSearchService {
         case DioExceptionType.connectionTimeout:
           errorMsg =
               'Connection timeout. Please check your network or try using a VPN.';
-          break;
         case DioExceptionType.sendTimeout:
           errorMsg = 'Send timeout. Please try again.';
-          break;
         case DioExceptionType.receiveTimeout:
           errorMsg = 'Receive timeout. Server response too slow.';
-          break;
         case DioExceptionType.badResponse:
           errorMsg = 'Server error: ${dioError.response?.statusCode}';
-          break;
         case DioExceptionType.cancel:
           errorMsg = 'Request was cancelled.';
-          break;
         case DioExceptionType.connectionError:
           errorMsg =
               'Connection failed. iTunes API may be blocked in your region. Try using a VPN.';
-          break;
         default:
           errorMsg = 'Network error: ${dioError.message}';
       }

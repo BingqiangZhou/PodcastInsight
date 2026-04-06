@@ -20,13 +20,13 @@ void main() {
         overrides: [
           conversationProvider(
             1,
-          ).overrideWith(() => _ConversationWithMessagesNotifier()),
+          ).overrideWith(_ConversationWithMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(() => _EmptySessionListNotifier()),
+          ).overrideWith(_EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(() => _NullSessionIdNotifier()),
+          ).overrideWith(_NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -59,13 +59,13 @@ void main() {
         overrides: [
           conversationProvider(
             1,
-          ).overrideWith(() => _ConversationWithMixedMessagesNotifier()),
+          ).overrideWith(_ConversationWithMixedMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(() => _EmptySessionListNotifier()),
+          ).overrideWith(_EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(() => _NullSessionIdNotifier()),
+          ).overrideWith(_NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -102,13 +102,13 @@ void main() {
           overrides: [
             conversationProvider(
               1,
-            ).overrideWith(() => _ConversationWithMessagesNotifier()),
+            ).overrideWith(_ConversationWithMessagesNotifier.new),
             sessionListProvider(
               1,
-            ).overrideWith(() => _EmptySessionListNotifier()),
+            ).overrideWith(_EmptySessionListNotifier.new),
             currentSessionIdProvider(
               1,
-            ).overrideWith(() => _NullSessionIdNotifier()),
+            ).overrideWith(_NullSessionIdNotifier.new),
             availableModelsProvider.overrideWith(
               (ref) async => <SummaryModelInfo>[],
             ),
@@ -158,13 +158,13 @@ void main() {
         overrides: [
           conversationProvider(
             1,
-          ).overrideWith(() => _ConversationWithMessagesNotifier()),
+          ).overrideWith(_ConversationWithMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(() => _EmptySessionListNotifier()),
+          ).overrideWith(_EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(() => _NullSessionIdNotifier()),
+          ).overrideWith(_NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -207,13 +207,13 @@ void main() {
         overrides: [
           conversationProvider(
             1,
-          ).overrideWith(() => _ConversationWithMessagesNotifier()),
+          ).overrideWith(_ConversationWithMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(() => _EmptySessionListNotifier()),
+          ).overrideWith(_EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(() => _NullSessionIdNotifier()),
+          ).overrideWith(_NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -265,13 +265,13 @@ void main() {
           overrides: [
             conversationProvider(
               1,
-            ).overrideWith(() => _ConversationWithMessagesNotifier()),
+            ).overrideWith(_ConversationWithMessagesNotifier.new),
             sessionListProvider(
               1,
-            ).overrideWith(() => _EmptySessionListNotifier()),
+            ).overrideWith(_EmptySessionListNotifier.new),
             currentSessionIdProvider(
               1,
-            ).overrideWith(() => _NullSessionIdNotifier()),
+            ).overrideWith(_NullSessionIdNotifier.new),
             availableModelsProvider.overrideWith(
               (ref) async => _longNameModels,
             ),
@@ -307,13 +307,13 @@ void main() {
         overrides: [
           conversationProvider(
             1,
-          ).overrideWith(() => _ConversationWithMessagesNotifier()),
+          ).overrideWith(_ConversationWithMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(() => _EmptySessionListNotifier()),
+          ).overrideWith(_EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(() => _NullSessionIdNotifier()),
+          ).overrideWith(_NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -359,13 +359,13 @@ void main() {
         overrides: [
           conversationProvider(
             1,
-          ).overrideWith(() => _ConversationWithUserMessageNotifier()),
+          ).overrideWith(_ConversationWithUserMessageNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(() => _EmptySessionListNotifier()),
+          ).overrideWith(_EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(() => _NullSessionIdNotifier()),
+          ).overrideWith(_NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),

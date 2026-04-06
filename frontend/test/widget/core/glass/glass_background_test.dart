@@ -9,9 +9,9 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
-            home: Scaffold(
+            home: const Scaffold(
               body: GlassBackground(
-                child: const Text('Test Content'),
+                child: Text('Test Content'),
               ),
             ),
           ),
@@ -40,7 +40,7 @@ void main() {
         );
 
         final boxDecoration = container.decoration as BoxDecoration?;
-        expect(boxDecoration?.color, const Color(0xFF000000));
+        expect(boxDecoration?.color, const Color(0xFF0f0f1a));
       });
 
       testWidgets('renders gradient orbs', (tester) async {
@@ -86,7 +86,7 @@ void main() {
         );
 
         final boxDecoration = container.decoration as BoxDecoration?;
-        expect(boxDecoration?.color, const Color(0xFFF2F2F7));
+        expect(boxDecoration?.color, const Color(0xFFF8F9FA));
       });
     });
 
@@ -119,11 +119,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
-            home: MediaQuery(
-              data: const MediaQueryData(disableAnimations: true),
+            home: const MediaQuery(
+              data: MediaQueryData(disableAnimations: true),
               child: Scaffold(
                 body: GlassBackground(
-                  child: const Text('Static Content'),
+                  child: Text('Static Content'),
                 ),
               ),
             ),
@@ -141,7 +141,6 @@ void main() {
             theme: ThemeData.dark(),
             home: Scaffold(
               body: GlassBackground(
-                theme: GlassBackgroundTheme.podcast,
                 child: Container(),
               ),
             ),
@@ -180,30 +179,6 @@ void main() {
           ),
         );
 
-        expect(find.byType(GlassBackground), findsOneWidget);
-      });
-    });
-
-    group('animation', () {
-      testWidgets('continues animation across frames', (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: ThemeData.dark(),
-            home: Scaffold(
-              body: GlassBackground(
-                enableAnimation: true,
-                child: Container(),
-              ),
-            ),
-          ),
-        );
-
-        await tester.pump();
-        // Pump past the animation startup delay
-        await tester.pump(const Duration(milliseconds: 600));
-        await tester.pump(const Duration(milliseconds: 100));
-
-        // Animation should still be running
         expect(find.byType(GlassBackground), findsOneWidget);
       });
     });

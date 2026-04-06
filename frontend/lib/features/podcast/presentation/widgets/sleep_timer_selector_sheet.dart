@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
-
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 
 /// Represents the user's sleep timer selection.
 class SleepTimerSelection {
-  /// Duration-based timer (null if after-episode mode).
-  final Duration? duration;
-
-  /// If true, stop after the current episode ends.
-  final bool afterEpisode;
-
-  /// If true, cancel the current timer.
-  final bool cancel;
 
   const SleepTimerSelection({
     this.duration,
@@ -30,6 +21,14 @@ class SleepTimerSelection {
     : duration = null,
       afterEpisode = false,
       cancel = true;
+  /// Duration-based timer (null if after-episode mode).
+  final Duration? duration;
+
+  /// If true, stop after the current episode ends.
+  final bool afterEpisode;
+
+  /// If true, cancel the current timer.
+  final bool cancel;
 }
 
 /// Preset durations for the sleep timer.
@@ -65,7 +64,7 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
       ? context
       : fallbackContext;
   if (resolvedContext == null) {
-    return Future<SleepTimerSelection?>.value(null);
+    return Future<SleepTimerSelection?>.value();
   }
 
   return showAdaptiveSheet<SleepTimerSelection>(

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
+import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/playback_speed_options.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
-import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 
 typedef PlaybackSpeedSheetInitialSelection = ({
   double speed,
@@ -12,13 +11,13 @@ typedef PlaybackSpeedSheetInitialSelection = ({
 });
 
 class PlaybackSpeedSelection {
-  final double speed;
-  final bool applyToSubscription;
 
   const PlaybackSpeedSelection({
     required this.speed,
     required this.applyToSubscription,
   });
+  final double speed;
+  final bool applyToSubscription;
 }
 
 Future<PlaybackSpeedSelection?> showPlaybackSpeedSelectorSheet({
@@ -33,7 +32,7 @@ Future<PlaybackSpeedSelection?> showPlaybackSpeedSelectorSheet({
       ? context
       : fallbackContext;
   if (resolvedContext == null) {
-    return Future<PlaybackSpeedSelection?>.value(null);
+    return Future<PlaybackSpeedSelection?>.value();
   }
 
   return showAdaptiveSheet<PlaybackSpeedSelection>(

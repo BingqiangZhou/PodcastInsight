@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:personal_ai_assistant/core/utils/resource_cleanup_mixin.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/utils/resource_cleanup_mixin.dart';
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
@@ -20,16 +19,14 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conv
 
 /// AI conversation chat interface component
 class ConversationChatWidget extends ConsumerStatefulWidget {
+
+  const ConversationChatWidget({
+    required this.episodeId, required this.episodeTitle, super.key,
+    this.aiSummary,
+  });
   final int episodeId;
   final String episodeTitle;
   final String? aiSummary;
-
-  const ConversationChatWidget({
-    super.key,
-    required this.episodeId,
-    required this.episodeTitle,
-    this.aiSummary,
-  });
 
   @override
   ConsumerState<ConversationChatWidget> createState() =>
@@ -63,7 +60,7 @@ class ConversationChatWidgetState
       return;
     }
     _scrollController.animateTo(
-      0.0,
+      0,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
@@ -198,7 +195,7 @@ class ConversationChatWidgetState
     }
     final validIds = messages.map((m) => m.id).toSet();
     final filteredIds = _selectedMessageIds
-        .where((id) => validIds.contains(id))
+        .where(validIds.contains)
         .toSet();
     final shouldExitMode = _isMessageSelectMode && filteredIds.isEmpty;
     final hasChanged = filteredIds.length != _selectedMessageIds.length;
@@ -318,7 +315,7 @@ class ConversationChatWidgetState
     await _shareConversationMessagesAsImage(selectedMessages);
   }
 
-  void _startNewChat() async {
+  Future<void> _startNewChat() async {
     final l10n = context.l10n;
     final confirmed = await showGlassConfirmationDialog(
       context: context,

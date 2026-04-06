@@ -6,14 +6,13 @@ import 'package:flutter/material.dart';
 /// This widget wraps any content in a SingleChildScrollView and exposes
 /// a scrollToTop() method that can be called via a GlobalKey.
 class ScrollableContentWrapper extends StatefulWidget {
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
 
   const ScrollableContentWrapper({
-    super.key,
-    required this.child,
+    required this.child, super.key,
     this.padding,
   });
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
 
   @override
   State<ScrollableContentWrapper> createState() => ScrollableContentWrapperState();
@@ -27,7 +26,7 @@ class ScrollableContentWrapperState extends State<ScrollableContentWrapper>
   void scrollToTop() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        0.0,
+        0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );

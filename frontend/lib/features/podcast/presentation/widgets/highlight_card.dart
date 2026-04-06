@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/core/theme/apple_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
-import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_score_indicator.dart';
 
@@ -17,8 +13,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/high
 /// episode source, topic tags, and favorite button.
 class HighlightCard extends ConsumerWidget {
   const HighlightCard({
-    super.key,
-    required this.highlight,
+    required this.highlight, super.key,
     this.onFavoriteToggle,
     this.onTap,
     this.isCompact = false,
@@ -249,7 +244,7 @@ class HighlightCard extends ConsumerWidget {
             ),
           ),
           visualDensity: VisualDensity.compact,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           backgroundColor: theme.colorScheme.secondaryContainer.withValues(
             alpha: 0.4,
@@ -267,11 +262,11 @@ class HighlightCard extends ConsumerWidget {
 
   Color _getScoreColor(BuildContext context, double score) {
     if (score >= 8.5) {
-      return AppleColors.systemGreen.of(context);
+      return AppColors.tertiary;
     } else if (score >= 7.0) {
-      return AppleColors.systemIndigo.of(context);
+      return AppColors.primary;
     } else if (score >= 5.5) {
-      return AppleColors.systemYellow.of(context);
+      return AppColors.sunGlow;
     }
     return Theme.of(context).colorScheme.onSurfaceVariant;
   }

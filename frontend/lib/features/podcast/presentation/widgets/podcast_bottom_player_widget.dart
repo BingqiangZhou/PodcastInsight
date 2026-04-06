@@ -4,13 +4,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:personal_ai_assistant/core/glass/glass_container.dart';
 import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
-import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/providers/route_provider.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
@@ -48,7 +47,7 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Early-exit gate: watch only what is needed to decide visibility.
     // Using .select() avoids rebuilding when unrelated fields change.
-    final bool hasEpisode = episodeOverride != null ||
+    final hasEpisode = episodeOverride != null ||
         ref.watch(
           audioCurrentEpisodeProvider.select((e) => e != null),
         );
@@ -56,25 +55,25 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final bool miniPlayerVisible = layoutOverride?.miniPlayerVisible ??
+    final miniPlayerVisible = layoutOverride?.miniPlayerVisible ??
         ref.watch(
           podcastPlayerHostLayoutProvider
               .select((l) => l.miniPlayerVisible),
         );
-    if (!miniPlayerVisible) {
+    if (!(miniPlayerVisible ?? false)) {
       return const SizedBox.shrink();
     }
 
     // Now read the full data needed for building the dock.
-    final PodcastEpisodeModel? episode =
+    final episode =
         episodeOverride ?? ref.read(audioCurrentEpisodeProvider);
-    final PodcastPlayerHostLayout layout =
+    final layout =
         layoutOverride ?? ref.read(podcastPlayerHostLayoutProvider);
-    final bool isExpanded =
-        isExpandedOverride ?? ref.watch(podcastPlayerExpandedProvider);
+    final isExpanded =
+        isExpandedOverride ?? ref.watch(podcastPlayerExpandedProvider) ?? false;
 
     final spec =
-        viewportSpec ?? resolvePodcastPlayerViewportSpec(context, layout);
+        viewportSpec ?? resolvePodcastPlayerViewportSpec(context, layout!);
     final dock = _PodcastMiniDock(
       episode: episode!,
       viewportSpec: spec,
@@ -106,8 +105,7 @@ class PodcastBottomPlayerWidget extends ConsumerWidget {
 
 class PodcastPlayerLayoutFrame extends ConsumerWidget {
   const PodcastPlayerLayoutFrame({
-    super.key,
-    required this.child,
+    required this.child, super.key,
     this.includeMiniPlayer = true,
     this.manageBottomPadding = true,
     this.manageDesktopPanelPadding = true,

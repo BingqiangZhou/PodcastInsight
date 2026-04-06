@@ -47,10 +47,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -173,10 +173,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -217,7 +217,6 @@ void main() {
             () => _TestPodcastSubscriptionNotifier(
               PodcastSubscriptionState(
                 subscriptions: [_subscription()],
-                hasMore: true,
                 total: 25,
               ),
             ),
@@ -235,10 +234,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );

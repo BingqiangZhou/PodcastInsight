@@ -125,10 +125,10 @@ void main() {
 
     group('disabled state', () {
       testWidgets('is disabled when onPressed is null', (tester) async {
-        var tapped = false;
+        const tapped = false;
         await pumpButton(
           tester,
-          HeaderCapsuleActionButton(
+          const HeaderCapsuleActionButton(
             icon: Icons.add,
             onPressed: null,
           ),
@@ -149,7 +149,6 @@ void main() {
           const HeaderCapsuleActionButton(
             icon: Icons.add,
             onPressed: null,
-            density: HeaderCapsuleActionButtonDensity.regular,
           ),
         );
 
@@ -264,7 +263,6 @@ void main() {
           const HeaderCapsuleActionButton(
             icon: Icons.add,
             onPressed: null,
-            style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
           ),
         );
 
@@ -286,7 +284,6 @@ void main() {
           const HeaderCapsuleActionButton(
             icon: Icons.add,
             onPressed: null,
-            style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
           ),
         );
 
@@ -297,7 +294,7 @@ void main() {
           ).first,
         );
 
-        final shape = material.shape as RoundedRectangleBorder;
+        final shape = material.shape! as RoundedRectangleBorder;
         expect(shape.side, equals(BorderSide.none));
       });
 
@@ -318,7 +315,7 @@ void main() {
           ).first,
         );
 
-        final shape = material.shape as RoundedRectangleBorder;
+        final shape = material.shape! as RoundedRectangleBorder;
         expect(shape.side, isNot(equals(BorderSide.none)));
       });
 
@@ -328,7 +325,6 @@ void main() {
           const HeaderCapsuleActionButton(
             icon: Icons.add,
             onPressed: null,
-            style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
             circular: true,
           ),
         );
@@ -340,7 +336,7 @@ void main() {
           ).first,
         );
 
-        final shape = material.shape as RoundedRectangleBorder;
+        final shape = material.shape! as RoundedRectangleBorder;
         final borderRadius = shape.borderRadius as BorderRadius;
         // For circular regular density: 40.0 / 2 = 20.0
         expect(borderRadius.topLeft.x, equals(20.0));

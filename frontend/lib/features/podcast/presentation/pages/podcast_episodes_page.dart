@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:personal_ai_assistant/core/constants/scroll_constants.dart';
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
@@ -13,22 +14,17 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/navigation/podcast_navigation.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/simplified_episode_card.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
-import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/simplified_episode_card.dart';
 import 'package:personal_ai_assistant/shared/widgets/skeleton_widgets.dart';
 
-part 'podcast_episodes_page_view.dart';
 part 'podcast_episodes_page_actions.dart';
+part 'podcast_episodes_page_view.dart';
 
 class PodcastEpisodesPage extends ConsumerStatefulWidget {
-  final int subscriptionId;
-  final String? podcastTitle;
-  final PodcastSubscriptionModel? subscription;
 
   const PodcastEpisodesPage({
-    super.key,
-    required this.subscriptionId,
+    required this.subscriptionId, super.key,
     this.podcastTitle,
     this.subscription,
   });
@@ -52,6 +48,9 @@ class PodcastEpisodesPage extends ConsumerStatefulWidget {
       subscription: subscription,
     );
   }
+  final int subscriptionId;
+  final String? podcastTitle;
+  final PodcastSubscriptionModel? subscription;
 
   @override
   ConsumerState<PodcastEpisodesPage> createState() =>
@@ -64,7 +63,7 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
   String _selectedFilter = 'all';
   bool _showOnlyWithSummary = false;
   bool _isReparsing = false; // Guard to avoid duplicate reparse requests.
-  static const double _desktopEpisodeCardHeight = 160.0;
+  static const double _desktopEpisodeCardHeight = 160;
 
   String? get _statusFilter => _selectedFilter == 'played'
       ? 'played'

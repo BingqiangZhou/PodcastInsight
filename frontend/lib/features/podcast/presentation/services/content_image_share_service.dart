@@ -8,14 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:share_plus/share_plus.dart';
-
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/services/content_image_share_text_selection.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 
 export 'content_image_share_text_selection.dart'
     show
@@ -46,7 +45,7 @@ const double kShareCardMobileHorizontalMargin = 32;
 const double kShareCardMobileMinWidth = 320;
 const double kShareCardMobileMaxWidth = 430;
 const double kShareCardMobileFallbackWidth = 390;
-const double kShareImageMinPixelRatio = 1.0;
+const double kShareImageMinPixelRatio = 1;
 const double kShareImageMobilePixelBudget = 8000000;
 const double kShareImageDesktopPixelBudget = 12000000;
 const double kShareImageEstimatedBaseHeight = 220;
@@ -59,15 +58,15 @@ enum ShareImageRenderMode { plainText, markdown, conversation }
 enum ShareImageExportBehavior { share, save, unsupported }
 
 class ShareConversationItem {
-  final String roleLabel;
-  final String content;
-  final bool isUser;
 
   const ShareConversationItem({
     required this.roleLabel,
     required this.content,
     required this.isUser,
   });
+  final String roleLabel;
+  final String content;
+  final bool isUser;
 
   ShareConversationItem copyWith({
     String? roleLabel,
@@ -83,13 +82,6 @@ class ShareConversationItem {
 }
 
 class ShareImagePayload {
-  final String episodeTitle;
-  final ShareContentType contentType;
-  final String content;
-  final String? sourceLabel;
-  final int maxChars;
-  final ShareImageRenderMode renderMode;
-  final List<ShareConversationItem> conversationItems;
 
   const ShareImagePayload({
     required this.episodeTitle,
@@ -100,12 +92,19 @@ class ShareImagePayload {
     this.renderMode = ShareImageRenderMode.plainText,
     this.conversationItems = const <ShareConversationItem>[],
   });
+  final String episodeTitle;
+  final ShareContentType contentType;
+  final String content;
+  final String? sourceLabel;
+  final int maxChars;
+  final ShareImageRenderMode renderMode;
+  final List<ShareConversationItem> conversationItems;
 }
 
 class ContentImageShareException implements Exception {
-  final String message;
 
   const ContentImageShareException(this.message);
+  final String message;
 
   @override
   String toString() => message;
@@ -218,7 +217,7 @@ double resolveShareCardWidth({
       final candidate = screenWidth - kShareCardMobileHorizontalMargin;
       return candidate
           .clamp(kShareCardMobileMinWidth, kShareCardMobileMaxWidth)
-          .toDouble();
+          ;
     case TargetPlatform.windows:
     case TargetPlatform.macOS:
     case TargetPlatform.linux:
@@ -279,7 +278,7 @@ double applyShareImagePixelBudgetGuard({
   final guardedRatio = math.sqrt(
     pixelBudget / (estimatedWidth * estimatedHeight),
   );
-  return guardedRatio.clamp(kShareImageMinPixelRatio, pixelRatio).toDouble();
+  return guardedRatio.clamp(kShareImageMinPixelRatio, pixelRatio);
 }
 
 @visibleForTesting
@@ -315,7 +314,7 @@ double resolveShareImagePixelRatio({
     case ShareImageRenderMode.plainText:
       break;
   }
-  pixelRatio = pixelRatio.clamp(kShareImageMinPixelRatio, 1.6).toDouble();
+  pixelRatio = pixelRatio.clamp(kShareImageMinPixelRatio, 1.6);
 
   final estimatedHeight = estimateShareImageHeight(
     renderMode: renderMode,
@@ -603,7 +602,7 @@ class ContentImageShareService {
     required Uint8List bytes,
     required String fileName,
   }) async {
-    final safeName = fileName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final safeName = fileName.replaceAll(RegExp('[^A-Za-z0-9._-]'), '_');
     final tempFile = File(
       '${Directory.systemTemp.path}/'
       '${DateTime.now().microsecondsSinceEpoch}_$safeName',
@@ -727,8 +726,8 @@ class ContentImageShareService {
     ShareConversationItem item,
   ) {
     final theme = Theme.of(context);
-    final bubbleColor = Colors.white;
-    final textColor = Colors.black;
+    const bubbleColor = Colors.white;
+    const textColor = Colors.black;
     final borderColor = item.isUser ? Colors.black54 : Colors.black38;
 
     return Padding(
@@ -806,7 +805,6 @@ class ContentImageShareService {
       case TargetPlatform.android:
       case TargetPlatform.iOS:
         await _saveImageToGallery(context, bytes: bytes, fileName: fileName);
-        break;
       case TargetPlatform.windows:
       case TargetPlatform.macOS:
       case TargetPlatform.linux:
@@ -829,7 +827,6 @@ class ContentImageShareService {
           name: fileName,
         );
         await file.saveTo(location.path);
-        break;
       case TargetPlatform.fuchsia:
         throw ContentImageShareException(l10n.podcast_share_not_supported);
     }
@@ -965,7 +962,7 @@ class ContentImageShareService {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black38, width: 1),
+                      border: Border.all(color: Colors.black38),
                     ),
                     child: Text(
                       subtitle,

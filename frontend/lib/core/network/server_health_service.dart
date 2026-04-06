@@ -17,9 +17,6 @@ enum ConnectionStatus {
 
 /// Result of a server health check
 class HealthCheckResult {
-  final ConnectionStatus status;
-  final String? message;
-  final int? responseTimeMs;
 
   const HealthCheckResult({
     required this.status,
@@ -53,15 +50,18 @@ class HealthCheckResult {
       status: ConnectionStatus.unverified,
     );
   }
+  final ConnectionStatus status;
+  final String? message;
+  final int? responseTimeMs;
 }
 
 /// Service for checking server health and connectivity
 class ServerHealthService {
+
+  ServerHealthService(this._dio);
   final Dio _dio;
   CancelToken? _cancelToken;
   static const String _healthEndpoint = '/api/v1/health';
-
-  ServerHealthService(this._dio);
 
   /// Normalize the base URL by:
   /// 1. Trimming whitespace
@@ -137,13 +137,10 @@ class ServerHealthService {
         case DioExceptionType.sendTimeout:
         case DioExceptionType.receiveTimeout:
           errorMessage = 'Connection timeout';
-          break;
         case DioExceptionType.connectionError:
           errorMessage = 'Cannot connect to server';
-          break;
         case DioExceptionType.badResponse:
           errorMessage = 'Server error: ${e.response?.statusCode}';
-          break;
         default:
           errorMessage = 'Connection failed: ${e.message}';
       }

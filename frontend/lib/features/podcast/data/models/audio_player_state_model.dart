@@ -9,21 +9,6 @@ enum PlaySource { direct, queue }
 
 // AudioPlayerState model
 class AudioPlayerState extends Equatable {
-  final PodcastEpisodeModel? currentEpisode;
-  final PodcastQueueModel queue;
-  final int? currentQueueEpisodeId;
-  final PlaySource playSource;
-  final bool queueSyncing;
-  final bool isPlaying;
-  final bool isLoading;
-  final int position;
-  final int duration;
-  final double playbackRate;
-  final ProcessingState? processingState;
-  final String? error;
-  final DateTime? sleepTimerEndTime;
-  final bool sleepTimerAfterEpisode;
-  final String? sleepTimerRemainingLabel;
 
   const AudioPlayerState({
     this.currentEpisode,
@@ -42,6 +27,21 @@ class AudioPlayerState extends Equatable {
     this.sleepTimerAfterEpisode = false,
     this.sleepTimerRemainingLabel,
   });
+  final PodcastEpisodeModel? currentEpisode;
+  final PodcastQueueModel queue;
+  final int? currentQueueEpisodeId;
+  final PlaySource playSource;
+  final bool queueSyncing;
+  final bool isPlaying;
+  final bool isLoading;
+  final int position;
+  final int duration;
+  final double playbackRate;
+  final ProcessingState? processingState;
+  final String? error;
+  final DateTime? sleepTimerEndTime;
+  final bool sleepTimerAfterEpisode;
+  final String? sleepTimerRemainingLabel;
 
   AudioPlayerState copyWith({
     PodcastEpisodeModel? currentEpisode,
@@ -84,9 +84,7 @@ class AudioPlayerState extends Equatable {
       sleepTimerEndTime: clearSleepTimer
           ? null
           : (sleepTimerEndTime ?? this.sleepTimerEndTime),
-      sleepTimerAfterEpisode: clearSleepTimer
-          ? false
-          : (sleepTimerAfterEpisode ?? this.sleepTimerAfterEpisode),
+      sleepTimerAfterEpisode: !clearSleepTimer && (sleepTimerAfterEpisode ?? this.sleepTimerAfterEpisode),
       sleepTimerRemainingLabel: clearSleepTimer
           ? null
           : (sleepTimerRemainingLabel ?? this.sleepTimerRemainingLabel),
@@ -97,7 +95,7 @@ class AudioPlayerState extends Equatable {
       sleepTimerEndTime != null || sleepTimerAfterEpisode;
 
   double get progress {
-    if (duration == 0) return 0.0;
+    if (duration == 0) return 0;
     return (position / duration).clamp(0.0, 1.0);
   }
 

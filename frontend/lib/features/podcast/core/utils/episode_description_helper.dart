@@ -91,14 +91,14 @@ class EpisodeDescriptionHelper {
       return cached;
     }
 
-    String text = htmlContent;
+    var text = htmlContent;
 
     try {
       text = text.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
       text = text.replaceAll(RegExp(r'</p\s*>', caseSensitive: false), '\n');
       text = text.replaceAll(RegExp(r'</div\s*>', caseSensitive: false), '\n');
       text = text.replaceAll(RegExp(r'</li\s*>', caseSensitive: false), '\n');
-      text = text.replaceAll(RegExp(r'<[^>]*>'), '');
+      text = text.replaceAll(RegExp('<[^>]*>'), '');
 
       // Decode HTML entities (common ones)
       final htmlEntities = {
@@ -136,7 +136,7 @@ class EpisodeDescriptionHelper {
             String.fromCharCode(int.tryParse(match.group(1) ?? '0') ?? 0),
       );
       text = text.replaceAllMapped(
-        RegExp(r'&#x([0-9a-fA-F]+);'),
+        RegExp('&#x([0-9a-fA-F]+);'),
         (match) => String.fromCharCode(
           int.tryParse(match.group(1) ?? '0', radix: 16) ?? 0,
         ),
@@ -146,7 +146,7 @@ class EpisodeDescriptionHelper {
       text = htmlContent;
     }
 
-    text = text.replaceAll(RegExp(r'<[^>]*>'), '');
+    text = text.replaceAll(RegExp('<[^>]*>'), '');
     text = text.replaceAll('&nbsp;', ' ');
     text = text.replaceAll('&amp;', '&');
     text = text.replaceAll('&lt;', '<');

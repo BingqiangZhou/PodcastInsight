@@ -16,7 +16,6 @@ void main() {
       tester,
     ) async {
       final service = _FakeAppUpdateService(
-        release: null,
         delay: const Duration(milliseconds: 250),
       );
 
@@ -62,7 +61,7 @@ void main() {
     testWidgets('shows up-to-date state when no update is available', (
       tester,
     ) async {
-      final service = _FakeAppUpdateService(release: null);
+      final service = _FakeAppUpdateService();
 
       await tester.pumpWidget(_buildHost(service: service));
 
@@ -103,7 +102,7 @@ void main() {
     testWidgets('uses themed colors for up-to-date state in dark mode', (
       tester,
     ) async {
-      final service = _FakeAppUpdateService(release: null);
+      final service = _FakeAppUpdateService();
 
       await tester.pumpWidget(
         _buildHost(service: service, themeMode: ThemeMode.dark),
@@ -249,6 +248,5 @@ GitHubRelease _buildRelease() {
     createdAt: DateTime(2026, 2, 12),
     publishedAt: DateTime(2026, 2, 12),
     htmlUrl: 'https://github.com/example/repo/releases/tag/v0.5.4',
-    assets: const [],
   );
 }

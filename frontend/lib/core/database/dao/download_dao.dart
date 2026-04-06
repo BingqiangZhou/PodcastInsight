@@ -59,7 +59,7 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
       DownloadTasksCompanion(
         status: const Value('completed'),
         localPath: Value(localPath),
-        progress: const Value(1.0),
+        progress: const Value(1),
         completedAt: Value(DateTime.now()),
       ),
     );
@@ -79,7 +79,7 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
         .write(
       const DownloadTasksCompanion(
         status: Value('pending'),
-        progress: Value(0.0),
+        progress: Value(0),
       ),
     );
   }

@@ -2,39 +2,37 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/debounce.dart';
 import 'package:personal_ai_assistant/core/utils/text_processing_cache.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_transcription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_highlights_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/services/content_image_share_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_card.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_detail_sheet.dart';
 import 'package:personal_ai_assistant/shared/widgets/empty_state_widget.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_transcription_model.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/services/content_image_share_service.dart';
 
 /// View mode for transcript display
 enum TranscriptViewMode { highlights, fullTranscript }
 
 class TranscriptDisplayWidget extends ConsumerStatefulWidget {
-  final int episodeId;
-  final String episodeTitle;
-  final PodcastTranscriptionResponse? transcription;
-  final Function(String)? onSearchChanged;
-  final List<HighlightResponse>? highlights;
 
   const TranscriptDisplayWidget({
-    super.key,
-    required this.episodeId,
-    required this.episodeTitle,
+    required this.episodeId, required this.episodeTitle, super.key,
     this.transcription,
     this.onSearchChanged,
     this.highlights,
   });
+  final int episodeId;
+  final String episodeTitle;
+  final PodcastTranscriptionResponse? transcription;
+  final void Function(String)? onSearchChanged;
+  final List<HighlightResponse>? highlights;
 
   @override
   ConsumerState<TranscriptDisplayWidget> createState() =>
@@ -73,7 +71,7 @@ class TranscriptDisplayWidgetState
         : _fullTranscriptScrollController;
     if (controller.hasClients) {
       controller.animateTo(
-        0.0,
+        0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
@@ -151,9 +149,7 @@ class TranscriptDisplayWidgetState
     if (_selectedTranscriptSegments.isEmpty) {
       return;
     }
-    setState(() {
-      _selectedTranscriptSegments.clear();
-    });
+    setState(_selectedTranscriptSegments.clear);
   }
 
   int _segmentOrderFromKey(String key) {
@@ -264,6 +260,7 @@ class TranscriptDisplayWidgetState
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final extension = appThemeOf(context);
 
     return Container(
       width: double.infinity,
@@ -271,7 +268,7 @@ class TranscriptDisplayWidgetState
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       decoration: BoxDecoration(
         color: scheme.primaryContainer.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(extension.itemRadius),
         border: Border.all(
           color: scheme.primary.withValues(alpha: 0.3),
         ),
@@ -294,7 +291,7 @@ class TranscriptDisplayWidgetState
           ),
           const SizedBox(width: 8),
           TextButton.icon(
-            onPressed: () => _extractHighlights(),
+            onPressed: _extractHighlights,
             icon: const Icon(Icons.auto_awesome, size: 16),
             label: Text(l10n.podcast_highlights_extract_action),
             style: TextButton.styleFrom(
@@ -316,7 +313,6 @@ class TranscriptDisplayWidgetState
       showTopFloatingNotice(
         context,
         message: l10n.podcast_highlights_extract_queued,
-        isError: false,
       );
     } else {
       showTopFloatingNotice(
@@ -371,7 +367,6 @@ class TranscriptDisplayWidgetState
         border: Border(
           bottom: BorderSide(
             color: scheme.outlineVariant,
-            width: 1,
           ),
         ),
       ),
@@ -423,7 +418,7 @@ class TranscriptDisplayWidgetState
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: SegmentedButton<TranscriptViewMode>(
         selected: {_viewMode},
-        onSelectionChanged: (Set<TranscriptViewMode> selection) {
+        onSelectionChanged: (selection) {
           setState(() => _viewMode = selection.first);
         },
         segments: [
@@ -462,7 +457,7 @@ class TranscriptDisplayWidgetState
       controller: _highlightsScrollController,
       padding: const EdgeInsets.all(16),
       itemCount: sortedHighlights.length,
-      cacheExtent: 500.0,
+      cacheExtent: 500,
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -536,7 +531,7 @@ class TranscriptDisplayWidgetState
                   child: ListView.separated(
                     controller: _fullTranscriptScrollController,
                     itemCount: segments.length,
-                    cacheExtent: 500.0,
+                    cacheExtent: 500,
                     separatorBuilder: (context, index) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       return RepaintBoundary(
@@ -567,7 +562,7 @@ class TranscriptDisplayWidgetState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,7 +655,7 @@ class TranscriptDisplayWidgetState
       child: ListView.builder(
         controller: _fullTranscriptScrollController,
         itemCount: _searchResults.length,
-        cacheExtent: 500.0,
+        cacheExtent: 500,
         itemBuilder: (context, index) {
           final result = _searchResults[index];
           return RepaintBoundary(
@@ -690,7 +685,7 @@ class TranscriptDisplayWidgetState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -765,7 +760,7 @@ class TranscriptDisplayWidgetState
     final spans = <TextSpan>[];
     final lowerText = text.toLowerCase();
     final lowerQuery = query.toLowerCase();
-    int start = 0;
+    var start = 0;
 
     while (true) {
       final index = lowerText.indexOf(lowerQuery, start);
@@ -820,9 +815,9 @@ class TranscriptDisplayWidgetState
 
 /// Widget for displaying formatted transcription with speaker labels and timestamps
 class FormattedTranscriptWidget extends ConsumerWidget {
-  final PodcastTranscriptionResponse? transcription;
 
   const FormattedTranscriptWidget({super.key, this.transcription});
+  final PodcastTranscriptionResponse? transcription;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -830,7 +825,6 @@ class FormattedTranscriptWidget extends ConsumerWidget {
 
     if (content == null || content.isEmpty) {
       return const TranscriptDisplayWidget(
-        transcription: null,
         episodeId: 0,
         episodeTitle: '',
       );
@@ -852,7 +846,7 @@ class FormattedTranscriptWidget extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       child: ListView.builder(
         itemCount: segments.length,
-        cacheExtent: 500.0,
+        cacheExtent: 500,
         itemBuilder: (context, index) {
           final segment = segments[index];
           return RepaintBoundary(
@@ -868,7 +862,7 @@ class FormattedTranscriptWidget extends ConsumerWidget {
     final segments = <TranscriptDialogueSegment>[];
     final lines = content.split('\n');
 
-    for (var line in lines) {
+    for (final line in lines) {
       final trimmedLine = line.trim();
       if (trimmedLine.isEmpty) continue;
 
@@ -946,7 +940,6 @@ class FormattedTranscriptWidget extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(
                         color: scheme.primary.withValues(alpha: 0.3),
-                        width: 1,
                       ),
                     ),
                     child: Text(

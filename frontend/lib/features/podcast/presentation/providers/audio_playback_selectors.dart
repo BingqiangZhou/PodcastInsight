@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
+import 'package:riverpod/src/providers/provider.dart';
 
 typedef AudioTransportState = ({
   bool isPlaying,
@@ -104,7 +105,7 @@ final audioCurrentQueueProgressProvider = Provider<AudioCurrentQueueProgress>((
   );
 });
 
-final audioDurationForEpisodeProvider = Provider.family<int?, int>((
+final ProviderFamily<int?, int> audioDurationForEpisodeProvider = Provider.family<int?, int>((
   ref,
   episodeId,
 ) {
@@ -122,7 +123,7 @@ final audioDurationForEpisodeProvider = Provider.family<int?, int>((
   return null;
 });
 
-final audioQueuePositionProvider = Provider.family<int?, int>((ref, episodeId) {
+final ProviderFamily<int?, int> audioQueuePositionProvider = Provider.family<int?, int>((ref, episodeId) {
   return ref.watch(
     audioPlayerProvider.select((state) {
       if (state.currentEpisode?.id == episodeId) {

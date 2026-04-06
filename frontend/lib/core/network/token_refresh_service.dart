@@ -2,10 +2,9 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'package:personal_ai_assistant/core/app/config/app_config.dart' as config;
-import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
 
 /// Reason why token refresh failed
 enum TokenRefreshFailureReason {
@@ -16,10 +15,6 @@ enum TokenRefreshFailureReason {
 
 /// Result of a token refresh attempt
 class TokenRefreshResult {
-  final bool success;
-  final TokenRefreshFailureReason? reason;
-  final String? accessToken;
-  final int? expiresInSeconds;
 
   const TokenRefreshResult._({
     required this.success,
@@ -39,6 +34,10 @@ class TokenRefreshResult {
 
   const TokenRefreshResult.failure(TokenRefreshFailureReason reason)
     : this._(success: false, reason: reason);
+  final bool success;
+  final TokenRefreshFailureReason? reason;
+  final String? accessToken;
+  final int? expiresInSeconds;
 
   bool get isInvalidSessionFailure =>
       !success && reason == TokenRefreshFailureReason.invalidSession;
@@ -51,15 +50,15 @@ class TokenRefreshResult {
 /// - Allow reuse across multiple Dio instances
 /// - Enable easier testing of token refresh logic
 class TokenRefreshService {
-  final Dio _dio;
-  final FlutterSecureStorage _secureStorage;
-  Completer<TokenRefreshResult>? _refreshCompleter;
 
   TokenRefreshService({
     required Dio dio,
     FlutterSecureStorage? secureStorage,
   }) : _dio = dio,
        _secureStorage = secureStorage ?? const FlutterSecureStorage();
+  final Dio _dio;
+  final FlutterSecureStorage _secureStorage;
+  Completer<TokenRefreshResult>? _refreshCompleter;
 
   /// Attempt to refresh the session token.
   ///
@@ -237,7 +236,7 @@ class TokenRefreshService {
   }
 
   static bool _looksLikeInvalidSessionResponse(dynamic responseData) {
-    String text = '';
+    var text = '';
     if (responseData is Map) {
       text =
           '${responseData['detail'] ?? ''} ${responseData['message'] ?? ''} ${responseData['type'] ?? ''}'

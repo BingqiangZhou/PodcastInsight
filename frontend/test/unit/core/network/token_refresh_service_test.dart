@@ -130,8 +130,8 @@ void main() {
     test('returns invalidSession on 401 response', () async {
       stubRefreshToken();
       adapter.error = DioException(
-        response: Response(statusCode: 401, requestOptions: RequestOptions(path: '')),
-        requestOptions: RequestOptions(path: ''),
+        response: Response(statusCode: 401, requestOptions: RequestOptions()),
+        requestOptions: RequestOptions(),
       );
 
       final result = await service.refreshToken();
@@ -143,7 +143,7 @@ void main() {
       stubRefreshToken();
       adapter.error = DioException(
         type: DioExceptionType.connectionTimeout,
-        requestOptions: RequestOptions(path: ''),
+        requestOptions: RequestOptions(),
       );
 
       final result = await service.refreshToken();
@@ -155,7 +155,7 @@ void main() {
       stubRefreshToken();
       adapter.error = DioException(
         type: DioExceptionType.connectionError,
-        requestOptions: RequestOptions(path: ''),
+        requestOptions: RequestOptions(),
       );
 
       final result = await service.refreshToken();
@@ -166,8 +166,8 @@ void main() {
     test('returns transientFailure on 5xx response', () async {
       stubRefreshToken();
       adapter.error = DioException(
-        response: Response(statusCode: 503, requestOptions: RequestOptions(path: '')),
-        requestOptions: RequestOptions(path: ''),
+        response: Response(statusCode: 503, requestOptions: RequestOptions()),
+        requestOptions: RequestOptions(),
       );
 
       final result = await service.refreshToken();
@@ -201,8 +201,8 @@ void main() {
     test('classifies 401 as invalidSession', () {
       expect(
         TokenRefreshService.classifyRefreshFailure(DioException(
-          response: Response(statusCode: 401, requestOptions: RequestOptions(path: '')),
-          requestOptions: RequestOptions(path: ''),
+          response: Response(statusCode: 401, requestOptions: RequestOptions()),
+          requestOptions: RequestOptions(),
         )),
         TokenRefreshFailureReason.invalidSession,
       );
@@ -211,8 +211,8 @@ void main() {
     test('classifies 404 with invalid-session body as invalidSession', () {
       expect(
         TokenRefreshService.classifyRefreshFailure(DioException(
-          response: Response(statusCode: 404, data: {'detail': 'Invalid session'}, requestOptions: RequestOptions(path: '')),
-          requestOptions: RequestOptions(path: ''),
+          response: Response(statusCode: 404, data: {'detail': 'Invalid session'}, requestOptions: RequestOptions()),
+          requestOptions: RequestOptions(),
         )),
         TokenRefreshFailureReason.invalidSession,
       );
@@ -221,8 +221,8 @@ void main() {
     test('classifies 422 with refresh token message as invalidSession', () {
       expect(
         TokenRefreshService.classifyRefreshFailure(DioException(
-          response: Response(statusCode: 422, data: {'message': 'refresh token expired'}, requestOptions: RequestOptions(path: '')),
-          requestOptions: RequestOptions(path: ''),
+          response: Response(statusCode: 422, data: {'message': 'refresh token expired'}, requestOptions: RequestOptions()),
+          requestOptions: RequestOptions(),
         )),
         TokenRefreshFailureReason.invalidSession,
       );
@@ -231,8 +231,8 @@ void main() {
     test('classifies 404 without session keywords as unknownFailure', () {
       expect(
         TokenRefreshService.classifyRefreshFailure(DioException(
-          response: Response(statusCode: 404, data: {'detail': 'Not here'}, requestOptions: RequestOptions(path: '')),
-          requestOptions: RequestOptions(path: ''),
+          response: Response(statusCode: 404, data: {'detail': 'Not here'}, requestOptions: RequestOptions()),
+          requestOptions: RequestOptions(),
         )),
         TokenRefreshFailureReason.unknownFailure,
       );
@@ -242,7 +242,7 @@ void main() {
       expect(
         TokenRefreshService.classifyRefreshFailure(DioException(
           type: DioExceptionType.connectionTimeout,
-          requestOptions: RequestOptions(path: ''),
+          requestOptions: RequestOptions(),
         )),
         TokenRefreshFailureReason.transientFailure,
       );
@@ -251,8 +251,8 @@ void main() {
     test('classifies 500 as transientFailure', () {
       expect(
         TokenRefreshService.classifyRefreshFailure(DioException(
-          response: Response(statusCode: 500, requestOptions: RequestOptions(path: '')),
-          requestOptions: RequestOptions(path: ''),
+          response: Response(statusCode: 500, requestOptions: RequestOptions()),
+          requestOptions: RequestOptions(),
         )),
         TokenRefreshFailureReason.transientFailure,
       );
@@ -261,8 +261,8 @@ void main() {
     test('classifies string response body containing session keywords', () {
       expect(
         TokenRefreshService.classifyRefreshFailure(DioException(
-          response: Response(statusCode: 400, data: 'Session has expired', requestOptions: RequestOptions(path: '')),
-          requestOptions: RequestOptions(path: ''),
+          response: Response(statusCode: 400, data: 'Session has expired', requestOptions: RequestOptions()),
+          requestOptions: RequestOptions(),
         )),
         TokenRefreshFailureReason.invalidSession,
       );

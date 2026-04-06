@@ -4,21 +4,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_transcription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
+import 'package:riverpod/src/providers/async_notifier.dart';
 
 /// Episode-scoped transcription provider with automatic lifecycle management.
 ///
 /// Uses family.autoDispose so each episode gets its own notifier that is
 /// automatically cleaned up when no longer watched.
-final transcriptionProvider = AsyncNotifierProvider.autoDispose
+final AsyncNotifierProviderFamily<TranscriptionNotifier, PodcastTranscriptionResponse?, int> transcriptionProvider = AsyncNotifierProvider.autoDispose
     .family<TranscriptionNotifier, PodcastTranscriptionResponse?, int>(
-  (int episodeId) => TranscriptionNotifier(episodeId),
+  TranscriptionNotifier.new,
 );
 
 /// Notifier for managing transcription state
 class TranscriptionNotifier extends AsyncNotifier<PodcastTranscriptionResponse?> {
-  final int episodeId;
 
   TranscriptionNotifier(this.episodeId);
+  final int episodeId;
 
   Timer? _pollTimer;
   bool _isDisposed = false;

@@ -11,8 +11,8 @@ ConversationSession _$ConversationSessionFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       episodeId: (json['episode_id'] as num).toInt(),
       title: json['title'] as String,
-      messageCount: (json['message_count'] as num?)?.toInt() ?? 0,
       createdAt: json['created_at'] as String,
+      messageCount: (json['message_count'] as num?)?.toInt() ?? 0,
       updatedAt: json['updated_at'] as String?,
     );
 
@@ -85,8 +85,8 @@ PodcastConversationSendResponse _$PodcastConversationSendResponseFromJson(
   role: json['role'] as String,
   content: json['content'] as String,
   conversationTurn: (json['conversation_turn'] as num).toInt(),
-  processingTime: (json['processing_time'] as num?)?.toDouble(),
   createdAt: json['created_at'] as String,
+  processingTime: (json['processing_time'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$PodcastConversationSendResponseToJson(
@@ -104,13 +104,13 @@ PodcastConversationHistoryResponse _$PodcastConversationHistoryResponseFromJson(
   Map<String, dynamic> json,
 ) => PodcastConversationHistoryResponse(
   episodeId: (json['episode_id'] as num).toInt(),
-  sessionId: (json['session_id'] as num?)?.toInt(),
   messages: (json['messages'] as List<dynamic>)
       .map(
         (e) => PodcastConversationMessage.fromJson(e as Map<String, dynamic>),
       )
       .toList(),
   total: (json['total'] as num).toInt(),
+  sessionId: (json['session_id'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$PodcastConversationHistoryResponseToJson(
@@ -126,8 +126,8 @@ PodcastConversationClearResponse _$PodcastConversationClearResponseFromJson(
   Map<String, dynamic> json,
 ) => PodcastConversationClearResponse(
   episodeId: (json['episode_id'] as num).toInt(),
-  sessionId: (json['session_id'] as num?)?.toInt(),
   deletedCount: (json['deleted_count'] as num).toInt(),
+  sessionId: (json['session_id'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$PodcastConversationClearResponseToJson(

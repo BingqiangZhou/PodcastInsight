@@ -9,8 +9,6 @@ void main() {
         playbackPosition: 12,
         audioDuration: 1200,
         audioUrl: 'https://example.com/local.mp3',
-        playbackRate: 1.0,
-        isPlayed: false,
         lastPlayedAt: DateTime(2026, 2, 10),
       );
       final latest = _buildDetailResponse(
@@ -95,12 +93,12 @@ PodcastEpisodeModel _buildIncomingEpisode({
     description: 'Incoming description',
     audioUrl: audioUrl,
     audioDuration: audioDuration,
-    publishedAt: DateTime(2026, 2, 1),
+    publishedAt: DateTime(2026, 2),
     playbackPosition: playbackPosition,
     playbackRate: playbackRate,
     isPlayed: isPlayed,
     lastPlayedAt: lastPlayedAt,
-    createdAt: DateTime(2026, 2, 1),
+    createdAt: DateTime(2026, 2),
   );
 }
 

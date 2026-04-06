@@ -114,7 +114,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(podcastFeedProvider.notifier);
-      final inFlight = notifier.loadInitialFeed(background: false);
+      final inFlight = notifier.loadInitialFeed();
 
       await Future<void>.delayed(const Duration(milliseconds: 20));
       final loadingState = container.read(podcastFeedProvider);
@@ -245,7 +245,7 @@ PodcastFeedResponse _responseWithEpisodeIds(List<int> episodeIds) {
 }
 
 PodcastEpisodeModel _episode(int id) {
-  final now = DateTime(2026, 2, 14, 10, 0, 0);
+  final now = DateTime(2026, 2, 14, 10);
   return PodcastEpisodeModel(
     id: id,
     subscriptionId: 100 + id,

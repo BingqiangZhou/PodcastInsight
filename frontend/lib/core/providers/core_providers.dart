@@ -1,6 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/events/server_config_events.dart';
 import 'package:personal_ai_assistant/core/network/dio_client.dart';
@@ -11,9 +10,7 @@ import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 // Dio Client Provider
 final dioClientProvider = Provider<DioClient>((ref) {
   final client = DioClient();
-  ref.onDispose(() {
-    client.dispose();
-  });
+  ref.onDispose(client.dispose);
   return client;
 });
 
@@ -34,15 +31,15 @@ final serverHealthServiceFactoryProvider = Provider<ServerHealthServiceFactory>(
 
 // Server Config Provider - Manages backend server address configuration
 class ServerConfigState {
-  final String serverUrl;
-  final bool isLoading;
-  final String? error;
 
   const ServerConfigState({
     required this.serverUrl,
     this.isLoading = false,
     this.error,
   });
+  final String serverUrl;
+  final bool isLoading;
+  final String? error;
 
   ServerConfigState copyWith({
     String? serverUrl,
@@ -95,7 +92,7 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
   /// If [clearData] is true and URL changes, all server data will be cleared
   Future<void> updateServerUrl(String newUrl, {bool clearData = true}) async {
     final oldUrl = state.serverUrl;
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       // Normalize URL

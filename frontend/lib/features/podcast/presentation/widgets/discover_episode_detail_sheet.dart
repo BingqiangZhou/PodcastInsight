@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episode_lookup_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
@@ -8,9 +9,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shar
 
 class DiscoverEpisodeDetailSheet extends StatelessWidget {
   const DiscoverEpisodeDetailSheet({
-    super.key,
-    required this.episode,
-    required this.onPlay,
+    required this.episode, required this.onPlay, super.key,
   });
 
   final ITunesPodcastEpisodeResult episode;
@@ -36,7 +35,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
               children: [
                 RepaintBoundary(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
                     child: PodcastImageWidget(
                       imageUrl: episode.artworkUrl600 ?? episode.artworkUrl100,
                       width: 64,
@@ -91,7 +90,6 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Align(
-                            alignment: Alignment.center,
                             child: IconButton(
                               key: const Key('discover_episode_detail_play_button'),
                               tooltip: l10n.podcast_play,

@@ -14,6 +14,8 @@ import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 /// Downloads audio files from CDN URLs to local storage and tracks
 /// progress in the [DownloadTasks] table via [DownloadDao].
 class AudioDownloadService {
+
+  AudioDownloadService(this._db);
   final AppDatabase _db;
   final HttpClient _httpClient = HttpClient();
 
@@ -28,8 +30,6 @@ class AudioDownloadService {
 
   /// Current download count.
   int get _activeCount => _activeSinks.length;
-
-  AudioDownloadService(this._db);
 
   DownloadDao get _dao => _db.downloadDao;
 
@@ -100,7 +100,7 @@ class AudioDownloadService {
 
     try {
       // Mark as downloading
-      await _dao.updateProgress(task.id, 0.0);
+      await _dao.updateProgress(task.id, 0);
 
       final uri = Uri.parse(audioUrl);
       final request = await _httpClient.getUrl(uri);
@@ -121,7 +121,7 @@ class AudioDownloadService {
 
       final sink = file.openWrite();
       _activeSinks[episodeId] = sink;
-      int receivedBytes = 0;
+      var receivedBytes = 0;
 
       await for (final chunk in response) {
         // Check if aborted

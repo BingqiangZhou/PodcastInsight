@@ -32,7 +32,7 @@ void main() {
           _FakeApplePodcastRssService(),
         ),
         podcastSubscriptionProvider.overrideWith(
-          () => _DelayedSubscriptionNotifier(),
+          _DelayedSubscriptionNotifier.new,
         ),
         search.podcastSearchProvider.overrideWithValue(
           const search.PodcastSearchState(),
@@ -44,10 +44,10 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const PodcastListPage(),
+          home: PodcastListPage(),
         ),
       ),
     );
@@ -85,7 +85,7 @@ void main() {
           _FakeApplePodcastRssService(),
         ),
         podcastSubscriptionProvider.overrideWith(
-          () => _DelayedSubscriptionNotifier(),
+          _DelayedSubscriptionNotifier.new,
         ),
         search.podcastSearchProvider.overrideWithValue(
           const search.PodcastSearchState(),
@@ -97,10 +97,10 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const PodcastListPage(),
+          home: PodcastListPage(),
         ),
       ),
     );
@@ -116,7 +116,7 @@ void main() {
     final viewportClip = tester.widget<ClipRRect>(
       find.byKey(const Key('content_shell_viewport_clip')),
     );
-    expect(viewportClip.borderRadius, BorderRadius.circular(16));
+    expect(viewportClip.borderRadius, BorderRadius.circular(14));
   });
 
   testWidgets(
@@ -136,7 +136,7 @@ void main() {
             _FakeApplePodcastRssService(),
           ),
           podcastSubscriptionProvider.overrideWith(
-            () => _DelayedSubscriptionNotifier(),
+            _DelayedSubscriptionNotifier.new,
           ),
           search.podcastSearchProvider.overrideWithValue(
             const search.PodcastSearchState(),
@@ -148,10 +148,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -173,7 +173,7 @@ void main() {
 class _DelayedSubscriptionNotifier extends PodcastSubscriptionNotifier {
   @override
   PodcastSubscriptionState build() {
-    return const PodcastSubscriptionState(subscriptions: [], total: 0);
+    return const PodcastSubscriptionState();
   }
 
   @override

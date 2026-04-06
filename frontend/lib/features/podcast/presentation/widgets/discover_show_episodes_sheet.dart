@@ -7,12 +7,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/simp
 
 class DiscoverShowEpisodesSheet extends StatelessWidget {
   const DiscoverShowEpisodesSheet({
-    super.key,
-    required this.showId,
-    required this.showTitle,
-    required this.episodes,
-    required this.onEpisodeSelected,
-    required this.onPlayEpisode,
+    required this.showId, required this.showTitle, required this.episodes, required this.onEpisodeSelected, required this.onPlayEpisode, super.key,
   });
 
   final int showId;

@@ -1,50 +1,50 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
 import 'package:personal_ai_assistant/core/glass/glass_container.dart';
 import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
-import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_en.dart';
+import 'package:personal_ai_assistant/core/services/download_provider.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
-import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
-
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
-import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/core/utils/html_sanitizer.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_transcription_model.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/transcript_display_widget.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shownotes_display_widget.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/transcription_status_widget.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/services/content_image_share_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/ai_summary_control_widget.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/summary_display_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conversation_chat_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/scrollable_content_wrapper.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/services/content_image_share_service.dart';
-import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
-import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/episode_card_utils.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shownotes_display_widget.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/summary_display_widget.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/transcript_display_widget.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/transcription_status_widget.dart';
+import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-part 'podcast_episode_detail_page_layout.dart';
-part 'podcast_episode_detail_page_header.dart';
-part 'podcast_episode_detail_page_tabs.dart';
 part 'podcast_episode_detail_page_content.dart';
+part 'podcast_episode_detail_page_header.dart';
+part 'podcast_episode_detail_page_layout.dart';
+part 'podcast_episode_detail_page_tabs.dart';
 
 class PodcastEpisodeDetailPage extends ConsumerStatefulWidget {
-  final int episodeId;
 
-  const PodcastEpisodeDetailPage({super.key, required this.episodeId});
+  const PodcastEpisodeDetailPage({required this.episodeId, super.key});
+  final int episodeId;
 
   @override
   ConsumerState<PodcastEpisodeDetailPage> createState() =>
@@ -53,7 +53,7 @@ class PodcastEpisodeDetailPage extends ConsumerStatefulWidget {
 
 class _PodcastEpisodeDetailPageState
     extends ConsumerState<PodcastEpisodeDetailPage> {
-  static const double _wideLayoutBreakpoint = 1040.0;
+  static const double _wideLayoutBreakpoint = 1040;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedTabIndex = 0; // 0 = Shownotes, 1 = Transcript, 2 = Summary
   ProviderSubscription<AsyncValue<PodcastTranscriptionResponse?>>?
@@ -64,14 +64,14 @@ class _PodcastEpisodeDetailPageState
 
   // Sticky header animation
   final PageController _pageController = PageController();
-  final ValueNotifier<double> _scrollOffset = ValueNotifier(0.0);
+  final ValueNotifier<double> _scrollOffset = ValueNotifier(0);
   final ValueNotifier<bool> _showScrollToTopButton = ValueNotifier(false);
   final ValueNotifier<bool> _isHeaderExpandedNotifier = ValueNotifier(true);
   int _episodeUpdateVersion = 0;
   static const double _headerScrollThreshold =
-      50.0; // Header starts fading after 50px scroll
-  static const double _autoCollapseScrollDeltaThreshold = 6.0;
-  static const double _scrollToTopFixedLift = 56.0;
+      50; // Header starts fading after 50px scroll
+  static const double _autoCollapseScrollDeltaThreshold = 6;
+  static const double _scrollToTopFixedLift = 56;
   List<ShownotesAnchor> _shownotesAnchors = const <ShownotesAnchor>[];
 
   // GlobalKeys for accessing child widget states to call scrollToTop
@@ -296,7 +296,7 @@ class _PodcastEpisodeDetailPageState
             data: (episodeDetail) {
               if (episodeDetail == null) {
                 final l10n =
-                    (AppLocalizations.of(context) ?? AppLocalizationsEn());
+                    AppLocalizations.of(context) ?? AppLocalizationsEn();
                 return _buildErrorState(
                   context,
                   l10n.podcast_episode_not_found,
@@ -379,10 +379,8 @@ class _PodcastEpisodeDetailPageState
       key: const Key('podcast_episode_detail_scroll_to_top_button'),
       padding: EdgeInsets.only(right: rightMargin, bottom: bottomMargin),
       child: GlassContainer(
-        tier: GlassTier.light,
         borderRadius: 16,
         padding: EdgeInsets.zero,
-        animate: false,
         child: InkWell(
           onTap: _scrollToTop,
           child: SizedBox(
@@ -409,13 +407,10 @@ class _PodcastEpisodeDetailPageState
     switch (_selectedTabIndex) {
       case 0: // Shownotes
         _shownotesKey.currentState?.scrollToTop();
-        break;
       case 1: // Transcript
         _transcriptKey.currentState?.scrollToTop();
-        break;
       case 2: // Summary
         _summaryKey.currentState?.scrollToTop();
-        break;
     }
   }
 

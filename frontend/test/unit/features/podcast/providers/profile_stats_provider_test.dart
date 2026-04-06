@@ -20,8 +20,8 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(profileStatsProvider.notifier);
-      await notifier.load(forceRefresh: false);
-      await notifier.load(forceRefresh: false);
+      await notifier.load();
+      await notifier.load();
 
       expect(repository.getProfileStatsCalls, 1);
       expect(container.read(profileStatsProvider).value?.totalEpisodes, 10);
@@ -37,7 +37,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(profileStatsProvider.notifier);
-      await notifier.load(forceRefresh: false);
+      await notifier.load();
       await notifier.load(forceRefresh: true);
 
       expect(repository.getProfileStatsCalls, 2);
@@ -58,7 +58,7 @@ void main() {
 
         final notifier = container.read(profileStatsProvider.notifier);
         async.run((_) {
-          notifier.load(forceRefresh: false);
+          notifier.load();
         });
         async.flushMicrotasks();
 
@@ -66,7 +66,7 @@ void main() {
         async.elapse(CacheConstants.defaultListCacheDuration + const Duration(seconds: 1));
 
         async.run((_) {
-          notifier.load(forceRefresh: false);
+          notifier.load();
         });
         async.flushMicrotasks();
 
@@ -102,6 +102,5 @@ ProfileStatsModel _stats(int totalEpisodes) {
     summariesGenerated: 0,
     pendingSummaries: 0,
     playedEpisodes: 0,
-    latestDailyReportDate: null,
   );
 }

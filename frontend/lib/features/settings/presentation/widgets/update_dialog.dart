@@ -3,17 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/services/app_update_service.dart';
-import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
-import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
-import 'package:personal_ai_assistant/shared/models/github_release.dart';
-import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
-import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
+import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
+import 'package:personal_ai_assistant/shared/models/github_release.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class _UpdateDialogPalette {
   const _UpdateDialogPalette({
@@ -69,14 +69,12 @@ class _UpdateStatusMark extends StatelessWidget {
 /// Material 3 styled dialog for displaying available app updates.
 /// Shows release information, download options, and user actions.
 class AppUpdateDialog extends ConsumerStatefulWidget {
-  final GitHubRelease release;
-  final String currentVersion;
 
   const AppUpdateDialog({
-    super.key,
-    required this.release,
-    required this.currentVersion,
+    required this.release, required this.currentVersion, super.key,
   });
+  final GitHubRelease release;
+  final String currentVersion;
 
   /// Show the dialog
   static Future<void> show({
@@ -551,7 +549,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
     );
   }
 
-  void _handleDownload(BuildContext context) async {
+  Future<void> _handleDownload(BuildContext context) async {
     setState(() {
       _isDownloading = true;
     });
@@ -654,7 +652,6 @@ class ManualUpdateCheckDialog extends ConsumerStatefulWidget {
     _isShowing = true;
     return showGlassDialog(
       context: context,
-      barrierDismissible: true,
       builder: (context) => const ManualUpdateCheckDialog(),
     ).whenComplete(() {
       _isShowing = false;

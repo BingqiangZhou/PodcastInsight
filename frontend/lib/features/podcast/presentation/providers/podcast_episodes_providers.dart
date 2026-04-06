@@ -6,16 +6,17 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episo
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
 import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
+import 'package:riverpod/src/providers/future_provider.dart';
 
 // === Episode Detail Provider ===
-final episodeDetailProvider =
+final FutureProviderFamily<PodcastEpisodeModel?, int> episodeDetailProvider =
     FutureProvider.autoDispose.family<PodcastEpisodeModel?, int>((
       ref,
       episodeId,
     ) async {
       final repository = ref.read(podcastRepositoryProvider);
       // Let errors propagate so AsyncValue.when() can handle them via error callback
-      return await repository.getEpisode(episodeId);
+      return repository.getEpisode(episodeId);
     });
 
 // For Riverpod 3.0.3, we need to use a different approach for family providers
@@ -238,7 +239,6 @@ class PodcastEpisodesNotifier extends Notifier<PodcastEpisodesState> {
       final response = await _repository.listEpisodes(
         subscriptionId: subscriptionId,
         page: currentState.nextPage ?? 1,
-        size: 20,
         hasSummary: effectiveHasSummary,
         isPlayed: effectiveStatus == 'played'
             ? true

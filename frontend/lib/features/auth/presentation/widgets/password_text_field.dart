@@ -4,11 +4,7 @@ import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
 
 class PasswordTextField extends StatelessWidget {
   const PasswordTextField({
-    super.key,
-    required this.controller,
-    required this.label,
-    required this.obscureText,
-    required this.onToggleVisibility,
+    required this.controller, required this.label, required this.obscureText, required this.onToggleVisibility, super.key,
     this.validator,
     this.errorText,
     this.onChanged,

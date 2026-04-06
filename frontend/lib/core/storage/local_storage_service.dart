@@ -43,15 +43,15 @@ final localStorageServiceProvider = Provider<LocalStorageService>((ref) {
   throw UnimplementedError('localStorageServiceProvider must be overridden');
 });
 
-class LocalStorageServiceImpl implements LocalStorageService {
+class LocalStorageServiceImpl implements LocalStorageService { // 24 hours in ms
+
+  LocalStorageServiceImpl(this._prefs);
   final SharedPreferences _prefs;
   static const String _cachePrefix = 'cache_';
   static const String _timestampPrefix = 'ts_';
   static const String _expirationSuffix = '_exp';
   static const int _defaultCacheDuration =
-      24 * 60 * 60 * 1000; // 24 hours in ms
-
-  LocalStorageServiceImpl(this._prefs);
+      24 * 60 * 60 * 1000;
 
   String _cacheKey(String key) => '$_cachePrefix$key';
   String _timestampKey(String key) => '$_timestampPrefix$key';

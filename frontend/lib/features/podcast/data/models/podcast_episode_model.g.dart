@@ -10,14 +10,15 @@ PodcastEpisodeModel _$PodcastEpisodeModelFromJson(Map<String, dynamic> json) =>
     PodcastEpisodeModel(
       id: (json['id'] as num).toInt(),
       subscriptionId: (json['subscription_id'] as num).toInt(),
-      subscriptionImageUrl: json['subscription_image_url'] as String?,
       title: json['title'] as String,
+      audioUrl: json['audio_url'] as String,
+      publishedAt: DateTime.parse(json['published_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      subscriptionImageUrl: json['subscription_image_url'] as String?,
       subscriptionTitle: json['subscription_title'] as String?,
       description: json['description'] as String?,
-      audioUrl: json['audio_url'] as String,
       audioDuration: (json['audio_duration'] as num?)?.toInt(),
       audioFileSize: (json['audio_file_size'] as num?)?.toInt(),
-      publishedAt: DateTime.parse(json['published_at'] as String),
       imageUrl: json['image_url'] as String?,
       itemLink: json['item_link'] as String?,
       transcriptUrl: json['transcript_url'] as String?,
@@ -38,7 +39,6 @@ PodcastEpisodeModel _$PodcastEpisodeModelFromJson(Map<String, dynamic> json) =>
       isPlaying: json['is_playing'] as bool? ?? false,
       playbackRate: (json['playback_rate'] as num?)?.toDouble() ?? 1.0,
       isPlayed: json['is_played'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: json['updated_at'] == null
           ? null
           : DateTime.parse(json['updated_at'] as String),
@@ -124,9 +124,9 @@ PodcastFeedResponse _$PodcastFeedResponseFromJson(Map<String, dynamic> json) =>
           .map((e) => PodcastEpisodeModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       hasMore: json['has_more'] as bool? ?? false,
+      total: (json['total'] as num).toInt(),
       nextPage: (json['next_page'] as num?)?.toInt(),
       nextCursor: json['next_cursor'] as String?,
-      total: (json['total'] as num).toInt(),
     );
 
 Map<String, dynamic> _$PodcastFeedResponseToJson(

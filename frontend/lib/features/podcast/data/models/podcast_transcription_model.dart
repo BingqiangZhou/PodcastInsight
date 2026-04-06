@@ -6,9 +6,6 @@ part 'podcast_transcription_model.g.dart';
 /// 转录请求模型
 @JsonSerializable()
 class PodcastTranscriptionRequest extends Equatable {
-  final bool forceRegenerate;
-  final int? chunkSizeMb;
-  final String? transcriptionModel;
 
   const PodcastTranscriptionRequest({
     required this.forceRegenerate,
@@ -18,6 +15,9 @@ class PodcastTranscriptionRequest extends Equatable {
 
   factory PodcastTranscriptionRequest.fromJson(Map<String, dynamic> json) =>
       _$PodcastTranscriptionRequestFromJson(json);
+  final bool forceRegenerate;
+  final int? chunkSizeMb;
+  final String? transcriptionModel;
 
   Map<String, dynamic> toJson() => _$PodcastTranscriptionRequestToJson(this);
 
@@ -51,6 +51,30 @@ enum TranscriptionStatus {
 /// 转录响应模型
 @JsonSerializable()
 class PodcastTranscriptionResponse extends Equatable {
+
+  const PodcastTranscriptionResponse({
+    required this.id,
+    required this.episodeId,
+    required this.status,
+    required this.createdAt, this.transcriptContent,
+    this.processedTranscript,
+    this.wordCount,
+    this.durationSeconds,
+    this.processingProgress,
+    this.errorMessage,
+    this.updatedAt,
+    this.completedAt,
+    this.debugMessage,
+    // AI总结相关
+    this.summaryContent,
+    this.summaryModelUsed,
+    this.summaryWordCount,
+    this.summaryProcessingTime,
+    this.summaryErrorMessage,
+  });
+
+  factory PodcastTranscriptionResponse.fromJson(Map<String, dynamic> json) =>
+      _$PodcastTranscriptionResponseFromJson(json);
   final int id;
   @JsonKey(name: 'episode_id')
   final int episodeId;
@@ -88,31 +112,6 @@ class PodcastTranscriptionResponse extends Equatable {
   final double? summaryProcessingTime;
   @JsonKey(name: 'summary_error_message')
   final String? summaryErrorMessage;
-
-  const PodcastTranscriptionResponse({
-    required this.id,
-    required this.episodeId,
-    required this.status,
-    this.transcriptContent,
-    this.processedTranscript,
-    this.wordCount,
-    this.durationSeconds,
-    this.processingProgress,
-    this.errorMessage,
-    required this.createdAt,
-    this.updatedAt,
-    this.completedAt,
-    this.debugMessage,
-    // AI总结相关
-    this.summaryContent,
-    this.summaryModelUsed,
-    this.summaryWordCount,
-    this.summaryProcessingTime,
-    this.summaryErrorMessage,
-  });
-
-  factory PodcastTranscriptionResponse.fromJson(Map<String, dynamic> json) =>
-      _$PodcastTranscriptionResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$PodcastTranscriptionResponseToJson(this);
 
@@ -161,9 +160,9 @@ class PodcastTranscriptionResponse extends Equatable {
     if (progress != null) {
       return progress.clamp(0.0, 100.0);
     }
-    if (isCompleted) return 100.0;
-    if (isFailed) return 0.0;
-    return 0.0;
+    if (isCompleted) return 100;
+    if (isFailed) return 0;
+    return 0;
   }
 
   @override
@@ -193,6 +192,17 @@ class PodcastTranscriptionResponse extends Equatable {
 /// 转录对话段落模型
 @JsonSerializable()
 class TranscriptDialogueSegment extends Equatable {
+
+  const TranscriptDialogueSegment({
+    required this.text, this.speaker,
+    this.timestamp,
+    this.startTime,
+    this.endTime,
+    this.confidence,
+  });
+
+  factory TranscriptDialogueSegment.fromJson(Map<String, dynamic> json) =>
+      _$TranscriptDialogueSegmentFromJson(json);
   @JsonKey(name: 'speaker')
   final String? speaker;
   @JsonKey(name: 'timestamp')
@@ -205,18 +215,6 @@ class TranscriptDialogueSegment extends Equatable {
   final String text;
   @JsonKey(name: 'confidence')
   final double? confidence;
-
-  const TranscriptDialogueSegment({
-    this.speaker,
-    this.timestamp,
-    this.startTime,
-    this.endTime,
-    required this.text,
-    this.confidence,
-  });
-
-  factory TranscriptDialogueSegment.fromJson(Map<String, dynamic> json) =>
-      _$TranscriptDialogueSegmentFromJson(json);
 
   Map<String, dynamic> toJson() => _$TranscriptDialogueSegmentToJson(this);
 
@@ -248,14 +246,6 @@ class TranscriptDialogueSegment extends Equatable {
 /// 解析后的转录内容模型
 @JsonSerializable()
 class ParsedTranscript extends Equatable {
-  @JsonKey(name: 'segments')
-  final List<TranscriptDialogueSegment> segments;
-  @JsonKey(name: 'summary')
-  final String? summary;
-  @JsonKey(name: 'key_topics')
-  final List<String>? keyTopics;
-  @JsonKey(name: 'speakers')
-  final List<String>? speakers;
 
   const ParsedTranscript({
     required this.segments,
@@ -266,6 +256,14 @@ class ParsedTranscript extends Equatable {
 
   factory ParsedTranscript.fromJson(Map<String, dynamic> json) =>
       _$ParsedTranscriptFromJson(json);
+  @JsonKey(name: 'segments')
+  final List<TranscriptDialogueSegment> segments;
+  @JsonKey(name: 'summary')
+  final String? summary;
+  @JsonKey(name: 'key_topics')
+  final List<String>? keyTopics;
+  @JsonKey(name: 'speakers')
+  final List<String>? speakers;
 
   Map<String, dynamic> toJson() => _$ParsedTranscriptToJson(this);
 

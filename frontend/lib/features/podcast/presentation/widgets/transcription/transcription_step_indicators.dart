@@ -12,9 +12,7 @@ class TranscriptionStepDescriptor {
 
 class TranscriptionStepIndicators extends StatelessWidget {
   const TranscriptionStepIndicators({
-    super.key,
-    required this.progressPercentage,
-    required this.steps,
+    required this.progressPercentage, required this.steps, super.key,
   });
 
   final double progressPercentage;
@@ -53,7 +51,7 @@ class TranscriptionStepIndicators extends StatelessWidget {
 }
 
 class TranscriptionStatusStepIcon extends StatelessWidget {
-  const TranscriptionStatusStepIcon({super.key, required this.step});
+  const TranscriptionStatusStepIcon({required this.step, super.key});
 
   final int step;
 
@@ -123,7 +121,6 @@ class _TranscriptionStepIndicator extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(
               color: iconColor.withValues(alpha: 0.3),
-              width: 1,
             ),
           ),
           child: Icon(

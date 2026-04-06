@@ -12,15 +12,15 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/co
 enum PodcastDiscoverTab { podcasts, episodes }
 
 class PodcastDiscoverPaginationState extends Equatable {
-  final int loadedCount;
-  final bool isLoadingMore;
-  final bool hasMore;
 
   const PodcastDiscoverPaginationState({
     this.loadedCount = 0,
     this.isLoadingMore = false,
     this.hasMore = false,
   });
+  final int loadedCount;
+  final bool isLoadingMore;
+  final bool hasMore;
 
   PodcastDiscoverPaginationState copyWith({
     int? loadedCount,
@@ -39,17 +39,6 @@ class PodcastDiscoverPaginationState extends Equatable {
 }
 
 class PodcastDiscoverState extends Equatable {
-  final PodcastCountry country;
-  final bool isLoading;
-  final bool isRefreshing;
-  final String? error;
-  final PodcastDiscoverTab selectedTab;
-  final String selectedCategory;
-  final List<PodcastDiscoverItem> topShows;
-  final List<PodcastDiscoverItem> topEpisodes;
-  final PodcastDiscoverPaginationState showsPagination;
-  final PodcastDiscoverPaginationState episodesPagination;
-  final DateTime? lastRefreshTime;
 
   const PodcastDiscoverState({
     required this.country,
@@ -64,6 +53,17 @@ class PodcastDiscoverState extends Equatable {
     this.episodesPagination = const PodcastDiscoverPaginationState(),
     this.lastRefreshTime,
   });
+  final PodcastCountry country;
+  final bool isLoading;
+  final bool isRefreshing;
+  final String? error;
+  final PodcastDiscoverTab selectedTab;
+  final String selectedCategory;
+  final List<PodcastDiscoverItem> topShows;
+  final List<PodcastDiscoverItem> topEpisodes;
+  final PodcastDiscoverPaginationState showsPagination;
+  final PodcastDiscoverPaginationState episodesPagination;
+  final DateTime? lastRefreshTime;
 
   static const String allCategoryValue = '__all__';
 
@@ -165,7 +165,7 @@ class PodcastDiscoverState extends Equatable {
 }
 
 final applePodcastRssServiceProvider = Provider<ApplePodcastRssService>((ref) {
-  return ApplePodcastRssService.ref(ref);
+  return ApplePodcastRssService.ref();
 });
 
 final podcastDiscoverProvider =
@@ -305,13 +305,9 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
       try {
         final showsFuture = _rssService.fetchTopShows(
           country: country,
-          limit: CacheConstants.discoverInitialFetchLimit,
-          format: ApplePodcastRssFormat.json,
         );
         final episodesFuture = _rssService.fetchTopEpisodes(
           country: country,
-          limit: CacheConstants.discoverInitialFetchLimit,
-          format: ApplePodcastRssFormat.json,
         );
 
         // Parallel loading for better performance
@@ -411,7 +407,6 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
           final response = await _rssService.fetchTopShows(
             country: country,
             limit: nextLimit,
-            format: ApplePodcastRssFormat.json,
           );
           if (!_isRequestActive(requestId) || state.country != country) {
             return;
@@ -437,7 +432,6 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
         final response = await _rssService.fetchTopEpisodes(
           country: country,
           limit: nextLimit,
-          format: ApplePodcastRssFormat.json,
         );
         if (!_isRequestActive(requestId) || state.country != country) {
           return;
@@ -540,7 +534,6 @@ class PodcastDiscoverNotifier extends Notifier<PodcastDiscoverState> {
         loadedCount >= requestedLimit;
     return PodcastDiscoverPaginationState(
       loadedCount: loadedCount,
-      isLoadingMore: false,
       hasMore: hasMore,
     );
   }

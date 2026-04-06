@@ -1,8 +1,8 @@
+import 'package:personal_ai_assistant/core/network/dio_client.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/features/auth/domain/models/auth_request.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/auth_response.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
-import 'package:personal_ai_assistant/core/network/dio_client.dart';
 
 abstract class AuthRemoteDatasource {
   Future<AuthResponse> login(LoginRequest request);
@@ -15,9 +15,9 @@ abstract class AuthRemoteDatasource {
 }
 
 class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
-  final DioClient _apiClient;
 
   AuthRemoteDatasourceImpl(this._apiClient);
+  final DioClient _apiClient;
 
   @override
   Future<AuthResponse> login(LoginRequest request) async {
@@ -53,7 +53,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       logger.AppLogger.debug('!!! Received User object instead of Token, attempting login...');
 
       // Try to login with the newly created user credentials
-      return await login(LoginRequest(
+      return login(LoginRequest(
         username: request.email,
         password: request.password,
       ));

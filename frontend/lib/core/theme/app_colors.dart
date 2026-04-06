@@ -3,11 +3,11 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 
 /// ============================================================
-/// Apple Liquid Glass Design System - 苹果液态玻璃设计系统
+/// Arc + Linear Design System
 ///
 /// Design Philosophy:
-/// Based on Apple Human Interface Guidelines (HIG) with
-/// Liquid Glass visual effects for depth and vibrancy.
+/// Dark base theme with colorful gradient accents (Arc-style)
+/// combined with Linear's precise typography and spacing.
 /// ============================================================
 
 class AppColors {
@@ -15,13 +15,18 @@ class AppColors {
 
   // ============================================================
   // LIGHT THEME - 亮色主题
-  /// Apple HIG colors with warm accents
+  /// Arc+Linear surface colors
   // ============================================================
 
-  // Background Colors - 背景色系 (Apple HIG systemGroupedBackground)
-  static const Color lightBackground = Color(0xFFF2F2F7);
+  // Background Colors - 背景色系
+  static const Color lightBackground = Color(0xFFF8F9FA);
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightSurfaceVariant = Color(0xFFF2F2F7);
+  static const Color lightSurfaceElevated = Color(0xFFFFFFFF);
+  static const Color lightOnBackground = Color(0xFF1a1a2e);
+  static const Color lightOnSurface = Color(0x991a1a2e); // rgba 0.6
+  static const Color lightOnSurfaceMuted = Color(0x591a1a2e); // rgba 0.35
+  static const Color lightBorder = Color(0x0F000000); // rgba 0.06
 
   // Text Colors - 文字色系 (Apple HIG label colors)
   static const Color lightTextPrimary = Color(0xFF000000);
@@ -32,15 +37,29 @@ class AppColors {
   static const Color lightOutline = Color(0xFFC7C7CC);
   static const Color lightOutlineVariant = Color(0xFFD1D1D6);
 
+  // Light theme card tier colors
+  static const Color lightSurfaceTierFill = Color(0x0A000000);
+  static const Color lightCardTierFill = Color(0x0F000000);
+  static const Color lightElevatedTierFill = Color(0x14000000);
+  static const Color lightSurfaceTierBorder = Color(0x0F000000);
+  static const Color lightCardTierBorder = Color(0x14000000);
+  static const Color lightElevatedTierBorder = Color(0x1A000000);
+
   // ============================================================
   // DARK THEME - 暗色主题
-  /// Apple HIG colors with vibrant accents
+  /// Arc+Linear surface colors
   // ============================================================
 
-  // Background Colors - 背景色系 (Apple HIG systemGroupedBackground)
-  static const Color darkBackground = Color(0xFF000000);
-  static const Color darkSurface = Color(0xFF1C1C1E);
+  // Background Colors - 背景色系
+  static const Color darkBackground = Color(0xFF0f0f1a);
+  static const Color darkSurface = Color(0xFF1a1a2e);
   static const Color darkSurfaceVariant = Color(0xFF2C2C2E);
+  static const Color darkSurfaceElevated = Color(0xFF252540);
+  static const Color darkOnBackground = Color(0xE6FFFFFF); // rgba 0.9
+  static const Color darkOnSurface = Color(0x80FFFFFF); // rgba 0.5
+  static const Color darkOnSurfaceMuted = Color(0x40FFFFFF); // rgba 0.25
+  static const Color darkBorder = Color(0x0FFFFFFF); // rgba 0.06
+  static const Color darkBorderHover = Color(0x1FFFFFFF); // rgba 0.12
 
   // Text Colors - 文字色系 (Apple HIG label colors)
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
@@ -50,6 +69,14 @@ class AppColors {
   // Outline Colors - 边框色系 (Apple HIG systemGray colors)
   static const Color darkOutline = Color(0xFF48484A);
   static const Color darkOutlineVariant = Color(0xFF3A3A3C);
+
+  // Card tier colors (for dark theme)
+  static const Color surfaceTierFill = Color(0x0AFFFFFF); // rgba 0.04
+  static const Color cardTierFill = Color(0x0FFFFFFF); // rgba 0.06
+  static const Color elevatedTierFill = Color(0x14FFFFFF); // rgba 0.08
+  static const Color surfaceTierBorder = Color(0x0FFFFFFF); // rgba 0.06
+  static const Color cardTierBorder = Color(0x14FFFFFF); // rgba 0.08
+  static const Color elevatedTierBorder = Color(0x1AFFFFFF); // rgba 0.10
 
   // ============================================================
   // BRAND COLORS - 品牌色 (Apple HIG system tints)
@@ -119,6 +146,26 @@ class AppColors {
   );
 
   // ============================================================
+  // GRADIENT PALETTE - 渐变色板 (Arc-style accents)
+  // ============================================================
+
+  static const List<Color> coralColors = [Color(0xFFFF6B6B), Color(0xFFFF8E53)];
+  static const List<Color> violetColors = [Color(0xFF9B5DE5), Color(0xFF5B6BF0)];
+  static const List<Color> cyanColors = [Color(0xFF00C9A7), Color(0xFF00D4FF)];
+  static const List<Color> goldColors = [Color(0xFFFFC75F), Color(0xFFFFD93D)];
+  static const List<Color> roseColors = [Color(0xFFF15BB5), Color(0xFFFF6B6B)];
+  static const List<Color> skyColors = [Color(0xFF4CC9F0), Color(0xFF72EFDD)];
+
+  static const List<List<Color>> podcastGradientColors = [
+    coralColors,
+    violetColors,
+    cyanColors,
+    goldColors,
+    roseColors,
+    skyColors,
+  ];
+
+  // ============================================================
   // DATA VISUALIZATION - 数据可视化色彩
   /// Using Apple HIG system tint colors
   // ============================================================
@@ -146,7 +193,7 @@ class AppColors {
 
 /// ============================================================
 /// APP THEME EXTENSION
-/// Apple Liquid Glass Theme Extension
+/// Arc + Linear Theme Extension
 /// ============================================================
 
 @immutable
@@ -155,11 +202,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.contentMaxWidth,
     required this.sectionGap,
     required this.cardRadius,
-    required this.panelRadius,
     required this.buttonRadius,
-    required this.inputRadius,
     required this.navItemRadius,
-    required this.controlRadius,
+    required this.itemRadius,
     required this.sheetRadius,
     required this.pillRadius,
     required this.shadowXs,
@@ -167,26 +212,19 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.shadowMd,
     required this.shadowLg,
     required this.chartColors,
-    // Legacy properties for backwards compatibility (non-nullable with defaults)
+    required this.aiPrimary, // AI accent tokens
+    required this.aiBubbleUserColor, required this.aiBubbleAssistantColor, required this.aiChipColor, required this.aiHighlightSurfaceColor, required this.cosmicFilterActiveColor, // Arc+Linear tier tokens
+    required this.surfaceTierFill, required this.cardTierFill, required this.elevatedTierFill, required this.surfaceTierBorder, required this.cardTierBorder, required this.elevatedTierBorder, required this.podcastGradientColors, // Legacy properties for backwards compatibility (non-nullable with defaults)
     this.shellGradient,
-    required this.aiPrimary,
-    // AI accent tokens
-    required this.aiBubbleUserColor,
-    required this.aiBubbleAssistantColor,
-    required this.aiChipColor,
-    required this.aiHighlightSurfaceColor,
-    required this.cosmicFilterActiveColor,
   });
 
   // Layout
   final double contentMaxWidth;
   final double sectionGap;
   final double cardRadius;
-  final double panelRadius;
   final double buttonRadius;
-  final double inputRadius;
   final double navItemRadius;
-  final double controlRadius;
+  final double itemRadius;
   final double sheetRadius;
   final double pillRadius;
 
@@ -210,16 +248,23 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final Color aiHighlightSurfaceColor;
   final Color cosmicFilterActiveColor;
 
+  // Arc+Linear tier tokens
+  final Color surfaceTierFill;
+  final Color cardTierFill;
+  final Color elevatedTierFill;
+  final Color surfaceTierBorder;
+  final Color cardTierBorder;
+  final Color elevatedTierBorder;
+  final List<List<Color>> podcastGradientColors;
+
   @override
   AppThemeExtension copyWith({
     double? contentMaxWidth,
     double? sectionGap,
     double? cardRadius,
-    double? panelRadius,
     double? buttonRadius,
-    double? inputRadius,
     double? navItemRadius,
-    double? controlRadius,
+    double? itemRadius,
     double? sheetRadius,
     double? pillRadius,
     BoxShadow? shadowXs,
@@ -234,16 +279,21 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     Color? aiChipColor,
     Color? aiHighlightSurfaceColor,
     Color? cosmicFilterActiveColor,
+    Color? surfaceTierFill,
+    Color? cardTierFill,
+    Color? elevatedTierFill,
+    Color? surfaceTierBorder,
+    Color? cardTierBorder,
+    Color? elevatedTierBorder,
+    List<List<Color>>? podcastGradientColors,
   }) {
     return AppThemeExtension(
       contentMaxWidth: contentMaxWidth ?? this.contentMaxWidth,
       sectionGap: sectionGap ?? this.sectionGap,
       cardRadius: cardRadius ?? this.cardRadius,
-      panelRadius: panelRadius ?? this.panelRadius,
       buttonRadius: buttonRadius ?? this.buttonRadius,
-      inputRadius: inputRadius ?? this.inputRadius,
       navItemRadius: navItemRadius ?? this.navItemRadius,
-      controlRadius: controlRadius ?? this.controlRadius,
+      itemRadius: itemRadius ?? this.itemRadius,
       sheetRadius: sheetRadius ?? this.sheetRadius,
       pillRadius: pillRadius ?? this.pillRadius,
       shadowXs: shadowXs ?? this.shadowXs,
@@ -261,6 +311,14 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
           aiHighlightSurfaceColor ?? this.aiHighlightSurfaceColor,
       cosmicFilterActiveColor:
           cosmicFilterActiveColor ?? this.cosmicFilterActiveColor,
+      surfaceTierFill: surfaceTierFill ?? this.surfaceTierFill,
+      cardTierFill: cardTierFill ?? this.cardTierFill,
+      elevatedTierFill: elevatedTierFill ?? this.elevatedTierFill,
+      surfaceTierBorder: surfaceTierBorder ?? this.surfaceTierBorder,
+      cardTierBorder: cardTierBorder ?? this.cardTierBorder,
+      elevatedTierBorder: elevatedTierBorder ?? this.elevatedTierBorder,
+      podcastGradientColors:
+          podcastGradientColors ?? this.podcastGradientColors,
     );
   }
 
@@ -277,11 +335,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       contentMaxWidth: lerpDouble(contentMaxWidth, other.contentMaxWidth, t)!,
       sectionGap: lerpDouble(sectionGap, other.sectionGap, t)!,
       cardRadius: lerpDouble(cardRadius, other.cardRadius, t)!,
-      panelRadius: lerpDouble(panelRadius, other.panelRadius, t)!,
       buttonRadius: lerpDouble(buttonRadius, other.buttonRadius, t)!,
-      inputRadius: lerpDouble(inputRadius, other.inputRadius, t)!,
       navItemRadius: lerpDouble(navItemRadius, other.navItemRadius, t)!,
-      controlRadius: lerpDouble(controlRadius, other.controlRadius, t)!,
+      itemRadius: lerpDouble(itemRadius, other.itemRadius, t)!,
       sheetRadius: lerpDouble(sheetRadius, other.sheetRadius, t)!,
       pillRadius: lerpDouble(pillRadius, other.pillRadius, t)!,
       shadowXs: BoxShadow.lerp(shadowXs, other.shadowXs, t)!,
@@ -299,6 +355,19 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
           Color.lerp(aiHighlightSurfaceColor, other.aiHighlightSurfaceColor, t)!,
       cosmicFilterActiveColor:
           Color.lerp(cosmicFilterActiveColor, other.cosmicFilterActiveColor, t)!,
+      // Arc+Linear tier tokens
+      surfaceTierFill:
+          Color.lerp(surfaceTierFill, other.surfaceTierFill, t)!,
+      cardTierFill: Color.lerp(cardTierFill, other.cardTierFill, t)!,
+      elevatedTierFill:
+          Color.lerp(elevatedTierFill, other.elevatedTierFill, t)!,
+      surfaceTierBorder:
+          Color.lerp(surfaceTierBorder, other.surfaceTierBorder, t)!,
+      cardTierBorder:
+          Color.lerp(cardTierBorder, other.cardTierBorder, t)!,
+      elevatedTierBorder:
+          Color.lerp(elevatedTierBorder, other.elevatedTierBorder, t)!,
+      podcastGradientColors: other.podcastGradientColors,
     );
   }
 
@@ -306,13 +375,11 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   static const light = AppThemeExtension(
     contentMaxWidth: 1240,
     sectionGap: 24,
-    cardRadius: 12,
-    panelRadius: 16,
+    cardRadius: 14,
     buttonRadius: 10,
-    inputRadius: 8,
     navItemRadius: 10,
-    controlRadius: 14,
-    sheetRadius: 28,
+    itemRadius: 8,
+    sheetRadius: 20,
     pillRadius: 999,
     shadowXs: BoxShadow(
       color: Color(0x0A000000),
@@ -343,19 +410,25 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     aiChipColor: Color(0xFFFFE8CC), // light orange
     aiHighlightSurfaceColor: Color(0xFFFFF4D6), // light yellow surface
     cosmicFilterActiveColor: Color(0xFFFF9500), // systemOrange light
+    // Arc+Linear tier tokens — light
+    surfaceTierFill: AppColors.lightSurfaceTierFill,
+    cardTierFill: AppColors.lightCardTierFill,
+    elevatedTierFill: AppColors.lightElevatedTierFill,
+    surfaceTierBorder: AppColors.lightSurfaceTierBorder,
+    cardTierBorder: AppColors.lightCardTierBorder,
+    elevatedTierBorder: AppColors.lightElevatedTierBorder,
+    podcastGradientColors: AppColors.podcastGradientColors,
   );
 
   /// Dark theme extension (const base)
   static const dark = AppThemeExtension(
     contentMaxWidth: 1240,
     sectionGap: 24,
-    cardRadius: 12,
-    panelRadius: 16,
+    cardRadius: 14,
     buttonRadius: 10,
-    inputRadius: 8,
     navItemRadius: 10,
-    controlRadius: 14,
-    sheetRadius: 28,
+    itemRadius: 8,
+    sheetRadius: 20,
     pillRadius: 999,
     shadowXs: BoxShadow(
       color: Color(0x33000000),
@@ -386,6 +459,14 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     aiChipColor: Color(0xFF3D1E00), // dark orange
     aiHighlightSurfaceColor: Color(0xFF3D2D00), // dark yellow surface
     cosmicFilterActiveColor: Color(0xFFFF9F0A), // systemOrange dark
+    // Arc+Linear tier tokens — dark
+    surfaceTierFill: AppColors.surfaceTierFill,
+    cardTierFill: AppColors.cardTierFill,
+    elevatedTierFill: AppColors.elevatedTierFill,
+    surfaceTierBorder: AppColors.surfaceTierBorder,
+    cardTierBorder: AppColors.cardTierBorder,
+    elevatedTierBorder: AppColors.elevatedTierBorder,
+    podcastGradientColors: AppColors.podcastGradientColors,
   );
 
   /// Light theme with gradient (non-const, for runtime use)

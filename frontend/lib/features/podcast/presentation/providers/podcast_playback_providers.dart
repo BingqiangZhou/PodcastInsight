@@ -4,29 +4,27 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod/riverpod.dart';
-
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/audio_handler.dart';
-
+import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
-import 'package:personal_ai_assistant/core/services/download_provider.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/audio_handler.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 import 'package:personal_ai_assistant/shared/constants/storage_keys.dart';
+import 'package:riverpod/riverpod.dart';
 
-part 'podcast_playback_helpers.dart';
-part 'podcast_playback_queue_controller.dart';
 part 'audio_persistence_notifier.dart';
 part 'audio_playback_rate_notifier.dart';
 part 'audio_server_sync_notifier.dart';
 part 'audio_sleep_timer_notifier.dart';
+part 'podcast_playback_helpers.dart';
+part 'podcast_playback_queue_controller.dart';
 
 final audioPlayerProvider =
     NotifierProvider<AudioPlayerNotifier, AudioPlayerState>(
@@ -559,7 +557,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       logger.AppLogger.debug(
         '[PlaybackRestore] Restoring last played episode for mini player',
       );
-      final response = await _repository.getPlaybackHistory(page: 1, size: 20);
+      final response = await _repository.getPlaybackHistory(size: 20);
       if (_isDisposed || !ref.mounted) {
         return;
       }
@@ -665,7 +663,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     if (!ref.read(authProvider).isAuthenticated) return;
 
     try {
-      final response = await _repository.getPlaybackHistory(page: 1, size: 20);
+      final response = await _repository.getPlaybackHistory(size: 20);
       if (_isDisposed || !ref.mounted) return;
       if (_isPlayingEpisode) return;
       if (expectedEpisodeId != null &&
@@ -1207,6 +1205,61 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
         state = state.copyWith(error: error.toString());
       }
     }
+  }
+
+  // Playback rate snapshot methods defined on the class (not extension) so
+  // that test mocks can override them.  They delegate to the extension helpers
+  // defined in audio_playback_rate_notifier.dart.
+
+  PlaybackRateSelectionSnapshot getPlaybackRateSelectionSnapshot() {
+    final currentEpisode = state.currentEpisode;
+    final fallbackRate = _effectiveFallbackPlaybackRate(
+      currentValue: state.playbackRate,
+      episodePlaybackRate: currentEpisode?.playbackRate,
+    );
+    final fallbackSelection = _fallbackPlaybackRateSelection(
+      subscriptionId: currentEpisode?.subscriptionId,
+      fallbackRate: fallbackRate,
+    );
+    final cachedSelection = _playbackRateSelectionCache;
+    if (cachedSelection == null) {
+      return fallbackSelection;
+    }
+    if (!cachedSelection.applyToSubscription) {
+      return (speed: cachedSelection.speed, applyToSubscription: false);
+    }
+    if (currentEpisode != null &&
+        cachedSelection.subscriptionId == currentEpisode.subscriptionId) {
+      return (speed: cachedSelection.speed, applyToSubscription: true);
+    }
+    return fallbackSelection;
+  }
+
+  Future<PlaybackRateSelectionSnapshot>
+  resolvePlaybackRateSelectionForCurrentContext() async {
+    final currentEpisode = state.currentEpisode;
+    final fallbackRate = _effectiveFallbackPlaybackRate(
+      currentValue: state.playbackRate,
+      episodePlaybackRate: currentEpisode?.playbackRate,
+    );
+    final fallbackSelection = _fallbackPlaybackRateSelection(
+      subscriptionId: currentEpisode?.subscriptionId,
+      fallbackRate: fallbackRate,
+    );
+    final effective = await _fetchEffectivePlaybackRatePreference(
+      subscriptionId: currentEpisode?.subscriptionId,
+    );
+    final resolvedSelection = (
+      speed: effective?.effectivePlaybackRate ?? fallbackSelection.speed,
+      applyToSubscription: currentEpisode != null && (effective?.source == 'subscription' ||
+            (effective == null && fallbackSelection.applyToSubscription)),
+    );
+    _cachePlaybackRateSelection(
+      speed: resolvedSelection.speed,
+      applyToSubscription: resolvedSelection.applyToSubscription,
+      subscriptionId: currentEpisode?.subscriptionId,
+    );
+    return resolvedSelection;
   }
 
 }

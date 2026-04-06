@@ -1,32 +1,55 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+
+/// Card tier system for visual hierarchy.
+///
+/// Three tiers provide progressive elevation:
+/// - **surface**: Lowest tier, minimal fill/border (lists, inline content)
+/// - **card**: Default tier, medium fill/border (standard cards, panels)
+/// - **elevated**: Highest tier, strong fill/border (prominent cards, dialogs)
+enum CardTier {
+  /// Lowest tier with minimal fill (rgba 0.04) and border (rgba 0.06)
+  surface,
+
+  /// Default tier with medium fill (rgba 0.06) and border (rgba 0.08)
+  card,
+
+  /// Highest tier with strong fill (rgba 0.08) and border (rgba 0.10)
+  elevated,
+}
+
 /// Surface card variants for different visual hierarchy levels.
+///
+/// @deprecated Use CardTier instead. Kept for backward compatibility.
 enum SurfaceCardVariant {
   /// Standard card with secondarySystemGroupedBackground.
+  @Deprecated('Use CardTier.card instead')
   normal,
 
   /// Elevated card (same as normal, can add shadow later).
+  @Deprecated('Use CardTier.elevated instead')
   elevated,
 
   /// Flat card with tertiarySystemGroupedBackground.
+  @Deprecated('Use CardTier.surface instead')
   flat,
 }
 
-/// A content layer card widget using Apple HIG system colors.
+/// A content layer card widget using Arc+Linear theme tokens.
 ///
 /// Provides a card surface with proper background colors and borders
-/// following Apple's Human Interface Guidelines. The card automatically
-/// adapts to light/dark mode and supports three variants:
+/// following the Arc+Linear design system. The card automatically
+/// adapts to light/dark mode and supports three tiers:
 ///
-/// - **normal**: Uses `secondarySystemGroupedBackground` (white/light gray)
-/// - **elevated**: Same as normal (prepared for future shadow support)
-/// - **flat**: Uses `tertiarySystemGroupedBackground` (lighter/darker gray)
-///
-/// The border color uses Apple's `tertiarySystemFill` with proper opacity.
+/// - **surface**: Uses `surfaceTierFill` + `surfaceTierBorder` (lowest elevation)
+/// - **card**: Uses `cardTierFill` + `cardTierBorder` (default, medium elevation)
+/// - **elevated**: Uses `elevatedTierFill` + `elevatedTierBorder` (highest elevation)
 ///
 /// Example:
 /// ```dart
 /// SurfaceCard(
+///   tier: CardTier.card,
 ///   padding: const EdgeInsets.all(16),
 ///   child: Text('Content'),
 /// )
@@ -34,11 +57,11 @@ enum SurfaceCardVariant {
 class SurfaceCard extends StatelessWidget {
   /// Creates a surface card.
   const SurfaceCard({
-    super.key,
-    required this.child,
+    required this.child, super.key,
     this.padding,
     this.borderRadius = 16,
-    this.variant = SurfaceCardVariant.normal,
+    this.tier = CardTier.card,
+    this.variant,
     this.backgroundColor,
   });
 
@@ -51,41 +74,44 @@ class SurfaceCard extends StatelessWidget {
   /// The border radius of the card.
   final double borderRadius;
 
-  /// The visual variant of the card.
-  final SurfaceCardVariant variant;
+  /// The visual tier of the card.
+  final CardTier tier;
+
+  /// @deprecated Use [tier] instead.
+  final SurfaceCardVariant? variant;
 
   /// Optional custom background color.
-  /// When provided, this overrides the variant-based background color.
+  /// When provided, this overrides the tier-based background color.
   final Color? backgroundColor;
+
+  /// Convert legacy [variant] to equivalent [CardTier].
+  CardTier _getEffectiveTier() {
+    if (variant == null) return tier;
+    return switch (variant!) {
+      SurfaceCardVariant.normal => CardTier.card,
+      SurfaceCardVariant.elevated => CardTier.elevated,
+      SurfaceCardVariant.flat => CardTier.surface,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final extension = appThemeOf(context);
+    final effectiveTier = _getEffectiveTier();
 
-    // Background colors from Apple HIG systemGroupedBackground
-    final Color bg;
-    if (backgroundColor != null) {
-      bg = backgroundColor!;
-    } else {
-      bg = switch (variant) {
-        SurfaceCardVariant.normal => isDark
-            ? const Color(0xFF1C1C1E) // secondarySystemGroupedBackground dark
-            : const Color(0xFFFFFFFF), // secondarySystemGroupedBackground light
-        SurfaceCardVariant.elevated => isDark
-            ? const Color(0xFF1C1C1E) // secondarySystemGroupedBackground dark
-            : const Color(0xFFFFFFFF), // secondarySystemGroupedBackground light
-        SurfaceCardVariant.flat => isDark
-            ? const Color(0xFF2C2C2E) // tertiarySystemGroupedBackground dark
-            : const Color(0xFFF2F2F7), // tertiarySystemGroupedBackground light
-      };
-    }
+    // Resolve fill and border colors from tier
+    final bg = backgroundColor ??
+        switch (effectiveTier) {
+          CardTier.surface => extension.surfaceTierFill,
+          CardTier.card => extension.cardTierFill,
+          CardTier.elevated => extension.elevatedTierFill,
+        };
 
-    // Border from Apple HIG tertiarySystemFill
-    // Base color: #767680 with opacity
-    // Light mode: 12% opacity, Dark mode: 24% opacity
-    final borderColor = isDark
-        ? const Color(0x3D767680) // 24% opacity
-        : const Color(0x1E767680); // 12% opacity
+    final borderColor = switch (effectiveTier) {
+      CardTier.surface => extension.surfaceTierBorder,
+      CardTier.card => extension.cardTierBorder,
+      CardTier.elevated => extension.elevatedTierBorder,
+    };
 
     return Container(
       decoration: BoxDecoration(
@@ -93,7 +119,6 @@ class SurfaceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
           color: borderColor,
-          width: 1,
         ),
       ),
       child: ClipRRect(

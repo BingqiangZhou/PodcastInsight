@@ -3,24 +3,27 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:meta/meta.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-// Import ETag interceptor (now with integrated cache)
-import 'package:personal_ai_assistant/core/network/etag_interceptor.dart';
-import 'package:personal_ai_assistant/core/network/retry_interceptor.dart';
-import 'package:personal_ai_assistant/core/network/token_refresh_service.dart';
-
 // Import AppConfig and ApiConstants from the canonical config file
 import 'package:personal_ai_assistant/core/app/config/app_config.dart' as config;
+// Import ETag interceptor (now with integrated cache)
+import 'package:personal_ai_assistant/core/network/etag_interceptor.dart';
 import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
+import 'package:personal_ai_assistant/core/network/retry_interceptor.dart';
+import 'package:personal_ai_assistant/core/network/token_refresh_service.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:shared_preferences/shared_preferences.dart';
 
 typedef SavedServerBaseUrlLoader = Future<String?> Function();
 
 /// Options for configuring retry behavior on network failures.
 @immutable
 class RetryOptions {
+
+  const RetryOptions({
+    this.maxRetries = 3,
+    this.initialDelay = const Duration(seconds: 1),
+    this.backoffMultiplier = 2.0,
+  });
   /// Maximum number of retry attempts for transient failures.
   final int maxRetries;
 
@@ -29,12 +32,6 @@ class RetryOptions {
 
   /// Multiplier for exponential backoff (e.g., 2.0 = delay doubles each retry).
   final double backoffMultiplier;
-
-  const RetryOptions({
-    this.maxRetries = 3,
-    this.initialDelay = const Duration(seconds: 1),
-    this.backoffMultiplier = 2.0,
-  });
 
   /// Calculate delay for a given retry attempt (0-indexed).
   Duration getDelay(int attempt) {
@@ -57,8 +54,8 @@ class RetryOptions {
 
 double pow(double base, int exponent) {
   if (exponent == 0) return 1.0;
-  double result = 1.0;
-  for (int i = 0; i < exponent; i++) {
+  var result = 1.0;
+  for (var i = 0; i < exponent; i++) {
     result *= base;
   }
   return result;
@@ -66,10 +63,6 @@ double pow(double base, int exponent) {
 
 @immutable
 class DioClientInitOptions {
-  final bool applySavedBaseUrlOnInit;
-  final String? initialServerBaseUrl;
-  final SavedServerBaseUrlLoader? savedBaseUrlLoader;
-  final RetryOptions retryOptions;
 
   const DioClientInitOptions({
     this.applySavedBaseUrlOnInit = false,
@@ -77,6 +70,10 @@ class DioClientInitOptions {
     this.savedBaseUrlLoader,
     this.retryOptions = const RetryOptions(),
   });
+  final bool applySavedBaseUrlOnInit;
+  final String? initialServerBaseUrl;
+  final SavedServerBaseUrlLoader? savedBaseUrlLoader;
+  final RetryOptions retryOptions;
 }
 
 /// Simplified HTTP client using Dio.
@@ -88,30 +85,6 @@ class DioClientInitOptions {
 /// - Error handling with typed exceptions
 /// - Request cancellation support
 class DioClient {
-  final DioClientInitOptions _initOptions;
-  late final Dio _dio;
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
-  late final TokenRefreshService _tokenRefreshService;
-
-  // ETag interceptor
-  late final ETagInterceptor _etagInterceptor;
-
-  // Request cancellation support
-  final Map<String, CancelToken> _cancelTokens = {};
-
-  // Retry options (passed to RetryInterceptor)
-  final RetryOptions _retryOptions;
-
-  // In-memory token cache to avoid secure storage I/O on every request
-  String? _cachedAccessToken;
-
-  // Request deduplication: maps GET request keys to their in-flight futures (NW-M3)
-  final Map<String, Completer<Response>> _inFlightRequests = {};
-
-  // Storage key for custom backend server base URL
-  static const String _serverBaseUrlKey = 'server_base_url';
-  static const String _etagInvalidateAfterWriteKey =
-      'etag_invalidate_after_write';
 
   DioClient({DioClientInitOptions initOptions = const DioClientInitOptions()})
     : _initOptions = initOptions,
@@ -123,7 +96,6 @@ class DioClient {
     // The actual baseUrl is set by _initializeBaseUrl().
     _dio = Dio(
       BaseOptions(
-        baseUrl: '',
         headers: config.ApiConstants.headers,
         connectTimeout: config.AppConfig.connectionTimeout,
         receiveTimeout: config.AppConfig.receiveTimeout,
@@ -156,10 +128,34 @@ class DioClient {
       unawaited(initializeFromStorage());
     }
   }
+  final DioClientInitOptions _initOptions;
+  late final Dio _dio;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  late final TokenRefreshService _tokenRefreshService;
+
+  // ETag interceptor
+  late final ETagInterceptor _etagInterceptor;
+
+  // Request cancellation support
+  final Map<String, CancelToken> _cancelTokens = {};
+
+  // Retry options (passed to RetryInterceptor)
+  final RetryOptions _retryOptions;
+
+  // In-memory token cache to avoid secure storage I/O on every request
+  String? _cachedAccessToken;
+
+  // Request deduplication: maps GET request keys to their in-flight futures (NW-M3)
+  final Map<String, Completer<Response>> _inFlightRequests = {};
+
+  // Storage key for custom backend server base URL
+  static const String _serverBaseUrlKey = 'server_base_url';
+  static const String _etagInvalidateAfterWriteKey =
+      'etag_invalidate_after_write';
 
   /// Initialize baseUrl from saved storage or default config
   void _initializeBaseUrl({String? initialServerBaseUrl}) {
-    String savedBaseUrl =
+    var savedBaseUrl =
         initialServerBaseUrl ?? config.AppConfig.serverBaseUrl;
 
     // Normalize URL: remove trailing slashes
@@ -272,7 +268,7 @@ class DioClient {
     // Only add token if not already set
     if (!options.headers.containsKey('Authorization')) {
       // Use in-memory cache first to avoid slow platform channel calls
-      String? token = _cachedAccessToken;
+      var token = _cachedAccessToken;
 
       if (token == null) {
         // Cache miss: fall back to secure storage and cache the result
@@ -382,7 +378,7 @@ class DioClient {
     return {_etagInvalidateAfterWriteKey: true};
   }
 
-  void _onError(DioException error, ErrorInterceptorHandler handler) async {
+  Future<void> _onError(DioException error, ErrorInterceptorHandler handler) async {
     if (kDebugMode) {
       final errorUrl =
           '${error.requestOptions.baseUrl}${error.requestOptions.path}';
@@ -406,11 +402,9 @@ class DioClient {
         handler.reject(
           DioException(
             requestOptions: error.requestOptions,
-            type: DioExceptionType.unknown,
-            error: NetworkException('Connection timeout'),
+            error: const NetworkException('Connection timeout'),
           ),
         );
-        break;
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         if (statusCode != null) {
@@ -492,17 +486,14 @@ class DioClient {
           handler.reject(
             DioException(
               requestOptions: error.requestOptions,
-              type: DioExceptionType.unknown,
               error: const UnknownException('Unknown error occurred'),
             ),
           );
         }
-        break;
       default:
         handler.reject(
           DioException(
             requestOptions: error.requestOptions,
-            type: DioExceptionType.unknown,
             error: NetworkException.fromDioError(error),
           ),
         );
@@ -613,7 +604,6 @@ class DioClient {
           DioException(
             requestOptions: error.requestOptions,
             response: error.response,
-            type: DioExceptionType.unknown,
             error: reason == TokenRefreshFailureReason.transientFailure
                 ? const NetworkException(
                     'Session refresh temporarily unavailable. Please retry.',
@@ -878,7 +868,7 @@ class DioClient {
       if (!completer.isCompleted) {
         completer.completeError(
           DioException(
-            requestOptions: RequestOptions(path: ''),
+            requestOptions: RequestOptions(),
             type: DioExceptionType.cancel,
             error: 'Client disposed',
           ),

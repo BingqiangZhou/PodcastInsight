@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/category_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
 
 /// Wraps a widget in MaterialApp and ProviderScope for testing
 Widget createTestWidget({
@@ -66,22 +65,11 @@ PodcastSubscriptionModel createMockSubscription({
     description: description,
     sourceUrl: 'https://example.com/podcast$id.xml',
     status: status,
-    lastFetchedAt: null,
-    errorMessage: null,
     fetchInterval: 3600,
     episodeCount: episodeCount,
     unplayedCount: unplayedCount,
-    latestEpisode: null,
     createdAt: createdAt ?? DateTime.now().subtract(const Duration(days: 30)),
-    updatedAt: null,
     categories: categories,
-    imageUrl: null,
-    author: null,
-    platform: null,
-    updateFrequency: null,
-    updateTime: null,
-    updateDayOfWeek: null,
-    nextUpdateAt: null,
   );
 }
 
@@ -98,33 +86,13 @@ PodcastEpisodeModel createMockEpisode({
   return PodcastEpisodeModel(
     id: id,
     subscriptionId: subscriptionId,
-    subscriptionImageUrl: null,
     title: title,
-    subscriptionTitle: null,
     description: description,
     audioUrl: audioUrl,
     audioDuration: 1800, // 30 minutes
-    audioFileSize: null,
     publishedAt: DateTime.now().subtract(const Duration(days: 1)),
-    imageUrl: null,
-    itemLink: null,
-    transcriptUrl: null,
-    transcriptContent: null,
-    aiSummary: null,
-    summaryVersion: null,
-    aiConfidenceScore: null,
-    playCount: 0,
-    lastPlayedAt: null,
-    season: null,
-    episodeNumber: null,
-    explicit: false,
-    status: 'published',
-    metadata: null,
     playbackPosition: playbackPosition,
-    isPlaying: false,
-    playbackRate: 1.0,
     isPlayed: isPlayed,
     createdAt: DateTime.now().subtract(const Duration(days: 2)),
-    updatedAt: null,
   );
 }

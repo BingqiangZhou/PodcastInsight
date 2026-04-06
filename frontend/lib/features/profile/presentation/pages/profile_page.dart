@@ -8,18 +8,17 @@ import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 import 'package:personal_ai_assistant/core/theme/font_provider.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
+import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
-import 'package:personal_ai_assistant/features/settings/presentation/widgets/update_dialog.dart';
-
-import 'package:personal_ai_assistant/features/profile/presentation/widgets/profile_activity_cards.dart';
-import 'package:personal_ai_assistant/shared/widgets/server_config_dialog.dart';
-import 'package:personal_ai_assistant/shared/widgets/settings_section_card.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/features/profile/presentation/widgets/profile_activity_cards.dart';
+import 'package:personal_ai_assistant/features/settings/presentation/widgets/update_dialog.dart';
+import 'package:personal_ai_assistant/shared/widgets/server_config_dialog.dart';
+import 'package:personal_ai_assistant/shared/widgets/settings_section_card.dart';
 
 /// Material Design 3 adaptive profile page
 class ProfilePage extends ConsumerStatefulWidget {
@@ -109,7 +108,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
     return RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12),
-      side: BorderSide.none,
     );
   }
 
@@ -125,7 +123,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       title: l10n.profile,
       subtitle: '',
       roundedViewport: true,
-      badges: const [],
       trailing: PopupMenuButton<String>(
         key: const Key('profile_user_menu_button'),
         onSelected: (value) {
@@ -257,9 +254,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           inactiveTrackColor: theme.colorScheme.onSurfaceVariant.withValues(
             alpha: 0.30,
           ),
-          onChanged: (value) {
-            _setNotificationPreference(value);
-          },
+          onChanged: _setNotificationPreference,
         ),
       ),
     ];
@@ -447,10 +442,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   Widget _buildSettingsItem(
     BuildContext context, {
-    Key? tileKey,
-    required IconData icon,
-    required String title,
-    required String subtitle,
+    required IconData icon, required String title, required String subtitle, Key? tileKey,
     Widget? trailing,
     VoidCallback? onTap,
   }) {
@@ -466,13 +458,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   Future<T?> _showConstrainedDialog<T>(
     BuildContext context, {
-    bool barrierDismissible = true,
-    required Widget Function(BuildContext dialogContext) builder,
+    required Widget Function(BuildContext dialogContext) builder, bool barrierDismissible = true,
   }) {
     return showGlassDialog<T>(
       context: context,
       barrierDismissible: barrierDismissible,
-      useRootNavigator: false,
       builder: (dialogContext) => LayoutBuilder(
         builder: (dialogContext, constraints) {
           return ConstrainedBox(
@@ -599,7 +589,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  trailing: Switch(
+                  trailing: const Switch(
                     value: false,
                     onChanged: null,
                   ),
@@ -636,7 +626,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final newPasswordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
     final formKey = GlobalKey<FormState>();
-    bool isChanging = false;
+    var isChanging = false;
 
     _showConstrainedDialog<void>(
       context,
@@ -831,7 +821,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       ),
                     ],
                     selected: {currentCode},
-                    onSelectionChanged: (Set<String> selection) async {
+                    onSelectionChanged: (selection) async {
                       final value = selection.first;
                       await ref
                           .read(localeProvider.notifier)

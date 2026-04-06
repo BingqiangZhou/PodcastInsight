@@ -2,7 +2,7 @@ part of 'podcast_episode_detail_page.dart';
 
 extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
   List<String> _episodeDetailTabLabels() {
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return <String>[
       l10n.podcast_tab_shownotes,
       l10n.podcast_tab_transcript,
@@ -16,7 +16,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
     }
 
     final labels = _episodeDetailTabLabels();
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
 
     return SurfacePanel(
       key: const Key('podcast_episode_detail_primary_tabs'),
@@ -24,7 +24,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
       backgroundColor: Theme.of(
         context,
       ).colorScheme.surface.withValues(alpha: isWide ? 0.24 : 0.18),
-      showHighlight: false,
       child: Row(
         children: [
           Expanded(
@@ -67,7 +66,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
             key: const Key('podcast_episode_detail_chat_button'),
             tooltip: l10n.podcast_tab_chat,
             icon: Icons.auto_awesome_outlined,
-            density: HeaderCapsuleActionButtonDensity.regular,
             label: Text(l10n.podcast_tab_chat),
             onPressed: _openChatDrawer,
           ),
@@ -78,7 +76,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
 
   Widget _buildMobileTopTextBar() {
     final labels = _episodeDetailTabLabels();
-    final l10n = (AppLocalizations.of(context) ?? AppLocalizationsEn());
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
 
     return SurfacePanel(
       key: const Key('podcast_episode_detail_primary_tabs'),
@@ -86,7 +84,6 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
       backgroundColor: Theme.of(
         context,
       ).colorScheme.surface.withValues(alpha: 0.18),
-      showHighlight: false,
       child: Row(
         children: [
           Expanded(
@@ -221,6 +218,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         MediaQuery.sizeOf(context).width < Breakpoints.medium;
     final colorScheme = Theme.of(context).colorScheme;
     final textStyle = DefaultTextStyle.of(context).style.copyWith(
+      fontSize: isCompact ? null : 13,
       color: isSelected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
       decoration: TextDecoration.none,
@@ -233,7 +231,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
           ? colorScheme.primary.withValues(alpha: 0.16)
           : Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         side: BorderSide(
           color: isSelected
               ? colorScheme.primary.withValues(alpha: 0.35)
@@ -241,14 +239,14 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         ),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            isCompact ? 12 : 14,
-            isCompact ? 10 : 11,
-            isCompact ? 12 : 14,
-            isCompact ? 10 : 11,
+            isCompact ? 12 : 10,
+            isCompact ? 10 : 7,
+            isCompact ? 12 : 10,
+            isCompact ? 10 : 7,
           ),
           child: Text(text, style: textStyle),
         ),

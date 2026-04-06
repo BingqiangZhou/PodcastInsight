@@ -24,8 +24,7 @@ void main() {
 
     test('getDelay doubles for second attempt with multiplier 2.0', () {
       const options = RetryOptions(
-        initialDelay: Duration(seconds: 1),
-        backoffMultiplier: 2.0,
+        
       );
       expect(options.getDelay(1), const Duration(seconds: 2));
       expect(options.getDelay(2), const Duration(seconds: 4));
@@ -34,7 +33,7 @@ void main() {
     test('getDelay with custom multiplier', () {
       const options = RetryOptions(
         initialDelay: Duration(milliseconds: 500),
-        backoffMultiplier: 3.0,
+        backoffMultiplier: 3,
       );
       expect(options.getDelay(0), const Duration(milliseconds: 500));
       expect(options.getDelay(1), const Duration(milliseconds: 1500));
@@ -49,7 +48,7 @@ void main() {
     });
 
     test('inequality works', () {
-      const a = RetryOptions(maxRetries: 3);
+      const a = RetryOptions();
       const b = RetryOptions(maxRetries: 5);
       expect(a, isNot(equals(b)));
     });
@@ -77,7 +76,7 @@ void main() {
 
     test('5xx errors should be retryable per spec', () {
       final serverError = DioException(
-        response: Response(statusCode: 503, requestOptions: RequestOptions(path: '')),
+        response: Response(statusCode: 503, requestOptions: RequestOptions()),
         requestOptions: RequestOptions(path: '/test'),
         type: DioExceptionType.badResponse,
       );
@@ -87,7 +86,7 @@ void main() {
 
     test('429 should be retryable per spec', () {
       final rateLimitError = DioException(
-        response: Response(statusCode: 429, requestOptions: RequestOptions(path: '')),
+        response: Response(statusCode: 429, requestOptions: RequestOptions()),
         requestOptions: RequestOptions(path: '/test'),
         type: DioExceptionType.badResponse,
       );
@@ -96,7 +95,7 @@ void main() {
 
     test('401 should not trigger retry per spec (handled by 401 flow)', () {
       final authError = DioException(
-        response: Response(statusCode: 401, requestOptions: RequestOptions(path: '')),
+        response: Response(statusCode: 401, requestOptions: RequestOptions()),
         requestOptions: RequestOptions(path: '/test'),
         type: DioExceptionType.badResponse,
       );

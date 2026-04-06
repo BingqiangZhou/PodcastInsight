@@ -1,8 +1,7 @@
 import 'package:drift/drift.dart';
-
 import 'package:personal_ai_assistant/core/database/dao/download_dao.dart';
-import 'package:personal_ai_assistant/core/database/dao/playback_dao.dart';
 import 'package:personal_ai_assistant/core/database/dao/episode_cache_dao.dart';
+import 'package:personal_ai_assistant/core/database/dao/playback_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -39,7 +38,7 @@ class DownloadTasks extends Table {
   TextColumn get audioUrl => text()();
   TextColumn get localPath => text().nullable()();
   TextColumn get status => text().withDefault(const Constant('pending'))();
-  RealColumn get progress => real().withDefault(const Constant(0.0))();
+  RealColumn get progress => real().withDefault(const Constant(0))();
   IntColumn get fileSize => integer().nullable()();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
@@ -56,7 +55,7 @@ class PlaybackStates extends Table {
   IntColumn get positionSeconds =>
       integer().withDefault(const Constant(0))();
   RealColumn get playbackRate =>
-      real().withDefault(const Constant(1.0))();
+      real().withDefault(const Constant(1))();
   IntColumn get playCount => integer().withDefault(const Constant(0))();
   BoolColumn get isCompleted =>
       boolean().withDefault(const Constant(false))();

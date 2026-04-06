@@ -22,7 +22,7 @@ class PodcastStatsNotifier extends CachedAsyncNotifier<PodcastStatsResponse?> {
 
   @override
   FutureOr<PodcastStatsResponse?> build() {
-    return load(forceRefresh: false);
+    return load();
   }
 
   Future<PodcastStatsResponse?> load({bool forceRefresh = false}) async {
@@ -55,7 +55,7 @@ class ProfileStatsNotifier extends CachedAsyncNotifier<ProfileStatsModel?> {
 
   @override
   FutureOr<ProfileStatsModel?> build() async {
-    return load(forceRefresh: false);
+    return load();
   }
 
   /// Reset the notifier state completely.
@@ -92,7 +92,7 @@ class PlaybackHistoryNotifier
 
   @override
   FutureOr<PodcastEpisodeListResponse?> build() {
-    return load(forceRefresh: false);
+    return load();
   }
 
   Future<PodcastEpisodeListResponse?> load({bool forceRefresh = false}) async {
@@ -102,7 +102,7 @@ class PlaybackHistoryNotifier
     final effectiveForce = forceRefresh || hasError || isLoading;
     return runWithCache(
       forceRefresh: effectiveForce,
-      fetcher: () => _repository.getPlaybackHistory(page: 1, size: 100),
+      fetcher: () => _repository.getPlaybackHistory(size: 100),
       onError: (error, _) {
         logger.AppLogger.debug('Failed to load playback history: $error');
       },
@@ -127,7 +127,7 @@ class PlaybackHistoryLiteNotifier
 
   @override
   FutureOr<PlaybackHistoryLiteResponse?> build() async {
-    return load(forceRefresh: false);
+    return load();
   }
 
   /// Reset the notifier state completely.
@@ -145,7 +145,7 @@ class PlaybackHistoryLiteNotifier
     final effectiveForce = forceRefresh || hasError || isLoading;
     return runWithCache(
       forceRefresh: effectiveForce,
-      fetcher: () => _repository.getPlaybackHistoryLite(page: 1, size: 100),
+      fetcher: () => _repository.getPlaybackHistoryLite(),
       onError: (error, _) {
         logger.AppLogger.debug('Failed to load playback history lite: $error');
       },

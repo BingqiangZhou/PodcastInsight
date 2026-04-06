@@ -2,19 +2,18 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/constants/scroll_constants.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/services/download_provider.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
-import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
-import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
+import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 
 class PodcastQueueSheet extends ConsumerWidget {
   const PodcastQueueSheet({super.key});
@@ -82,7 +81,7 @@ class PodcastQueueSheet extends ConsumerWidget {
         itemCount: null,
         queueOperation: queueOperation,
         queueSyncing: queueSyncing,
-        onRefresh: () => notifier.loadQueue(),
+        onRefresh: notifier.loadQueue,
         body: _QueueLoadingState(
           title: l10n?.podcast_queue_loading_title ?? 'Loading',
           subtitle: l10n?.podcast_queue_loading_subtitle ?? 'Please wait...',
@@ -94,7 +93,7 @@ class PodcastQueueSheet extends ConsumerWidget {
         itemCount: queue.items.length,
         queueOperation: queueOperation,
         queueSyncing: queueSyncing,
-        onRefresh: () => notifier.loadQueue(),
+        onRefresh: notifier.loadQueue,
         body: queue.items.isEmpty
             ? _QueueStateList(
                 icon: Icons.playlist_play,
@@ -110,7 +109,7 @@ class PodcastQueueSheet extends ConsumerWidget {
         itemCount: null,
         queueOperation: queueOperation,
         queueSyncing: queueSyncing,
-        onRefresh: () => notifier.loadQueue(),
+        onRefresh: notifier.loadQueue,
         body: _QueueStateList(
           icon: Icons.error_outline,
           title: l10n?.error ?? 'Error',
@@ -118,7 +117,7 @@ class PodcastQueueSheet extends ConsumerWidget {
               l10n?.failed_to_load_queue(queueAsync.error.toString()) ??
               'Failed to load queue: ${queueAsync.error}',
           action: FilledButton.tonalIcon(
-            onPressed: () => notifier.loadQueue(),
+            onPressed: notifier.loadQueue,
             icon: const Icon(Icons.refresh),
             label: Text(l10n?.retry ?? 'Retry'),
           ),
@@ -131,9 +130,8 @@ class PodcastQueueSheet extends ConsumerWidget {
       child: ClipRRect(
         key: const Key('podcast_queue_sheet_surface'),
         borderRadius: _sheetBorderRadius,
-        clipBehavior: Clip.antiAlias,
         child: DecoratedBox(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -238,7 +236,7 @@ class _QueueHeader extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
             child: Row(
               children: [
                 Expanded(
@@ -349,7 +347,6 @@ class _QueueLoadingState extends StatelessWidget {
             title: title,
             subtitle: subtitle,
             spinnerSize: 40,
-            spinnerStrokeWidth: 2.5,
           ),
         ),
       ],
@@ -393,7 +390,7 @@ class _QueueStateList extends StatelessWidget {
               Container(
                 width: 60,
                 height: 60,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.transparent,
                   shape: BoxShape.circle,
                 ),
@@ -485,9 +482,9 @@ class _QueueListState extends ConsumerState<_QueueList> {
       return;
     }
 
-    final targetOffset = math.max(0.0, index * ScrollConstants.queueItemExtent - 96);
+    final targetOffset = math.max<double>(0, index * ScrollConstants.queueItemExtent - 96);
     final maxOffset = _scrollController.position.maxScrollExtent;
-    final clampedOffset = math.min(targetOffset, maxOffset);
+    final clampedOffset = math.min<double>(targetOffset, maxOffset);
 
     if (animate) {
       await _scrollController.animateTo(
@@ -530,7 +527,7 @@ class _QueueListState extends ConsumerState<_QueueList> {
                   shadowColor: Theme.of(
                     context,
                   ).colorScheme.shadow.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
                   child: child,
                 ),
               );
@@ -660,7 +657,7 @@ class _QueueListItem extends ConsumerWidget {
       key: Key('queue_item_tile_${item.episodeId}'),
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
@@ -671,7 +668,7 @@ class _QueueListItem extends ConsumerWidget {
               end: Alignment.bottomRight,
               colors: cardColors,
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
             border: Border.all(
               color: isCurrent
                   ? theme.colorScheme.primary.withValues(alpha: 0.30)
@@ -697,7 +694,7 @@ class _QueueListItem extends ConsumerWidget {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface.withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
                   ),
                   child: ReorderableDragStartListener(
                     key: Key('queue_item_drag_${item.episodeId}'),
@@ -728,9 +725,7 @@ class _QueueListItem extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      isCurrent
-                          ? _CurrentQueueSubtitle(item: item)
-                          : _StaticQueueSubtitle(item: item),
+                      if (isCurrent) _CurrentQueueSubtitle(item: item) else _StaticQueueSubtitle(item: item),
                     ],
                   ),
                 ),
@@ -1023,7 +1018,7 @@ class _QueueItemDownloadIndicator extends ConsumerWidget {
         };
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

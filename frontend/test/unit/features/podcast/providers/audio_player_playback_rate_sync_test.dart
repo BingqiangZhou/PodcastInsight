@@ -9,11 +9,13 @@ import 'package:personal_ai_assistant/features/podcast/data/services/podcast_api
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('AudioPlayerNotifier playback-rate sync', () {
     test('uses server effective rate for speed sheet state', () async {
       final repository = _TrackingPodcastRepository(
         effectiveResponse: const PlaybackRateEffectiveResponse(
-          globalPlaybackRate: 1.0,
+          globalPlaybackRate: 1,
           subscriptionPlaybackRate: 1.5,
           effectivePlaybackRate: 1.5,
           source: 'subscription',
@@ -25,8 +27,7 @@ void main() {
           audioPlayerProvider.overrideWith(
             () => _TestAudioPlayerNotifier(
               AudioPlayerState(
-                currentEpisode: _episode(playbackRate: 1.0),
-                playbackRate: 1.0,
+                currentEpisode: _episode(playbackRate: 1),
               ),
             ),
           ),
@@ -105,7 +106,7 @@ void main() {
     test('resume refreshes audio speed from server before playing', () async {
       final repository = _TrackingPodcastRepository(
         effectiveResponse: const PlaybackRateEffectiveResponse(
-          globalPlaybackRate: 1.0,
+          globalPlaybackRate: 1,
           subscriptionPlaybackRate: 1.75,
           effectivePlaybackRate: 1.75,
           source: 'subscription',
@@ -113,8 +114,7 @@ void main() {
       );
       final notifier = _TestAudioPlayerNotifier(
         AudioPlayerState(
-          currentEpisode: _episode(playbackRate: 1.0),
-          playbackRate: 1.0,
+          currentEpisode: _episode(playbackRate: 1),
         ),
       );
       final container = ProviderContainer(
@@ -167,8 +167,7 @@ void main() {
       final repository = _TrackingPodcastRepository();
       final notifier = _TestAudioPlayerNotifier(
         AudioPlayerState(
-          currentEpisode: _episode(playbackRate: 1.0),
-          playbackRate: 1.0,
+          currentEpisode: _episode(playbackRate: 1),
         ),
       );
       final container = ProviderContainer(
@@ -198,7 +197,12 @@ void main() {
       () async {
         final repository = _TrackingPodcastRepository();
         final container = ProviderContainer(
-          overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
+          overrides: [
+            podcastRepositoryProvider.overrideWithValue(repository),
+            audioPlayerProvider.overrideWith(
+              () => _TestAudioPlayerNotifier(const AudioPlayerState()),
+            ),
+          ],
         );
         addTearDown(container.dispose);
 
@@ -216,7 +220,12 @@ void main() {
     test('sleep timer is cleared after provider rebuild', () async {
       final repository = _TrackingPodcastRepository();
       final firstContainer = ProviderContainer(
-        overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          podcastRepositoryProvider.overrideWithValue(repository),
+          audioPlayerProvider.overrideWith(
+            () => _TestAudioPlayerNotifier(const AudioPlayerState()),
+          ),
+        ],
       );
       addTearDown(firstContainer.dispose);
 
@@ -231,7 +240,12 @@ void main() {
       firstContainer.dispose();
 
       final secondContainer = ProviderContainer(
-        overrides: [podcastRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          podcastRepositoryProvider.overrideWithValue(repository),
+          audioPlayerProvider.overrideWith(
+            () => _TestAudioPlayerNotifier(const AudioPlayerState()),
+          ),
+        ],
       );
       addTearDown(secondContainer.dispose);
 
@@ -252,7 +266,8 @@ class _TestAudioPlayerNotifier extends AudioPlayerNotifier {
 
   @override
   AudioPlayerState build() {
-    super.build();
+    // Intentionally skip super.build() to avoid initializing the real audio
+    // handler and auth provider, which are not needed for unit tests.
     return _initialState;
   }
 
@@ -270,9 +285,9 @@ class _TestAudioPlayerNotifier extends AudioPlayerNotifier {
 class _TrackingPodcastRepository extends PodcastRepository {
   _TrackingPodcastRepository({
     this.effectiveResponse = const PlaybackRateEffectiveResponse(
-      globalPlaybackRate: 1.0,
+      globalPlaybackRate: 1,
       subscriptionPlaybackRate: null,
-      effectivePlaybackRate: 1.0,
+      effectivePlaybackRate: 1,
       source: 'global',
     ),
     this.effectivePlaybackRateError,

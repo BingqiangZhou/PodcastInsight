@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/core/utils/html_sanitizer.dart';
+import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
+import 'package:riverpod/src/providers/notifier.dart';
 
 /// Episode-scoped summary provider with automatic lifecycle management.
 ///
 /// Uses family.autoDispose so each episode gets its own notifier that is
 /// automatically cleaned up when no longer watched.
-final summaryProvider = NotifierProvider.autoDispose
+final NotifierProviderFamily<SummaryNotifier, SummaryState, int> summaryProvider = NotifierProvider.autoDispose
     .family<SummaryNotifier, SummaryState, int>(
-  (int episodeId) => SummaryNotifier(episodeId),
+  SummaryNotifier.new,
 );
 
 // Provider for available summary models
@@ -21,21 +21,11 @@ final availableModelsProvider = FutureProvider<List<SummaryModelInfo>>((
   ref,
 ) async {
   final repository = ref.read(podcastRepositoryProvider);
-  return await repository.getSummaryModels();
+  return repository.getSummaryModels();
 });
 
 /// Summary state class
 class SummaryState extends Equatable {
-  static const Object _unset = Object();
-
-  final String? summary;
-  final String? modelUsed;
-  final double? processingTime;
-  final int? wordCount;
-  final DateTime? generatedAt;
-  final bool isLoading;
-  final bool hidePersistedSummary;
-  final String? errorMessage;
 
   const SummaryState({
     this.summary,
@@ -47,6 +37,16 @@ class SummaryState extends Equatable {
     this.hidePersistedSummary = false,
     this.errorMessage,
   });
+  static const Object _unset = Object();
+
+  final String? summary;
+  final String? modelUsed;
+  final double? processingTime;
+  final int? wordCount;
+  final DateTime? generatedAt;
+  final bool isLoading;
+  final bool hidePersistedSummary;
+  final String? errorMessage;
 
   bool get hasError => errorMessage != null;
   bool get hasSummary => summary?.isNotEmpty ?? false;
@@ -99,6 +99,8 @@ class SummaryState extends Equatable {
 
 /// Notifier for managing summary state
 class SummaryNotifier extends Notifier<SummaryState> {
+
+  SummaryNotifier(this.episodeId);
   static const Duration _pollInterval = Duration(seconds: 5);
   static const int _maxPollAttempts = 90;
 
@@ -107,8 +109,6 @@ class SummaryNotifier extends Notifier<SummaryState> {
   bool _isPolling = false;
   bool _pollInFlight = false;
   int _pollAttempts = 0;
-
-  SummaryNotifier(this.episodeId);
 
   @override
   SummaryState build() {
@@ -149,7 +149,7 @@ class SummaryNotifier extends Notifier<SummaryState> {
   Future<PodcastSummaryStartResponse?> regenerateSummary({
     String? model,
   }) async {
-    return generateSummary(model: model, forceRegenerate: true);
+    return generateSummary(model: model);
   }
 
   /// Update summary from existing data (used when loading episode detail)
@@ -172,9 +172,6 @@ class SummaryNotifier extends Notifier<SummaryState> {
       processingTime: processingTime ?? state.processingTime,
       wordCount: cleanedSummary.length,
       generatedAt: generatedAt ?? state.generatedAt,
-      isLoading: false,
-      hidePersistedSummary: false,
-      errorMessage: null,
     );
   }
 

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/core/theme/apple_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
@@ -103,7 +100,7 @@ class _HighlightDetailContent extends StatelessWidget {
                         : Icons.favorite_border,
                     size: 18,
                     color: highlight.isUserFavorited
-                        ? AppleColors.systemRed.of(context)
+                        ? theme.colorScheme.error
                         : scheme.onSurfaceVariant,
                   ),
                   label: Text(
@@ -129,7 +126,7 @@ class _HighlightDetailContent extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.primaryContainer.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: scheme.primary.withValues(alpha: 0.2),
         ),
@@ -162,9 +159,9 @@ class _HighlightDetailContent extends StatelessWidget {
     // Determine score color
     Color scoreColor;
     if (highlight.overallScore >= 8.0) {
-      scoreColor = AppleColors.systemGreen.of(context);
+      scoreColor = theme.colorScheme.tertiary;
     } else if (highlight.overallScore >= 6.0) {
-      scoreColor = AppleColors.systemOrange.of(context);
+      scoreColor = theme.colorScheme.secondary;
     } else {
       scoreColor = scheme.onSurfaceVariant;
     }
@@ -222,7 +219,7 @@ class _HighlightDetailContent extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(appThemeOf(context).pillRadius),
                 border: Border.all(
                   color: scheme.outline.withValues(alpha: 0.2),
                 ),
@@ -244,12 +241,13 @@ class _HighlightDetailContent extends StatelessWidget {
   Widget _buildEpisodeSource(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final extension = appThemeOf(context);
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.itemRadius),
       ),
       child: Row(
         children: [
@@ -368,9 +366,9 @@ class _HighlightListItem extends StatelessWidget {
     // Determine score color
     Color scoreColor;
     if (highlight.overallScore >= 8.0) {
-      scoreColor = AppleColors.systemGreen.of(context);
+      scoreColor = theme.colorScheme.tertiary;
     } else if (highlight.overallScore >= 6.0) {
-      scoreColor = AppleColors.systemOrange.of(context);
+      scoreColor = theme.colorScheme.secondary;
     } else {
       scoreColor = scheme.onSurfaceVariant;
     }
@@ -395,7 +393,7 @@ class _HighlightListItem extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: scoreColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(appThemeOf(context).buttonRadius),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -414,10 +412,10 @@ class _HighlightListItem extends StatelessWidget {
                   ),
                   const Spacer(),
                   if (highlight.isUserFavorited)
-                    Icon(
+                    const Icon(
                       Icons.favorite,
                       size: 14,
-                      color: AppleColors.systemRed.of(context),
+                      color: AppColors.error,
                     ),
                 ],
               ),

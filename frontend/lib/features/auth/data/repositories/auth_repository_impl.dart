@@ -1,22 +1,21 @@
 import 'package:dio/dio.dart';
-
+import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
+import 'package:personal_ai_assistant/core/storage/secure_storage_service.dart';
+import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/auth_request.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/auth_response.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
 import 'package:personal_ai_assistant/features/auth/domain/repositories/auth_repository.dart';
-import 'package:personal_ai_assistant/features/auth/data/datasources/auth_remote_datasource.dart';
-import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
-import 'package:personal_ai_assistant/core/storage/secure_storage_service.dart';
-import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthRemoteDatasource _remoteDatasource;
-  final SecureStorageService _secureStorage;
 
   AuthRepositoryImpl(
     this._remoteDatasource,
     this._secureStorage,
   );
+  final AuthRemoteDatasource _remoteDatasource;
+  final SecureStorageService _secureStorage;
 
   @override
   Future<AuthResponse> login(LoginRequest request) async {
@@ -30,7 +29,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return authResponse;
     } on DioException catch (e) {
       if (e.error is AppException) {
-        throw e.error as AppException;
+        throw e.error! as AppException;
       }
       throw UnknownException(e.message ?? 'Unknown Dio error');
     } on AppException {
@@ -52,7 +51,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return authResponse;
     } on DioException catch (e) {
       if (e.error is AppException) {
-        throw e.error as AppException;
+        throw e.error! as AppException;
       }
       throw UnknownException(e.message ?? 'Unknown Dio error');
     } on AppException catch (e) {
@@ -87,7 +86,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
     } on DioException catch (e) {
       if (e.error is AppException) {
-        throw e.error as AppException;
+        throw e.error! as AppException;
       }
       throw UnknownException(e.message ?? 'Unknown Dio error');
     } on AppException {
@@ -113,7 +112,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (e) {
       await _secureStorage.clearTokens();
       if (e.error is AppException) {
-        throw e.error as AppException;
+        throw e.error! as AppException;
       }
       throw UnknownException(e.message ?? 'Unknown Dio error');
     } on AppException {
@@ -134,7 +133,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return user;
     } on DioException catch (e) {
       if (e.error is AppException) {
-        throw e.error as AppException;
+        throw e.error! as AppException;
       }
       throw UnknownException(e.message ?? 'Unknown Dio error');
     } on AppException {
@@ -150,7 +149,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _remoteDatasource.forgotPassword(request);
     } on DioException catch (e) {
       if (e.error is AppException) {
-        throw e.error as AppException;
+        throw e.error! as AppException;
       }
       throw UnknownException(e.message ?? 'Unknown Dio error');
     } on AppException {
@@ -166,7 +165,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _remoteDatasource.resetPassword(request);
     } on DioException catch (e) {
       if (e.error is AppException) {
-        throw e.error as AppException;
+        throw e.error! as AppException;
       }
       throw UnknownException(e.message ?? 'Unknown Dio error');
     } on AppException {

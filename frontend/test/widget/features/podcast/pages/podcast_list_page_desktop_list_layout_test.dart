@@ -31,7 +31,7 @@ void main() {
             _FakeApplePodcastRssService(),
           ),
           podcastSubscriptionProvider.overrideWith(
-            () => _TestPodcastSubscriptionNotifier(),
+            _TestPodcastSubscriptionNotifier.new,
           ),
           search.podcastSearchProvider.overrideWith(
             () => _TestPodcastSearchNotifier(const search.PodcastSearchState()),
@@ -43,10 +43,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const PodcastListPage(),
+            home: PodcastListPage(),
           ),
         ),
       );
@@ -104,7 +104,7 @@ void main() {
               _FakeApplePodcastRssService(),
             ),
             podcastSubscriptionProvider.overrideWith(
-              () => _TestPodcastSubscriptionNotifier(),
+              _TestPodcastSubscriptionNotifier.new,
             ),
             search.podcastSearchProvider.overrideWith(
               () =>
@@ -138,7 +138,7 @@ void main() {
         final scheme = Theme.of(context).colorScheme;
 
         expect(allChip.selected, isTrue);
-        expect(allChip.selectedColor, equals(scheme.onSurfaceVariant));
+        expect(allChip.selectedColor, equals(scheme.primary));
       },
     );
 
@@ -159,7 +159,7 @@ void main() {
               _FakeApplePodcastRssService(),
             ),
             podcastSubscriptionProvider.overrideWith(
-              () => _TestPodcastSubscriptionNotifier(),
+              _TestPodcastSubscriptionNotifier.new,
             ),
             search.podcastSearchProvider.overrideWith(
               () =>
@@ -193,7 +193,7 @@ void main() {
         final scheme = Theme.of(context).colorScheme;
 
         expect(allChip.selected, isTrue);
-        expect(allChip.selectedColor, equals(scheme.onSurfaceVariant));
+        expect(allChip.selectedColor, equals(scheme.primary));
       },
     );
 
@@ -214,7 +214,7 @@ void main() {
               _FakeApplePodcastRssService(),
             ),
             podcastSubscriptionProvider.overrideWith(
-              () => _TestPodcastSubscriptionNotifier(),
+              _TestPodcastSubscriptionNotifier.new,
             ),
             search.podcastSearchProvider.overrideWith(
               () =>
@@ -227,10 +227,10 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: container,
-            child: MaterialApp(
+            child: const MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: const PodcastListPage(),
+              home: PodcastListPage(),
             ),
           ),
         );
@@ -409,9 +409,7 @@ class _TestPodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
   @override
   PodcastSubscriptionState build() {
     return const PodcastSubscriptionState(
-      subscriptions: [],
       hasMore: false,
-      total: 0,
     );
   }
 

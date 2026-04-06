@@ -2,10 +2,6 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highl
 
 /// Represents a matched highlight within a text segment
 class MatchedHighlight {
-  final HighlightResponse highlight;
-  final int startIndex;
-  final int endIndex;
-  final double matchScore;
 
   const MatchedHighlight({
     required this.highlight,
@@ -13,6 +9,10 @@ class MatchedHighlight {
     required this.endIndex,
     required this.matchScore,
   });
+  final HighlightResponse highlight;
+  final int startIndex;
+  final int endIndex;
+  final double matchScore;
 }
 
 /// Utility class for matching highlight text to transcript segments
@@ -43,7 +43,7 @@ class HighlightMatcher {
           highlight: highlight,
           startIndex: index,
           endIndex: index + normalizedHighlight.length,
-          matchScore: 1.0,
+          matchScore: 1,
         ));
         continue;
       }

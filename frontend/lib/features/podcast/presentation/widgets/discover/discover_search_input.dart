@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
 
 /// Search input widget for discover page with country selector
 class DiscoverSearchInput extends ConsumerStatefulWidget {
   const DiscoverSearchInput({
-    super.key,
-    required this.searchController,
-    required this.searchFocusNode,
-    required this.onSearchChanged,
-    required this.onClearSearch,
-    required this.onCountryTap,
+    required this.searchController, required this.searchFocusNode, required this.onSearchChanged, required this.onClearSearch, required this.onCountryTap, super.key,
     this.searchMode = search.PodcastSearchMode.podcasts,
     this.isDense = false,
   });
@@ -92,7 +86,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
         shadowColor: _isFocused ? extension.shadowXs.color : Colors.transparent,
         elevation: _isFocused ? 1 : 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(extension.controlRadius),
+          borderRadius: BorderRadius.circular(extension.cardRadius),
           side: borderSide,
         ),
         child: SizedBox(

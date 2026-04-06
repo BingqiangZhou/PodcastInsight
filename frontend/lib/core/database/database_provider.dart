@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,7 +15,7 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
     ),
   );
 
-  ref.onDispose(() => db.close());
+  ref.onDispose(db.close);
 
   return db;
 });

@@ -10,8 +10,8 @@ void main() {
       body: '',
       prerelease: false,
       draft: false,
-      createdAt: DateTime(2026, 1, 1),
-      publishedAt: DateTime(2026, 1, 1),
+      createdAt: DateTime(2026),
+      publishedAt: DateTime(2026),
       htmlUrl: 'https://github.com/example/repo/releases/tag/v1.0.0',
       assets: assets,
     );

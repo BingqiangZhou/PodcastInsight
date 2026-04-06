@@ -12,14 +12,15 @@ PodcastSubscriptionModel _$PodcastSubscriptionModelFromJson(
   id: (json['id'] as num).toInt(),
   userId: (json['user_id'] as num).toInt(),
   title: json['title'] as String,
-  description: json['description'] as String?,
   sourceUrl: json['source_url'] as String,
   status: json['status'] as String,
+  fetchInterval: (json['fetch_interval'] as num).toInt(),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  description: json['description'] as String?,
   lastFetchedAt: json['last_fetched_at'] == null
       ? null
       : DateTime.parse(json['last_fetched_at'] as String),
   errorMessage: json['error_message'] as String?,
-  fetchInterval: (json['fetch_interval'] as num).toInt(),
   episodeCount: (json['episode_count'] as num?)?.toInt() ?? 0,
   unplayedCount: (json['unplayed_count'] as num?)?.toInt() ?? 0,
   latestEpisode: json['latest_episode'] as Map<String, dynamic>?,
@@ -35,7 +36,6 @@ PodcastSubscriptionModel _$PodcastSubscriptionModelFromJson(
   nextUpdateAt: json['next_update_at'] == null
       ? null
       : DateTime.parse(json['next_update_at'] as String),
-  createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: json['updated_at'] == null
       ? null
       : DateTime.parse(json['updated_at'] as String),

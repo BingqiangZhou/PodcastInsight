@@ -168,7 +168,7 @@ GitHubRelease _buildReleaseWithAssets(List<GitHubAsset> assets) {
     body: '## Test release notes',
     prerelease: false,
     draft: false,
-    createdAt: DateTime(2026, 1, 1),
+    createdAt: DateTime(2026),
     publishedAt: DateTime(2026, 1, 2),
     htmlUrl: 'https://github.com/example/repo/releases/tag/v1.0.0',
     assets: assets,

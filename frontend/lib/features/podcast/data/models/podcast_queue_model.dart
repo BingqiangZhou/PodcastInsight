@@ -3,25 +3,11 @@ import 'package:equatable/equatable.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 
 class PodcastQueueItemModel extends Equatable {
-  final int episodeId;
-  final int position;
-  final int? playbackPosition;
-  final String title;
-  final int podcastId;
-  final String audioUrl;
-  final int? duration;
-  final DateTime? publishedAt;
-  final String? imageUrl;
-  final String? subscriptionTitle;
-  final String? subscriptionImageUrl;
 
   const PodcastQueueItemModel({
     required this.episodeId,
     required this.position,
-    this.playbackPosition,
-    required this.title,
-    required this.podcastId,
-    required this.audioUrl,
+    required this.title, required this.podcastId, required this.audioUrl, this.playbackPosition,
     this.duration,
     this.publishedAt,
     this.imageUrl,
@@ -46,6 +32,17 @@ class PodcastQueueItemModel extends Equatable {
       subscriptionImageUrl: json['subscription_image_url'] as String?,
     );
   }
+  final int episodeId;
+  final int position;
+  final int? playbackPosition;
+  final String title;
+  final int podcastId;
+  final String audioUrl;
+  final int? duration;
+  final DateTime? publishedAt;
+  final String? imageUrl;
+  final String? subscriptionTitle;
+  final String? subscriptionImageUrl;
 
   Map<String, dynamic> toJson() {
     return {
@@ -97,10 +94,6 @@ class PodcastQueueItemModel extends Equatable {
 }
 
 class PodcastQueueModel extends Equatable {
-  final int? currentEpisodeId;
-  final int revision;
-  final DateTime? updatedAt;
-  final List<PodcastQueueItemModel> items;
 
   const PodcastQueueModel({
     this.currentEpisodeId,
@@ -127,6 +120,10 @@ class PodcastQueueModel extends Equatable {
           .toList(),
     );
   }
+  final int? currentEpisodeId;
+  final int revision;
+  final DateTime? updatedAt;
+  final List<PodcastQueueItemModel> items;
 
   Map<String, dynamic> toJson() {
     return {
@@ -168,33 +165,33 @@ class PodcastQueueModel extends Equatable {
 }
 
 class PodcastQueueAddItemRequest {
-  final int episodeId;
 
   const PodcastQueueAddItemRequest({required this.episodeId});
+  final int episodeId;
 
   Map<String, dynamic> toJson() => {'episode_id': episodeId};
 }
 
 class PodcastQueueReorderRequest {
-  final List<int> episodeIds;
 
   const PodcastQueueReorderRequest({required this.episodeIds});
+  final List<int> episodeIds;
 
   Map<String, dynamic> toJson() => {'episode_ids': episodeIds};
 }
 
 class PodcastQueueSetCurrentRequest {
-  final int episodeId;
 
   const PodcastQueueSetCurrentRequest({required this.episodeId});
+  final int episodeId;
 
   Map<String, dynamic> toJson() => {'episode_id': episodeId};
 }
 
 class PodcastQueueActivateRequest {
-  final int episodeId;
 
   const PodcastQueueActivateRequest({required this.episodeId});
+  final int episodeId;
 
   Map<String, dynamic> toJson() => {'episode_id': episodeId};
 }

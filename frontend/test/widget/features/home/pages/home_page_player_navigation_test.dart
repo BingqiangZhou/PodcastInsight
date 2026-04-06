@@ -12,7 +12,6 @@ import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/home/presentation/pages/home_page.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
@@ -21,6 +20,7 @@ import 'package:personal_ai_assistant/features/podcast/data/models/profile_stats
 import 'package:personal_ai_assistant/features/podcast/data/services/apple_podcast_rss_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_feed_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_page.dart';
@@ -193,10 +193,9 @@ void main() {
 Future<void> _pumpHomeShellWidget(
   WidgetTester tester, {
   required TestAudioPlayerNotifier audioNotifier,
-  TestPodcastFeedNotifier? feedNotifier,
+  required String route, TestPodcastFeedNotifier? feedNotifier,
   TestPodcastPlayerUiNotifier? uiNotifier,
   int? initialTab,
-  required String route,
 }) async {
   final effectiveFeedNotifier = feedNotifier ?? TestPodcastFeedNotifier();
   final tab = initialTab ?? 1;
@@ -403,7 +402,7 @@ Future<GoRouter> _pumpHomePageRouterFlow(
 class TestAuthNotifier extends AuthNotifier {
   @override
   AuthState build() {
-    return AuthState(
+    return const AuthState(
       isAuthenticated: true,
       user: User(
         id: '1',

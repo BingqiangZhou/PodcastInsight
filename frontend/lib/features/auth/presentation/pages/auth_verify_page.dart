@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -353,13 +351,13 @@ class _AuthVerifyPageState extends State<AuthVerifyPage> {
 }
 
 class _TestButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
 
   const _TestButton({
     required this.text,
     required this.onPressed,
   });
+  final String text;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {

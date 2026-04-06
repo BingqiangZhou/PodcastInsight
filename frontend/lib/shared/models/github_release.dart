@@ -1,12 +1,68 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:personal_ai_assistant/core/constants/app_constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// GitHub Release Model / GitHub 发布模型
 ///
 /// Represents a GitHub release with all relevant information
 /// for app update notifications.
 class GitHubRelease {
+
+  const GitHubRelease({
+    required this.tagName,
+    required this.name,
+    required this.version,
+    required this.body,
+    required this.prerelease,
+    required this.draft,
+    required this.createdAt,
+    required this.publishedAt,
+    required this.htmlUrl,
+    this.assets = const [],
+  });
+
+  /// Create GitHubRelease from JSON
+  factory GitHubRelease.fromJson(Map<String, dynamic> json) {
+    // Extract version from tagName (remove 'v' prefix if present)
+    final tagNameValue = json['tag_name'];
+    if (tagNameValue == null) {
+      throw const FormatException('tag_name is required');
+    }
+    var version = tagNameValue as String;
+    if (version.startsWith('v')) {
+      version = version.substring(1);
+    }
+
+    // Parse assets safely
+    final assetsList = <GitHubAsset>[];
+    final assetsJson = json['assets'];
+    if (assetsJson is List) {
+      for (final asset in assetsJson) {
+        if (asset is Map<String, dynamic>) {
+          assetsList.add(GitHubAsset.fromJson(asset));
+        }
+      }
+    }
+
+    return GitHubRelease(
+      tagName: tagNameValue,
+      name: (json['name'] as String?) ?? tagNameValue,
+      version: version,
+      body: (json['body'] as String?) ?? '',
+      prerelease: (json['prerelease'] as bool?) ?? false,
+      draft: (json['draft'] as bool?) ?? false,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      publishedAt: DateTime.parse(json['published_at'] as String),
+      htmlUrl: json['html_url'] as String,
+      assets: assetsList,
+    );
+  }
+
+  /// Create from JSON string
+  factory GitHubRelease.fromJsonString(String jsonString) {
+    return GitHubRelease.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
+  }
   /// Release tag name (e.g., "v1.0.0")
   final String tagName;
 
@@ -37,56 +93,6 @@ class GitHubRelease {
   /// Download assets (installers, etc.)
   final List<GitHubAsset> assets;
 
-  const GitHubRelease({
-    required this.tagName,
-    required this.name,
-    required this.version,
-    required this.body,
-    required this.prerelease,
-    required this.draft,
-    required this.createdAt,
-    required this.publishedAt,
-    required this.htmlUrl,
-    this.assets = const [],
-  });
-
-  /// Create GitHubRelease from JSON
-  factory GitHubRelease.fromJson(Map<String, dynamic> json) {
-    // Extract version from tagName (remove 'v' prefix if present)
-    final tagNameValue = json['tag_name'];
-    if (tagNameValue == null) {
-      throw const FormatException('tag_name is required');
-    }
-    String version = tagNameValue as String;
-    if (version.startsWith('v')) {
-      version = version.substring(1);
-    }
-
-    // Parse assets safely
-    final assetsList = <GitHubAsset>[];
-    final assetsJson = json['assets'];
-    if (assetsJson is List) {
-      for (final asset in assetsJson) {
-        if (asset is Map<String, dynamic>) {
-          assetsList.add(GitHubAsset.fromJson(asset));
-        }
-      }
-    }
-
-    return GitHubRelease(
-      tagName: tagNameValue,
-      name: (json['name'] as String?) ?? tagNameValue,
-      version: version,
-      body: (json['body'] as String?) ?? '',
-      prerelease: (json['prerelease'] as bool?) ?? false,
-      draft: (json['draft'] as bool?) ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      publishedAt: DateTime.parse(json['published_at'] as String),
-      htmlUrl: json['html_url'] as String,
-      assets: assetsList,
-    );
-  }
-
   /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {
@@ -105,11 +111,6 @@ class GitHubRelease {
 
   /// Convert to JSON string for storage
   String toJsonString() => jsonEncode(toJson());
-
-  /// Create from JSON string
-  factory GitHubRelease.fromJsonString(String jsonString) {
-    return GitHubRelease.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
-  }
 
   /// Check if this release is newer than the given version
   bool isNewerThan(String currentVersion) {
@@ -205,20 +206,6 @@ class GitHubRelease {
 
 /// GitHub Release Asset Model / GitHub 发布资源模型
 class GitHubAsset {
-  /// Asset name (e.g., "app-windows-x64.exe")
-  final String name;
-
-  /// Download URL
-  final String downloadUrl;
-
-  /// File size in bytes
-  final int size;
-
-  /// Download count
-  final int downloadCount;
-
-  /// Content type
-  final String contentType;
 
   const GitHubAsset({
     required this.name,
@@ -237,6 +224,20 @@ class GitHubAsset {
       contentType: json['content_type'] as String? ?? 'application/octet-stream',
     );
   }
+  /// Asset name (e.g., "app-windows-x64.exe")
+  final String name;
+
+  /// Download URL
+  final String downloadUrl;
+
+  /// File size in bytes
+  final int size;
+
+  /// Download count
+  final int downloadCount;
+
+  /// Content type
+  final String contentType;
 
   Map<String, dynamic> toJson() {
     return {
@@ -269,10 +270,6 @@ class GitHubAsset {
 
 /// Simple version comparison utility / 简单版本比较工具
 class Version implements Comparable<Version> {
-  final int major;
-  final int minor;
-  final int patch;
-  final String? preRelease;
 
   const Version({
     required this.major,
@@ -294,6 +291,10 @@ class Version implements Comparable<Version> {
       preRelease: preReleaseValue,
     );
   }
+  final int major;
+  final int minor;
+  final int patch;
+  final String? preRelease;
 
   @override
   int compareTo(Version other) {

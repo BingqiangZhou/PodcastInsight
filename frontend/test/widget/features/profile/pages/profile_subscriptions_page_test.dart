@@ -35,7 +35,7 @@ class _TestPodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
 
 void main() {
   testWidgets('shows bare loading state without content GlassPanel', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -43,19 +43,17 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             () => _TestPodcastSubscriptionNotifier(
               const PodcastSubscriptionState(
-                subscriptions: [],
-                total: 0,
                 hasMore: false,
                 isLoading: true,
               ),
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
-          home: const ProfileSubscriptionsPage(),
+          locale: Locale('en'),
+          home: ProfileSubscriptionsPage(),
         ),
       ),
     );
@@ -70,7 +68,7 @@ void main() {
   });
 
   testWidgets('shows empty state when no subscriptions', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -78,18 +76,15 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             () => _TestPodcastSubscriptionNotifier(
               const PodcastSubscriptionState(
-                subscriptions: [],
-                total: 0,
                 hasMore: false,
-                isLoading: false,
               ),
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const ProfileSubscriptionsPage(),
+          home: ProfileSubscriptionsPage(),
         ),
       ),
     );
@@ -102,7 +97,7 @@ void main() {
   });
 
   testWidgets('renders subscription cards from provider state', (
-    WidgetTester tester,
+    tester,
   ) async {
     final subscription = PodcastSubscriptionModel(
       id: 1,
@@ -112,7 +107,7 @@ void main() {
       sourceUrl: 'https://example.com/rss',
       status: 'active',
       fetchInterval: 3600,
-      createdAt: DateTime(2024, 1, 1),
+      createdAt: DateTime(2024),
     );
 
     await tester.pumpWidget(
@@ -124,15 +119,14 @@ void main() {
                 subscriptions: [subscription],
                 total: 1,
                 hasMore: false,
-                isLoading: false,
               ),
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const ProfileSubscriptionsPage(),
+          home: ProfileSubscriptionsPage(),
         ),
       ),
     );
@@ -147,7 +141,7 @@ void main() {
   });
 
   testWidgets('shows add action in app bar and opens dialog', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -155,18 +149,15 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             () => _TestPodcastSubscriptionNotifier(
               const PodcastSubscriptionState(
-                subscriptions: [],
-                total: 0,
                 hasMore: false,
-                isLoading: false,
               ),
             ),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const ProfileSubscriptionsPage(),
+          home: ProfileSubscriptionsPage(),
         ),
       ),
     );

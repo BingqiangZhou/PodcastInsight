@@ -5,16 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as html_parser;
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_en.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
-import 'package:personal_ai_assistant/shared/widgets/empty_state_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/core/utils/html_sanitizer.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
+import 'package:personal_ai_assistant/shared/widgets/empty_state_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 @immutable
 class ShownotesAnchor {
@@ -44,14 +43,13 @@ class ShownotesAnchor {
 }
 
 class ShownotesDisplayWidget extends ConsumerStatefulWidget {
-  final PodcastEpisodeModel episode;
-  final ValueChanged<List<ShownotesAnchor>>? onAnchorsChanged;
 
   const ShownotesDisplayWidget({
-    super.key,
-    required this.episode,
+    required this.episode, super.key,
     this.onAnchorsChanged,
   });
+  final PodcastEpisodeModel episode;
+  final ValueChanged<List<ShownotesAnchor>>? onAnchorsChanged;
 
   @override
   ConsumerState<ShownotesDisplayWidget> createState() =>
@@ -78,7 +76,7 @@ class ShownotesDisplayWidgetState
   void scrollToTop() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        0.0,
+        0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
@@ -454,7 +452,7 @@ class ShownotesDisplayWidgetState
     final normalized = title
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9\u4e00-\u9fa5]+'), '-')
-        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp('-+'), '-')
         .replaceAll(RegExp(r'^-|-$'), '');
     return normalized.isEmpty ? 'shownotes-$index' : '$normalized-$index';
   }
@@ -586,7 +584,6 @@ class ShownotesDisplayWidgetState
         return styles.isNotEmpty ? styles : null;
       },
       enableCaching: true,
-      renderMode: RenderMode.column,
     );
   }
 

@@ -4,6 +4,18 @@ part 'user.g.dart';
 
 @JsonSerializable()
 class User {
+
+  const User({
+    required this.id,
+    required this.email,
+    required this.isVerified, required this.isActive, this.username,
+    this.fullName,
+    this.avatarUrl,
+    this.isSuperuser = false,
+    this.createdAt,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   @JsonKey(fromJson: _idFromJson)
   final String id;
   final String email;
@@ -30,20 +42,6 @@ class User {
 
   @JsonKey(name: 'created_at')
   final DateTime? createdAt;
-
-  const User({
-    required this.id,
-    required this.email,
-    this.username,
-    this.fullName,
-    this.avatarUrl,
-    required this.isVerified,
-    required this.isActive,
-    this.isSuperuser = false,
-    this.createdAt,
-  });
-
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   Map<String, dynamic> toJson() => _$UserToJson(this);
 
   User copyWith({

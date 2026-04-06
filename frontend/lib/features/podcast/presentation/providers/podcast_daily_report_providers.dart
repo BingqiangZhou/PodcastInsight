@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
 import 'package:personal_ai_assistant/core/constants/cache_constants.dart';
+import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
@@ -52,7 +51,7 @@ class DailyReportNotifier extends AsyncNotifier<PodcastDailyReportResponse?> {
     if (loadedAt == null) {
       return false;
     }
-    final cacheDuration = CacheConstants.defaultListCacheDuration;
+    const cacheDuration = CacheConstants.defaultListCacheDuration;
     return DateTime.now().difference(loadedAt) < cacheDuration;
   }
 
@@ -170,7 +169,7 @@ class DailyReportDatesNotifier
     if (loadedAt == null) {
       return false;
     }
-    final cacheDuration = CacheConstants.defaultListCacheDuration;
+    const cacheDuration = CacheConstants.defaultListCacheDuration;
     return DateTime.now().difference(loadedAt) < cacheDuration;
   }
 
@@ -203,7 +202,7 @@ class DailyReportDatesNotifier
   }
 
   bool _isMonthCovered(DateTime focusedMonth) {
-    final monthStart = DateTime(focusedMonth.year, focusedMonth.month, 1);
+    final monthStart = DateTime(focusedMonth.year, focusedMonth.month);
     final earliest = _earliestLoadedDate();
     if (earliest == null) {
       return false;
@@ -307,9 +306,9 @@ class DailyReportDatesNotifier
   Future<PodcastDailyReportDatesResponse?> ensureMonthCoverage(
     DateTime focusedMonth,
   ) async {
-    final normalizedMonth = DateTime(focusedMonth.year, focusedMonth.month, 1);
+    final normalizedMonth = DateTime(focusedMonth.year, focusedMonth.month);
     if (_datesByKey.isEmpty) {
-      await load(forceRefresh: false);
+      await load();
     }
     if (_isMonthCovered(normalizedMonth) || !_canLoadNextPage()) {
       return state.value;

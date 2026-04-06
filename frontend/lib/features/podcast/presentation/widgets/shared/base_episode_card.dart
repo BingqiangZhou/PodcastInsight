@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/download_button.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
@@ -48,6 +47,10 @@ class EpisodeCardConfig {
     this.audioDuration,
     this.publishedAt,
     this.heroTag,
+    this.identityColor,
+    this.showIdentityColorBar = false,
+    this.identityGradientColors,
+    this.useGradientIdentityBar = false,
   });
 
   final bool showImage;
@@ -89,6 +92,21 @@ class EpisodeCardConfig {
   /// Optional Hero tag for shared element transitions to detail pages.
   /// When provided, the image will be wrapped in a Hero widget.
   final String? heroTag;
+
+  /// Optional identity color for the left accent bar (3px wide).
+  /// When provided, a 3px vertical bar is shown on the left edge.
+  final Color? identityColor;
+
+  /// Whether to show the identity color bar on the left edge.
+  /// Requires [identityColor] to be set.
+  final bool showIdentityColorBar;
+
+  /// Optional gradient colors for the left accent bar.
+  /// When provided, a gradient vertical bar is shown on the left edge.
+  final List<Color>? identityGradientColors;
+
+  /// Whether to use gradient for the identity color bar.
+  final bool useGradientIdentityBar;
 }
 
 /// A reusable base episode card with configurable layout.
@@ -100,10 +118,7 @@ class EpisodeCardConfig {
 /// a [BaseEpisodeCard] instead of reimplementing the layout.
 class BaseEpisodeCard extends StatelessWidget {
   const BaseEpisodeCard({
-    super.key,
-    required this.config,
-    required this.title,
-    required this.onTap,
+    required this.config, required this.title, required this.onTap, super.key,
     this.subtitle,
     this.subtitle2,
     this.trailingWidget,
@@ -130,44 +145,55 @@ class BaseEpisodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: config.cardMargin ?? EdgeInsets.zero,
-      child: SurfaceCard(
-        borderRadius: config.cornerRadius,
-        padding: EdgeInsets.zero,
-        child: Semantics(
-          button: true,
-          label: title,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(config.cornerRadius),
-              child: Padding(
-                padding: config.cardPadding,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeaderRow(context, theme),
-                    if (config.showDescription &&
-                        config.description != null &&
-                        config.description!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Flexible(child: _buildDescription(context, theme)),
-                      const SizedBox(height: 4),
-                    ] else if (config.showDescription) ...[
-                      const SizedBox(height: 4),
-                    ],
-                    if (_hasMetaOrActions)
-                      _buildMetaActionRow(context, theme),
+    final cardContent = SurfaceCard(
+      borderRadius: config.cornerRadius,
+      padding: EdgeInsets.zero,
+      child: Semantics(
+        button: true,
+        label: title,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(config.cornerRadius),
+            child: Padding(
+              padding: config.cardPadding,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderRow(context, theme),
+                  if (config.showDescription &&
+                      config.description != null &&
+                      config.description!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Flexible(child: _buildDescription(context, theme)),
+                    const SizedBox(height: 4),
+                  ] else if (config.showDescription) ...[
+                    const SizedBox(height: 4),
                   ],
-                ),
+                  if (_hasMetaOrActions)
+                    _buildMetaActionRow(context, theme),
+                ],
               ),
             ),
           ),
         ),
       ),
+    );
+
+    return Padding(
+      padding: config.cardMargin ?? EdgeInsets.zero,
+      child: (config.showIdentityColorBar || config.useGradientIdentityBar) &&
+              (config.identityColor != null || config.identityGradientColors != null)
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildIdentityBar(context),
+                Expanded(child: cardContent),
+              ],
+            )
+          : cardContent,
     );
   }
 
@@ -180,6 +206,58 @@ class BaseEpisodeCard extends StatelessWidget {
       config.showSubscribeAction ||
       (additionalMetadata != null && additionalMetadata!.isNotEmpty);
 
+  Widget _buildIdentityBar(BuildContext context) {
+    // Use gradient colors if available and enabled
+    if (config.useGradientIdentityBar &&
+        config.identityGradientColors != null &&
+        config.identityGradientColors!.isNotEmpty) {
+      return Container(
+        width: 3,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: config.identityGradientColors!,
+          ),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(config.cornerRadius),
+            bottomLeft: Radius.circular(config.cornerRadius),
+          ),
+        ),
+      );
+    }
+
+    // Fall back to solid color
+    if (config.identityColor != null) {
+      return Container(
+        width: 3,
+        decoration: BoxDecoration(
+          color: config.identityColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(config.cornerRadius),
+            bottomLeft: Radius.circular(config.cornerRadius),
+          ),
+        ),
+      );
+    }
+
+    // Default to violet gradient if no color specified
+    return Container(
+      width: 3,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: AppColors.violetColors,
+        ),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(config.cornerRadius),
+          bottomLeft: Radius.circular(config.cornerRadius),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeaderRow(BuildContext context, ThemeData theme) {
     final scheme = theme.colorScheme;
     final titleStyle = (config.dense
@@ -188,7 +266,6 @@ class BaseEpisodeCard extends StatelessWidget {
         ?.copyWith(fontWeight: FontWeight.w700);
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (config.showImage && config.imageUrl != null) ...[
           _buildImage(context, theme),
@@ -252,7 +329,7 @@ class BaseEpisodeCard extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(config.imageBorderRadius),
           child: PodcastImageWidget(
-            imageUrl: config.imageUrl!,
+            imageUrl: config.imageUrl,
             width: size,
             height: size,
             iconSize: config.imageIconSize,
@@ -304,7 +381,6 @@ class BaseEpisodeCard extends StatelessWidget {
     final l10n = context.l10n;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Align(
@@ -314,7 +390,6 @@ class BaseEpisodeCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (config.showSubscriptionBadge)
                     _buildSubscriptionBadge(theme),

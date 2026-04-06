@@ -2,26 +2,24 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
 import 'package:personal_ai_assistant/core/providers/route_provider.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
-import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/theme/font_provider.dart';
+import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
-import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
+import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_server_config_listener.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/widgets/update_dialog.dart';
-
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
-import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
+import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 
 /// Splash screen widget that matches the Mindriver brand style
 class _SplashScreenWidget extends StatelessWidget {
@@ -58,7 +56,7 @@ class _SplashScreenWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    l10n?.appSlogan ?? 'Dawn\'s near. Let\'s begin.',
+                    l10n?.appSlogan ?? "Dawn's near. Let's begin.",
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
@@ -307,7 +305,7 @@ class _PersonalAIAssistantAppState
       }
 
       try {
-        final RouteMatchList matchList =
+        final matchList =
             router.routerDelegate.currentConfiguration;
         queueCurrentRouteUpdate(matchList.uri.toString());
       } catch (e, stackTrace) {

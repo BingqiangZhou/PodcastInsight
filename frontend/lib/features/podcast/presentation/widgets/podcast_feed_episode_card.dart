@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/base_episode_card.dart';
 
 class PodcastFeedEpisodeCard extends StatelessWidget {
   const PodcastFeedEpisodeCard({
-    super.key,
-    required this.episode,
-    required this.compact,
-    required this.isAddingToQueue,
-    required this.displayDescription,
-    required this.onOpenDetail,
-    required this.onPlayAndOpenDetail,
-    required this.onAddToQueue,
+    required this.episode, required this.compact, required this.isAddingToQueue, required this.displayDescription, required this.onOpenDetail, required this.onPlayAndOpenDetail, required this.onAddToQueue, super.key,
   });
 
   final PodcastEpisodeModel episode;
@@ -34,11 +28,15 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
     final titleFontSize = titleStyle?.fontSize ?? 13;
     final titleLineHeightFactor = titleStyle?.height ?? 1.0;
     final coverSize = 2 * (titleFontSize * titleLineHeightFactor);
-    final coverIconSize = (coverSize * 0.58).clamp(14.0, 28.0).toDouble();
+    final coverIconSize = (coverSize * 0.58).clamp(14.0, 28.0);
+
+    // Determine identity gradient colors based on subscription title hash
+    final subscriptionTitle = episode.subscriptionTitle ?? l10n.podcast_default_podcast;
+    final colorIndex = subscriptionTitle.hashCode % AppColors.podcastGradientColors.length;
+    final identityGradientColors = AppColors.podcastGradientColors[colorIndex];
 
     return BaseEpisodeCard(
       config: EpisodeCardConfig(
-        showImage: true,
         imageUrl: episode.imageUrl ?? episode.subscriptionImageUrl,
         imageSize: coverSize,
         imageIconSize: coverIconSize,
@@ -56,7 +54,6 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
         showDescription: displayDescription.isNotEmpty,
         description: displayDescription.isNotEmpty ? displayDescription : null,
         descriptionMaxLines: compact ? 2 : 4,
-        showPlayButton: true,
         showQueueButton: true,
         isAddingToQueue: isAddingToQueue,
         showDownloadButton: true,
@@ -69,6 +66,8 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
         audioDuration: episode.audioDuration,
         publishedAt: episode.publishedAt,
         heroTag: 'episode_cover_${episode.id}',
+        useGradientIdentityBar: true,
+        identityGradientColors: identityGradientColors,
       ),
       title: episode.title,
       onTap: onOpenDetail,

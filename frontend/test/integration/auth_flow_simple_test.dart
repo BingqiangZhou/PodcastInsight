@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/pages/login_page.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/pages/register_page.dart';
-import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/widgets/password_text_field.dart';
+import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
 
 import '../test_helpers.dart';
 
@@ -23,7 +23,7 @@ GoRouter _router(String initialLocation) {
 
 void main() {
   group('Authentication Flow Tests (Simple)', () {
-    testWidgets('Registration page has required fields', (WidgetTester tester) async {
+    testWidgets('Registration page has required fields', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/register')));
       await tester.pumpAndSettle();
 
@@ -39,7 +39,7 @@ void main() {
       expect(find.text('Create Account'), findsWidgets);
     });
 
-    testWidgets('Login page has required fields', (WidgetTester tester) async {
+    testWidgets('Login page has required fields', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/login')));
       await tester.pumpAndSettle();
 
@@ -55,7 +55,7 @@ void main() {
       expect(find.text('Sign In'), findsWidgets);
     });
 
-    testWidgets('Navigation between login and register', (WidgetTester tester) async {
+    testWidgets('Navigation between login and register', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/login')));
       await tester.pumpAndSettle();
 
@@ -73,7 +73,7 @@ void main() {
       expect(passwordFields, findsWidgets);
     });
 
-    testWidgets('Password visibility toggle', (WidgetTester tester) async {
+    testWidgets('Password visibility toggle', (tester) async {
       // Test on login page
       await tester.pumpWidget(testAppWithRouter(router: _router('/login')));
       await tester.pumpAndSettle();
@@ -94,7 +94,7 @@ void main() {
       expect(find.byIcon(Icons.visibility_off), findsOneWidget);
     });
 
-    testWidgets('Remember me checkbox functionality', (WidgetTester tester) async {
+    testWidgets('Remember me checkbox functionality', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/login')));
       await tester.pumpAndSettle();
 
@@ -114,7 +114,7 @@ void main() {
       expect(tester.widget<Checkbox>(rememberCheckbox).value, isFalse);
     });
 
-    testWidgets('Register page has terms checkbox', (WidgetTester tester) async {
+    testWidgets('Register page has terms checkbox', (tester) async {
       await tester.pumpWidget(testAppWithRouter(router: _router('/register')));
       await tester.pumpAndSettle();
 

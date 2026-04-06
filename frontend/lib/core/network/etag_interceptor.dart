@@ -9,14 +9,6 @@ import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 /// Stores only the response data and headers (not the full Response object)
 /// to reduce memory footprint.
 class _ETagCacheEntry {
-  final String etag;
-  final dynamic data;
-  final Headers headers;
-  final int? statusCode;
-  final String? statusMessage;
-  final RequestOptions requestOptions;
-  final DateTime timestamp;
-  final Duration? maxAge;
 
   _ETagCacheEntry({
     required this.etag,
@@ -27,6 +19,14 @@ class _ETagCacheEntry {
     this.statusMessage,
     this.maxAge,
   }) : timestamp = DateTime.now();
+  final String etag;
+  final dynamic data;
+  final Headers headers;
+  final int? statusCode;
+  final String? statusMessage;
+  final RequestOptions requestOptions;
+  final DateTime timestamp;
+  final Duration? maxAge;
 
   /// Reconstruct a Response from cached data.
   Response toResponse() {
@@ -53,10 +53,6 @@ class _ETagCacheEntry {
 /// - Avoid double-caching with DioCacheInterceptor
 /// - Provide precise cache control for API calls
 class ETagInterceptor extends Interceptor {
-  final LinkedHashMap<String, _ETagCacheEntry> _cache = LinkedHashMap();
-  final int _maxEntries;
-  final Duration _defaultTtl;
-  final bool _enabled;
 
   /// Create ETag interceptor.
   ///
@@ -70,6 +66,10 @@ class ETagInterceptor extends Interceptor {
   }) : _maxEntries = maxEntries,
        _defaultTtl = defaultTtl,
        _enabled = enabled;
+  final LinkedHashMap<String, _ETagCacheEntry> _cache = LinkedHashMap();
+  final int _maxEntries;
+  final Duration _defaultTtl;
+  final bool _enabled;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {

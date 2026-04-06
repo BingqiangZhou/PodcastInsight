@@ -179,9 +179,8 @@ GitHubRelease _buildRelease(String body) {
     body: body,
     prerelease: false,
     draft: false,
-    createdAt: DateTime(2026, 1, 1),
+    createdAt: DateTime(2026),
     publishedAt: DateTime(2026, 1, 2),
     htmlUrl: 'https://github.com/example/repo/releases/tag/v1.2.3',
-    assets: const [],
   );
 }

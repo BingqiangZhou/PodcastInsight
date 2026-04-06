@@ -2,10 +2,6 @@ import 'package:flutter/foundation.dart';
 
 @immutable
 class AppLoggerConfig {
-  final bool debugEnabled;
-  final bool infoEnabled;
-  final bool warningEnabled;
-  final bool errorEnabled;
 
   const AppLoggerConfig({
     required this.debugEnabled,
@@ -31,6 +27,10 @@ class AppLoggerConfig {
       infoEnabled = false,
       warningEnabled = false,
       errorEnabled = false;
+  final bool debugEnabled;
+  final bool infoEnabled;
+  final bool warningEnabled;
+  final bool errorEnabled;
 }
 
 class AppLogger {

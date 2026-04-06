@@ -28,13 +28,13 @@ PodcastTranscriptionResponse _$PodcastTranscriptionResponseFromJson(
   id: (json['id'] as num).toInt(),
   episodeId: (json['episode_id'] as num).toInt(),
   status: json['status'] as String,
+  createdAt: DateTime.parse(json['created_at'] as String),
   transcriptContent: json['transcript_content'] as String?,
   processedTranscript: json['processed_transcript'] as String?,
   wordCount: (json['transcript_word_count'] as num?)?.toInt(),
   durationSeconds: (json['duration_seconds'] as num?)?.toInt(),
   processingProgress: (json['progress_percentage'] as num?)?.toDouble(),
   errorMessage: json['error_message'] as String?,
-  createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: json['updated_at'] == null
       ? null
       : DateTime.parse(json['updated_at'] as String),
@@ -75,11 +75,11 @@ Map<String, dynamic> _$PodcastTranscriptionResponseToJson(
 TranscriptDialogueSegment _$TranscriptDialogueSegmentFromJson(
   Map<String, dynamic> json,
 ) => TranscriptDialogueSegment(
+  text: json['text'] as String,
   speaker: json['speaker'] as String?,
   timestamp: json['timestamp'] as String?,
   startTime: (json['start_time'] as num?)?.toDouble(),
   endTime: (json['end_time'] as num?)?.toDouble(),
-  text: json['text'] as String,
   confidence: (json['confidence'] as num?)?.toDouble(),
 );
 

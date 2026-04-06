@@ -39,12 +39,10 @@ void main() {
         final lookupA = await service.lookupPodcastEpisodes(
           showId: 333,
           country: PodcastCountry.usa,
-          limit: 50,
         );
         final lookupB = await service.lookupPodcastEpisodes(
           showId: 333,
           country: PodcastCountry.usa,
-          limit: 50,
         );
 
         expect(adapter.requestCount, 1);

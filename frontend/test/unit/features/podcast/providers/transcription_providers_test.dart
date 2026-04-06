@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,7 +7,6 @@ import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast
 import 'package:personal_ai_assistant/features/podcast/data/services/podcast_api_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
-import 'package:dio/dio.dart';
 
 void main() {
   test('transcription polling stops after terminal state', () {
@@ -20,7 +20,7 @@ void main() {
       final provider = transcriptionProvider(2001);
       final subscription = container.listen(
         provider,
-        (_, __) {},
+        (_, _) {},
         fireImmediately: true,
       );
       addTearDown(() {

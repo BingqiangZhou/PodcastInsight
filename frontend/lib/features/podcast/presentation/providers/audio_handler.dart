@@ -45,7 +45,46 @@ import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 /// - **iOS**: Background playback with lock screen controls
 /// - **Desktop**: Basic playback controls (no lock screen)
 class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
-  final AudioPlayer _player = AudioPlayer();
+
+  PodcastAudioHandler() : _player = AudioPlayer() {
+    // Setup player event listeners
+    _listenPlayerEvents();
+
+    // Initialize with default MediaItem
+    mediaItem.add(
+      const MediaItem(
+        id: 'default',
+        title: 'No media',
+        artist: 'Unknown',
+      ),
+    );
+
+    // Initialize playback state
+    playbackState.add(
+      PlaybackState(
+        controls: [MediaControl.play],
+        androidCompactActionIndices: const [0],
+        systemActions: const {
+          MediaAction.play,
+          MediaAction.pause,
+          MediaAction.stop,
+          MediaAction.seek,
+          MediaAction.rewind,
+          MediaAction.fastForward,
+        },
+      ),
+    );
+
+    if (kDebugMode) {
+      logger.AppLogger.debug('🎵 PodcastAudioHandler initialized (audioplayers)');
+    }
+  }
+
+  /// Test-only constructor that skips AudioPlayer creation.
+  @visibleForTesting
+  PodcastAudioHandler.testOnly() : _player = null;
+
+  final AudioPlayer? _player;
   Duration _currentPosition = Duration.zero;
   Duration? _currentDuration;
 
@@ -80,48 +119,10 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     return uri;
   }
 
-  PodcastAudioHandler() {
-    // Setup player event listeners
-    _listenPlayerEvents();
-
-    // Initialize with default MediaItem
-    mediaItem.add(
-      MediaItem(
-        id: 'default',
-        title: 'No media',
-        artist: 'Unknown',
-      ),
-    );
-
-    // Initialize playback state
-    playbackState.add(
-      PlaybackState(
-        controls: [MediaControl.play],
-        androidCompactActionIndices: const [0],
-        processingState: AudioProcessingState.idle,
-        playing: false,
-        updatePosition: Duration.zero,
-        bufferedPosition: Duration.zero,
-        speed: 1.0,
-        systemActions: const {
-          MediaAction.play,
-          MediaAction.pause,
-          MediaAction.stop,
-          MediaAction.seek,
-          MediaAction.rewind,
-          MediaAction.fastForward,
-        },
-      ),
-    );
-
-    if (kDebugMode) {
-      logger.AppLogger.debug('🎵 PodcastAudioHandler initialized (audioplayers)');
-    }
-  }
-
   void _listenPlayerEvents() {
+    final player = _player!;
     // Listen to player state changes
-    _subs.add(_player.onPlayerStateChanged.listen((state) {
+    _subs.add(player.onPlayerStateChanged.listen((state) {
       if (_isDisposed) return;
       if (kDebugMode) {
         logger.AppLogger.debug('🎧 PlayerState: $state');
@@ -130,7 +131,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     }));
 
     // Listen to player complete events
-    _subs.add(_player.onPlayerComplete.listen((_) {
+    _subs.add(player.onPlayerComplete.listen((_) {
       if (_isDisposed) return;
       if (kDebugMode) {
         logger.AppLogger.debug('🎧 Player completed');
@@ -141,7 +142,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     }));
 
     // Listen to position changes with throttling
-    _subs.add(_player.onPositionChanged.listen((position) {
+    _subs.add(player.onPositionChanged.listen((position) {
       if (_isDisposed) return;
       final now = DateTime.now();
       final dt = now.difference(_lastPosEmit).inMilliseconds;
@@ -157,7 +158,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     }));
 
     // Listen to duration changes
-    _subs.add(_player.onDurationChanged.listen((duration) {
+    _subs.add(player.onDurationChanged.listen((duration) {
       if (_isDisposed) return;
       if (kDebugMode) {
         logger.AppLogger.debug('⏱️ [DURATION] Duration changed: ${duration.inMilliseconds}ms');
@@ -187,7 +188,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
       currentState.copyWith(
         updatePosition: pos,
         bufferedPosition: pos,
-        speed: _player.playbackRate,
+        speed: _player?.playbackRate ?? 1.0,
       ),
     );
   }
@@ -195,20 +196,21 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
   /// Full state broadcast (controls, playing, processingState)
   void _broadcastState() {
     if (_isDisposed) return;
+    if (_player == null) return;
 
-    final playing = _player.state == PlayerState.playing;
-    final processingState = _mapProcessingState(_player.state);
+    final playing = _player!.state == PlayerState.playing;
+    final processingState = _mapProcessingState(_player!.state);
     final updateTime = DateTime.now();
 
     // Build controls list based on current state
-    final bool hasContent =
+    final hasContent =
         processingState != AudioProcessingState.idle &&
         processingState != AudioProcessingState.loading;
 
     final controls = hasContent
         ? [
             MediaControl.rewind,
-            playing ? MediaControl.pause : MediaControl.play,
+            if (playing) MediaControl.pause else MediaControl.play,
             MediaControl.fastForward,
           ]
         : [MediaControl.play];
@@ -226,7 +228,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
       logger.AppLogger.debug('  processingState: $processingState');
       logger.AppLogger.debug('  position: ${_currentPosition.inMilliseconds}ms');
       logger.AppLogger.debug('  duration: ${_currentDuration?.inMilliseconds ?? 0}ms');
-      logger.AppLogger.debug('  speed: ${_player.playbackRate}x');
+      logger.AppLogger.debug('  speed: ${_player!.playbackRate}x');
       logger.AppLogger.debug('  updateTime: $updateTime');
       logger.AppLogger.debug(
         '🎵 [BROADCAST STATE] ========================================',
@@ -241,7 +243,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
         processingState: processingState,
         updatePosition: _currentPosition,
         bufferedPosition: _currentPosition,
-        speed: _player.playbackRate,
+        speed: _player?.playbackRate ?? 1.0,
         updateTime: updateTime,
         systemActions: const {
           MediaAction.play,
@@ -270,8 +272,9 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   Future<void> _setAudioSourceWithCache(String url) async {
+    if (_player == null) return;
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      await _player.setSourceUrl(url);
+      await _player!.setSourceUrl(url);
       return;
     }
 
@@ -279,7 +282,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
       final cached = await AppMediaCacheManager.instance.getFileFromCache(url);
       final file = cached?.file;
       if (file != null && await file.exists()) {
-        await _player.setSource(DeviceFileSource(file.path));
+        await _player!.setSource(DeviceFileSource(file.path));
         return;
       }
     } catch (e) {
@@ -301,7 +304,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
       }
     });
 
-    await _player.setSourceUrl(url);
+    await _player!.setSourceUrl(url);
   }
 
   /// Set episode with full metadata support
@@ -411,7 +414,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     }
 
     try {
-      await _player.resume();
+      await _player?.resume();
       if (kDebugMode) {
         logger.AppLogger.debug('▶️ Playback started');
       }
@@ -433,7 +436,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
       return;
     }
 
-    await _player.pause();
+    await _player?.pause();
 
     if (kDebugMode) {
       logger.AppLogger.debug('⏸️ Playback paused');
@@ -455,7 +458,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
       logger.AppLogger.debug('⏹️ stop() called - stopping playback');
     }
 
-    await _player.stop();
+    await _player?.stop();
     _currentPosition = Duration.zero;
 
     if (kDebugMode) {
@@ -480,8 +483,8 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
 
     // Stop and dispose player
     try {
-      await _player.stop();
-      await _player.dispose();
+      await _player?.stop();
+      await _player?.dispose();
     } catch (e) {
       if (kDebugMode) {
         logger.AppLogger.debug('⚠️ Error disposing player: $e');
@@ -505,9 +508,6 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
       playbackState.add(
         PlaybackState(
           controls: [],
-          systemActions: const {},
-          processingState: AudioProcessingState.idle,
-          playing: false,
         ),
       );
       mediaItem.add(null);
@@ -524,7 +524,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> seek(Duration position) async {
-    await _player.seek(position);
+    await _player?.seek(position);
     _currentPosition = position;
     _broadcastPosition(position: position);
   }
@@ -535,7 +535,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     final clampedPosition = newPosition < Duration.zero
         ? Duration.zero
         : newPosition;
-    await _player.seek(clampedPosition);
+    await _player?.seek(clampedPosition);
     _currentPosition = clampedPosition;
     _broadcastPosition(position: clampedPosition);
   }
@@ -545,19 +545,19 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     final duration = _currentDuration ?? Duration.zero;
     final newPosition = _currentPosition + const Duration(seconds: 30);
     final clampedPosition = newPosition > duration ? duration : newPosition;
-    await _player.seek(clampedPosition);
+    await _player?.seek(clampedPosition);
     _currentPosition = clampedPosition;
     _broadcastPosition(position: clampedPosition);
   }
 
   @override
   Future<void> setSpeed(double speed) async {
-    await _player.setPlaybackRate(speed);
+    await _player?.setPlaybackRate(speed);
     _broadcastPosition();
   }
 
   // Volume control (desktop-oriented; mobile typically uses hardware keys).
-  double _volume = 1.0;
+  double _volume = 1;
 
   /// Get current volume level (0.0 to 1.0).
   double get volume => _volume;
@@ -566,7 +566,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
   Future<void> setVolume(double level) async {
     if (_isDisposed) return;
     final clamped = level.clamp(0.0, 1.0);
-    await _player.setVolume(clamped);
+    await _player?.setVolume(clamped);
     _volume = clamped;
   }
 
@@ -587,16 +587,19 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
   Duration? get duration => _currentDuration;
 
   /// Get playing state
-  bool get playing => _player.state == PlayerState.playing;
+  bool get playing => _player?.state == PlayerState.playing;
 
   /// Get player state stream
-  Stream<PlayerState> get playerStateStream => _player.onPlayerStateChanged;
+  Stream<PlayerState> get playerStateStream =>
+      _player?.onPlayerStateChanged ?? const Stream.empty();
 
   /// Get position stream
-  Stream<Duration> get positionStream => _player.onPositionChanged;
+  Stream<Duration> get positionStream =>
+      _player?.onPositionChanged ?? const Stream.empty();
 
   /// Get duration stream
-  Stream<Duration?> get durationStream => _player.onDurationChanged;
+  Stream<Duration?> get durationStream =>
+      _player?.onDurationChanged ?? const Stream.empty();
 
   @override
   Future<void> onTaskRemoved() async {
@@ -630,7 +633,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
 
     // Release AudioPlayer
     try {
-      await _player.dispose();
+      await _player?.dispose();
       if (kDebugMode) {
         logger.AppLogger.debug('   - Audio player disposed');
       }

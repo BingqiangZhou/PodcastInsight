@@ -1,21 +1,21 @@
 import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
+import 'package:personal_ai_assistant/core/network/token_refresh_service.dart';
+import 'package:personal_ai_assistant/core/providers/core_providers.dart';
+import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
+import 'package:personal_ai_assistant/core/storage/secure_storage_service.dart';
+import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
+import 'package:personal_ai_assistant/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/auth_request.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
 import 'package:personal_ai_assistant/features/auth/domain/repositories/auth_repository.dart';
-import 'package:personal_ai_assistant/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:personal_ai_assistant/features/auth/data/datasources/auth_remote_datasource.dart';
-import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
-import 'package:personal_ai_assistant/core/network/token_refresh_service.dart';
-import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
-import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
-import 'package:personal_ai_assistant/core/storage/secure_storage_service.dart';
-import 'package:personal_ai_assistant/core/providers/core_providers.dart';
-import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/shared/constants/storage_keys.dart';
 
 // Token refresh constants
@@ -54,14 +54,7 @@ final authProvider = NotifierProvider<AuthNotifier, AuthState>(
   AuthNotifier.new,
 );
 
-class AuthState extends Equatable {
-  final User? user;
-  final bool isLoading;
-  final bool isAuthenticated;
-  final String? error;
-  final bool isRefreshingToken;
-  final AuthOperation? currentOperation;
-  final Map<String, String>? fieldErrors; // For validation errors
+class AuthState extends Equatable { // For validation errors
 
   const AuthState({
     this.user,
@@ -72,6 +65,13 @@ class AuthState extends Equatable {
     this.currentOperation,
     this.fieldErrors,
   });
+  final User? user;
+  final bool isLoading;
+  final bool isAuthenticated;
+  final String? error;
+  final bool isRefreshingToken;
+  final AuthOperation? currentOperation;
+  final Map<String, String>? fieldErrors;
 
   AuthState copyWith({
     User? user,
@@ -138,7 +138,7 @@ class AuthNotifier extends Notifier<AuthState> {
           logger.AppLogger.debug(
             '🔔 [AuthProvider] Received tokenCleared event, clearing auth state',
           );
-          state = state.copyWith(isAuthenticated: false, user: null);
+          state = state.copyWith(isAuthenticated: false);
         }
         ref.read(dioClientProvider).clearETagCache();
       }
@@ -169,7 +169,6 @@ class AuthNotifier extends Notifier<AuthState> {
         logger.AppLogger.debug('📱 [Auth] App resumed, checking token...');
         _checkAndRefreshToken();
         _startTokenRefreshTimer();
-        break;
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
       case AppLifecycleState.detached:
@@ -177,7 +176,6 @@ class AuthNotifier extends Notifier<AuthState> {
         // App went to background - stop timer to save resources
         logger.AppLogger.debug('📱 [Auth] App paused, stopping token refresh timer');
         _stopTokenRefreshTimer();
-        break;
     }
   }
 
@@ -206,7 +204,7 @@ class AuthNotifier extends Notifier<AuthState> {
             return;
           }
           if (!refreshResult.success) {
-            state = state.copyWith(isLoading: false, currentOperation: null);
+            state = state.copyWith(isLoading: false);
             return;
           }
         }
@@ -217,8 +215,6 @@ class AuthNotifier extends Notifier<AuthState> {
             user: user,
             isAuthenticated: true,
             isLoading: false,
-            error: null,
-            currentOperation: null,
           );
         } on AuthenticationException {
           // For authentication errors, clear state and let router handle redirect
@@ -226,28 +222,24 @@ class AuthNotifier extends Notifier<AuthState> {
           _handleAuthError();
           state = state.copyWith(
             isLoading: false,
-            error: null, // Don't show error message
-            currentOperation: null,
           );
         } on AppException catch (error) {
           // For other errors, show error message
-          String userMessage = _getErrorMessage(error);
+          final userMessage = _getErrorMessage(error);
           state = state.copyWith(
             isLoading: false,
             error: userMessage,
-            currentOperation: null,
           );
         }
         // Enable auto-refresh on successful auth check
         _enableAutoRefresh();
       } else {
-        state = state.copyWith(isLoading: false, currentOperation: null);
+        state = state.copyWith(isLoading: false);
       }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Authentication check failed: ${e.toString()}',
-        currentOperation: null,
+        error: 'Authentication check failed: $e',
       );
     }
   }
@@ -259,7 +251,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(
       isLoading: true,
-      error: null,
       clearFieldErrors: true,
       currentOperation: AuthOperation.login,
     );
@@ -285,35 +276,29 @@ class AuthNotifier extends Notifier<AuthState> {
           user: user,
           isAuthenticated: true,
           isLoading: false,
-          error: null,
-          currentOperation: null,
         );
       } catch (_) {
         // Even if user fetch fails, login was successful
         state = state.copyWith(
           isAuthenticated: true,
           isLoading: false,
-          error: null,
-          currentOperation: null,
         );
       }
       // Enable auto-refresh
       _enableAutoRefresh();
     } on AppException catch (error) {
-      String userMessage = _getErrorMessage(error);
-      Map<String, String>? fieldErrors = _getFieldErrors(error);
+      final userMessage = _getErrorMessage(error);
+      final fieldErrors = _getFieldErrors(error);
 
       state = state.copyWith(
         isLoading: false,
         error: userMessage,
         fieldErrors: fieldErrors,
-        currentOperation: null,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
-        currentOperation: null,
       );
     }
   }
@@ -326,7 +311,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(
       isLoading: true,
-      error: null,
       clearFieldErrors: true,
       currentOperation: AuthOperation.register,
     );
@@ -353,16 +337,12 @@ class AuthNotifier extends Notifier<AuthState> {
           user: user,
           isAuthenticated: true,
           isLoading: false,
-          error: null,
-          currentOperation: null,
         );
       } catch (_) {
         // Even if user fetch fails, registration was successful
         state = state.copyWith(
           isAuthenticated: true,
           isLoading: false,
-          error: null,
-          currentOperation: null,
         );
       }
       // Enable auto-refresh
@@ -379,8 +359,8 @@ class AuthNotifier extends Notifier<AuthState> {
         logger.AppLogger.debug('Error details: ${error.details}');
       }
 
-      String userMessage = _getErrorMessage(error);
-      Map<String, String>? fieldErrors = _getFieldErrors(error);
+      final userMessage = _getErrorMessage(error);
+      final fieldErrors = _getFieldErrors(error);
 
       logger.AppLogger.debug('User message: $userMessage');
       logger.AppLogger.debug('Field errors: $fieldErrors');
@@ -390,13 +370,11 @@ class AuthNotifier extends Notifier<AuthState> {
         isLoading: false,
         error: userMessage,
         fieldErrors: fieldErrors,
-        currentOperation: null,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
-        currentOperation: null,
       );
     }
   }
@@ -420,7 +398,7 @@ class AuthNotifier extends Notifier<AuthState> {
     await _clearAuthState();
     await _clearPlaybackSnapshot(currentUserId);
     ref.read(dioClientProvider).clearETagCache();
-    state = const AuthState(isAuthenticated: false, isLoading: false);
+    state = const AuthState();
   }
 
   Future<void> refreshToken() async {
@@ -442,16 +420,12 @@ class AuthNotifier extends Notifier<AuthState> {
 
       state = state.copyWith(
         isRefreshingToken: false,
-        error: null,
-        currentOperation: null,
       );
       return;
     }
 
     state = state.copyWith(
       isRefreshingToken: false,
-      error: null,
-      currentOperation: null,
     );
   }
 
@@ -467,28 +441,21 @@ class AuthNotifier extends Notifier<AuthState> {
     switch (error) {
       case NetworkException():
         result = 'Network error. Please check your connection and try again.';
-        break;
       case AuthenticationException():
         // Use the already user-friendly message from AuthenticationException
         result = error.message;
-        break;
       case ValidationException():
         result = error.message;
         logger.AppLogger.debug('ValidationException message: $result');
-        break;
       case ServerException():
         result = 'Server error. Please try again later.';
-        break;
       case AuthorizationException():
         result = 'You do not have permission to perform this action.';
-        break;
       case NotFoundException():
         result = 'The requested resource was not found.';
-        break;
       case ConflictException():
         result = error.message;
         logger.AppLogger.debug('ConflictException message: $result');
-        break;
       default:
         result = 'An unexpected error occurred. Please try again.';
         logger.AppLogger.debug('Default error case triggered');
@@ -523,14 +490,13 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> _handleAuthError() async {
     await _clearAuthState();
-    state = state.copyWith(isAuthenticated: false, user: null);
+    state = state.copyWith(isAuthenticated: false);
   }
 
   /// Saves token expiry from auth response.
   /// Prioritizes server's UTC expires_at, falls back to relative expiresIn.
   Future<void> _saveTokenExpiry({
-    DateTime? expiresAt,
-    required int expiresIn,
+    required int expiresIn, DateTime? expiresAt,
   }) async {
     if (expiresAt != null) {
       await _secureStorage.saveTokenExpiry(expiresAt);
@@ -570,7 +536,7 @@ class AuthNotifier extends Notifier<AuthState> {
   /// Reset loading state (called when auth check times out or is cancelled)
   void resetLoadingState() {
     if (state.isLoading) {
-      state = state.copyWith(isLoading: false, currentOperation: null);
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -581,7 +547,7 @@ class AuthNotifier extends Notifier<AuthState> {
     final currentUserId = state.user?.id;
     await _clearAuthState();
     await _clearPlaybackSnapshot(currentUserId);
-    state = const AuthState(isAuthenticated: false, isLoading: false);
+    state = const AuthState();
   }
 
   Future<void> checkAuthStatus() async {
@@ -591,7 +557,6 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> forgotPassword(String email) async {
     state = state.copyWith(
       isLoading: true,
-      error: null,
       clearFieldErrors: true,
       currentOperation: AuthOperation.forgotPassword,
     );
@@ -602,21 +567,17 @@ class AuthNotifier extends Notifier<AuthState> {
       await _authRepository.forgotPassword(request);
       state = state.copyWith(
         isLoading: false,
-        error: null,
-        currentOperation: null,
       );
     } on AppException catch (error) {
-      String userMessage = _getErrorMessage(error);
+      final userMessage = _getErrorMessage(error);
       state = state.copyWith(
         isLoading: false,
         error: userMessage,
-        currentOperation: null,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
-        currentOperation: null,
       );
     }
   }
@@ -627,7 +588,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(
       isLoading: true,
-      error: null,
       clearFieldErrors: true,
       currentOperation: AuthOperation.resetPassword,
     );
@@ -641,24 +601,20 @@ class AuthNotifier extends Notifier<AuthState> {
       await _authRepository.resetPassword(request);
       state = state.copyWith(
         isLoading: false,
-        error: null,
-        currentOperation: null,
       );
     } on AppException catch (error) {
-      String userMessage = _getErrorMessage(error);
-      Map<String, String>? fieldErrors = _getFieldErrors(error);
+      final userMessage = _getErrorMessage(error);
+      final fieldErrors = _getFieldErrors(error);
 
       state = state.copyWith(
         isLoading: false,
         error: userMessage,
         fieldErrors: fieldErrors,
-        currentOperation: null,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
-        currentOperation: null,
       );
     }
   }
@@ -704,7 +660,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       // Add 2 minute safety margin to prevent clock skew issues
       const safetyMargin = Duration(minutes: 2);
-      final effectiveBuffer = Duration(minutes: _tokenRefreshBufferMinutes) + safetyMargin;
+      final effectiveBuffer = const Duration(minutes: _tokenRefreshBufferMinutes) + safetyMargin;
 
       // Refresh if token expires in less than buffer time + safety margin
       if (timeUntilExpiry <= effectiveBuffer) {

@@ -10,10 +10,10 @@ void main() {
     test('activates queue before playing normal podcast episodes', () async {
       final audioNotifier = _TrackingAudioPlayerNotifier();
       final queueController = _QueuePreparingController(
-        PodcastQueueModel(
+        const PodcastQueueModel(
           currentEpisodeId: 7,
           revision: 3,
-          items: const [
+          items: [
             PodcastQueueItemModel(
               episodeId: 7,
               position: 0,

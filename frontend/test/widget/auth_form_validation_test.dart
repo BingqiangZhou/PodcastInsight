@@ -50,7 +50,7 @@ Future<void> _setTermsAgreed(WidgetTester tester, bool value) async {
 void main() {
   group('Auth Form Validation Tests', () {
     testWidgets('Register form should validate email correctly', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpAuthPage(tester, const RegisterPage());
 
@@ -69,7 +69,7 @@ void main() {
     });
 
     testWidgets('Register form should validate password correctly', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpAuthPage(tester, const RegisterPage());
 
@@ -103,9 +103,19 @@ void main() {
     });
 
     testWidgets('Register form should validate password confirmation', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpAuthPage(tester, const RegisterPage());
+
+      // Fill required fields so validation reaches confirm-password
+      await tester.enterText(
+        _customTextFieldByLabel('Full Name'),
+        'Test User',
+      );
+      await tester.enterText(
+        _customTextFieldByLabel('Email'),
+        'test@example.com',
+      );
 
       final passwordField = _customTextFieldByLabel('Password');
       final confirmPasswordField = _customTextFieldByLabel('Confirm Password');
@@ -114,17 +124,19 @@ void main() {
       await tester.enterText(passwordField, 'Password123');
       await tester.enterText(confirmPasswordField, 'DifferentPassword');
       await _tapButtonByKey(tester, const Key('register_button'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Passwords do not match'), findsOneWidget);
 
       await tester.enterText(confirmPasswordField, 'Password123');
       await _tapButtonByKey(tester, const Key('register_button'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Passwords do not match'), findsNothing);
     });
 
     testWidgets('Login form should validate fields', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpAuthPage(tester, const LoginPage());
 
@@ -160,7 +172,7 @@ void main() {
     });
 
     testWidgets('Should navigate between login and register', (
-      WidgetTester tester,
+      tester,
     ) async {
       final router = GoRouter(
         initialLocation: '/login',
@@ -208,7 +220,7 @@ void main() {
     });
 
     testWidgets('Should toggle password visibility', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpAuthPage(tester, const LoginPage());
 
@@ -230,7 +242,7 @@ void main() {
     });
 
     testWidgets('Should handle remember me checkbox', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpAuthPage(tester, const LoginPage());
 
@@ -249,7 +261,7 @@ void main() {
     });
 
     testWidgets('Should show terms agreement error', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpAuthPage(tester, const RegisterPage());
 

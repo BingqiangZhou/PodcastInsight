@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
@@ -11,6 +10,7 @@ import 'package:personal_ai_assistant/features/podcast/data/services/podcast_api
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/ai_summary_control_widget.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 void main() {
   testWidgets(
@@ -57,7 +57,7 @@ void main() {
         repository,
         summaryOverride: summaryProvider(
           2001,
-        ).overrideWith(() => _SummaryWithContentNotifier()),
+        ).overrideWith(_SummaryWithContentNotifier.new),
       ),
     );
     await tester.pumpAndSettle();
@@ -79,13 +79,13 @@ Widget _buildTestApp(
   return ProviderScope(
     overrides: [
       podcastRepositoryProvider.overrideWithValue(repository),
-      if (summaryOverride != null) summaryOverride,
+      ?summaryOverride,
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: const Scaffold(
+      locale: Locale('en'),
+      home: Scaffold(
         body: AISummaryControlWidget(episodeId: 2001, hasTranscript: true),
       ),
     ),

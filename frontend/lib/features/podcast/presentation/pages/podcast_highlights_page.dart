@@ -3,24 +3,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:table_calendar/table_calendar.dart';
-
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/constants/scroll_constants.dart';
-import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
 import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
-import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_card.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/episode_card_utils.dart';
+import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 /// Page for displaying podcast highlights.
 ///
@@ -78,7 +76,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
-    final delta = 200.0;
+    const delta = 200.0;
 
     if (maxScroll - currentScroll < delta) {
       _loadMoreHighlights();
@@ -182,7 +180,6 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
         }
       },
       circular: true,
-      style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
   }
 
@@ -196,7 +193,6 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       },
       icon: Icons.calendar_month_outlined,
       circular: true,
-      style: HeaderCapsuleActionButtonStyle.surfaceNeutral,
     );
   }
 
@@ -226,7 +222,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     return SurfacePanel(
       padding: EdgeInsets.zero,
       showBorder: false,
-      borderRadius: tokens.panelRadius,
+      borderRadius: tokens.cardRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -339,7 +335,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     return SurfacePanel(
       padding: EdgeInsets.zero,
       showBorder: false,
-      borderRadius: appThemeOf(context).panelRadius,
+      borderRadius: appThemeOf(context).cardRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -398,7 +394,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     return SurfacePanel(
       padding: EdgeInsets.zero,
       showBorder: false,
-      borderRadius: tokens.panelRadius,
+      borderRadius: tokens.cardRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -447,7 +443,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       pageBuilder: (dialogContext, animation, secondaryAnimation) {
         final maxPanelWidth = (screenWidth - horizontalPadding * 2)
             .clamp(0.0, 400.0)
-            .toDouble();
+            ;
         return SafeArea(
           child: Align(
             alignment: Alignment.topRight,
@@ -526,12 +522,10 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
           key: const Key('highlights_calendar'),
           height: 348,
           child: TableCalendar<bool>(
-            firstDay: DateTime(2000, 1, 1),
+            firstDay: DateTime(2000),
             lastDay: now,
             focusedDay: displayFocusedDay,
-            calendarFormat: CalendarFormat.month,
             availableCalendarFormats: const {CalendarFormat.month: 'Month'},
-            shouldFillViewport: false,
             rowHeight: 42,
             daysOfWeekHeight: 22,
             headerStyle: HeaderStyle(
@@ -702,7 +696,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     final theme = Theme.of(context);
     final normalizedDay = _toDateOnly(day);
     final selected = isSelected || _isSameDate(normalizedDay, selectedDate);
-    Color textColor = theme.colorScheme.onSurface;
+    var textColor = theme.colorScheme.onSurface;
     if (selected) {
       textColor = theme.colorScheme.onPrimary;
     } else if (isOutside || isDisabled) {
@@ -725,7 +719,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
               : GlassTokens.of(context).glassFill.withValues(
                   alpha: isOutside || isDisabled ? 0.18 : 0.22,
                 ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
           border: Border.all(
             color: isToday && !selected
                 ? theme.colorScheme.primary.withValues(alpha: 0.75)
@@ -773,7 +767,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   DateTime _resolveInitialDate(DateTime? rawValue) {
     final now = _toDateOnly(DateTime.now());
-    final minimum = DateTime(2000, 1, 1);
+    final minimum = DateTime(2000);
     final fallback = now.subtract(const Duration(days: 1));
     if (rawValue == null) return fallback;
 

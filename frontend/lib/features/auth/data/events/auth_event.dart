@@ -11,15 +11,15 @@ enum AuthEventType {
 
 /// Authentication event data
 class AuthEvent {
-  final AuthEventType type;
-  final String? message;
-  final DateTime timestamp;
 
   AuthEvent({
     required this.type,
     this.message,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
+  final AuthEventType type;
+  final String? message;
+  final DateTime timestamp;
 
   @override
   String toString() {

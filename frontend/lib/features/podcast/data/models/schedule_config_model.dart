@@ -40,14 +40,6 @@ enum UpdateFrequency {
 /// Schedule configuration update request
 @JsonSerializable()
 class ScheduleConfigUpdateRequest extends Equatable {
-  @JsonKey(name: 'update_frequency')
-  final String updateFrequency;
-  @JsonKey(name: 'update_time')
-  final String? updateTime;
-  @JsonKey(name: 'update_day_of_week')
-  final int? updateDayOfWeek;
-  @JsonKey(name: 'fetch_interval')
-  final int? fetchInterval;
 
   const ScheduleConfigUpdateRequest({
     required this.updateFrequency,
@@ -58,6 +50,14 @@ class ScheduleConfigUpdateRequest extends Equatable {
 
   factory ScheduleConfigUpdateRequest.fromJson(Map<String, dynamic> json) =>
       _$ScheduleConfigUpdateRequestFromJson(json);
+  @JsonKey(name: 'update_frequency')
+  final String updateFrequency;
+  @JsonKey(name: 'update_time')
+  final String? updateTime;
+  @JsonKey(name: 'update_day_of_week')
+  final int? updateDayOfWeek;
+  @JsonKey(name: 'fetch_interval')
+  final int? fetchInterval;
 
   Map<String, dynamic> toJson() => _$ScheduleConfigUpdateRequestToJson(this);
 
@@ -73,20 +73,6 @@ class ScheduleConfigUpdateRequest extends Equatable {
 /// Schedule configuration response
 @JsonSerializable()
 class ScheduleConfigResponse extends Equatable {
-  final int id;
-  final String title;
-  @JsonKey(name: 'update_frequency')
-  final String updateFrequency;
-  @JsonKey(name: 'update_time')
-  final String? updateTime;
-  @JsonKey(name: 'update_day_of_week')
-  final int? updateDayOfWeek;
-  @JsonKey(name: 'fetch_interval')
-  final int? fetchInterval;
-  @JsonKey(name: 'next_update_at')
-  final DateTime? nextUpdateAt;
-  @JsonKey(name: 'last_updated_at')
-  final DateTime? lastUpdatedAt;
 
   const ScheduleConfigResponse({
     required this.id,
@@ -101,6 +87,20 @@ class ScheduleConfigResponse extends Equatable {
 
   factory ScheduleConfigResponse.fromJson(Map<String, dynamic> json) =>
       _$ScheduleConfigResponseFromJson(json);
+  final int id;
+  final String title;
+  @JsonKey(name: 'update_frequency')
+  final String updateFrequency;
+  @JsonKey(name: 'update_time')
+  final String? updateTime;
+  @JsonKey(name: 'update_day_of_week')
+  final int? updateDayOfWeek;
+  @JsonKey(name: 'fetch_interval')
+  final int? fetchInterval;
+  @JsonKey(name: 'next_update_at')
+  final DateTime? nextUpdateAt;
+  @JsonKey(name: 'last_updated_at')
+  final DateTime? lastUpdatedAt;
 
   Map<String, dynamic> toJson() => _$ScheduleConfigResponseToJson(this);
 

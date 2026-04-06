@@ -3,16 +3,13 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
-
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
-import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
@@ -26,19 +23,13 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 enum _CacheCategory { images, audio, other }
 
 class _CategoryStats {
-  final int count;
-  final int bytes;
 
   const _CategoryStats({required this.count, required this.bytes});
+  final int count;
+  final int bytes;
 }
 
 class _MediaCacheStats {
-  final _CategoryStats images;
-  final _CategoryStats audio;
-  final _CategoryStats other;
-  final int totalCount;
-  final int totalBytes;
-  final List<CacheObject> objects;
 
   const _MediaCacheStats({
     required this.images,
@@ -48,6 +39,12 @@ class _MediaCacheStats {
     required this.totalBytes,
     required this.objects,
   });
+  final _CategoryStats images;
+  final _CategoryStats audio;
+  final _CategoryStats other;
+  final int totalCount;
+  final int totalBytes;
+  final List<CacheObject> objects;
 }
 
 class _CachePagePalette {
@@ -656,7 +653,7 @@ class _ProfileCacheManagementPageState
     return SurfacePanel(
       key: const Key('cache_manage_content_panel'),
       padding: EdgeInsets.zero,
-      borderRadius: appThemeOf(context).panelRadius,
+      borderRadius: appThemeOf(context).cardRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -24,7 +24,7 @@ Future<T?> showAdaptiveSheet<T>({
       ? context
       : fallbackContext;
   if (resolvedContext == null) {
-    return Future<T?>.value(null);
+    return Future<T?>.value();
   }
 
   final screenWidth = MediaQuery.of(resolvedContext).size.width;
@@ -33,7 +33,6 @@ Future<T?> showAdaptiveSheet<T>({
     // Desktop / tablet -> centred dialog with glass container.
     return showDialog<T>(
       context: resolvedContext,
-      useRootNavigator: true,
       barrierColor: Colors.black54,
       builder: (dialogCtx) {
         final size = MediaQuery.of(dialogCtx).size;
@@ -44,7 +43,7 @@ Future<T?> showAdaptiveSheet<T>({
               maxHeight: size.height * desktopMaxHeightFraction,
             ),
             child: GlassContainer(
-              tier: GlassTier.heavy,
+              tier: GlassTier.overlay,
               borderRadius: 28,
               padding: EdgeInsets.zero,
               child: builder(dialogCtx),
@@ -68,7 +67,7 @@ Future<T?> showAdaptiveSheet<T>({
     ),
     builder: (sheetCtx) {
       return GlassContainer(
-        tier: GlassTier.heavy,
+        tier: GlassTier.overlay,
         borderRadius: 28,
         padding: EdgeInsets.zero,
         child: builder(sheetCtx),

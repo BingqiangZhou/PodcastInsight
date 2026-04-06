@@ -3,11 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/core/theme/apple_colors.dart';
-import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/glass/glass_background.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/onboarding_provider.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
@@ -98,22 +96,22 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     _OnboardingScreen(
                       icon: Icons.auto_awesome_rounded,
                       iconBackgroundColor: isDark
-                          ? AppleColors.systemOrangeDark.withValues(alpha: 0.15)
+                          ? AppColors.accentWarmDark.withValues(alpha: 0.15)
                           : const Color(0xFFFEF3C7),
                       iconColor: isDark
-                          ? AppleColors.systemOrangeDark
-                          : AppleColors.systemOrangeLight,
+                          ? AppColors.accentWarmDark
+                          : AppColors.accentWarm,
                       title: l10n.onboarding_summary_title,
                       body: l10n.onboarding_summary_body,
                     ),
                     _OnboardingScreen(
                       icon: Icons.chat_bubble_rounded,
                       iconBackgroundColor: isDark
-                          ? AppleColors.systemPinkDark.withValues(alpha: 0.15)
+                          ? AppColors.accentCoralLight.withValues(alpha: 0.15)
                           : const Color(0xFFFCE7F3),
                       iconColor: isDark
-                          ? AppleColors.systemPinkDark
-                          : AppleColors.systemPinkLight,
+                          ? AppColors.accentCoralLight
+                          : AppColors.accentCoral,
                       title: l10n.onboarding_chat_title,
                       body: l10n.onboarding_chat_body,
                     ),

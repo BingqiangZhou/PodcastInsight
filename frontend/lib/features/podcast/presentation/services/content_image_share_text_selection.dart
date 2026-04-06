@@ -415,7 +415,7 @@ String _lineToVisibleText(String line) {
     (match) => match.group(1) ?? '',
   );
   text = text.replaceAllMapped(
-    RegExp(r'`([^`]+)`'),
+    RegExp('`([^`]+)`'),
     (match) => match.group(1) ?? '',
   );
   text = text.replaceAll('**', '');
@@ -593,38 +593,38 @@ _CompactedTextMapping _compactTextWithMapping(String input) {
 }
 
 class _MarkdownVisibleMapping {
-  final String visibleText;
-  final List<int> lineByVisibleChar;
 
   const _MarkdownVisibleMapping({
     required this.visibleText,
     required this.lineByVisibleChar,
   });
+  final String visibleText;
+  final List<int> lineByVisibleChar;
 }
 
 class _CollapsedTextMapping {
-  final String collapsedText;
-  final List<int> originalIndices;
 
   const _CollapsedTextMapping({
     required this.collapsedText,
     required this.originalIndices,
   });
+  final String collapsedText;
+  final List<int> originalIndices;
 }
 
 class _CompactedTextMapping {
-  final String compactText;
-  final List<int> originalIndices;
 
   const _CompactedTextMapping({
     required this.compactText,
     required this.originalIndices,
   });
+  final String compactText;
+  final List<int> originalIndices;
 }
 
 class _VisibleRange {
-  final int start;
-  final int length;
 
   const _VisibleRange({required this.start, required this.length});
+  final int start;
+  final int length;
 }

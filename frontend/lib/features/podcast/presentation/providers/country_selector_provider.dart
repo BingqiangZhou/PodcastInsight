@@ -1,19 +1,18 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'country_selector_provider.g.dart';
 
 /// 国家选择状态
 class CountrySelectorState {
-  final PodcastCountry selectedCountry;
-  final bool isLoading;
 
   const CountrySelectorState({
     required this.selectedCountry,
     this.isLoading = false,
   });
+  final PodcastCountry selectedCountry;
+  final bool isLoading;
 
   CountrySelectorState copyWith({
     PodcastCountry? selectedCountry,
@@ -53,7 +52,7 @@ class CountrySelectorNotifier extends _$CountrySelectorNotifier {
     if (savedCountryCode != null) {
       final savedCountry = PodcastCountry.values.firstWhere(
         (country) => country.code == savedCountryCode,
-        orElse: () => _getDefaultCountry(),
+        orElse: _getDefaultCountry,
       );
 
       if (state.selectedCountry != savedCountry) {

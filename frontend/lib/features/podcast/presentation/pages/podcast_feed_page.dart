@@ -97,7 +97,6 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
           ),
         ],
       ),
-      badges: const [],
       child: _buildFeedContent(context, ref, feedState),
     );
   }
@@ -187,7 +186,6 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
                 vertical: compact ? 10 : 12,
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.max,
                 children: [
                   Icon(
                     Icons.summarize_outlined,
@@ -289,7 +287,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
           final screenWidth = constraints.maxWidth;
           final isMobile = screenWidth < Breakpoints.medium;
           if (isMobile) {
-            return const SkeletonCardList(itemCount: 5, compact: true);
+            return const SkeletonCardList(compact: true);
           }
           final crossAxisCount = screenWidth < 900 ? 2 : (screenWidth < 1200 ? 3 : 4);
           return SkeletonCardGrid(

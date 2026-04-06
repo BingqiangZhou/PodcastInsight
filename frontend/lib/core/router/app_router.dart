@@ -1,112 +1,63 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import 'package:personal_ai_assistant/features/splash/presentation/pages/splash_page.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/pages/login_page.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/pages/register_page.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/pages/auth_verify_page.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/pages/forgot_password_page.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/pages/reset_password_page.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/pages/onboarding_page.dart';
-import 'package:personal_ai_assistant/features/home/presentation/pages/home_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_feed_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_episodes_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_episode_detail_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_daily_report_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_highlights_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/navigation/podcast_navigation.dart';
-import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_page.dart';
-import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_history_page.dart';
-import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_cache_management_page.dart';
-import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_subscriptions_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_downloads_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
-import 'package:personal_ai_assistant/core/widgets/page_transitions.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/pages/auth_verify_page.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/pages/login_page.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/pages/onboarding_page.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/pages/register_page.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/onboarding_provider.dart';
+import 'package:personal_ai_assistant/features/home/presentation/pages/home_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/navigation/podcast_navigation.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_daily_report_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_downloads_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_episode_detail_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_episodes_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_feed_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_highlights_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
+import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_cache_management_page.dart';
+import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_history_page.dart';
+import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_page.dart';
+import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_subscriptions_page.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/pages/appearance_page.dart';
+import 'package:personal_ai_assistant/features/splash/presentation/pages/splash_page.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<ModalRoute<dynamic>> appRouteObserver =
     RouteObserver<ModalRoute<dynamic>>();
 
-/// Helper to create a custom transition page with fade-slide animation.
+/// Helper to create a custom transition page with fade animation.
 CustomTransitionPage<T> _buildPageWithTransition<T>({
   required GoRouterState state,
   required Widget child,
-  ArcticPageTransitionType transitionType = ArcticPageTransitionType.fadeSlide,
 }) {
   return CustomTransitionPage<T>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 250),
-    reverseTransitionDuration: const Duration(milliseconds: 200),
+    transitionDuration: const Duration(milliseconds: 150),
+    reverseTransitionDuration: const Duration(milliseconds: 150),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curve = CurveTween(curve: Curves.easeOutCubic);
-      final curvedAnimation = animation.drive(curve);
-
-      switch (transitionType) {
-        case ArcticPageTransitionType.fade:
-          return FadeTransition(
-            opacity: curvedAnimation,
-            child: child,
-          );
-
-        case ArcticPageTransitionType.fadeSlide:
-          return SlideTransition(
-            position: curvedAnimation.drive(
-              Tween<Offset>(
-                begin: const Offset(0.02, 0.0),
-                end: Offset.zero,
-              ),
-            ),
-            child: FadeTransition(
-              opacity: curvedAnimation,
-              child: child,
-            ),
-          );
-
-        case ArcticPageTransitionType.slideUp:
-          return SlideTransition(
-            position: curvedAnimation.drive(
-              Tween<Offset>(
-                begin: const Offset(0.0, 0.03),
-                end: Offset.zero,
-              ),
-            ),
-            child: FadeTransition(
-              opacity: curvedAnimation,
-              child: child,
-            ),
-          );
-
-        case ArcticPageTransitionType.scale:
-          return ScaleTransition(
-            scale: curvedAnimation.drive(
-              Tween<double>(begin: 0.97, end: 1.0),
-            ),
-            child: FadeTransition(
-              opacity: curvedAnimation,
-              child: child,
-            ),
-          );
-
-        default:
-          return FadeTransition(
-            opacity: curvedAnimation,
-            child: child,
-          );
-      }
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOut,
+      );
+      return FadeTransition(
+        opacity: curvedAnimation,
+        child: child,
+      );
     },
   );
 }
 
-/// Helper for modal-style transitions (bottom sheets, dialogs).
+/// Helper for modal-style transitions (same as standard for simplicity).
 CustomTransitionPage<T> _buildModalPage<T>({
   required GoRouterState state,
   required Widget child,
@@ -114,23 +65,16 @@ CustomTransitionPage<T> _buildModalPage<T>({
   return CustomTransitionPage<T>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 300),
-    reverseTransitionDuration: const Duration(milliseconds: 250),
+    transitionDuration: const Duration(milliseconds: 150),
+    reverseTransitionDuration: const Duration(milliseconds: 150),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curve = CurveTween(curve: Curves.easeOutCubic);
-      final curvedAnimation = animation.drive(curve);
-
-      return SlideTransition(
-        position: curvedAnimation.drive(
-          Tween<Offset>(
-            begin: const Offset(0.0, 0.05),
-            end: Offset.zero,
-          ),
-        ),
-        child: FadeTransition(
-          opacity: curvedAnimation,
-          child: child,
-        ),
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOut,
+      );
+      return FadeTransition(
+        opacity: curvedAnimation,
+        child: child,
       );
     },
   );
@@ -151,7 +95,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildPageWithTransition(
           state: state,
           child: const SplashPage(),
-          transitionType: ArcticPageTransitionType.fade,
         ),
       ),
 
@@ -458,7 +401,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (isSplash) return null;
 
       // Allow password reset pages
-      if (isForgotPassword || isResetPassword) return null;
+      if (isForgotPassword || isResetPassword) {
+        return null;
+      }
 
       if (!isAuthenticated) {
         if (isLoggingIn || isRegistering) {
@@ -492,7 +437,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 // Helper for refreshListenable - notifies on auth status or onboarding changes
 class AuthStateListenable extends ChangeNotifier {
-  final Ref ref;
 
   AuthStateListenable(this.ref) {
     ref.listen(authProvider.select((s) => s.isAuthenticated), (previous, next) {
@@ -502,12 +446,13 @@ class AuthStateListenable extends ChangeNotifier {
       notifyListeners();
     });
   }
+  final Ref ref;
 }
 
 class ErrorPage extends StatelessWidget {
-  final Exception? error;
-
   const ErrorPage({super.key, this.error});
+
+  final Exception? error;
 
   @override
   Widget build(BuildContext context) {

@@ -8,18 +8,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conv
 /// and empty states.
 class ChatMessagesList extends StatelessWidget {
   const ChatMessagesList({
-    super.key,
-    required this.messages,
-    required this.isLoading,
-    required this.hasError,
-    required this.errorMessage,
-    required this.isEmpty,
-    required this.scrollController,
-    required this.isSelectMode,
-    required this.isMessageSelected,
-    required this.onToggleSelection,
-    required this.onTextSelected,
-    required this.emptyStateWidget,
+    required this.messages, required this.isLoading, required this.hasError, required this.errorMessage, required this.isEmpty, required this.scrollController, required this.isSelectMode, required this.isMessageSelected, required this.onToggleSelection, required this.onTextSelected, required this.emptyStateWidget, super.key,
   });
 
   final List<PodcastConversationMessage> messages;

@@ -9,11 +9,11 @@ part of 'user.dart';
 User _$UserFromJson(Map<String, dynamic> json) => User(
   id: User._idFromJson(json['id']),
   email: json['email'] as String,
+  isVerified: json['is_verified'] as bool? ?? false,
+  isActive: json['is_active'] as bool? ?? false,
   username: json['username'] as String?,
   fullName: json['full_name'] as String?,
   avatarUrl: json['avatar_url'] as String?,
-  isVerified: json['is_verified'] as bool? ?? false,
-  isActive: json['is_active'] as bool? ?? false,
   isSuperuser: json['is_superuser'] as bool? ?? false,
   createdAt: json['created_at'] == null
       ? null

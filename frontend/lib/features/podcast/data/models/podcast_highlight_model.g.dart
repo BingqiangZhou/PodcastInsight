@@ -11,14 +11,15 @@ HighlightResponse _$HighlightResponseFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       episodeId: (json['episode_id'] as num).toInt(),
       episodeTitle: json['episode_title'] as String,
-      subscriptionTitle: json['subscription_title'] as String?,
       originalText: json['original_text'] as String,
-      contextBefore: json['context_before'] as String?,
-      contextAfter: json['context_after'] as String?,
       insightScore: (json['insight_score'] as num).toDouble(),
       noveltyScore: (json['novelty_score'] as num).toDouble(),
       actionabilityScore: (json['actionability_score'] as num).toDouble(),
       overallScore: (json['overall_score'] as num).toDouble(),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      subscriptionTitle: json['subscription_title'] as String?,
+      contextBefore: json['context_before'] as String?,
+      contextAfter: json['context_after'] as String?,
       speakerHint: json['speaker_hint'] as String?,
       timestampHint: json['timestamp_hint'] as String?,
       topicTags:
@@ -27,7 +28,6 @@ HighlightResponse _$HighlightResponseFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       isUserFavorited: json['is_user_favorited'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
     );
 
 Map<String, dynamic> _$HighlightResponseToJson(HighlightResponse instance) =>
@@ -58,8 +58,8 @@ HighlightsListResponse _$HighlightsListResponseFromJson(
       .toList(),
   total: (json['total'] as num).toInt(),
   page: (json['page'] as num).toInt(),
-  perPage: (json['per_page'] as num).toInt(),
-  hasMore: json['has_more'] as bool,
+  size: (json['size'] as num).toInt(),
+  pages: (json['pages'] as num).toInt(),
 );
 
 Map<String, dynamic> _$HighlightsListResponseToJson(
@@ -68,8 +68,8 @@ Map<String, dynamic> _$HighlightsListResponseToJson(
   'items': instance.items,
   'total': instance.total,
   'page': instance.page,
-  'per_page': instance.perPage,
-  'has_more': instance.hasMore,
+  'size': instance.size,
+  'pages': instance.pages,
 };
 
 HighlightDatesResponse _$HighlightDatesResponseFromJson(
