@@ -37,7 +37,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
               children: [
                 RepaintBoundary(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
                     child: PodcastImageWidget(
                       imageUrl: episode.artworkUrl600 ?? episode.artworkUrl100,
                       width: 64,

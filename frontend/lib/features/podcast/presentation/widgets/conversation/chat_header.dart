@@ -239,7 +239,7 @@ class _ModelSelectorState extends State<_ModelSelector> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: extension.surfaceTierFill,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.itemRadius),
       ),
       child: DropdownButton<SummaryModelInfo>(
         value: widget.selectedModel,

@@ -25,7 +25,7 @@ class TranscriptDisplayWidget extends ConsumerStatefulWidget {
   final int episodeId;
   final String episodeTitle;
   final PodcastTranscriptionResponse? transcription;
-  final Function(String)? onSearchChanged;
+  final void Function(String)? onSearchChanged;
   final List<HighlightResponse>? highlights;
 
   const TranscriptDisplayWidget({

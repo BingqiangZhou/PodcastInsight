@@ -123,14 +123,13 @@ class _HighlightDetailContent extends StatelessWidget {
   Widget _buildQuoteSection(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final extension = appThemeOf(context);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.primaryContainer.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(extension.cardRadius),
         border: Border.all(
           color: scheme.primary.withValues(alpha: 0.2),
         ),
@@ -204,7 +203,6 @@ class _HighlightDetailContent extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final l10n = context.l10n;
-    final extension = appThemeOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,7 +222,7 @@ class _HighlightDetailContent extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(appThemeOf(context).pillRadius),
                 border: Border.all(
                   color: scheme.outline.withValues(alpha: 0.2),
                 ),
@@ -246,13 +244,12 @@ class _HighlightDetailContent extends StatelessWidget {
   Widget _buildEpisodeSource(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final extension = appThemeOf(context);
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(extension.itemRadius),
       ),
       child: Row(
         children: [
@@ -398,7 +395,7 @@ class _HighlightListItem extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: scoreColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(appThemeOf(context).buttonRadius),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
