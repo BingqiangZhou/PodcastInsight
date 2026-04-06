@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/widgets/linear_section_header.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover/discover_category_chips.dart';
@@ -21,44 +22,33 @@ class DiscoverTopChartsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final titleStyle = Theme.of(context)
-        .textTheme
-        .titleLarge
-        ?.copyWith(fontWeight: FontWeight.w700);
-    final subtitleColor = Theme.of(context).colorScheme.onSurfaceVariant;
     final countryName = _countryDisplayName(state.country, l10n);
 
     return Column(
       key: const Key('podcast_discover_top_charts'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(l10n.podcast_discover_top_charts, style: titleStyle),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    l10n.podcast_discover_trending_in(countryName),
-                    key: const Key('podcast_discover_trending_label'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: subtitleColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+        LinearSectionHeader.label(
+          l10n.podcast_discover_top_charts,
+          padding: EdgeInsets.symmetric(
+            horizontal: 4,
+            vertical: isDense ? 4 : 6,
+          ),
+          trailing: Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Text(
+              l10n.podcast_discover_trending_in(countryName),
+              key: const Key('podcast_discover_trending_label'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
+          ),
         ),
-        SizedBox(height: isDense ? 6 : 10),
+        SizedBox(height: isDense ? 4 : 6),
         DiscoverCategoryChips(
           state: state,
           onCategorySelected: onCategorySelected,

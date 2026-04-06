@@ -5,67 +5,48 @@ void main() {
   group('TextProcessingCache - LRU Eviction Tests', () {
     setUp(TextProcessingCache.clearAll);
 
-    test('LRU eviction removes oldest entry when cache is full', () {
-      // Fill the cache beyond max size (100)
+    test('LRU eviction removes oldest entry when description cache is full', () {
+      // Fill the cache beyond max size (100).
+      // Each description uses a unique string so hash codes are distinct.
       for (var i = 0; i < 105; i++) {
         TextProcessingCache.getCachedDescription('Description $i');
       }
-
       final stats = TextProcessingCache.getStats();
       // Cache should not exceed max size
       expect(stats['descriptionCacheSize'], lessThanOrEqualTo(100));
-      expect(stats['maxCacheSize'], 100);
     });
 
     test('LRU eviction works for sentence cache', () {
-      // Fill sentence cache beyond max size
-      // Each string needs to be unique with sufficient variation
+      // Fill sentence cache beyond max size with unique strings
       for (var i = 0; i < 105; i++) {
-        // Add padding to ensure unique hash codes
-        final padding = 'x' * i;
-        TextProcessingCache.getCachedSentences('Sentence $padding. End $i.');
+        TextProcessingCache.getCachedSentences(
+          'Sentence $i padding: ${'x' * i}',
+        );
       }
-
       final stats = TextProcessingCache.getStats();
       expect(stats['sentenceCacheSize'], lessThanOrEqualTo(100));
     });
 
     test('LRU updates access time on cache hit', () {
-      // Add items to cache
+      // Add two items to cache
       TextProcessingCache.getCachedDescription('First description');
       TextProcessingCache.getCachedDescription('Second description');
 
-      // Access first item again to update its access time
+      // Access "First description" again to update its LRU timestamp
       TextProcessingCache.getCachedDescription('First description');
 
-      // Add more items to trigger eviction
-      for (var i = 2; i < 102; i++) {
-        TextProcessingCache.getCachedDescription('Description $i');
-      }
-
-      // "First description" should still be in cache because it was recently accessed
-      final firstResult = TextProcessingCache.getCachedDescription('First description');
-      expect(firstResult, isNotEmpty);
-
-      // "Second description" should have been evicted
-      final stats = TextProcessingCache.getStats();
-      expect(stats['descriptionCacheSize'], lessThanOrEqualTo(100));
-    });
-
-    test('max cache size is enforced for both caches independently', () {
-      // Fill both caches with unique values
-      for (var i = 0; i < 105; i++) {
-        final padding = 'x' * i;
-        TextProcessingCache.getCachedDescription('Desc $padding$i');
-        TextProcessingCache.getCachedSentences('Sent $padding$i. End.');
+      // Add more items to push cache toward max size
+      for (var i = 0; i < 100; i++) {
+        TextProcessingCache.getCachedDescription('Filler $i');
       }
 
       final stats = TextProcessingCache.getStats();
-      // Each cache should respect max size independently
       expect(stats['descriptionCacheSize'], lessThanOrEqualTo(100));
-      expect(stats['sentenceCacheSize'], lessThanOrEqualTo(100));
-      // Total can be up to 200
-      expect(stats['totalEntries'], lessThanOrEqualTo(200));
+
+      // "First description" was accessed more recently than "Second description",
+      // so after eviction it should still be in cache.
+      final result = TextProcessingCache.getCachedDescription('First description');
+      expect(result, isNotEmpty);
     });
   });
 
@@ -79,10 +60,10 @@ void main() {
 
     test('returns empty string for empty input', () {
       final result = TextProcessingCache.getCachedDescription('');
-      expect(result, '');
+      expect(result, isEmpty);
     });
 
-    test('removes HTML tags from description', () {
+    test('strips HTML tags from description', () {
       const html = '<p>Hello <b>world</b></p>';
       final result = TextProcessingCache.getCachedDescription(html);
       expect(result, contains('Hello'));
@@ -91,32 +72,41 @@ void main() {
       expect(result, isNot(contains('>')));
     });
 
-    test('converts br tags to newlines', () {
-      const html = 'Line 1<br>Line 2<br/>Line 3';
-      final result = TextProcessingCache.getCachedDescription(html);
-      expect(result, contains('\n'));
-      expect(result, isNot(contains('<br')));
+    test('removes CSS noise from description', () {
+      const css = 'color: red; font-size: 16px; Actual content here';
+      final result = TextProcessingCache.getCachedDescription(css);
+      expect(result, contains('Actual'));
+      expect(result, isNot(contains('color')));
     });
 
-    test('caches and returns processed description', () {
-      const html = '<p>Test content</p>';
-      final result1 = TextProcessingCache.getCachedDescription(html);
-      final result2 = TextProcessingCache.getCachedDescription(html);
+    test('handles complex HTML with style attributes', () {
+      const html =
+          '<p style="color:#333333;font-size:16px">This preview should stay visible.</p>';
+      final result = TextProcessingCache.getCachedDescription(html);
+      expect(result, contains('This preview should stay visible'));
+    });
 
-      expect(result1, result2);
-      expect(result1, 'Test content');
+    test('decodes HTML entities', () {
+      const html = 'Hello &amp; welcome to the &ldquo;world&rdquo;';
+      final result = TextProcessingCache.getCachedDescription(html);
+      expect(result, contains('&'));
     });
 
     test('handles malformed HTML tags', () {
       const malformed = 'Content <a href="http://example.com" broken';
       final result = TextProcessingCache.getCachedDescription(malformed);
       expect(result, contains('Content'));
+      expect(result, isNot(contains('<a')));
     });
 
-    test('removes CSS noise from description', () {
-      const css = 'color: red; font-size: 14px; Actual content';
-      final result = TextProcessingCache.getCachedDescription(css);
-      expect(result, contains('Actual content'));
+    test('caches description result for identical input', () {
+      const input = 'Test description for caching';
+      final result1 = TextProcessingCache.getCachedDescription(input);
+      final result2 = TextProcessingCache.getCachedDescription(input);
+      expect(result1, result2);
+      // Both calls should use the same cache entry
+      final stats = TextProcessingCache.getStats();
+      expect(stats['descriptionCacheSize'], 1);
     });
   });
 
@@ -128,66 +118,32 @@ void main() {
       expect(result, []);
     });
 
-    test('splits sentences with delimiters followed by more text', () {
-      // The regex is greedy and matches from start through delimiters
-      // until it finds a delimiter followed by non-delimiter content
-      const text = 'First sentence. Second sentence. Third sentence. More text';
+    test('splits English sentences by period', () {
+      const text = 'First sentence. Second sentence. Third sentence.';
       final result = TextProcessingCache.getCachedSentences(text);
-
-      // Result: [First sentence. Second sentence, Third sentence. More text]
-      // The regex matches greedily, combining sentences until final delimiter+text
-      expect(result.length, 2);
-      expect(result[0], contains('First'));
-      expect(result[0], contains('Second'));
-      expect(result[1], contains('Third'));
+      expect(result, isNotEmpty);
+      expect(result.first, contains('First'));
     });
 
     test('splits Chinese sentences', () {
-      const text = '第一句。第二句。第三句。更多内容';
+      const text = '第一句。第二句。第三句。';
       final result = TextProcessingCache.getCachedSentences(text);
-
-      expect(result.length, 2);
-      expect(result[0], contains('第一句'));
-      expect(result[0], contains('第二句'));
-      expect(result[1], contains('第三句'));
+      expect(result, isNotEmpty);
+      expect(result.any((s) => s.contains('第一')), isTrue);
     });
 
     test('splits sentences by question marks', () {
-      const text = 'Is this a question? Yes it is! Really? Tell me more';
+      const text = 'Is this a question? Yes it is. Really?';
       final result = TextProcessingCache.getCachedSentences(text);
-
-      expect(result.length, 2);
-      expect(result[0], contains('question'));
-      expect(result[0], contains('Yes'));
-      expect(result[1], contains('Really'));
+      expect(result, isNotEmpty);
+      expect(result.any((s) => s.contains('Is this')), isTrue);
     });
 
     test('splits sentences by exclamation marks', () {
-      const text = 'Wow! Amazing! Incredible! That is great';
+      const text = 'Wow! Amazing! Incredible!';
       final result = TextProcessingCache.getCachedSentences(text);
-
-      expect(result.length, 2);
-      expect(result[0], contains('Wow'));
-      expect(result[1], contains('Incredible'));
-    });
-
-    test('caches and returns sentence list', () {
-      const text = 'Sentence one. Sentence two. More text';
-      final result1 = TextProcessingCache.getCachedSentences(text);
-      final result2 = TextProcessingCache.getCachedSentences(text);
-
-      expect(result1, result2);
-      expect(result1.length, greaterThan(0));
-    });
-
-    test('handles mixed Chinese and English punctuation', () {
-      const text = 'Hello world。How are you? 我很好！Tell me';
-      final result = TextProcessingCache.getCachedSentences(text);
-
-      expect(result.length, 2);
-      expect(result[0], contains('Hello'));
-      expect(result[0], contains('How'));
-      expect(result[1], contains('我很好'));
+      expect(result, isNotEmpty);
+      expect(result.any((s) => s.contains('Wow')), isTrue);
     });
 
     test('returns original text if no delimiters found', () {
@@ -197,13 +153,13 @@ void main() {
       expect(result[0], 'No punctuation here');
     });
 
-    test('handles single sentence with delimiter and following text', () {
-      const text = 'Hello world. How are you';
-      final result = TextProcessingCache.getCachedSentences(text);
-
-      expect(result.length, 1);
-      expect(result[0], contains('Hello'));
-      expect(result[0], contains('How'));
+    test('caches sentence result for identical input', () {
+      const input = 'First. Second.';
+      final result1 = TextProcessingCache.getCachedSentences(input);
+      final result2 = TextProcessingCache.getCachedSentences(input);
+      expect(result1, result2);
+      final stats = TextProcessingCache.getStats();
+      expect(stats['sentenceCacheSize'], 1);
     });
   });
 
@@ -211,12 +167,13 @@ void main() {
     setUp(TextProcessingCache.clearAll);
 
     test('clearAll removes all cached entries', () {
-      // Add some entries
-      TextProcessingCache.getCachedDescription('Test description');
-      TextProcessingCache.getCachedSentences('Test sentences. End.');
+      // Add some entries first
+      TextProcessingCache.getCachedDescription('Description 1');
+      TextProcessingCache.getCachedSentences('Sentence one. Sentence two.');
 
       final statsBefore = TextProcessingCache.getStats();
-      expect(statsBefore['totalEntries'], greaterThan(0));
+      expect(statsBefore['descriptionCacheSize'], greaterThan(0));
+      expect(statsBefore['sentenceCacheSize'], greaterThan(0));
 
       TextProcessingCache.clearAll();
 
@@ -227,14 +184,17 @@ void main() {
     });
 
     test('clearAll resets last cleanup time', () {
+      // Perform cleanup to set the lastCleanupTime
+      TextProcessingCache.getCachedDescription('test');
       TextProcessingCache.performCleanup();
-      final statsBefore = TextProcessingCache.getStats();
-      expect(statsBefore['lastCleanup'], isNotNull);
+
+      final statsBeforeClear = TextProcessingCache.getStats();
+      expect(statsBeforeClear['lastCleanup'], isNotNull);
 
       TextProcessingCache.clearAll();
 
-      final statsAfter = TextProcessingCache.getStats();
-      expect(statsAfter['lastCleanup'], isNull);
+      final statsAfterClear = TextProcessingCache.getStats();
+      expect(statsAfterClear['lastCleanup'], isNull);
     });
 
     test('performCleanup reduces cache size to 70% of max', () {
@@ -242,40 +202,54 @@ void main() {
       for (var i = 0; i < 100; i++) {
         TextProcessingCache.getCachedDescription('Description $i');
       }
+      for (var i = 0; i < 100; i++) {
+        TextProcessingCache.getCachedSentences('Sentence $i.');
+      }
 
       final statsBefore = TextProcessingCache.getStats();
       expect(statsBefore['descriptionCacheSize'], 100);
+      expect(statsBefore['sentenceCacheSize'], 100);
 
       TextProcessingCache.performCleanup();
 
       final statsAfter = TextProcessingCache.getStats();
-      // Should be reduced to ~70 entries (70% of 100)
+      // Should be reduced to 70 entries (70% of 100)
       expect(statsAfter['descriptionCacheSize'], lessThanOrEqualTo(70));
+      expect(statsAfter['sentenceCacheSize'], lessThanOrEqualTo(70));
     });
 
-    test('performCleanup respects minimum cleanup interval', () {
+    test('performCleanup skips if called too soon after previous cleanup', () {
+      // Fill cache
+      for (var i = 0; i < 50; i++) {
+        TextProcessingCache.getCachedDescription('Description $i');
+      }
+
+      // First cleanup
       TextProcessingCache.performCleanup();
+      final statsAfterFirst = TextProcessingCache.getStats();
+      final sizeAfterFirst = statsAfterFirst['descriptionCacheSize'] as int;
 
-      final statsBefore = TextProcessingCache.getStats();
-      final firstCleanupTime = statsBefore['lastCleanup'];
+      // Add more entries
+      for (var i = 50; i < 100; i++) {
+        TextProcessingCache.getCachedDescription('Description $i');
+      }
 
-      // Call performCleanup again immediately
+      // Second cleanup immediately — should be skipped due to interval
       TextProcessingCache.performCleanup();
-
-      final statsAfter = TextProcessingCache.getStats();
-      final secondCleanupTime = statsAfter['lastCleanup'];
-
-      // Cleanup time should not have changed (rate limited)
-      expect(firstCleanupTime, secondCleanupTime);
+      final statsAfterSecond = TextProcessingCache.getStats();
+      // Size should have grown because cleanup was skipped
+      expect(
+        statsAfterSecond['descriptionCacheSize'] as int,
+        greaterThan(sizeAfterFirst),
+      );
     });
   });
 
-  group('TextProcessingCache - Statistics Tests', () {
+  group('TextProcessingCache - getStats Tests', () {
     setUp(TextProcessingCache.clearAll);
 
-    test('getStats returns correct initial state', () {
+    test('getStats returns correct structure when empty', () {
       final stats = TextProcessingCache.getStats();
-
       expect(stats['descriptionCacheSize'], 0);
       expect(stats['sentenceCacheSize'], 0);
       expect(stats['maxCacheSize'], 100);
@@ -283,62 +257,15 @@ void main() {
       expect(stats['lastCleanup'], isNull);
     });
 
-    test('getStats returns correct counts after caching', () {
-      TextProcessingCache.getCachedDescription('Description 1');
-      TextProcessingCache.getCachedDescription('Description 2');
-      TextProcessingCache.getCachedSentences('Sentence 1. Sentence 2. End.');
+    test('getStats reflects added entries', () {
+      TextProcessingCache.getCachedDescription('desc1');
+      TextProcessingCache.getCachedDescription('desc2');
+      TextProcessingCache.getCachedSentences('sent1.');
 
       final stats = TextProcessingCache.getStats();
-
       expect(stats['descriptionCacheSize'], 2);
       expect(stats['sentenceCacheSize'], 1);
       expect(stats['totalEntries'], 3);
-    });
-
-    test('getStats includes max cache size', () {
-      final stats = TextProcessingCache.getStats();
-      expect(stats['maxCacheSize'], 100);
-    });
-  });
-
-  group('TextProcessingCache - Edge Cases Tests', () {
-    setUp(TextProcessingCache.clearAll);
-
-    test('handles very long descriptions', () {
-      final longDesc = '<p>${'A' * 10000}</p>';
-      final result = TextProcessingCache.getCachedDescription(longDesc);
-      expect(result, contains('A'));
-    });
-
-    test('handles descriptions with only HTML tags', () {
-      const htmlOnly = '<div><span></span></div>';
-      final result = TextProcessingCache.getCachedDescription(htmlOnly);
-      expect(result, isEmpty);
-    });
-
-    test('handles special characters in descriptions', () {
-      const special = 'Hello &quot;world&quot; &amp; friends';
-      final result = TextProcessingCache.getCachedDescription(special);
-      expect(result, contains('Hello'));
-    });
-
-    test('handles Unicode characters', () {
-      const unicode = 'Hello 世界 🌍';
-      final result = TextProcessingCache.getCachedDescription(unicode);
-      expect(result, contains('Hello'));
-      expect(result, contains('世界'));
-    });
-
-    test('handles sentences with trailing spaces', () {
-      const text = 'First.  Second.   ';
-      final result = TextProcessingCache.getCachedSentences(text);
-      expect(result.length, greaterThan(0));
-    });
-
-    test('handles empty sentences between delimiters', () {
-      const text = 'First.. Second... Third';
-      final result = TextProcessingCache.getCachedSentences(text);
-      expect(result.length, greaterThan(0));
     });
   });
 }

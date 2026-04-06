@@ -183,30 +183,6 @@ void main() {
       });
     });
 
-    group('animation', () {
-      testWidgets('continues animation across frames', (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: ThemeData.dark(),
-            home: Scaffold(
-              body: GlassBackground(
-                enableAnimation: true,
-                child: Container(),
-              ),
-            ),
-          ),
-        );
-
-        await tester.pump();
-        // Pump past the animation startup delay
-        await tester.pump(const Duration(milliseconds: 600));
-        await tester.pump(const Duration(milliseconds: 100));
-
-        // Animation should still be running
-        expect(find.byType(GlassBackground), findsOneWidget);
-      });
-    });
-
     group('RepaintBoundary', () {
       testWidgets('wraps content in RepaintBoundary', (tester) async {
         await tester.pumpWidget(

@@ -691,7 +691,7 @@ class ResponsiveContainer extends StatelessWidget {
   }
 }
 
-/// Arc+Linear style sidebar with dark surface
+/// Arc+Linear style sidebar with theme-aware surface
 class _CleanSidebar extends StatelessWidget {
   const _CleanSidebar({required this.child, required this.expanded});
 
@@ -700,9 +700,10 @@ class _CleanSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.darkSurface,
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurfaceVariant,
         borderRadius: expanded
             ? const BorderRadius.horizontal(right: Radius.circular(14))
             : BorderRadius.circular(16),
@@ -735,21 +736,23 @@ class _NavInkWellState extends State<_NavInkWell> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final overlayColor = isDark ? Colors.white : Colors.black;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: InkWell(
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(widget.borderRadius),
-        splashColor: Colors.white.withValues(alpha: 0.12),
-        highlightColor: Colors.white.withValues(alpha: 0.08),
+        splashColor: overlayColor.withValues(alpha: 0.12),
+        highlightColor: overlayColor.withValues(alpha: 0.08),
         hoverColor: Colors.transparent, // We handle hover manually
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
             color: _isHovered && !widget.isSelected
-                ? const Color(0x0FFFFFFF) // rgba(255,255,255,0.06)
+                ? overlayColor.withValues(alpha: 0.06)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(widget.borderRadius),
           ),
@@ -760,7 +763,7 @@ class _NavInkWellState extends State<_NavInkWell> {
   }
 }
 
-/// Arc+Linear style dock with dark surface + blur
+/// Arc+Linear style dock with theme-aware surface + blur
 class _CleanDock extends StatelessWidget {
   const _CleanDock({required this.child, required this.width, super.key});
 
@@ -769,6 +772,8 @@ class _CleanDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     return SizedBox(
       width: width,
       child: ClipRRect(
@@ -778,7 +783,7 @@ class _CleanDock extends StatelessWidget {
           child: Container(
             height: 64,
             decoration: BoxDecoration(
-              color: AppColors.darkSurface.withValues(alpha: 0.9),
+              color: surfaceColor.withValues(alpha: 0.9),
             ),
             child: child,
           ),

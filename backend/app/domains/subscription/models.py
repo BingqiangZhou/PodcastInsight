@@ -110,8 +110,8 @@ class UserSubscription(Base):
     """Many-to-many mapping between users and subscriptions.
 
     Allows multiple users to subscribe to the same subscription source
-    while maintaining user-specific settings like update frequency,
-    archive status, and pinned status.
+    while maintaining user-specific settings like update frequency
+    and archive status.
     """
 
     __tablename__ = "user_subscriptions"
@@ -145,9 +145,6 @@ class UserSubscription(Base):
     # User-specific state
     is_archived = Column(
         Boolean, default=False, comment="User has archived this subscription"
-    )
-    is_pinned = Column(
-        Boolean, default=False, comment="User has pinned this subscription"
     )
     playback_rate_preference = Column(
         Float,

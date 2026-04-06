@@ -122,10 +122,17 @@ class _MiniDockBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final subscriptionTitle = episode.subscriptionTitle;
+    final identityGradientColors =
+        subscriptionTitle != null && subscriptionTitle.isNotEmpty
+            ? AppColors.podcastGradientColors[
+                subscriptionTitle.hashCode % AppColors.podcastGradientColors.length]
+            : AppColors.violetColors;
+
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: AppColors.violetColors,
+        gradient: LinearGradient(
+          colors: identityGradientColors,
         ),
         borderRadius: BorderRadius.circular(14),
       ),

@@ -6,6 +6,7 @@ import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/utils/debounce.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
+import 'package:personal_ai_assistant/core/widgets/linear_section_header.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episode_lookup_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
@@ -523,7 +524,12 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
           onCategorySelected: _handleDiscoverCategorySelected,
           isDense: isDense,
         ),
-        SizedBox(height: isDense ? 10 : 14),
+        SizedBox(height: isDense ? 8 : 12),
+        LinearSectionHeader.label(
+          l10n.podcast_discover_browse_by_category,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        ),
+        SizedBox(height: isDense ? 6 : 8),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () => ref.read(podcastDiscoverProvider.notifier).refresh(),
