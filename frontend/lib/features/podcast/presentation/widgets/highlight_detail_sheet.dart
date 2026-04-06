@@ -120,14 +120,13 @@ class _HighlightDetailContent extends StatelessWidget {
   Widget _buildQuoteSection(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final extension = appThemeOf(context);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.primaryContainer.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(extension.cardRadius),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: scheme.primary.withValues(alpha: 0.2),
         ),
