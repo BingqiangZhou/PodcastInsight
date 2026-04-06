@@ -264,6 +264,7 @@ class TranscriptDisplayWidgetState
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final extension = appThemeOf(context);
 
     return Container(
       width: double.infinity,
@@ -271,7 +272,7 @@ class TranscriptDisplayWidgetState
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       decoration: BoxDecoration(
         color: scheme.primaryContainer.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(extension.itemRadius),
         border: Border.all(
           color: scheme.primary.withValues(alpha: 0.3),
         ),
@@ -567,7 +568,7 @@ class TranscriptDisplayWidgetState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
