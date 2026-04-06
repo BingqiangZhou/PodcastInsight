@@ -78,7 +78,7 @@ class _GlassBackgroundState extends State<GlassBackground>
     return RepaintBoundary(
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF000000) : const Color(0xFFF2F2F7),
+          color: isDark ? const Color(0xFF0f0f1a) : const Color(0xFFF8F9FA),
         ),
         child: Stack(
           children: [
@@ -95,7 +95,7 @@ class _GlassBackgroundState extends State<GlassBackground>
   /// Build animated gradient orbs
   List<Widget> _buildOrbs(bool isDark) {
     final colors = _getThemeColors(isDark);
-    final opacity = isDark ? 0.10 : 0.20; // 10% dark, 20% light (higher for visibility)
+    final opacity = isDark ? 0.06 : 0.15; // 6% dark (barely visible), 15% light
 
     // If no controller, render static orbs
     if (_controller == null) {
@@ -191,27 +191,36 @@ class _GlassBackgroundState extends State<GlassBackground>
 
   /// Get theme colors for gradient orbs
   List<Color> _getThemeColors(bool isDark) {
+    if (isDark) {
+      // Deep, desaturated colors that blend into #0f0f1a background
+      return const [
+        Color(0xFF1a1040), // deep indigo
+        Color(0xFF0f2030), // deep teal
+        Color(0xFF201020), // deep purple
+      ];
+    }
+
     switch (widget.theme) {
       case GlassBackgroundTheme.podcast:
-        // indigo + violet + blue
+        // Pale pastel indigo + violet + blue
         return const [
-          Color(0xFF6366F1), // indigo
-          Color(0xFF8B5CF6), // violet
-          Color(0xFF3B82F6), // blue
+          Color(0xFFE0E0F0), // pale indigo
+          Color(0xFFE8D8F8), // pale violet
+          Color(0xFFD8E4F8), // pale blue
         ];
       case GlassBackgroundTheme.home:
-        // blue + cyan + indigo
+        // Pale pastel blue + cyan + indigo
         return const [
-          Color(0xFF3B82F6), // blue
-          Color(0xFF06B6D4), // cyan
-          Color(0xFF6366F1), // indigo
+          Color(0xFFD8E4F8), // pale blue
+          Color(0xFFD0F0F4), // pale cyan
+          Color(0xFFE0E0F0), // pale indigo
         ];
       case GlassBackgroundTheme.neutral:
-        // gray + slate + cool
+        // Pale pastel gray + slate + cool
         return const [
-          Color(0xFF6B7280), // gray
-          Color(0xFF475569), // slate
-          Color(0xFF9CA3AF), // cool
+          Color(0xFFE0E0E4), // pale gray
+          Color(0xFFD8DCE0), // pale slate
+          Color(0xFFE4E4E8), // pale cool
         ];
     }
   }
