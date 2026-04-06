@@ -55,7 +55,6 @@ class _HighlightDetailContent extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final extension = appThemeOf(context);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -131,7 +130,7 @@ class _HighlightDetailContent extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.primaryContainer.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(extension.itemRadius),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: scheme.primary.withValues(alpha: 0.2),
         ),
@@ -164,9 +163,9 @@ class _HighlightDetailContent extends StatelessWidget {
     // Determine score color
     Color scoreColor;
     if (highlight.overallScore >= 8.0) {
-      scoreColor = AppColors.tertiary;
+      scoreColor = theme.colorScheme.tertiary;
     } else if (highlight.overallScore >= 6.0) {
-      scoreColor = AppColors.accentWarm;
+      scoreColor = theme.colorScheme.secondary;
     } else {
       scoreColor = scheme.onSurfaceVariant;
     }
@@ -175,7 +174,7 @@ class _HighlightDetailContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: scoreColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(extension.buttonRadius),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: scoreColor.withValues(alpha: 0.3),
         ),
@@ -225,7 +224,7 @@ class _HighlightDetailContent extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(extension.itemRadius),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: scheme.outline.withValues(alpha: 0.2),
                 ),
@@ -253,7 +252,7 @@ class _HighlightDetailContent extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(extension.itemRadius),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
@@ -372,9 +371,9 @@ class _HighlightListItem extends StatelessWidget {
     // Determine score color
     Color scoreColor;
     if (highlight.overallScore >= 8.0) {
-      scoreColor = AppColors.tertiary;
+      scoreColor = theme.colorScheme.tertiary;
     } else if (highlight.overallScore >= 6.0) {
-      scoreColor = AppColors.accentWarm;
+      scoreColor = theme.colorScheme.secondary;
     } else {
       scoreColor = scheme.onSurfaceVariant;
     }

@@ -1,6 +1,3 @@
-import 'dart:ui';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 
@@ -141,29 +138,3 @@ final serverConfigProvider =
     NotifierProvider<ServerConfigNotifier, ServerConfigState>(
       ServerConfigNotifier.new,
     );
-
-// Sidebar State Provider - Manages sidebar expand/collapse state
-class SidebarStateNotifier extends Notifier<bool> {
-  static const String _sidebarExpandedKey = 'sidebar_expanded';
-
-  @override
-  bool build() {
-    // Default to expanded on desktop
-    final initialValue = ref.read(localStorageServiceProvider).getBool(_sidebarExpandedKey);
-    return initialValue ?? true;
-  }
-
-  void toggle() {
-    state = !state;
-    ref.read(localStorageServiceProvider).saveBool(_sidebarExpandedKey, state);
-  }
-
-  void setExpanded(bool expanded) {
-    state = expanded;
-    ref.read(localStorageServiceProvider).saveBool(_sidebarExpandedKey, expanded);
-  }
-}
-
-final sidebarStateProvider = NotifierProvider<SidebarStateNotifier, bool>(
-  SidebarStateNotifier.new,
-);
