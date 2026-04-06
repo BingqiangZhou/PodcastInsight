@@ -1,23 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
-import 'package:personal_ai_assistant/features/podcast/data/models/podcast_transcription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_episode_detail_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/transcription_providers.dart';
+import '../../../../helpers/podcast_episode_detail_helper.dart';
 
 void main() {
+  // =========================================================================
+  // From podcast_episode_detail_page_basic_test.dart
+  // =========================================================================
   group('PodcastEpisodeDetailPage basic smoke tests', () {
     testWidgets('renders hero and three primary tabs on mobile', (
       tester,
@@ -25,7 +20,9 @@ void main() {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
-      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpWidget(
+        createEpisodeDetailWidget(episode: createTestEpisode()),
+      );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
 
@@ -95,7 +92,9 @@ void main() {
         addTearDown(() async => tester.binding.setSurfaceSize(null));
         await tester.binding.setSurfaceSize(const Size(360, 844));
 
-        await tester.pumpWidget(_createWidget(episode: _episode()));
+        await tester.pumpWidget(
+          createEpisodeDetailWidget(episode: createTestEpisode()),
+        );
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
@@ -133,7 +132,9 @@ void main() {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
-      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpWidget(
+        createEpisodeDetailWidget(episode: createTestEpisode()),
+      );
       await tester.pumpAndSettle();
 
       final transcriptTabFinder = find.byKey(
@@ -174,7 +175,16 @@ void main() {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
-      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpWidget(
+        createEpisodeDetailWidget(
+          episode: createTestEpisode(
+            description: List.filled(
+              24,
+              '<h2>Opening</h2><p>Description with enough body text to scroll the shownotes area.</p>',
+            ).join(),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
       await tester.drag(
@@ -199,7 +209,9 @@ void main() {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
-      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpWidget(
+        createEpisodeDetailWidget(episode: createTestEpisode()),
+      );
       await tester.pumpAndSettle();
 
       final sourceButton = find.byKey(
@@ -227,7 +239,9 @@ void main() {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(350, 844));
 
-      await tester.pumpWidget(_createWidget(episode: _episode()));
+      await tester.pumpWidget(
+        createEpisodeDetailWidget(episode: createTestEpisode()),
+      );
       await tester.pumpAndSettle();
 
       final playButton = find.byKey(
@@ -245,7 +259,7 @@ void main() {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
-      await tester.pumpWidget(_createWidget(episode: null));
+      await tester.pumpWidget(createEpisodeDetailWidget(episode: null));
       await tester.pumpAndSettle();
 
       final context = tester.element(find.byType(PodcastEpisodeDetailPage));
@@ -265,7 +279,9 @@ void main() {
 
       final completer = Completer<PodcastEpisodeModel?>();
       await tester.pumpWidget(
-        _createWidgetWithEpisodeLoader(() => completer.future),
+        createEpisodeDetailWidget(
+          episodeLoader: () => completer.future,
+        ),
       );
       await tester.pump();
 
@@ -273,163 +289,127 @@ void main() {
         find.byKey(const Key('podcast_episode_detail_loading_content')),
         findsOneWidget,
       );
-            expect(find.byType(SurfacePanel), findsNothing);
+      expect(find.byType(SurfacePanel), findsNothing);
 
-      completer.complete(_episode());
+      completer.complete(createTestEpisode());
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
   });
-}
 
-Widget _createWidget({required PodcastEpisodeModel? episode}) {
-  return ProviderScope(
-    overrides: [
-      audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
-      episodeDetailProvider.overrideWith((ref, episodeId) async => episode),
-      summaryProvider(1).overrideWith(_SummaryWithContentNotifier.new),
-      transcriptionProvider(
-        1,
-      ).overrideWith(() => _NoopTranscriptionNotifier(1)),
-      conversationProvider(
-        1,
-      ).overrideWith(_ConversationWithoutMessagesNotifier.new),
-      sessionListProvider(1).overrideWith(_EmptySessionListNotifier.new),
-      currentSessionIdProvider(
-        1,
-      ).overrideWith(_NullSessionIdNotifier.new),
-      availableModelsProvider.overrideWith((ref) async => <SummaryModelInfo>[]),
-    ],
-    child: const MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: Locale('en'),
-      home: PodcastEpisodeDetailPage(episodeId: 1),
-    ),
-  );
-}
+  // =========================================================================
+  // From podcast_episode_detail_page_new_test.dart
+  // =========================================================================
+  group('PodcastEpisodeDetailPage wide layout tests', () {
+    testWidgets('renders wide primary content without side rail', (
+      tester,
+    ) async {
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
 
-Widget _createWidgetWithEpisodeLoader(
-  Future<PodcastEpisodeModel?> Function() loader,
-) {
-  return ProviderScope(
-    overrides: [
-      audioPlayerProvider.overrideWith(_MockAudioPlayerNotifier.new),
-      episodeDetailProvider.overrideWith((ref, episodeId) => loader()),
-      summaryProvider(1).overrideWith(_SummaryWithContentNotifier.new),
-      transcriptionProvider(
-        1,
-      ).overrideWith(() => _NoopTranscriptionNotifier(1)),
-      conversationProvider(
-        1,
-      ).overrideWith(_ConversationWithoutMessagesNotifier.new),
-      sessionListProvider(1).overrideWith(_EmptySessionListNotifier.new),
-      currentSessionIdProvider(
-        1,
-      ).overrideWith(_NullSessionIdNotifier.new),
-      availableModelsProvider.overrideWith((ref) async => <SummaryModelInfo>[]),
-    ],
-    child: const MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: Locale('en'),
-      home: PodcastEpisodeDetailPage(episodeId: 1),
-    ),
-  );
-}
+      await tester.pumpWidget(
+        createEpisodeDetailWidget(
+          episode: createTestEpisode(
+            description:
+                '<h2>Opening</h2><p>Description</p><h2>Deep Dive</h2><p>More content</p>',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-PodcastEpisodeModel _episode() {
-  final now = DateTime(2026, 3, 11, 9, 30);
-  return PodcastEpisodeModel(
-    id: 1,
-    subscriptionId: 1,
-    title: 'Test Episode',
-    description: List.filled(
-      24,
-      '<h2>Opening</h2><p>Description with enough body text to scroll the shownotes area.</p>',
-    ).join(),
-    audioUrl: 'https://example.com/audio.mp3',
-    itemLink: 'https://example.com/source',
-    audioDuration: 180,
-    publishedAt: now,
-    aiSummary: 'summary',
-    transcriptContent: 'Transcript content',
-    metadata: const {'podcast_title': 'Test Podcast'},
-    createdAt: now,
-    updatedAt: now,
-    relatedEpisodes: const [],
-  );
-}
+      expect(
+        find.byKey(const Key('podcast_episode_detail_primary_content')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('podcast_episode_detail_side_rail')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('podcast_episode_detail_summary_section')),
+        findsNothing,
+      );
+    });
 
-class _MockAudioPlayerNotifier extends AudioPlayerNotifier {
-  @override
-  AudioPlayerState build() {
-    return const AudioPlayerState();
-  }
+    testWidgets('opens chat drawer from secondary action', (tester) async {
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
 
-  @override
-  Future<void> playEpisode(
-    PodcastEpisodeModel episode, {
-    PlaySource source = PlaySource.direct,
-    int? queueEpisodeId,
-  }) async {}
+      await tester.pumpWidget(
+        createEpisodeDetailWidget(
+          episode: createTestEpisode(
+            description:
+                '<h2>Opening</h2><p>Description</p><h2>Deep Dive</h2><p>More content</p>',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-  @override
-  Future<void> playManagedEpisode(PodcastEpisodeModel episode) async {}
-}
+      await tester.tap(
+        find.byKey(const Key('podcast_episode_detail_chat_button')),
+      );
+      await tester.pumpAndSettle();
 
-class _NoopTranscriptionNotifier extends TranscriptionNotifier {
-  _NoopTranscriptionNotifier(super.episodeId);
+      expect(
+        find.byKey(const Key('podcast_episode_detail_chat_drawer')),
+        findsOneWidget,
+      );
+    });
 
-  @override
-  Future<PodcastTranscriptionResponse?> build() async {
-    return PodcastTranscriptionResponse(
-      id: 1,
-      episodeId: episodeId,
-      status: 'completed',
-      transcriptContent: 'Transcript content',
-      createdAt: DateTime.now(),
+    testWidgets(
+      'wide header compresses artwork and keeps metadata chips inline',
+      (tester) async {
+        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        await tester.binding.setSurfaceSize(const Size(1280, 900));
+
+        await tester.pumpWidget(
+          createEpisodeDetailWidget(
+            episode: createTestEpisode(
+              description:
+                  '<h2>Opening</h2><p>Description</p><h2>Deep Dive</h2><p>More content</p>',
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final sourceButton = find.byKey(
+          const Key('podcast_episode_detail_source_button'),
+        );
+
+        expect(
+          find.byKey(const Key('podcast_episode_detail_podcast_title_chip')),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Test Podcast'), findsOneWidget);
+        expect(find.textContaining('2026-03-11'), findsOneWidget);
+        expect(find.textContaining('03:00'), findsOneWidget);
+        expect(sourceButton, findsOneWidget);
+        expect(
+          tester.widget<Material>(sourceButton).color,
+          isNot(Colors.transparent),
+        );
+        expect(tester.getSize(sourceButton).height, lessThanOrEqualTo(32));
+        expect(
+          tester
+              .getSize(
+                find.byKey(
+                  const Key('podcast_episode_detail_wide_hero_artwork'),
+                ),
+              )
+              .width,
+          lessThanOrEqualTo(76),
+        );
+        expect(
+          tester
+              .getSize(
+                find.byKey(
+                  const Key('podcast_episode_detail_wide_hero_content'),
+                ),
+              )
+              .height,
+          lessThanOrEqualTo(76),
+        );
+      },
     );
-  }
-
-  @override
-  Future<void> checkOrStartTranscription() async {}
-
-  @override
-  Future<void> startTranscription() async {}
-
-  @override
-  Future<void> loadTranscription() async {}
-}
-
-class _SummaryWithContentNotifier extends SummaryNotifier {
-  _SummaryWithContentNotifier() : super(1);
-
-  @override
-  SummaryState build() {
-    return const SummaryState(summary: 'Generated summary');
-  }
-}
-
-class _ConversationWithoutMessagesNotifier extends ConversationNotifier {
-  _ConversationWithoutMessagesNotifier() : super(1);
-
-  @override
-  ConversationState build() {
-    return const ConversationState();
-  }
-}
-
-class _EmptySessionListNotifier extends SessionListNotifier {
-  _EmptySessionListNotifier() : super(1);
-
-  @override
-  Future<List<ConversationSession>> build() async => [];
-}
-
-class _NullSessionIdNotifier extends SessionIdNotifier {
-  _NullSessionIdNotifier() : super(1);
-
-  @override
-  int? build() => null;
+  });
 }
