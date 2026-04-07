@@ -4,8 +4,8 @@ import logging
 import secrets
 from datetime import UTC, datetime, timedelta
 
+import bcrypt
 import jwt as pyjwt
-from passlib.context import CryptContext
 
 from app.core.config import settings
 
@@ -13,45 +13,21 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
-# Password hashing context
-# Note: Use bcrypt without prefix to avoid base64 encoding issues
-try:
-    import bcrypt
-
-    # Test if bcrypt has the expected API
-    _test = bcrypt.hashpw(b"test", bcrypt.gensalt())
-    _HAS_BCRYPT = True
-except ImportError:
-    _HAS_BCRYPT = False
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 def get_password_hash(password: str) -> str:
     """Hash password using bcrypt."""
-    if _HAS_BCRYPT:
-        # Use raw bcrypt to avoid passlib issues
-        if isinstance(password, str):
-            password = password.encode("utf-8")
-        salt = bcrypt.gensalt()
-        return bcrypt.hashpw(password, salt).decode("utf-8")
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify plain password against hashed password."""
-    if _HAS_BCRYPT:
-        # Use raw bcrypt to avoid passlib issues
-        if isinstance(plain_password, str):
-            plain_password = plain_password.encode("utf-8")
-        if isinstance(hashed_password, str):
-            hashed_password = hashed_password.encode("utf-8")
-        try:
-            return bcrypt.checkpw(plain_password, hashed_password)
-        except Exception as exc:
-            logger.warning("Password verification failed: %s", type(exc).__name__)
-            return False
-    else:
-        return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
+    except Exception as exc:
+        logger.warning("Password verification failed: %s", type(exc).__name__)
+        return False
 
 
 def generate_password_reset_token(email: str) -> str:
