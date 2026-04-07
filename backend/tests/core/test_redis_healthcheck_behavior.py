@@ -127,3 +127,123 @@ async def test_acquire_lock_accepts_custom_value():
     assert client.set_calls == [
         ("podcast:lock:transcription:episode:42", "task:77", 60, True)
     ]
+
+
+class _EpisodeDetailFakeRedisClient:
+    """Fake Redis client for episode detail cache tests."""
+
+    def __init__(self, *, cached_json: dict | None = None):
+        self._cached_json = cached_json
+        self.get_calls: list[str] = []
+        self.set_calls: list[tuple[str, str, int]] = []
+        self.delete_calls: list[str] = []
+        self.pipeline_calls = 0
+
+    async def ping(self) -> None:
+        pass
+
+    async def get(self, key: str) -> str | None:
+        self.get_calls.append(key)
+        if self._cached_json is not None and key == f"podcast:episode:detail:42":
+            import orjson
+
+            return orjson.dumps(self._cached_json).decode("utf-8")
+        return None
+
+    async def set(self, key: str, value: str, ex: int = None, nx: bool = False) -> bool:
+        if nx:
+            return True
+        self.set_calls.append((key, value, ex))
+        return True
+
+    async def setex(self, key: str, ttl: int, value: str) -> bool:
+        self.set_calls.append((key, value, ttl))
+        return True
+
+    async def delete(self, *keys: str) -> int:
+        self.delete_calls.extend(keys)
+        return len(keys)
+
+    async def unlink(self, *keys: str) -> int:
+        self.delete_calls.extend(keys)
+        return len(keys)
+
+    async def exists(self, key: str) -> bool:
+        return False
+
+    def pipeline(self, transactional: bool = False):
+        self.pipeline_calls += 1
+
+        class _Pipe:
+            async def __aenter__(self_inner):
+                return self_inner
+
+            async def __aexit__(self_inner, *args):
+                pass
+
+            async def execute(self_inner):
+                return []
+
+            def set(self_inner, *a, **kw):
+                return self_inner
+
+            def setex(self_inner, *a, **kw):
+                return self_inner
+
+            def delete(self_inner, *a, **kw):
+                return self_inner
+
+            def expire(self_inner, *a, **kw):
+                return self_inner
+
+        return _Pipe()
+
+
+@pytest.mark.asyncio
+async def test_episode_detail_cache_hit_returns_cached_data_without_calling_loader():
+    """Cached episode detail is returned without calling loader."""
+    cached_data = {"id": 42, "title": "Cached Episode", "ai_summary": "A summary"}
+    redis = PodcastRedis()
+    client = _EpisodeDetailFakeRedisClient(cached_json=cached_data)
+    redis._get_client = AsyncMock(return_value=client)
+
+    loader_call_count = 0
+
+    async def _loader():
+        nonlocal loader_call_count
+        loader_call_count += 1
+        return {"id": 42, "title": "DB Episode", "ai_summary": "DB summary"}
+
+    result = await redis.get_episode_detail(42, _loader)
+
+    assert result == cached_data
+    assert loader_call_count == 0, "Loader should NOT be called on cache hit"
+
+
+@pytest.mark.asyncio
+async def test_episode_detail_cache_miss_calls_loader_and_caches():
+    """On cache miss, loader is called and result is cached."""
+    redis = PodcastRedis()
+    client = _EpisodeDetailFakeRedisClient(cached_json=None)
+    redis._get_client = AsyncMock(return_value=client)
+
+    db_data = {"id": 42, "title": "DB Episode", "ai_summary": "Fresh summary"}
+
+    async def _loader():
+        return db_data
+
+    result = await redis.get_episode_detail(42, _loader)
+
+    assert result == db_data
+
+
+@pytest.mark.asyncio
+async def test_episode_detail_invalidation_deletes_key():
+    """invalidate_episode_detail removes the cache key."""
+    redis = PodcastRedis()
+    client = _EpisodeDetailFakeRedisClient()
+    redis._get_client = AsyncMock(return_value=client)
+
+    await redis.invalidate_episode_detail(42)
+
+    assert "podcast:episode:detail:42" in client.delete_calls

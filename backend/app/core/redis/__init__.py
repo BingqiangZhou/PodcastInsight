@@ -403,6 +403,31 @@ class AppCache(
             delete_keys_func=self._delete_keys,
         )
 
+    # === Episode Detail ===
+
+    async def get_episode_detail(
+        self,
+        episode_id: int,
+        loader: Any,
+    ) -> Any | None:
+        client = await self._get_client()
+        return await PodcastCacheOperations.get_episode_detail(
+            self,
+            client,
+            episode_id,
+            loader=loader,
+            cache_get_with_lock_func=self.cache_get_with_lock,
+        )
+
+    async def invalidate_episode_detail(self, episode_id: int) -> None:
+        client = await self._get_client()
+        await PodcastCacheOperations.invalidate_episode_detail(
+            self,
+            client,
+            episode_id,
+            cache_delete_func=self.cache_delete,
+        )
+
     # === User Progress ===
 
     async def set_user_progress(

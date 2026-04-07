@@ -331,85 +331,88 @@ class PodcastEpisodeService:
             Episode details dict or None
 
         """
-        episode = await self.repo.get_episode_by_id(episode_id, self.user_id)
-        if not episode:
-            return None
+        async def _load_from_db() -> dict[str, Any] | None:
+            episode = await self.repo.get_episode_by_id(episode_id, self.user_id)
+            if not episode:
+                return None
 
-        playback = await self.repo.get_playback_state(self.user_id, episode_id)
-        cleaned_summary = filter_thinking_content(episode.ai_summary)
-        transcription_task = await self._get_transcription_task(episode_id)
-        summary_status = _derive_summary_status(
-            episode.status,
-            has_summary=bool(cleaned_summary),
-        )
+            playback = await self.repo.get_playback_state(self.user_id, episode_id)
+            cleaned_summary = filter_thinking_content(episode.ai_summary)
+            transcription_task = await self._get_transcription_task(episode_id)
+            summary_status = _derive_summary_status(
+                episode.status,
+                has_summary=bool(cleaned_summary),
+            )
 
-        # Extract subscription metadata
-        subscription_image_url = None
-        subscription_author = None
-        subscription_categories = []
-        if episode.subscription and episode.subscription.config:
-            config = episode.subscription.config
-            subscription_image_url = config.get("image_url")
-            subscription_author = config.get("author")
-            subscription_categories = config.get("categories") or []
+            # Extract subscription metadata
+            subscription_image_url = None
+            subscription_author = None
+            subscription_categories = []
+            if episode.subscription and episode.subscription.config:
+                config = episode.subscription.config
+                subscription_image_url = config.get("image_url")
+                subscription_author = config.get("author")
+                subscription_categories = config.get("categories") or []
 
-        return {
-            "id": episode.id,
-            "subscription_id": episode.subscription_id,
-            "title": episode.title,
-            "description": episode.description,
-            "audio_url": episode.audio_url,
-            "audio_duration": episode.audio_duration,
-            "audio_file_size": episode.audio_file_size,
-            "published_at": episode.published_at,
-            "image_url": episode.image_url,
-            "item_link": episode.item_link,
-            "subscription_image_url": subscription_image_url,
-            "transcript_url": episode.transcript_url,
-            "transcript_content": episode.transcript.transcript_content
-            if episode.transcript
-            else None,
-            "ai_summary": cleaned_summary,
-            "summary_version": episode.summary_version,
-            "ai_confidence_score": episode.ai_confidence_score,
-            "play_count": episode.play_count,
-            # Use per-user playback timestamp when available.
-            "last_played_at": playback.last_updated_at
-            if playback
-            else episode.last_played_at,
-            "season": episode.season,
-            "episode_number": episode.episode_number,
-            "explicit": episode.explicit,
-            "status": episode.status,
-            "metadata": episode.metadata_json or {},
-            "created_at": episode.created_at,
-            "updated_at": episode.updated_at,
-            "playback_position": playback.current_position if playback else None,
-            "is_playing": playback.is_playing if playback else False,
-            "playback_rate": playback.playback_rate if playback else 1.0,
-            "is_played": None,
-            "summary_status": summary_status,
-            "summary_error_message": transcription_task.summary_error_message
-            if transcription_task
-            else None,
-            "summary_model_used": transcription_task.summary_model_used
-            if transcription_task
-            else None,
-            "summary_processing_time": transcription_task.summary_processing_time
-            if transcription_task
-            else None,
-            "subscription": {
-                "id": episode.subscription.id,
-                "title": episode.subscription.title,
-                "description": episode.subscription.description,
-                "image_url": subscription_image_url,
-                "author": subscription_author,
-                "categories": subscription_categories,
+            return {
+                "id": episode.id,
+                "subscription_id": episode.subscription_id,
+                "title": episode.title,
+                "description": episode.description,
+                "audio_url": episode.audio_url,
+                "audio_duration": episode.audio_duration,
+                "audio_file_size": episode.audio_file_size,
+                "published_at": episode.published_at,
+                "image_url": episode.image_url,
+                "item_link": episode.item_link,
+                "subscription_image_url": subscription_image_url,
+                "transcript_url": episode.transcript_url,
+                "transcript_content": episode.transcript.transcript_content
+                if episode.transcript
+                else None,
+                "ai_summary": cleaned_summary,
+                "summary_version": episode.summary_version,
+                "ai_confidence_score": episode.ai_confidence_score,
+                "play_count": episode.play_count,
+                # Use per-user playback timestamp when available.
+                "last_played_at": playback.last_updated_at
+                if playback
+                else episode.last_played_at,
+                "season": episode.season,
+                "episode_number": episode.episode_number,
+                "explicit": episode.explicit,
+                "status": episode.status,
+                "metadata": episode.metadata_json or {},
+                "created_at": episode.created_at,
+                "updated_at": episode.updated_at,
+                "playback_position": playback.current_position if playback else None,
+                "is_playing": playback.is_playing if playback else False,
+                "playback_rate": playback.playback_rate if playback else 1.0,
+                "is_played": None,
+                "summary_status": summary_status,
+                "summary_error_message": transcription_task.summary_error_message
+                if transcription_task
+                else None,
+                "summary_model_used": transcription_task.summary_model_used
+                if transcription_task
+                else None,
+                "summary_processing_time": transcription_task.summary_processing_time
+                if transcription_task
+                else None,
+                "subscription": {
+                    "id": episode.subscription.id,
+                    "title": episode.subscription.title,
+                    "description": episode.subscription.description,
+                    "image_url": subscription_image_url,
+                    "author": subscription_author,
+                    "categories": subscription_categories,
+                }
+                if episode.subscription
+                else None,
+                "related_episodes": [],
             }
-            if episode.subscription
-            else None,
-            "related_episodes": [],
-        }
+
+        return await self.redis.get_episode_detail(episode_id, _load_from_db)
 
     async def _get_transcription_task(
         self,

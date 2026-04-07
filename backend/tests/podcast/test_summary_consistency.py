@@ -161,6 +161,12 @@ async def test_episode_service_filters_summary_on_detail_response() -> None:
     service.repo.get_playback_state.return_value = None
     service._get_transcription_task = AsyncMock(return_value=None)
 
+    # Bypass Redis cache: simulate a cache miss by calling the loader directly
+    async def _bypass_cache(episode_id, loader):
+        return await loader()
+
+    service.redis.get_episode_detail = _bypass_cache
+
     result = await service.get_episode_with_summary(episode_id=episode.id)
 
     assert result is not None

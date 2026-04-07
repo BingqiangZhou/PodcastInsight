@@ -48,6 +48,7 @@ class CacheTTL:
     LOCK_TIMEOUT: int = 300  # 5 minutes - default lock timeout
     SUBSCRIPTION_LIST: int = 900  # 15 minutes - subscription list cache
     EPISODE_LIST: int = 600  # 10 minutes - episode list cache
+    EPISODE_DETAIL: int = 300  # 5 minutes - single episode detail with summary
 
     # === Long (days) ===
     # Used for data that rarely changes

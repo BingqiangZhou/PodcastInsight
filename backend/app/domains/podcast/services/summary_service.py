@@ -265,6 +265,17 @@ class PodcastSummaryGenerationService:
                 custom_prompt=custom_prompt,
             )
             await self._update_episode_summary(episode_id, summary_result)
+            # Invalidate episode detail cache so next fetch picks up new summary
+            from app.core.redis import safe_cache_invalidate
+
+            await safe_cache_invalidate(
+                lambda: self.redis.invalidate_episode_detail(episode_id),
+                log_warning=logger.warning,
+                error_message=(
+                    f"Cache invalidation skipped: op=generate_summary "
+                    f"cache=episode_detail episode_id={episode_id}"
+                ),
+            )
             return summary_result
         finally:
             await self.redis.release_lock(lock_name)

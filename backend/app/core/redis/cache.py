@@ -520,6 +520,30 @@ class PodcastCacheOperations:
         key = f"podcast:search:v2:{hash_key}"
         return await cache_set_json_func(client, key, data, ttl=CacheTTL.STALE_REFRESH)
 
+    # --- Episode detail (single episode with summary) ---
+
+    async def get_episode_detail(
+        self,
+        client: Any,
+        episode_id: int,
+        loader: Callable[[], Awaitable[dict | None]],
+        cache_get_with_lock_func: Any = None,
+    ) -> dict | None:
+        """Cache episode detail (with summary) with 5-minute TTL."""
+        key = f"podcast:episode:detail:{episode_id}"
+        result, _from_cache = await cache_get_with_lock_func(
+            key=key,
+            loader=loader,
+            ttl=CacheTTL.EPISODE_DETAIL,
+        )
+        return result
+
+    async def invalidate_episode_detail(
+        self, client: Any, episode_id: int, cache_delete_func: Any = None
+    ) -> None:
+        """Invalidate episode detail cache after update or summary generation."""
+        await cache_delete_func(f"podcast:episode:detail:{episode_id}")
+
     # --- Batch invalidation ---
 
     async def invalidate_user_caches(
