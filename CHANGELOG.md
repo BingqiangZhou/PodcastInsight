@@ -4,6 +4,40 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.43.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.42.0...v0.43.0) - 2026-04-07 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.43.0))
+
+### ⚡ Performance
+
+- Add 4 composite indexes for common query patterns ([bc407fc](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bc407fcc48e8169556f1fcca516e80daa16ab3e4))
+- Add Redis cache for episode detail with 5-minute TTL ([a5c500c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a5c500cc63898f82935f7d524008262e4afe5d6a))
+- Add Redis caches for highlight dates (10m TTL) and playback rate (30m TTL) ([ef3f444](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ef3f4448b28a4f88b74c89c9802d83e66428ab88))
+- Migrate large ListView(children:) to ListView.builder for lazy rendering ([e826b64](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e826b64af266e6b55582afa973476464dc613b76))
+
+### 🎨 Styling
+
+- Replace hardcoded BorderRadius.circular with AppRadius tokens ([6d7c936](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6d7c9363d3fcd0a33ed32a26f6764e69b44fff92))
+
+### 🐛 Bug Fixes
+
+- *(security)* Remove partial API key from info-level log ([7309094](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/73090947dda6b400327b001577682036a77019b8))
+- Narrow bare except Exception to specific types in service layer ([2553f40](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2553f4077755d015da011fcd2360f1b0ed22b0b6))
+
+### 📚 Documentation
+
+- Add incremental optimization design spec ([640a9e8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/640a9e80429c19787aa013ba99ad580c6d88f810))
+- Add incremental optimization implementation plan ([bbf27ea](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bbf27ea7a80100476eaa554da80c5522d73a841b))
+
+### 🚀 Features
+
+- Add typed response models for subscription delete/refresh/reparse endpoints ([cd6cc26](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/cd6cc2636dd61ce5fc46f7f39cd3b87f6bea9e73))
+
+### 🚜 Refactor
+
+- Split podcast_queue_sheet.dart into focused sub-widgets ([a467175](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a467175911de0ebd37a2fbbad5a5ac04f36b0134))
+- Split transcription_status_widget.dart into focused sub-widgets ([9fe7470](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9fe74702354349f27def0c97f6b60f2050e6a0e7))
+
+
+
 ## [0.42.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.41.0...v0.42.0) - 2026-04-07 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.42.0))
 
 ### ⚙️ Miscellaneous Tasks
