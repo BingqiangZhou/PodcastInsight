@@ -2,13 +2,25 @@
 
 Convention:
 - Route layer uses these helpers for user-facing error messages.
-- Service layer should raise typed exceptions from app.core.exceptions instead.
+- All helpers now raise BaseCustomError subclasses so responses include
+  consistent {"detail", "type", "status_code"} JSON via the global
+  custom_exception_handler.
+- Service layer should also raise typed exceptions from app.core.exceptions.
 """
 
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import RedirectResponse
+
+from app.core.exceptions import (
+    BadRequestError,
+    ConflictError,
+    CustomValidationError,
+    ForbiddenError,
+    NotFoundError,
+    UnauthorizedError,
+)
 
 
 def raise_not_found(
@@ -19,7 +31,7 @@ def raise_not_found(
     detail = f"{entity_type} not found"
     if entity_id:
         detail += f" (id={entity_id})"
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
+    raise NotFoundError(detail)
 
 
 def raise_validation_error(
@@ -27,25 +39,22 @@ def raise_validation_error(
     reason: str,
 ) -> None:
     """Raise standardized 400 Bad Request validation error."""
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail=f"Invalid {field_name}: {reason}",
-    )
+    raise CustomValidationError(f"Invalid {field_name}: {reason}")
 
 
 def raise_unauthorized(message: str = "Unauthorized") -> None:
     """Raise standardized 401 Unauthorized error."""
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message)
+    raise UnauthorizedError(message)
 
 
 def raise_forbidden(message: str = "Forbidden") -> None:
     """Raise standardized 403 Forbidden error."""
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message)
+    raise ForbiddenError(message)
 
 
 def raise_conflict(message: str) -> None:
     """Raise standardized 409 Conflict error."""
-    raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=message)
+    raise ConflictError(message)
 
 
 def raise_internal_error(
@@ -53,23 +62,19 @@ def raise_internal_error(
     exc: Exception | None = None,
 ) -> None:
     """Raise standardized 500 Internal Server Error."""
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail=f"Internal error during {operation}",
+    raise RuntimeError(
+        f"Internal error during {operation}"
     ) from exc
 
 
 def raise_bad_request(message: str) -> None:
     """Raise standardized 400 Bad Request error."""
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    raise BadRequestError(message)
 
 
 def raise_not_implemented(feature: str) -> None:
     """Raise standardized 501 Not Implemented error."""
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail=f"Feature not implemented: {feature}",
-    )
+    raise NotImplementedError(f"Feature not implemented: {feature}")
 
 
 def create_error_response(
