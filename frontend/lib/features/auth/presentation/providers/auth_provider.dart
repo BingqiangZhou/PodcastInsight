@@ -431,39 +431,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   // Helper methods
   String _getErrorMessage(AppException error) {
-    logger.AppLogger.debug('=== _getErrorMessage Debug ===');
-    logger.AppLogger.debug('Error runtimeType: ${error.runtimeType}');
-    logger.AppLogger.debug('Error message: ${error.message}');
-    logger.AppLogger.debug('Error type check: ${error is ConflictException}');
-    logger.AppLogger.debug('ConflictException type: $ConflictException');
-
-    String result;
-    switch (error) {
-      case NetworkException():
-        result = 'Network error. Please check your connection and try again.';
-      case AuthenticationException():
-        // Use the already user-friendly message from AuthenticationException
-        result = error.message;
-      case ValidationException():
-        result = error.message;
-        logger.AppLogger.debug('ValidationException message: $result');
-      case ServerException():
-        result = 'Server error. Please try again later.';
-      case AuthorizationException():
-        result = 'You do not have permission to perform this action.';
-      case NotFoundException():
-        result = 'The requested resource was not found.';
-      case ConflictException():
-        result = error.message;
-        logger.AppLogger.debug('ConflictException message: $result');
-      default:
-        result = 'An unexpected error occurred. Please try again.';
-        logger.AppLogger.debug('Default error case triggered');
-    }
-
-    logger.AppLogger.debug('Result message: $result');
-    logger.AppLogger.debug('==========================');
-    return result;
+    return error.userMessage;
   }
 
   Map<String, String>? _getFieldErrors(AppException error) {
