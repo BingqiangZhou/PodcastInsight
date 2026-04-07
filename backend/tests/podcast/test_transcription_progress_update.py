@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.domains.podcast.models import TranscriptionStatus
-from app.domains.podcast.transcription import PodcastTranscriptionService
+from app.domains.media.transcription import PodcastTranscriptionService
 
 
 class _NoopThrottle:
@@ -23,7 +23,7 @@ async def test_update_task_progress_in_progress_path_no_name_error(monkeypatch):
 
     throttle = _NoopThrottle()
     monkeypatch.setattr(
-        "app.domains.podcast.transcription._progress_throttle",
+        "app.domains.media.transcription.service._progress_throttle",
         throttle,
     )
 

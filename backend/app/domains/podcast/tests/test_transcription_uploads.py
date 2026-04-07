@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from app.domains.podcast.transcription import AudioChunk, SiliconFlowTranscriber
+from app.domains.media.transcription import AudioChunk, SiliconFlowTranscriber
 
 
 class _SuccessfulResponse:

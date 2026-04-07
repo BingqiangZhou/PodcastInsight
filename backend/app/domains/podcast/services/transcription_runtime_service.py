@@ -15,7 +15,7 @@ from app.core.exceptions import ValidationError
 from app.domains.ai.models import ModelType
 from app.domains.ai.repositories import AIModelConfigRepository
 from app.domains.podcast.ai_key_resolver import resolve_api_key_with_fallback
-from app.domains.podcast.transcription import (
+from app.domains.media.transcription import (
     PodcastTranscriptionService,
     SiliconFlowTranscriber,
 )
