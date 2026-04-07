@@ -4,6 +4,60 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.42.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.41.0...v0.42.0) - 2026-04-07 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.42.0))
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove docs/superpowers from git tracking and add to gitignore ([780a52e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/780a52e8d9e0f4481e34b6fa103d0ed8d21d3ef8))
+- Create media and content domain directory structure ([2a0c3ed](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2a0c3ed7b761f20fd61fe24e2e452750445db8d3))
+- Remove unused openai dependency ([a1aa329](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a1aa329bad07c21b26236567c8983066c789236a))
+
+### ⚡ Performance
+
+- Wrap blocking I/O with async alternatives in HTTP request paths ([17c3064](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/17c3064d186f2002587cb0a78a5f21acf31a1325))
+- Fix N+1 query issues and add missing join indexes ([e17110a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e17110a9e98c65018324493e862dd706ae457290))
+
+### 🐛 Bug Fixes
+
+- Narrow bare except Exception to specific types in security and parsing ([9eb5683](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9eb5683e53a8a0fe8a82586199f05cfea5816d14))
+- Populate in-memory token cache after registration ([8a7c93e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8a7c93e96ee6140f638b5ad20e4ba4716bc0d948))
+- Narrow remaining bare except Exception in service layer ([e907d4f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e907d4fbef19ceee74b6b624188479810b17e2c0))
+
+### 🚀 Features
+
+- Add Drift index on episodes_cache, eviction method, and filtered watch ([c48ee2d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c48ee2d44b5bf472378d25cad84cd78481f595c0))
+
+### 🚜 Refactor
+
+- Extract UrlNormalizer utility from 3 duplicated locations ([70cc9d8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/70cc9d858324a22da93e295f374259fac922f573))
+- Split podcast_list_page into focused sub-widget sections ([91efcd0](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/91efcd018eb9fe4d0403dd7396339eeec9fcb12e))
+- Upgrade python-jose to PyJWT (maintained alternative) ([a500215](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a500215a87567659d6b4216cc37c45698c579e1f))
+- Replace passlib with direct bcrypt usage ([9100dd1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9100dd187124c229037423576c1633e059cc47bb))
+- Migrate profile_page setState to Riverpod providers ([0150c8e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0150c8e0997d694baf6215a087c430b1118d2be2))
+- Extract shared exception message parser from 7 fromDioError methods ([1ce8b8f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1ce8b8f958be8ac9bf1af04d945bb44b85b1b9b2))
+- Migrate AI config cost/temperature columns from String to Float ([718f893](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/718f893ddc99b0af2d95c78a61b3dc8dc4f2e9cd))
+- Decompose transcription.py into media/transcription/ package (7 modules) ([328f6bf](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/328f6bffd5254069b5c37104143dbc675e2bc5d3))
+- Convert DownloadDao status from string to integer enum ([8d2b2f6](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8d2b2f6e260486a93b8230883204a4ab6b51ef81))
+- Migrate auth_verify_page setState to Riverpod providers ([1836606](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1836606dfc473bc31b6a82a42f45bc4130cd579f))
+- Add userMessage getter to AppException, consolidate error formatting ([b3cde92](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b3cde92d18abf8031d71b6cab28a21a4b834286b))
+- Replace PodcastFeedNotifier manual dedup with DeduplicatingNotifier mixin ([9bdb6dc](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9bdb6dcdf85adc4a5c0a3cfdd256ee2489ad0ae1))
+- Unify http error helpers to raise BaseCustomError subclasses ([f21557c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f21557c45f32009915ac833fbe63261269bb0d5c))
+- Extract shared AI HTTP request helpers in ai_client ([3509fc4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3509fc4a2d44153c1b64b96d1d7a866de98d1d8e))
+- Split podcast/models.py into per-domain model files ([7f3ebf1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7f3ebf1cc6b5c7e6e2bbed4261c65cad1a68475b))
+- Add backward-compatible domain proxy files for media/content split ([7799bfd](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7799bfdf6b700b243e23b674079b016d31d42b07))
+- Extract DiscoverInteractionHandler from podcast_list_page ([dab2537](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dab253715e07d60e6251fcf99ed205d8bf150bf8))
+
+### 🧪 Testing
+
+- Remove 3 redundant frontend test files ([7681e47](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7681e4781f71c4f9c7aa41786d10776d4dfcb950))
+- Merge 5 episode detail page tests into 2 files with shared helper ([8a2ab2c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8a2ab2cfdca3064e700445799b12c7acbe8c355b))
+- Merge episode_description tests into simplified_episode_card_layout_test ([66b2573](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/66b257302460697dcea12e0a99fb2289c4f0e45e))
+- Merge 2 podcast feed page tests into 1 file ([70ae583](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/70ae583327ebbe080a0756c6d9e90301e3c74695))
+- Merge 6 podcast list page tests into 2 files with shared helper ([fa0f171](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/fa0f17110e0bd0aa9ff1382922e75786ccf0edde))
+- Add unit tests for all 3 Drift DAOs ([7d8665c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7d8665ce0365712215a3a3a4cdb485f6549985f6))
+
+
+
 ## [0.41.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.40.0...v0.41.0) - 2026-04-06 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.41.0))
 
 ### Merge
