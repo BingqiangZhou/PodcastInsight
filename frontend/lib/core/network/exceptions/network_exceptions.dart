@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:personal_ai_assistant/core/network/exceptions/exception_parser.dart';
 
 /// Categorizes network/HTTP errors for consistent UI localization.
 ///
@@ -56,16 +57,7 @@ class NetworkException extends AppException {
           errorCode: NetworkErrorCode.noConnection,
         );
       case DioExceptionType.badResponse:
-        final data = error.response?.data;
-        var message = 'Server error';
-
-        if (data is Map) {
-          message = data['detail']?.toString() ??
-              data['message']?.toString() ??
-              'Server error';
-        } else if (data is String) {
-          message = data;
-        }
+        final message = extractErrorMessage(error, 'Server error');
 
         return NetworkException(message);
       default:
@@ -80,18 +72,8 @@ class ServerException extends AppException {
   const ServerException(super.message, {super.statusCode});
 
   static ServerException fromDioError(DioException error) {
-    var message = 'Server error';
     final statusCode = error.response?.statusCode;
-
-    final data = error.response?.data;
-    if (data is Map) {
-      message = data['detail']?.toString() ??
-          data['message']?.toString() ??
-          data['error']?.toString() ??
-          'Server error';
-    } else if (data is String) {
-      message = data;
-    }
+    final message = extractErrorMessage(error, 'Server error');
 
     return ServerException(message, statusCode: statusCode);
   }
@@ -102,16 +84,7 @@ class AuthenticationException extends AppException {
       : super(statusCode: 401, errorCode: NetworkErrorCode.authExpired);
 
   static AuthenticationException fromDioError(DioException error) {
-    final data = error.response?.data;
-    var backendMessage = '';
-
-    if (data is Map) {
-      backendMessage = data['detail']?.toString() ??
-          data['message']?.toString() ??
-          '';
-    } else if (data is String) {
-      backendMessage = data;
-    }
+    final backendMessage = extractErrorMessage(error, '');
 
     // Map known backend messages to user-friendly text
     if (backendMessage.contains('Could not validate credentials') ||
@@ -132,16 +105,7 @@ class AuthorizationException extends AppException {
       : super(statusCode: 403, errorCode: NetworkErrorCode.accessDenied);
 
   static AuthorizationException fromDioError(DioException error) {
-    final data = error.response?.data;
-    var message = 'Access denied';
-
-    if (data is Map) {
-      message = data['detail']?.toString() ??
-          data['message']?.toString() ??
-          'Access denied';
-    } else if (data is String) {
-      message = data;
-    }
+    final message = extractErrorMessage(error, 'Access denied');
 
     return AuthorizationException(message);
   }
@@ -152,16 +116,7 @@ class NotFoundException extends AppException {
       : super(statusCode: 404, errorCode: NetworkErrorCode.notFound);
 
   static NotFoundException fromDioError(DioException error) {
-    final data = error.response?.data;
-    var message = 'Resource not found';
-
-    if (data is Map) {
-      message = data['detail']?.toString() ??
-          data['message']?.toString() ??
-          'Resource not found';
-    } else if (data is String) {
-      message = data;
-    }
+    final message = extractErrorMessage(error, 'Resource not found');
 
     return NotFoundException(message);
   }
@@ -172,16 +127,7 @@ class ConflictException extends AppException {
       : super(statusCode: 409, errorCode: NetworkErrorCode.conflict);
 
   static ConflictException fromDioError(DioException error) {
-    final data = error.response?.data;
-    var message = 'Resource conflict';
-
-    if (data is Map) {
-      message = data['detail']?.toString() ??
-          data['message']?.toString() ??
-          'Resource conflict';
-    } else if (data is String) {
-      message = data;
-    }
+    final message = extractErrorMessage(error, 'Resource conflict');
 
     return ConflictException(message);
   }
@@ -195,15 +141,7 @@ class ValidationException extends AppException {
 
   static ValidationException fromDioError(DioException error) {
     final data = error.response?.data;
-    var message = 'Validation failed';
-
-    if (data is Map) {
-      message = data['message']?.toString() ??
-          data['detail']?.toString() ??
-          'Validation failed';
-    } else if (data is String) {
-      message = data;
-    }
+    final message = extractErrorMessage(error, 'Validation failed');
 
     // Parse field errors from the errors array
     final fieldErrors = <String, String>{};
