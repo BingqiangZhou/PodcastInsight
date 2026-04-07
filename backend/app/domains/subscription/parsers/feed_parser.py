@@ -544,8 +544,8 @@ class FeedParser:
 
             try:
                 return parsedate_to_datetime(date_value)
-            except Exception:
-                pass
+            except (ValueError, TypeError) as exc:
+                logger.debug("Date parse failed for %r: %s", date_value[:80], exc)
 
         return None
 
@@ -568,8 +568,8 @@ class FeedParser:
                 try:
                     parsed = urlparse(base_link)
                     url = f"{parsed.scheme}://{parsed.netloc}{url}"
-                except Exception:
-                    pass
+                except ValueError as exc:
+                    logger.debug("URL normalization failed for %r: %s", base_link[:80], exc)
 
         return url
 

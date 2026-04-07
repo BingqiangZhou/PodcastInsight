@@ -82,8 +82,8 @@ async def create_access_token(
             from app.core.security.token_blacklist import register_user_token
 
             await register_user_token(int(sub), jti)
-        except Exception:
-            logger.warning("Token registration skipped — Redis unavailable. Token cannot be revoked on logout.")
+        except (ImportError, ConnectionError, OSError) as exc:
+            logger.warning("Token registration skipped: %s", exc)
 
     return encoded_jwt
 
@@ -122,8 +122,8 @@ async def create_refresh_token(
             from app.core.security.token_blacklist import register_user_token
 
             await register_user_token(int(sub), jti)
-        except Exception:
-            logger.warning("Token registration skipped — Redis unavailable. Token cannot be revoked on logout.")
+        except (ImportError, ConnectionError, OSError) as exc:
+            logger.warning("Token registration skipped: %s", exc)
 
     return encoded_jwt
 
@@ -169,10 +169,10 @@ async def verify_token(token: str, token_type: str = "access") -> dict:
                     )
             except HTTPException:
                 raise
-            except Exception:
+            except (ImportError, ConnectionError, OSError) as exc:
                 # Redis unavailable -- allow the token through rather than
                 # blocking all authenticated requests.
-                logger.warning("Token blacklist check skipped — Redis unavailable. Revoked tokens may be accepted.")
+                logger.warning("Token blacklist check skipped: %s", exc)
 
         return payload
 

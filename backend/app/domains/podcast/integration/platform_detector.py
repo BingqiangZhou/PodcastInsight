@@ -3,8 +3,11 @@
 Detects and validates podcast platform sources (Xiaoyuzhou, Ximalaya, etc.)
 """
 
+import logging
 import re
 from urllib.parse import urlparse
+
+logger = logging.getLogger(__name__)
 
 
 class PodcastPlatform:
@@ -52,7 +55,8 @@ class PlatformDetector:
 
             return PodcastPlatform.GENERIC
 
-        except Exception:
+        except ValueError as exc:
+            logger.debug("Platform detection failed for %r: %s", feed_url[:80], exc)
             return PodcastPlatform.GENERIC
 
     @classmethod

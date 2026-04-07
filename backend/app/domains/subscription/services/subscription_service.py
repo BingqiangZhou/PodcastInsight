@@ -174,8 +174,8 @@ class SubscriptionService:
             parsed = urlparse(subscription.source_url)
             html_url = f"{parsed.scheme}://{parsed.netloc}/"
             outline.set("htmlUrl", html_url)
-        except Exception:
-            pass
+        except ValueError:
+            logger.debug("OPML htmlUrl skipped for %s", subscription.source_url[:80])
 
         if subscription.description:
             outline.set("description", subscription.description[:500])

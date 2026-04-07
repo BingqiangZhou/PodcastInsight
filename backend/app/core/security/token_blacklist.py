@@ -10,6 +10,8 @@ Key patterns stored in Redis:
 
 import logging
 
+import redis as redis_lib
+
 from app.core.redis import get_shared_redis
 
 
@@ -42,8 +44,8 @@ async def revoke_token(jti: str, remaining_ttl: int | None = None) -> None:
         ttl = remaining_ttl if remaining_ttl and remaining_ttl > 0 else _MAX_TOKEN_TTL
         await client.setex(_BLACKLIST_KEY.format(jti=jti), ttl, "1")
         logger.info("Token revoked: jti=%s ttl=%s", jti, ttl)
-    except Exception:
-        logger.warning("Token revoke failed — Redis unavailable: jti=%s", jti)
+    except (redis_lib.RedisError, ConnectionError, OSError) as exc:
+        logger.warning("Token revoke failed — Redis unavailable: jti=%s error=%s", jti, exc)
 
 
 async def is_token_revoked(jti: str) -> bool:
@@ -59,8 +61,8 @@ async def is_token_revoked(jti: str) -> bool:
     try:
         client = await _get_raw_client()
         return bool(await client.exists(_BLACKLIST_KEY.format(jti=jti)))
-    except Exception:
-        logger.warning("Token blacklist check failed — Redis unavailable: jti=%s", jti)
+    except (redis_lib.RedisError, ConnectionError, OSError) as exc:
+        logger.warning("Token blacklist check failed — Redis unavailable: jti=%s error=%s", jti, exc)
         return False  # Fail open: treat as not revoked
 
 
@@ -109,10 +111,11 @@ async def revoke_all_user_tokens(user_id: int) -> None:
             user_id,
             jti_count,
         )
-    except Exception:
+    except (redis_lib.RedisError, ConnectionError, OSError) as exc:
         logger.warning(
-            "Revoke all user tokens failed — Redis unavailable: user_id=%s",
+            "Revoke all user tokens failed — Redis unavailable: user_id=%s error=%s",
             user_id,
+            exc,
         )
 
 
@@ -129,9 +132,10 @@ async def register_user_token(user_id: int, jti: str) -> None:
         await client.sadd(key, jti)
         # Refresh expiry on the tracking set to match max token lifetime
         await client.expire(key, _MAX_TOKEN_TTL)
-    except Exception:
+    except (redis_lib.RedisError, ConnectionError, OSError) as exc:
         logger.warning(
-            "Token registration failed — Redis unavailable: user_id=%s jti=%s",
+            "Token registration failed — Redis unavailable: user_id=%s jti=%s error=%s",
             user_id,
             jti,
+            exc,
         )

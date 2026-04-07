@@ -262,7 +262,7 @@ class Settings(BaseSettings):
 
             parsed = urlparse(url)
             return parsed.password
-        except Exception:
+        except ValueError:
             return None
 
     def validate_production_config(self) -> list[str]:
