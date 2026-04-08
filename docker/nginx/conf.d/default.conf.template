@@ -77,7 +77,7 @@ server {
         proxy_request_buffering on;
         proxy_buffer_size 8k;
         proxy_buffers 4 8k;
-        proxy_busy_buffers_size 32k;
+        proxy_busy_buffers_size 16k;
         proxy_temp_file_write_size 32k;
         proxy_max_temp_file_size 64m;
     }
