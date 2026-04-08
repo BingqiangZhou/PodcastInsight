@@ -37,30 +37,30 @@ class CacheTTL:
     # Used for data that changes moderately often
     STALE_REFRESH: int = 300  # 5 minutes - threshold for stale-while-revalidate
     STALE_WHILE_REVALIDATE: int = 300  # 5 minutes - alias for backward compatibility
-    STATS_SHORT: int = 600  # 10 minutes - short-lived statistics
+    STATS_SHORT: int = 300  # 5 minutes - short-lived statistics
     FEED_CACHE: int = 900  # 15 minutes - RSS feed content cache
-    STATS_LONG: int = 1800  # 30 minutes - long-lived statistics
+    STATS_LONG: int = 900  # 15 minutes - long-lived statistics
 
     # === Medium (hours) ===
     # Used for data that changes infrequently
-    DEFAULT: int = 3600  # 1 hour - default cache duration
-    METRICS: int = 3600  # 1 hour - runtime metrics
+    DEFAULT: int = 1800  # 30 minutes - default cache duration
+    METRICS: int = 1800  # 30 minutes - runtime metrics
     LOCK_TIMEOUT: int = 300  # 5 minutes - default lock timeout
     SUBSCRIPTION_LIST: int = 900  # 15 minutes - subscription list cache
-    EPISODE_LIST: int = 600  # 10 minutes - episode list cache
+    EPISODE_LIST: int = 300  # 5 minutes - episode list cache
     EPISODE_DETAIL: int = 300  # 5 minutes - single episode detail with summary
     HIGHLIGHT_DATES: int = 600  # 10 minutes - highlight dates for calendar
     PLAYBACK_RATE: int = 1800  # 30 minutes - effective playback rate preference
 
     # === Long (days) ===
     # Used for data that rarely changes
-    EPISODE_METADATA: int = 86400  # 24 hours - episode metadata
-    USER_SUBSCRIPTIONS: int = 86400  # 24 hours - user subscription index
+    EPISODE_METADATA: int = 43200  # 12 hours - episode metadata
+    USER_SUBSCRIPTIONS: int = 43200  # 12 hours - user subscription index
 
     # === Extended (weeks/months) ===
     # Used for data that changes very rarely
-    AI_SUMMARY: int = 604800  # 7 days - AI-generated summaries
-    PLAYBACK_PROGRESS: int = 2592000  # 30 days - playback progress tracking
+    AI_SUMMARY: int = 259200  # 3 days - AI-generated summaries
+    PLAYBACK_PROGRESS: int = 604800  # 7 days - playback progress tracking
 
     # === Utility Methods ===
 

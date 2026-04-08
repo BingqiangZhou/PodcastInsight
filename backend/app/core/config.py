@@ -53,8 +53,8 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str | None = None
-    DATABASE_POOL_SIZE: int = 10
-    DATABASE_MAX_OVERFLOW: int = 15
+    DATABASE_POOL_SIZE: int = 3
+    DATABASE_MAX_OVERFLOW: int = 2
     DATABASE_POOL_TIMEOUT: int = 30
     DATABASE_RECYCLE: int = 3600
     DATABASE_CONNECT_TIMEOUT: int = 5
@@ -63,7 +63,7 @@ class Settings(BaseSettings):
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
-    REDIS_MAX_CONNECTIONS: int = 50
+    REDIS_MAX_CONNECTIONS: int = 10
 
     # CORS
     ALLOWED_HOSTS: list[str] = []
@@ -76,8 +76,8 @@ class Settings(BaseSettings):
     # Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/1"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
-    CELERY_WORKER_PREFETCH_MULTIPLIER: int = 4
-    CELERY_WORKER_MAX_TASKS_PER_CHILD: int = 500
+    CELERY_WORKER_PREFETCH_MULTIPLIER: int = 1
+    CELERY_WORKER_MAX_TASKS_PER_CHILD: int = 100
 
     # Podcast Processing Limits
     MAX_PODCAST_SUBSCRIPTIONS: int = 0

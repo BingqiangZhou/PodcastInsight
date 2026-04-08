@@ -32,7 +32,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-personal_ai}
       - POSTGRES_USER=${POSTGRES_USER:-admin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    command: postgres -c max_connections=200
+    command: postgres -c max_connections=50 -c shared_buffers=128MB -c effective_cache_size=256MB
     ports:
       - "${DB_PORT:-127.0.0.1:5432}:5432"
     volumes:
@@ -49,11 +49,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 2G
+          cpus: '1.0'
+          memory: 384M
         reservations:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '0.25'
+          memory: 128M
 
   # =============================================================================
   # Redis Cache
@@ -63,9 +63,9 @@ services:
     container_name: ${PROJECT_NAME:-personal_ai}_redis
     command: >
       sh -c 'if [ -z "$REDIS_PASSWORD" ]; then
-               redis-server --appendonly yes;
+               redis-server --appendonly yes --maxmemory 230mb --maxmemory-policy allkeys-lru;
              else
-               redis-server --appendonly yes --requirepass "$REDIS_PASSWORD";
+               redis-server --appendonly yes --requirepass "$REDIS_PASSWORD" --maxmemory 230mb --maxmemory-policy allkeys-lru;
              fi'
     ports:
       - "${REDIS_PORT:-127.0.0.1:6379}:6379"
@@ -88,11 +88,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
+          cpus: '0.5'
           memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
 
   # =============================================================================
   # Backend API
@@ -109,8 +109,6 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/2
-      # Playwright configuration
-      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
       # Timezone for log timestamps / 日志时区
       - TZ=${TZ:-Asia/Shanghai}
       - PYTHONUTF8=1
@@ -137,16 +135,14 @@ services:
     networks:
       - app_network
     restart: always
-    # Resource limits for running Playwright Chromium
-    # Increase memory and CPU for browser operations
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
+          cpus: '1.0'
           memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     # Health check for backend service
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
@@ -155,9 +151,7 @@ services:
       retries: 3
       start_period: 40s
     # Unified: uvicorn for both local and cloud (local can add --reload via BACKEND_CMD)
-    command: ${BACKEND_CMD:-uvicorn app.main:app --host 0.0.0.0 --port 8000}
-    # Use shared memory for Chromium
-    shm_size: 2gb
+    command: ${BACKEND_CMD:-uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 60}
     logging: *default-logging
 
   # =============================================================================
@@ -175,8 +169,6 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/2
-      # Playwright configuration
-      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
       # Timezone for log timestamps / 日志时区
       - TZ=${TZ:-Asia/Shanghai}
       - PYTHONUTF8=1
@@ -193,19 +185,15 @@ services:
     networks:
       - app_network
     restart: always
-    # Resource limits for running Playwright Chromium
-    # Worker needs more resources for transcription and browser operations
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
+          cpus: '1.0'
           memory: 512M
-    command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=${CELERY_WORKERS:-2} -Q default,transcription
-    # Use shared memory for Chromium
-    shm_size: 2gb
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    command: celery -A app.core.celery_app:celery_app worker --loglevel=${CELERY_LOG_LEVEL:-info} --concurrency=1 -Q default,transcription
     logging: *default-logging
 
   # =============================================================================
@@ -243,11 +231,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '0.25'
+          memory: 64M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 32M
     command: celery -A app.core.celery_app:celery_app beat --loglevel=${CELERY_LOG_LEVEL:-info}
 
   # =============================================================================

@@ -23,28 +23,12 @@ RUN echo "Acquire::Retries \"3\";" > /etc/apt/apt.conf.d/80-retries \
     && echo "Acquire::http::Timeout \"30\";" > /etc/apt/apt.conf.d/80-timeout
 
 # Install system dependencies
-# Install Playwright dependencies and Chromium browser
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         libpq-dev \
         curl \
         ffmpeg \
-        # Playwright and Chromium dependencies
-        libnss3 \
-        libnspr4 \
-        libatk1.0-0 \
-        libatk-bridge2.0-0 \
-        libcups2 \
-        libdrm2 \
-        libdbus-1-3 \
-        libxkbcommon0 \
-        libxcomposite1 \
-        libxdamage1 \
-        libxfixes3 \
-        libxrandr2 \
-        libgbm1 \
-        libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
@@ -88,4 +72,4 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 EXPOSE 8000
 
 # Default command (will be run as app user by entrypoint)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--timeout-keep-alive", "90"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--timeout-keep-alive", "60"]
