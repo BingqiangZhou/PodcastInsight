@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
-import 'package:personal_ai_assistant/core/glass/glass_background.dart';
-import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 
@@ -289,9 +287,9 @@ class HeaderCapsuleActionButton extends StatelessWidget {
   }
 }
 
-/// SurfacePanel - Liquid Glass surface panel
+/// SurfacePanel - Surface panel with container decoration
 ///
-/// Uses SurfaceCard with card tier for panels.
+/// Uses Container with BoxDecoration for panels.
 /// Includes a subtle fade-in + slide-up entrance animation on first build.
 class SurfacePanel extends StatefulWidget {
   const SurfacePanel({
@@ -300,10 +298,8 @@ class SurfacePanel extends StatefulWidget {
     this.margin,
     this.borderRadius,
     this.backgroundColor,
-    this.tier = CardTier.card,
     this.showBorder = true,
     this.showShadow = true,
-    this.showHighlight = false, // Legacy parameter, no longer used
   });
 
   final Widget child;
@@ -311,10 +307,8 @@ class SurfacePanel extends StatefulWidget {
   final EdgeInsetsGeometry? margin;
   final double? borderRadius;
   final Color? backgroundColor;
-  final CardTier tier;
   final bool showBorder;
   final bool showShadow;
-  final bool showHighlight; // Legacy parameter, ignored
 
   @override
   State<SurfacePanel> createState() => _SurfacePanelState();
@@ -330,13 +324,15 @@ class _SurfacePanelState extends State<SurfacePanel> {
 
     final panel = Container(
       margin: widget.margin,
-      child: SurfaceCard(
-        borderRadius: radius,
-        padding: widget.padding,
-        backgroundColor: widget.backgroundColor,
-        tier: widget.tier,
-        child: widget.child,
+      padding: widget.padding,
+      decoration: BoxDecoration(
+        color: widget.backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.15),
+        ),
       ),
+      child: widget.child,
     );
 
     // Only play entrance animation once
@@ -685,10 +681,9 @@ class ContentShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final extension = appThemeOf(context);
 
-    return GlassBackground(
-      child: Material(
-        color: Colors.transparent,
-        child: _ShellViewport(
+    return Material(
+      color: Colors.transparent,
+      child: _ShellViewport(
           enabled: roundedViewport,
           clipKey: const Key('content_shell_viewport_clip'),
           borderRadius: extension.cardRadius,
@@ -740,10 +735,9 @@ class ProfileShell extends StatelessWidget {
     final topSectionSpacing = isMobile ? 24.0 : 14.0;
     final extension = appThemeOf(context);
 
-    return GlassBackground(
-      child: Material(
-        color: Colors.transparent,
-        child: _ShellViewport(
+    return Material(
+      color: Colors.transparent,
+      child: _ShellViewport(
           enabled: roundedViewport,
           clipKey: const Key('profile_shell_viewport_clip'),
           borderRadius: extension.cardRadius,
@@ -825,10 +819,9 @@ class AuthShell extends StatelessWidget {
     final extension = appThemeOf(context);
     final width = MediaQuery.sizeOf(context).width;
 
-    return GlassBackground(
-      child: Material(
-        color: Colors.transparent,
-        child: SafeArea(
+    return Material(
+      color: Colors.transparent,
+      child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
