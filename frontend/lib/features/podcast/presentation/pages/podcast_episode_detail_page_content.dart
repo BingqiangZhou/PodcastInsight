@@ -340,10 +340,11 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
       child: Drawer(
         key: const Key('podcast_episode_detail_chat_drawer'),
         backgroundColor: Colors.transparent,
-        child: GlassContainer(
-          tier: GlassTier.overlay,
-          borderRadius: 0,
-          padding: EdgeInsets.zero,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(0),
+          ),
           child: SafeArea(
           child: Column(
             children: [

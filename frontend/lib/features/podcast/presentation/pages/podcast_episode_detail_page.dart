@@ -6,9 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
-import 'package:personal_ai_assistant/core/glass/glass_background.dart';
-import 'package:personal_ai_assistant/core/glass/glass_container.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_en.dart';
 import 'package:personal_ai_assistant/core/services/download_provider.dart';
@@ -289,11 +286,7 @@ class _PodcastEpisodeDetailPageState
           endDrawer: episodeDetail == null
               ? null
               : _buildChatDrawer(episodeDetail),
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              const GlassBackground(theme: GlassBackgroundTheme.neutral, child: SizedBox.expand()),
-              episodeDetailAsync.when(
+          body: episodeDetailAsync.when(
             data: (episodeDetail) {
               if (episodeDetail == null) {
                 final l10n =
@@ -308,8 +301,6 @@ class _PodcastEpisodeDetailPageState
             },
             loading: () => _buildPageLoadingState(context),
             error: (error, stack) => _buildErrorState(context, error),
-              ),
-            ],
           ),
         );
       },
@@ -379,9 +370,11 @@ class _PodcastEpisodeDetailPageState
     return Padding(
       key: const Key('podcast_episode_detail_scroll_to_top_button'),
       padding: EdgeInsets.only(right: rightMargin, bottom: bottomMargin),
-      child: GlassContainer(
-        borderRadius: 16,
-        padding: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: InkWell(
           onTap: _scrollToTop,
           child: SizedBox(

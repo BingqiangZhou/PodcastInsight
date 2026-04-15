@@ -127,9 +127,9 @@ class _MiniDockBody extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: extension.cardTierFill,
+        color: theme.colorScheme.surfaceContainerLow,
         border: Border.all(
-          color: extension.cardTierBorder,
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15),
           width: 0.5,
         ),
         borderRadius: AppRadius.lgRadius,
@@ -270,10 +270,12 @@ class _PodcastExpandedOverlay extends ConsumerWidget {
               duration: _kPlayerTransition,
               curve: Curves.easeOutCubic,
               opacity: visible ? 1 : 0,
-              child: GlassContainer(
+              child: Container(
                 key: visible ? const Key('podcast_player_mobile_sheet') : null,
-                tier: GlassTier.overlay,
-                borderRadius: viewportSpec.mobileDrawerBorderRadius,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(viewportSpec.mobileDrawerBorderRadius),
+                ),
                 child: Material(
                   type: MaterialType.transparency,
                   child: _ExpandedPanelContent(

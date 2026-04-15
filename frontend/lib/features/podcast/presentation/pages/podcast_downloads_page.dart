@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/database/app_database.dart';
-import 'package:personal_ai_assistant/core/glass/glass_background.dart';
-import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/services/audio_download_service.dart';
@@ -32,47 +30,38 @@ class PodcastDownloadsPage extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       body: Material(
         color: Colors.transparent,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const GlassBackground(
-              theme: GlassBackgroundTheme.neutral,
-              child: SizedBox.expand(),
-            ),
-            SafeArea(
-              bottom: false,
-              child: ResponsiveContainer(
-                maxWidth: 1480,
-                alignment: Alignment.topCenter,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeaderPanel(context, ref, l10n, grouped),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: asyncDownloads.when(
-                        data: (tasks) {
-                          if (tasks.isEmpty) {
-                            return _buildEmptyState(context, l10n, tokens);
-                          }
-                          return _buildDownloadsPanel(
-                            context,
-                            grouped,
-                            l10n,
-                            theme,
-                            tokens,
-                          );
-                        },
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (e, _) => Center(child: Text(e.toString())),
-                      ),
-                    ),
-                  ],
+        child: SafeArea(
+          bottom: false,
+          child: ResponsiveContainer(
+            maxWidth: 1480,
+            alignment: Alignment.topCenter,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderPanel(context, ref, l10n, grouped),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: asyncDownloads.when(
+                    data: (tasks) {
+                      if (tasks.isEmpty) {
+                        return _buildEmptyState(context, l10n, tokens);
+                      }
+                      return _buildDownloadsPanel(
+                        context,
+                        grouped,
+                        l10n,
+                        theme,
+                        tokens,
+                      );
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(child: Text(e.toString())),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -174,8 +163,12 @@ class PodcastDownloadsPage extends ConsumerWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: SurfaceCard(
-                borderRadius: 22,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
+                ),
                 padding: const EdgeInsets.all(18),
                 child: Center(
                   child: Column(
@@ -305,8 +298,12 @@ class _DownloadTaskCard extends ConsumerWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(22),
           onTap: () {},
-          child: SurfaceCard(
-            borderRadius: 22,
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
+            ),
             padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
             child: Row(
               children: [

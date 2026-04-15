@@ -5,9 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/constants/scroll_constants.dart';
-import 'package:personal_ai_assistant/core/glass/glass_background.dart';
-import 'package:personal_ai_assistant/core/glass/glass_tokens.dart';
-import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
@@ -123,26 +120,20 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       backgroundColor: Colors.transparent,
       body: Material(
         color: Colors.transparent,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const GlassBackground(theme: GlassBackgroundTheme.neutral, child: SizedBox.expand()),
-            SafeArea(
-              bottom: false,
-              child: ResponsiveContainer(
-                maxWidth: 1480,
-                alignment: Alignment.topCenter,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeaderPanel(context),
-                    const SizedBox(height: 12),
-                    Expanded(child: _buildHighlightsPanel(context)),
-                  ],
-                ),
-              ),
+        child: SafeArea(
+          bottom: false,
+          child: ResponsiveContainer(
+            maxWidth: 1480,
+            alignment: Alignment.topCenter,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderPanel(context),
+                const SizedBox(height: 12),
+                Expanded(child: _buildHighlightsPanel(context)),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -412,8 +403,12 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: SurfaceCard(
-                borderRadius: 22,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
+                ),
                 padding: const EdgeInsets.all(18),
                 child: Text(
                   l10n.podcast_highlights_empty,
@@ -716,7 +711,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
         decoration: BoxDecoration(
           color: selected
               ? theme.colorScheme.primary
-              : GlassTokens.of(context).glassFill.withValues(
+              : theme.colorScheme.surfaceContainerHighest.withValues(
                   alpha: isOutside || isDisabled ? 0.18 : 0.22,
                 ),
           borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
