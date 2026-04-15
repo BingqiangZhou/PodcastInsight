@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -159,7 +161,7 @@ class ShownotesDisplayWidgetState
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.smMd),
               ..._buildSections(context),
             ],
           ),
@@ -492,7 +494,7 @@ class ShownotesDisplayWidgetState
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.smMd),
               ],
               _buildHtmlBody(context, section.contentHtml),
             ],
@@ -529,14 +531,14 @@ class ShownotesDisplayWidgetState
       },
       onErrorBuilder: (context, error, stackTrace) {
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             children: [
               Icon(
                 Icons.error_outline,
                 color: Theme.of(context).colorScheme.error,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 'Failed to render shownotes',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -614,7 +616,7 @@ class ShownotesDisplayWidgetState
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return Padding(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -626,7 +628,7 @@ class ShownotesDisplayWidgetState
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             const CircularProgressIndicator(),
           ],
         ),

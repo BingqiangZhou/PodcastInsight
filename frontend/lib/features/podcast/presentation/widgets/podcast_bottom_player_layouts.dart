@@ -134,7 +134,7 @@ class _MiniDockBody extends ConsumerWidget {
         ),
         borderRadius: AppRadius.lgRadius,
       ),
-      padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
+      padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.smMd, AppSpacing.sm),
       child: Row(
         children: [
           Semantics(
@@ -150,7 +150,7 @@ class _MiniDockBody extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Semantics(
               button: true,
@@ -175,7 +175,7 @@ class _MiniDockBody extends ConsumerWidget {
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   // Isolate progress repaints (500ms ticks) from the rest of the dock.
                   RepaintBoundary(
                     child: Row(
@@ -186,7 +186,7 @@ class _MiniDockBody extends ConsumerWidget {
                             child: const _MiniProgressIndicator(),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         const _MiniProgressText(),
                       ],
                     ),
@@ -196,11 +196,11 @@ class _MiniDockBody extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           const _MiniPlayPauseButton(
             key: Key('podcast_bottom_player_mini_play_pause'),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.sm),
           // Queue button: isolated Consumer so the dock body does not
           // rebuild when queue-sheet state changes.
           Consumer(
@@ -332,7 +332,7 @@ class _ExpandedPanelContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.smMd, AppSpacing.md, AppSpacing.md),
       child: Column(
         key: showPrimaryKeys
             ? const Key('podcast_bottom_player_expanded')
@@ -360,13 +360,13 @@ class _ExpandedPanelContent extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.smMd),
           _ExpandedHeader(episode: episode),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.smMd),
           _ExpandedHero(episode: episode),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.smMd),
           const _ExpandedProgressSection(),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.smMd),
           const RepaintBoundary(
             child: _TransportRow(),
           ),
@@ -434,7 +434,7 @@ class _ExpandedHero extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.smMd),
         Expanded(
           child: GestureDetector(
             key: const Key('podcast_bottom_player_expanded_title'),
@@ -489,7 +489,7 @@ class _ExpandedHero extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: titleStyle,
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: AppSpacing.sm),
                       Text(
                         key: const Key('podcast_bottom_player_expanded_meta'),
                         _buildEpisodeMetaLine(episode),

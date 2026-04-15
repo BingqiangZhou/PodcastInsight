@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
@@ -129,7 +131,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeaderPanel(context),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.smMd),
                 Expanded(child: _buildHighlightsPanel(context)),
               ],
             ),
@@ -152,7 +154,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildCalendarButton(context),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 _buildBackButton(context),
               ],
             ),
@@ -218,7 +220,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
               subtitle: l10n.podcast_highlights_items(highlightsResponse?.total ?? 0),
@@ -276,7 +278,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: SizedBox(
           width: 24,
           height: 24,
@@ -297,13 +299,13 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
           child: AppSectionHeader(
             title: EpisodeCardUtils.formatDate(headerDate),
             subtitle: l10n.podcast_highlights_loading,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.mdLg),
         Expanded(
           child: Center(
             child: LoadingStatusContent(
@@ -331,7 +333,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
               subtitle: l10n.podcast_highlights_load_failed,
@@ -343,7 +345,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.mdLg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -354,7 +356,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
                       color: theme.colorScheme.error,
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: AppSpacing.md),
                   FilledButton.tonal(
                     onPressed: () {
                       final selectedDate =
@@ -390,7 +392,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
               subtitle: l10n.podcast_highlights_no_highs,
@@ -402,14 +404,14 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.mdLg),
               child: Container(
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
                 ),
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Text(
                   l10n.podcast_highlights_empty,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -454,7 +456,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
                   color: Colors.transparent,
                   child: SurfacePanel(
                     key: const Key('highlights_calendar_panel'),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     borderRadius: 26,
                     child: Consumer(
                       builder: (panelContext, panelRef, _) {
@@ -512,7 +514,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.smMd),
         SizedBox(
           key: const Key('highlights_calendar'),
           height: 348,
@@ -636,7 +638,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
           ),
         ),
         if (datesAsync.isLoading && datesAsync.value == null) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.smMd),
           Row(
             children: [
               SizedBox(
@@ -647,7 +649,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   l10n.podcast_highlights_loading,

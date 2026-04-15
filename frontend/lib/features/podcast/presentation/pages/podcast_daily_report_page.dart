@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -96,7 +98,7 @@ class _PodcastDailyReportPageState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeaderPanel(context),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.smMd),
                 Expanded(child: _buildDailyReportPanel(context)),
               ],
             ),
@@ -118,7 +120,7 @@ class _PodcastDailyReportPageState
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildCalendarButton(context),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 _buildBackButton(context),
               ],
             ),
@@ -194,7 +196,7 @@ class _PodcastDailyReportPageState
         ),
         shape: AppRadius.pillShape,
         visualDensity: VisualDensity.compact,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.smMd),
         textStyle: theme.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w700,
         ),
@@ -242,7 +244,7 @@ class _PodcastDailyReportPageState
                 color: theme.colorScheme.error,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppSpacing.md),
             FilledButton.tonal(
               onPressed: () {
                 ref
@@ -272,7 +274,7 @@ class _PodcastDailyReportPageState
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
           ),
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Text(
             l10n.podcast_daily_report_empty,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -291,7 +293,7 @@ class _PodcastDailyReportPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(currentReport.reportDate ?? headerDate),
               subtitle:
@@ -308,7 +310,7 @@ class _PodcastDailyReportPageState
           Expanded(
             child: currentReport.items.isEmpty
                 ? Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(AppSpacing.mdLg),
                     child: Text(
                       l10n.podcast_daily_report_empty,
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -355,7 +357,7 @@ class _PodcastDailyReportPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
             child: AppSectionHeader(
               title: title,
               subtitle: subtitle,
@@ -371,7 +373,7 @@ class _PodcastDailyReportPageState
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.mdLg),
               child: Align(alignment: Alignment.topLeft, child: child),
             ),
           ),
@@ -390,7 +392,7 @@ class _PodcastDailyReportPageState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
           child: AppSectionHeader(
             title: title,
             subtitle: subtitle,
@@ -399,7 +401,7 @@ class _PodcastDailyReportPageState
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.mdLg),
         Expanded(child: Center(child: child)),
       ],
     );
@@ -428,7 +430,7 @@ class _PodcastDailyReportPageState
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
           ),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 14),
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -445,7 +447,7 @@ class _PodcastDailyReportPageState
                       ),
                     ),
                     if (item.isCarryover) ...[
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.smMd),
                       Icon(
                         Icons.history_toggle_off_rounded,
                         size: 18,
@@ -454,7 +456,7 @@ class _PodcastDailyReportPageState
                     ],
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.smMd),
                 Text(
                   metaLine,
                   maxLines: 1,
@@ -501,7 +503,7 @@ class _PodcastDailyReportPageState
                   color: Colors.transparent,
                   child: SurfacePanel(
                     key: const Key('daily_report_calendar_panel'),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     borderRadius: 26,
                     child: Consumer(
                       builder: (panelContext, panelRef, _) {
@@ -561,7 +563,7 @@ class _PodcastDailyReportPageState
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.smMd),
         SizedBox(
           key: const Key('daily_report_calendar'),
           height: 348,
@@ -685,7 +687,7 @@ class _PodcastDailyReportPageState
           ),
         ),
         if (reportDatesAsync.isLoading && reportDatesAsync.value == null) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.smMd),
           Row(
             children: [
               SizedBox(
@@ -696,7 +698,7 @@ class _PodcastDailyReportPageState
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   l10n.podcast_daily_report_loading,

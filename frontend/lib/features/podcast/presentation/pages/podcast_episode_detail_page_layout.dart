@@ -58,13 +58,13 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
                 return Column(
                   children: [
                     _buildAnimatedHeader(episode),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.smMd),
                   ],
                 );
               },
             ),
             _buildTopButtonBar(isWide: true),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.smMd),
             Expanded(
               child: Stack(
                 children: [
@@ -118,13 +118,13 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
             return Column(
               children: [
                 _buildHeader(episode),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.smMd),
               ],
             );
           },
         ),
         _buildTopButtonBar(isWide: false),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.smMd),
         Expanded(
           child: Stack(
             children: [

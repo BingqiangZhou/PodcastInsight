@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
@@ -30,8 +31,8 @@ class DiscoverChartRow extends StatelessWidget {
     final rankLabel = '$rank';
     final rankSlotWidth = isDense ? 44.0 : 48.0;
     final actionSlotWidth = rankSlotWidth;
-    final rowOuterPadding = isDense ? 3.0 : 6.0;
-    final rowInnerPadding = isDense ? 4.0 : 6.0;
+    final rowOuterPadding = isDense ? AppSpacing.xs - 1 : AppSpacing.sm;
+    final rowInnerPadding = isDense ? AppSpacing.xs : AppSpacing.sm;
     final imageSize = isDense ? 56.0 : 62.0;
     final titleStyle =
         (isDense ? theme.textTheme.titleSmall : theme.textTheme.titleMedium)
@@ -90,7 +91,7 @@ class DiscoverChartRow extends StatelessWidget {
         onTap: onTap,
         child: Container(
           decoration: rowDecoration,
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.xs, horizontal: AppSpacing.sm),
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: rowInnerPadding),
             child: Row(
@@ -113,7 +114,7 @@ class DiscoverChartRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: isDense ? 4 : 6),
+                SizedBox(width: isDense ? AppSpacing.xs : AppSpacing.smMd),
                 RepaintBoundary(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(extension.buttonRadius),
@@ -125,7 +126,7 @@ class DiscoverChartRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: isDense ? 10 : 12),
+                SizedBox(width: isDense ? AppSpacing.smMd : AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +137,7 @@ class DiscoverChartRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: titleStyle,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.xs + AppSpacing.xs),
                       Text(
                         item.artist,
                         maxLines: 1,
@@ -146,7 +147,7 @@ class DiscoverChartRow extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: isDense ? 6 : 8),
+                SizedBox(width: isDense ? AppSpacing.smMd : AppSpacing.sm),
                 if (showSubscribe)
                   SizedBox(
                     width: actionSlotWidth,
@@ -156,7 +157,7 @@ class DiscoverChartRow extends StatelessWidget {
                         height: 36,
                         child: isSubscribing
                             ? const Padding(
-                                padding: EdgeInsets.all(8),
+                                padding: EdgeInsets.all(AppSpacing.sm),
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : IconButton(

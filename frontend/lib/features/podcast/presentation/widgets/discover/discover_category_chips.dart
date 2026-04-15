@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 
@@ -28,7 +29,7 @@ class DiscoverCategoryChips extends StatelessWidget {
     return SingleChildScrollView(
       key: const Key('podcast_discover_category_chips'),
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.xs + AppSpacing.xs),
       child: Row(
         children: [
           for (var index = 0; index < chipItems.length; index++) ...[
@@ -54,7 +55,7 @@ class DiscoverCategoryChips extends StatelessWidget {
                 ),
               );
             }(),
-            if (index != chipItems.length - 1) const SizedBox(width: 8),
+            if (index != chipItems.length - 1) const SizedBox(width: AppSpacing.sm),
           ],
         ],
       ),
@@ -119,7 +120,7 @@ class _CategoryChip extends StatelessWidget {
         ),
         selectedColor: selectedBackgroundColor,
         backgroundColor: Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       ),
     );
   }

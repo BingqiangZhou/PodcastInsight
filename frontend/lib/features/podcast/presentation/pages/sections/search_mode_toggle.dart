@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart'
     as search;
@@ -103,12 +105,12 @@ class _TabPill extends StatelessWidget {
           borderRadius: BorderRadius.circular(height / 2),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(icon, size: 13, color: foregroundColor),
-                const SizedBox(width: 3),
+                const SizedBox(width: AppSpacing.xs),
                 Text(label, style: labelStyle),
               ],
             ),

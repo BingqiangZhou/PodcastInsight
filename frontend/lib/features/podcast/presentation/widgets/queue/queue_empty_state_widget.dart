@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 
 class QueueLoadingState extends StatelessWidget {
@@ -15,7 +17,7 @@ class QueueLoadingState extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, AppSpacing.lg, AppSpacing.mdLg, AppSpacing.xl),
       children: [
         SizedBox(height: MediaQuery.sizeOf(context).height * 0.08),
         Center(
@@ -50,12 +52,12 @@ class QueueEmptyStateList extends StatelessWidget {
     final theme = Theme.of(context);
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, AppSpacing.lg, AppSpacing.mdLg, AppSpacing.xl),
       children: [
         SizedBox(height: MediaQuery.sizeOf(context).height * 0.08),
         Container(
           key: const Key('queue_state_card'),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(24),
@@ -79,7 +81,7 @@ class QueueEmptyStateList extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 title,
                 textAlign: TextAlign.center,
@@ -87,7 +89,7 @@ class QueueEmptyStateList extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
@@ -95,7 +97,7 @@ class QueueEmptyStateList extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (action != null) ...[const SizedBox(height: 18), action!],
+              if (action != null) ...[const SizedBox(height: AppSpacing.md), action!],
             ],
           ),
         ),

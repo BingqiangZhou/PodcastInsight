@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
@@ -71,7 +72,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(28),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
           child: Column(
@@ -82,7 +83,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                 l10n.podcast_add_dialog_title,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               Form(
                 key: _formKey,
                 child: Column(
@@ -96,8 +97,8 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.rss_feed),
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
+                          horizontal: AppSpacing.smMd,
+                          vertical: AppSpacing.smMd,
                         ),
                         isDense: true,
                       ),
@@ -114,7 +115,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -124,13 +125,13 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                         : () => Navigator.of(context).pop(),
                     child: Text(l10n.cancel),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.md),
                   ElevatedButton.icon(
                     onPressed: _isLoading ? null : _addSubscription,
                     icon: _isLoading
                         ? const SizedBox(
-                            width: 16,
-                            height: 16,
+                            width: AppSpacing.md,
+                            height: AppSpacing.md,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.add),

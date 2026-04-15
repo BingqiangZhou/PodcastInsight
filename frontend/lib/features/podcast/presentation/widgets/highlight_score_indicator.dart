@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -120,7 +122,7 @@ class _ScoreRow extends StatelessWidget {
             ).copyWith(fontWeight: FontWeight.w400),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: LinearProgressIndicator(
             value: clampedScore / 10.0,
@@ -132,7 +134,7 @@ class _ScoreRow extends StatelessWidget {
             borderRadius: AppRadius.pillRadius,
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: AppSpacing.sm),
         SizedBox(
           width: scoreWidth,
           child: Text(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -60,9 +62,9 @@ class PodcastSearchResultsList extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.error_outline, size: 44),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.smMd),
           Text(error, textAlign: TextAlign.center),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.smMd),
           FilledButton.icon(
             onPressed: () => onEpisodeTap as void Function(String)?,
             icon: const Icon(Icons.refresh),

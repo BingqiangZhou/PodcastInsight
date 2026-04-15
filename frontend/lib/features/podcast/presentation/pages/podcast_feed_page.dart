@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/constants/scroll_constants.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -86,7 +87,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildDailyReportEntryTile(context, compact: false, heroStyle: true),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           HeaderCapsuleActionButton(
             tooltip: l10n.profile_subscriptions,
             onPressed: () {
@@ -182,8 +183,8 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
                 PodcastNavigation.goToDailyReport(context, source: 'library'),
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: compact ? 12 : 16,
-                vertical: compact ? 10 : 12,
+                horizontal: compact ? AppSpacing.md : AppSpacing.md,
+                vertical: compact ? AppSpacing.smMd : AppSpacing.md,
               ),
               child: Row(
                 children: [
@@ -191,7 +192,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
                     Icons.summarize_outlined,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Flexible(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -218,7 +219,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Icon(
                     Icons.chevron_right,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -244,9 +245,9 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
             .refreshFeed(fastReturn: true);
       },
       child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
         children: [
-          const SizedBox(height: 36),
+          const SizedBox(height: AppSpacing.xxl - AppSpacing.md),
           Center(
             child: Column(
               children: [
@@ -255,7 +256,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
                   size: 64,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.xl),
                 Text(
                   l10n.podcast_no_episodes_found,
                   style: Theme.of(context).textTheme.titleLarge,
@@ -347,7 +348,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     if (isMobile) {
       return ListView.builder(
         controller: _scrollController,
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
         cacheExtent: ScrollConstants.largeListCacheExtent,
         itemCount: itemCount,
         itemBuilder: (context, index) =>
@@ -356,7 +357,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     }
 
     final crossAxisCount = screenWidth < 900 ? 2 : (screenWidth < 1200 ? 3 : 4);
-    const spacing = 6.0;
+    const spacing = AppSpacing.smMd;
     final availableWidth = screenWidth - (crossAxisCount - 1) * spacing;
     final cardWidth = availableWidth / crossAxisCount;
     const desktopCardHeight = 172.0;
@@ -364,7 +365,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
 
     return GridView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: spacing,
@@ -392,7 +393,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
       );
       if (compact) {
         return Center(
-          child: Padding(padding: const EdgeInsets.all(8), child: loader),
+          child: Padding(padding: EdgeInsets.all(AppSpacing.sm), child: loader),
         );
       }
       return Center(child: loader);

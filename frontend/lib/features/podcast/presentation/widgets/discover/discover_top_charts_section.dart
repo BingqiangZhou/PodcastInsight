@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/linear_section_header.dart';
@@ -31,11 +32,11 @@ class DiscoverTopChartsSection extends ConsumerWidget {
         LinearSectionHeader.label(
           l10n.podcast_discover_top_charts,
           padding: EdgeInsets.symmetric(
-            horizontal: 4,
-            vertical: isDense ? 4 : 6,
+            horizontal: AppSpacing.xs,
+            vertical: isDense ? AppSpacing.xs : AppSpacing.smMd,
           ),
           trailing: Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: EdgeInsets.only(right: AppSpacing.md),
             child: Text(
               l10n.podcast_discover_trending_in(countryName),
               key: const Key('podcast_discover_trending_label'),
@@ -48,7 +49,7 @@ class DiscoverTopChartsSection extends ConsumerWidget {
             ),
           ),
         ),
-        SizedBox(height: isDense ? 4 : 6),
+        SizedBox(height: isDense ? AppSpacing.xs : AppSpacing.smMd),
         DiscoverCategoryChips(
           state: state,
           onCategorySelected: onCategorySelected,

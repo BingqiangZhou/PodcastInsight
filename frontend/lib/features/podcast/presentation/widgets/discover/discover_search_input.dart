@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
@@ -94,14 +95,14 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
         child: Row(
           children: [
             Padding(
-              padding: EdgeInsets.only(left: widget.isDense ? 10 : 12),
+              padding: EdgeInsets.only(left: widget.isDense ? AppSpacing.smMd : AppSpacing.md),
               child: Icon(
                 Icons.search,
                 size: widget.isDense ? 18 : 20,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            SizedBox(width: widget.isDense ? 6 : 8),
+            SizedBox(width: widget.isDense ? AppSpacing.smMd : AppSpacing.sm),
             Expanded(
               child: TextField(
                 key: const Key('podcast_discover_search_input'),
@@ -145,7 +146,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
               },
             ),
             Padding(
-              padding: EdgeInsets.only(right: widget.isDense ? 6 : 7),
+              padding: EdgeInsets.only(right: widget.isDense ? AppSpacing.smMd : AppSpacing.smMd + 1),
               child: _CountryButton(
                 isDense: widget.isDense,
                 onTap: widget.onCountryTap,
@@ -184,7 +185,7 @@ class _CountryButton extends ConsumerWidget {
         onTap: onTap,
         child: Container(
           height: height,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           decoration: BoxDecoration(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(height / 2),
@@ -197,7 +198,7 @@ class _CountryButton extends ConsumerWidget {
                 size: 14,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: AppSpacing.xs),
               Text(
                 selectedCountry.code.toUpperCase(),
                 style: theme.textTheme.labelSmall?.copyWith(
@@ -205,7 +206,7 @@ class _CountryButton extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: AppSpacing.xs + AppSpacing.xs),
               Icon(
                 Icons.keyboard_arrow_down_rounded,
                 size: 14,

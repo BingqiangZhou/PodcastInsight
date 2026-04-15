@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
@@ -26,7 +28,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
     return SafeArea(
       child: SingleChildScrollView(
         key: const Key('discover_episode_detail_sheet'),
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.smMd, AppSpacing.smMd, AppSpacing.smMd, AppSpacing.smMd),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -44,7 +46,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpacing.smMd),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +60,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -88,7 +90,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: AppSpacing.sm),
                           Align(
                             child: IconButton(
                               key: const Key('discover_episode_detail_play_button'),
@@ -113,7 +115,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
               ],
             ),
             if (description.isNotEmpty) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.smMd),
               Text(description, style: theme.textTheme.bodyMedium),
             ],
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/database/app_database.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
@@ -39,7 +40,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeaderPanel(context, ref, l10n, grouped),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.smMd),
                 Expanded(
                   child: asyncDownloads.when(
                     data: (tasks) {
@@ -94,7 +95,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
               children: [
                 if (deleteButton != null) ...[
                   deleteButton,
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                 ],
                 HeaderCapsuleActionButton(
                   tooltip:
@@ -149,7 +150,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
             child: AppSectionHeader(
               title: l10n.downloads_page_title,
               subtitle: l10n.downloads_empty,
@@ -162,14 +163,14 @@ class PodcastDownloadsPage extends ConsumerWidget {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.mdLg),
               child: Container(
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
                 ),
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(AppSpacing.md), // ~mdLg context-specific
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -179,7 +180,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
                         size: 48,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.smMd),
                       Text(
                         l10n.downloads_empty_subtitle,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -223,7 +224,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, 18, AppSpacing.mdLg, 14),
             child: AppSectionHeader(
               title: l10n.downloads_page_title,
               subtitle: l10n.downloads_items(totalDownloads),
@@ -237,15 +238,15 @@ class PodcastDownloadsPage extends ConsumerWidget {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.only(
-                left: 8,
-                right: 8,
-                top: 8,
+                left: AppSpacing.sm,
+                right: AppSpacing.sm,
+                top: AppSpacing.sm,
                 bottom: 100,
               ),
               itemCount: allTasks.length,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: _DownloadTaskCard(task: allTasks[index]),
                 );
               },
@@ -304,7 +305,7 @@ class _DownloadTaskCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(22),
               border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
             ),
-            padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, 14, AppSpacing.smMd, 14),
             child: Row(
               children: [
                 // Leading image or status icon
@@ -322,7 +323,7 @@ class _DownloadTaskCard extends ConsumerWidget {
                   )
                 else
                   _StatusIcon(task: task),
-                const SizedBox(width: 14),
+                const SizedBox(width: AppSpacing.md), // icon-size, not spacing
                 // Title and subtitle
                 Expanded(
                   child: Column(
@@ -336,7 +337,7 @@ class _DownloadTaskCard extends ConsumerWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       if (podcastTitle != null) ...[
                         Text(
                           podcastTitle,
@@ -346,7 +347,7 @@ class _DownloadTaskCard extends ConsumerWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: AppSpacing.xs / 2),
                       ],
                       if (task.status == DownloadStatus.downloading)
                         LinearProgressIndicator(value: task.progress)
@@ -362,7 +363,7 @@ class _DownloadTaskCard extends ConsumerWidget {
                 ),
                 // Trailing action
                 if (_trailingIcon(task) != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   SizedBox(
                     width: 32,
                     height: 32,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
@@ -34,7 +35,7 @@ class ChatInputArea extends StatelessWidget {
     );
     return Container(
       color: scheme.surfaceContainerLow,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppSpacing.md),
       child: SafeArea(
       top: false,
       child: Row(
@@ -79,13 +80,13 @@ class ChatInputArea extends StatelessWidget {
                     ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
+                    horizontal: AppSpacing.mdLg,
+                    vertical: AppSpacing.md,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             ValueListenableBuilder<String>(
               valueListenable: inputTextNotifier,
               builder: (context, inputText, child) {
@@ -115,7 +116,7 @@ class ChatInputArea extends StatelessWidget {
                                 ? scheme.onSurface
                                 : scheme.onSurfaceVariant,
                           ),
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(AppSpacing.smMd),
                   ),
                 );
               },

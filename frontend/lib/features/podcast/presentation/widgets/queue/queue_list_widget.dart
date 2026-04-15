@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/scroll_constants.dart';
@@ -97,7 +99,7 @@ class _QueueListState extends ConsumerState<QueueList> {
 
     return ReorderableListView.builder(
       scrollController: _scrollController,
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 20),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.smMd, AppSpacing.md, AppSpacing.mdLg),
       itemExtent: ScrollConstants.queueItemExtent,
       cacheExtent: ScrollConstants.defaultCacheExtent,
       buildDefaultDragHandles: false,
@@ -282,7 +284,7 @@ class QueueListItem extends ConsumerWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.smMd, AppSpacing.sm, AppSpacing.sm, AppSpacing.sm),
             child: Row(
               children: [
                 Container(
@@ -303,11 +305,11 @@ class QueueListItem extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpacing.smMd),
                 RepaintBoundary(
                   child: QueueItemCover(item: item, isCurrent: isCurrent, size: 42),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpacing.smMd),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,12 +323,12 @@ class QueueListItem extends ConsumerWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       if (isCurrent) CurrentQueueSubtitle(item: item) else StaticQueueSubtitle(item: item),
                     ],
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.sm),
                 QueueItemDownloadIndicator(episodeId: item.episodeId),
                 IconButton(
                   key: Key('queue_item_remove_${item.episodeId}'),

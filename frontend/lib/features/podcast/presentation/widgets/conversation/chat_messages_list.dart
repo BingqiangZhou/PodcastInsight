@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conversation/chat_message_bubble.dart';
@@ -44,12 +45,12 @@ class ChatMessagesList extends StatelessWidget {
               size: 64,
               color: scheme.error,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               l10n.podcast_conversation_loading_failed,
               style: theme.textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               errorMessage ?? '',
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -67,9 +68,9 @@ class ChatMessagesList extends StatelessWidget {
 
     return ListView.separated(
       controller: scrollController,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppSpacing.md),
       itemCount: messages.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         final message = messages[index];
         return ChatMessageBubble(

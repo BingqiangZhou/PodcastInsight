@@ -20,7 +20,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
 
     return SurfacePanel(
       key: const Key('podcast_episode_detail_primary_tabs'),
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.smMd, AppSpacing.smMd, AppSpacing.smMd, AppSpacing.smMd),
       backgroundColor: Theme.of(
         context,
       ).colorScheme.surface.withValues(alpha: isWide ? 0.24 : 0.18),
@@ -61,7 +61,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.smMd),
           HeaderCapsuleActionButton(
             key: const Key('podcast_episode_detail_chat_button'),
             tooltip: l10n.podcast_tab_chat,
@@ -80,7 +80,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
 
     return SurfacePanel(
       key: const Key('podcast_episode_detail_primary_tabs'),
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.smMd, AppSpacing.md, AppSpacing.smMd),
       backgroundColor: Theme.of(
         context,
       ).colorScheme.surface.withValues(alpha: 0.18),
@@ -119,7 +119,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.smMd),
           _buildMobileChatAction(l10n),
         ],
       ),
@@ -141,7 +141,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         borderRadius: AppRadius.mdRadius,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: AppSpacing.xs),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -154,7 +154,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
                       : theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: AppSpacing.sm),
               if (isSelected)
                 Container(
                   key: Key('episode_detail_mobile_tab_indicator_$tabIndex'),
@@ -166,7 +166,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
                   ),
                 )
               else
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xs / 2),
             ],
           ),
         ),
@@ -184,7 +184,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         borderRadius: AppRadius.mdRadius,
         onTap: _openChatDrawer,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: AppSpacing.xs),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -193,7 +193,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
                 size: 14,
                 color: theme.colorScheme.secondary,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: AppSpacing.xs),
               Text(
                 l10n.podcast_tab_chat,
                 style: theme.textTheme.titleSmall?.copyWith(

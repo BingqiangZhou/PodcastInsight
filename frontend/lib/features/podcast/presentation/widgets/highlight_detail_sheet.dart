@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
@@ -55,18 +56,18 @@ class _HighlightDetailContent extends StatelessWidget {
 
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(AppSpacing.mdLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             // Quote section
             _buildQuoteSection(context),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.mdLg),
 
             // Overall score badge
             _buildOverallScoreBadge(context),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.mdLg),
 
             // Three-dimensional scores
             HighlightScoreIndicator(
@@ -74,18 +75,18 @@ class _HighlightDetailContent extends StatelessWidget {
               noveltyScore: highlight.noveltyScore,
               actionabilityScore: highlight.actionabilityScore,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.mdLg),
 
             // Topic tags
             if (highlight.topicTags.isNotEmpty) ...[
               _buildTopicTags(context),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.mdLg),
             ],
 
             // Episode source
             if (highlight.episodeTitle.isNotEmpty) ...[
               _buildEpisodeSource(context),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.mdLg),
             ],
 
             // Actions
@@ -123,7 +124,7 @@ class _HighlightDetailContent extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: scheme.primaryContainer.withValues(alpha: 0.15),
         borderRadius: AppRadius.lgRadius,
@@ -139,7 +140,7 @@ class _HighlightDetailContent extends StatelessWidget {
             size: 20,
             color: scheme.primary.withValues(alpha: 0.6),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.smMd),
           Expanded(
             child: SelectableText(
               highlight.originalText,
@@ -167,7 +168,7 @@ class _HighlightDetailContent extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.smMd),
       decoration: BoxDecoration(
         color: scoreColor.withValues(alpha: 0.12),
         borderRadius: AppRadius.xlRadius,
@@ -183,7 +184,7 @@ class _HighlightDetailContent extends StatelessWidget {
             size: 18,
             color: scoreColor,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             l10n.podcast_highlights_overall_score(highlight.overallScore),
             style: theme.textTheme.titleMedium?.copyWith(
@@ -210,13 +211,13 @@ class _HighlightDetailContent extends StatelessWidget {
             color: scheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
           children: highlight.topicTags.map((tag) {
             return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smMd, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(appThemeOf(context).pillRadius),
@@ -244,7 +245,7 @@ class _HighlightDetailContent extends StatelessWidget {
     final extension = appThemeOf(context);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.smMd),
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(extension.itemRadius),
@@ -256,7 +257,7 @@ class _HighlightDetailContent extends StatelessWidget {
             size: 16,
             color: scheme.onSurfaceVariant,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,7 +311,7 @@ class _MultipleHighlightsContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, AppSpacing.mdLg, AppSpacing.mdLg, 0),
             child: Text(
               l10n.podcast_highlights_multiple_count(highlights.length),
               style: theme.textTheme.titleMedium?.copyWith(
@@ -318,11 +319,11 @@ class _MultipleHighlightsContent extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Flexible(
             child: ListView.builder(
               shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               itemCount: highlights.length,
               itemBuilder: (context, index) {
                 final highlight = highlights[index];
@@ -374,7 +375,7 @@ class _HighlightListItem extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Container(
         decoration: BoxDecoration(
           color: scheme.surfaceContainerLow,
@@ -386,7 +387,7 @@ class _HighlightListItem extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.smMd),
             child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -394,8 +395,8 @@ class _HighlightListItem extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
                     ),
                     decoration: BoxDecoration(
                       color: scoreColor.withValues(alpha: 0.12),
@@ -405,7 +406,7 @@ class _HighlightListItem extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.star, size: 12, color: scoreColor),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
                           highlight.overallScore.toStringAsFixed(1),
                           style: theme.textTheme.labelSmall?.copyWith(
@@ -425,7 +426,7 @@ class _HighlightListItem extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 highlight.originalText,
                 style: theme.textTheme.bodyMedium?.copyWith(

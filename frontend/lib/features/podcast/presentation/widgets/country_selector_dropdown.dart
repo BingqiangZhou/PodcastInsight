@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
@@ -64,13 +66,13 @@ class _CountrySelectorDropdownState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 标题
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
             child: Text(
               l10n.podcast_country_label,
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -86,8 +88,8 @@ class _CountrySelectorDropdownState
             height: MediaQuery.sizeOf(context).height * 0.5,
             child: ListView.separated(
               itemCount: PodcastCountry.values.length,
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.smMd, AppSpacing.sm, AppSpacing.smMd, AppSpacing.mdLg),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {
                 final country = PodcastCountry.values[index];
                 final isSelected = country == selectedCountry;
@@ -131,7 +133,7 @@ class _CountrySelectorDropdownState
             borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.smMd, AppSpacing.smMd, AppSpacing.smMd, AppSpacing.smMd),
             child: Row(
               children: [
                 SizedBox(
@@ -144,7 +146,7 @@ class _CountrySelectorDropdownState
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.smMd),
                 Expanded(
                   child: Text(
                     _getCountryName(country, context.l10n),
@@ -156,7 +158,7 @@ class _CountrySelectorDropdownState
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 if (isSelected)
                   Icon(
                     Icons.check_circle,

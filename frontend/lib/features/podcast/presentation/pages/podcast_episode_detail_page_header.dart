@@ -79,11 +79,11 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     if (isWide) {
       return SurfacePanel(
         key: key,
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.mdLg, AppSpacing.md, AppSpacing.mdLg),
         child: Row(
           children: [
             _buildHeroArtwork(episode, isWide: true),
-            const SizedBox(width: 14),
+            SizedBox(width: AppSpacing.mdLg),
             Expanded(
               child: Column(
                 key: const Key('podcast_episode_detail_wide_hero_content'),
@@ -99,11 +99,11 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                       height: 1.08,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   Wrap(
                     key: const Key('podcast_episode_detail_hero_metadata_row'),
-                    spacing: 8,
-                    runSpacing: 6,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.smMd,
                     children: metadata.whereType<Widget>().toList(
                       growable: false,
                     ),
@@ -111,7 +111,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                 ],
               ),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: AppSpacing.mdLg),
             _buildWideHeaderActionColumn(episode, l10n),
           ],
         ),
@@ -128,14 +128,14 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
 
     return SurfacePanel(
       key: key,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.smMd, AppSpacing.md, AppSpacing.smMd),
       child: SizedBox(
         key: const Key('podcast_episode_detail_mobile_hero_body'),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeroArtwork(episode, isWide: false),
-            const SizedBox(width: 10),
+            SizedBox(width: AppSpacing.smMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,7 +150,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                       height: 1.02,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: AppSpacing.xs),
                   Text(
                     mobileMetadata,
                     key: const Key(
@@ -165,13 +165,13 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                     ),
                   ),
                   if (episode.itemLink case final link? when link.trim().isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                    SizedBox(height: AppSpacing.smMd),
                     _buildMobileSourceLinkAction(episode, l10n),
                   ],
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppSpacing.sm),
             _buildMobileHeroActionColumn(episode, l10n),
           ],
         ),
@@ -232,19 +232,19 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildDownloadButton(episode),
-              const SizedBox(width: 8),
+              SizedBox(width: AppSpacing.sm),
               _buildQueueButton(),
-              const SizedBox(width: 8),
+              SizedBox(width: AppSpacing.sm),
               _buildBackButton(),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: AppSpacing.sm),
           _buildPlayButton(
             episode,
             l10n,
             compact: false,
             density: HeaderCapsuleActionButtonDensity.compact,
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 7, vertical: AppSpacing.xs),
           ),
         ],
       ),
@@ -265,9 +265,9 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           compact: true,
           density: HeaderCapsuleActionButtonDensity.iconOnly,
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: AppSpacing.sm),
         _buildQueueButton(),
-        const SizedBox(height: 8),
+        SizedBox(height: AppSpacing.sm),
         _buildDownloadButton(episode),
       ],
     );
@@ -339,13 +339,13 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
               : Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 9,
-                    vertical: 5,
+                    vertical: AppSpacing.xs,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(icon, size: 13, color: resolvedColor),
-                      const SizedBox(width: 4),
+                      SizedBox(width: AppSpacing.xs),
                       Text(
                         label,
                         style: Theme.of(context).textTheme.labelMedium
@@ -652,7 +652,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           unawaited(_launchEpisodeSource(episode));
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -661,7 +661,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                 size: 13,
                 color: theme.colorScheme.secondary,
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: AppSpacing.xs),
               Text(
                 l10n.podcast_source,
                 style: theme.textTheme.labelMedium?.copyWith(

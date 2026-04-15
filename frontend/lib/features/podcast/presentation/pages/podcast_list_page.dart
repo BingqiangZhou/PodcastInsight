@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/utils/debounce.dart';
@@ -156,7 +157,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
       builder: (sheetContext) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(AppSpacing.md),
             child: CountrySelectorDropdown(
               onCountryChanged: (country) {
                 _resetDiscoverListScroll();
@@ -225,7 +226,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
                 searchMode: searchMode,
                 isDense: isDense,
               ),
-              SizedBox(height: useCompactShell ? 10 : 12),
+              SizedBox(height: useCompactShell ? AppSpacing.smMd : AppSpacing.md),
               Expanded(child: Material(color: Colors.transparent, child: content)),
             ],
           ),
@@ -259,12 +260,12 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
           onCategorySelected: _handleDiscoverCategorySelected,
           isDense: isDense,
         ),
-        SizedBox(height: isDense ? 8 : 12),
+        SizedBox(height: isDense ? AppSpacing.sm : AppSpacing.md),
         LinearSectionHeader.label(
           l10n.podcast_discover_browse_by_category,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xs),
         ),
-        SizedBox(height: isDense ? 6 : 8),
+        SizedBox(height: isDense ? AppSpacing.smMd : AppSpacing.sm),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () => ref.read(podcastDiscoverProvider.notifier).refresh(),
@@ -292,9 +293,9 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.error_outline, size: 44),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text(error),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () =>
                 ref.read(podcastDiscoverProvider.notifier).loadInitialData(),

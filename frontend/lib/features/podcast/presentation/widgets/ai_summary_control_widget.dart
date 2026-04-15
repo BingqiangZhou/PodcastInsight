@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -120,7 +120,7 @@ class _AISummaryControlWidgetState
               _buildLoadingState(context),
             if (summaryState.hasError)
               Padding(
-                padding: const EdgeInsets.only(top: 12),
+                padding: EdgeInsets.only(top: AppSpacing.md),
                 child: _buildErrorMessage(context, summaryState.errorMessage!),
               ),
           ],
@@ -136,7 +136,7 @@ class _AISummaryControlWidgetState
     final scheme = Theme.of(context).colorScheme;
     final extension = appThemeOf(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: scheme.errorContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(extension.cardRadius),
@@ -147,7 +147,7 @@ class _AISummaryControlWidgetState
       child: Row(
         children: [
           Icon(Icons.error_outline, color: scheme.error),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               l10n.podcast_summary_transcription_required,
@@ -189,8 +189,8 @@ class _AISummaryControlWidgetState
           ),
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(
-              horizontal: isCompact ? 16 : 24,
-              vertical: isCompact ? 10 : 12,
+              horizontal: isCompact ? AppSpacing.md : AppSpacing.xl,
+              vertical: isCompact ? AppSpacing.smMd : AppSpacing.md,
             ),
             backgroundColor: scheme.primary,
             foregroundColor: scheme.onPrimary,
@@ -202,7 +202,7 @@ class _AISummaryControlWidgetState
         ),
         if (hasModelOptions)
           Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: EdgeInsets.only(top: AppSpacing.sm),
             child: TextButton.icon(
               onPressed: isLoading
                   ? null
@@ -215,8 +215,8 @@ class _AISummaryControlWidgetState
               style: TextButton.styleFrom(
                 foregroundColor: scheme.onSurfaceVariant,
                 padding: EdgeInsets.symmetric(
-                  horizontal: isCompact ? 8 : 12,
-                  vertical: isCompact ? 6 : 8,
+                  horizontal: isCompact ? AppSpacing.sm : AppSpacing.md,
+                  vertical: isCompact ? 6 : AppSpacing.sm,
                 ),
                 textStyle: theme.textTheme.labelMedium?.copyWith(
                   fontSize: isCompact ? 12 : null,
@@ -227,7 +227,7 @@ class _AISummaryControlWidgetState
           ),
         if (_showOptions && hasModelOptions)
           Padding(
-            padding: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.only(top: AppSpacing.md),
             child: _buildAdvancedOptions(context, models, enabled: !isLoading),
           ),
       ],
@@ -252,13 +252,13 @@ class _AISummaryControlWidgetState
         if (summaryState.modelUsed != null ||
             summaryState.processingTime != null)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
               color: scheme.secondaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(extension.cardRadius),
             ),
             child: Wrap(
-              spacing: 16,
+              spacing: AppSpacing.md,
               children: [
                 if (summaryState.modelUsed != null)
                   _buildMetadataItem(
@@ -281,7 +281,7 @@ class _AISummaryControlWidgetState
               ],
             ),
           ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             Expanded(
@@ -301,8 +301,8 @@ class _AISummaryControlWidgetState
                 ),
                 style: OutlinedButton.styleFrom(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isCompact ? 12 : 16,
-                    vertical: isCompact ? 8 : 10,
+                    horizontal: isCompact ? AppSpacing.md : AppSpacing.md,
+                    vertical: isCompact ? AppSpacing.sm : AppSpacing.smMd,
                   ),
                   foregroundColor: scheme.primary,
                   textStyle: theme.textTheme.labelLarge?.copyWith(
@@ -313,7 +313,7 @@ class _AISummaryControlWidgetState
               ),
             ),
             if (hasModelOptions) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               IconButton(
                 onPressed: summaryState.isLoading
                     ? null
@@ -336,7 +336,7 @@ class _AISummaryControlWidgetState
         ),
         if (_showOptions && hasModelOptions)
           Padding(
-            padding: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.only(top: AppSpacing.md),
             child: _buildAdvancedOptions(
               context,
               models,
@@ -353,7 +353,7 @@ class _AISummaryControlWidgetState
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 14, color: scheme.onSurfaceVariant),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
         Text(
           text,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -373,7 +373,7 @@ class _AISummaryControlWidgetState
     final scheme = Theme.of(context).colorScheme;
     final extension = appThemeOf(context);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(extension.cardRadius),
@@ -384,8 +384,8 @@ class _AISummaryControlWidgetState
           labelText: l10n.podcast_ai_model,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(extension.cardRadius)),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
           ),
         ),
         items: models.map((model) {
@@ -396,7 +396,7 @@ class _AISummaryControlWidgetState
                 Text(model.displayName),
                 if (model.isDefault)
                   Padding(
-                    padding: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.only(left: AppSpacing.sm),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 6,
@@ -432,7 +432,7 @@ class _AISummaryControlWidgetState
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Center(
         child: Text(
           l10n.podcast_generating_summary,
@@ -448,7 +448,7 @@ class _AISummaryControlWidgetState
     final scheme = Theme.of(context).colorScheme;
     final extension = appThemeOf(context);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: scheme.errorContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(extension.cardRadius),
@@ -459,7 +459,7 @@ class _AISummaryControlWidgetState
       child: Row(
         children: [
           Icon(Icons.error_outline, size: 18, color: scheme.error),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               message,

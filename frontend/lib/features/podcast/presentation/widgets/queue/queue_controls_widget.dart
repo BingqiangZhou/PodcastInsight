@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
@@ -32,7 +34,7 @@ class QueueHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.smMd, AppSpacing.smMd, AppSpacing.smMd),
       decoration: BoxDecoration(
         color: Colors.transparent,
         border: Border(
@@ -67,7 +69,7 @@ class QueueHeader extends StatelessWidget {
                               '${itemCount ?? 0} ${l10n?.queue_in_queue ?? 'in queue'}',
                         ),
                       if (itemCount != null && statusLabel != null)
-                        const SizedBox(width: 6),
+                        const SizedBox(width: AppSpacing.sm),
                       if (statusLabel != null)
                         Flexible(
                           child: QueueInfoChip(
@@ -116,7 +118,7 @@ class QueueInfoChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
         color: emphasized
             ? theme.colorScheme.primary.withValues(alpha: 0.12)
@@ -130,7 +132,7 @@ class QueueInfoChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 13, color: theme.colorScheme.onSurfaceVariant),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpacing.xs),
           Flexible(
             child: Text(
               label,

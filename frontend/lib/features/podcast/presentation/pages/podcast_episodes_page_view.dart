@@ -3,19 +3,19 @@ part of 'podcast_episodes_page.dart';
 extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
   Widget _buildHeader(AppLocalizations l10n, String? fallbackImageUrl) {
     return Padding(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 8),
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + AppSpacing.sm),
       child: Container(
         height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
         child: Row(
           children: [
             IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => context.canPop() ? context.pop() : context.go('/'),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             _buildHeaderCover(fallbackImageUrl),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
                 widget.podcastTitle ?? l10n.podcast_episodes,
@@ -29,8 +29,8 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
             IconButton(
               icon: _isReparsing
                   ? SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: AppSpacing.mdLg,
+                      height: AppSpacing.mdLg,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -49,7 +49,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
               _buildMoreMenu(),
             ] else ...[
               _buildFilterChips(),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               _buildMoreMenu(),
             ],
           ],
@@ -115,14 +115,14 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
         if (screenWidth < 600) {
           return ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.smMd),
             cacheExtent: ScrollConstants.largeListCacheExtent,
             itemCount: itemCount,
             itemBuilder: (context, index) {
               if (index == episodesState.episodes.length) {
                 return const Center(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(AppSpacing.md),
                     child: CircularProgressIndicator(),
                   ),
                 );
@@ -138,7 +138,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
             : (screenWidth < 1200 ? 3 : 4);
         return GridView.builder(
           controller: _scrollController,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.smMd),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,
@@ -181,7 +181,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
               context,
             ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           Text(
             _showOnlyWithSummary
                 ? l10n.podcast_no_episodes_with_summary
@@ -190,7 +190,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             _showOnlyWithSummary
                 ? l10n.podcast_try_adjusting_filters
@@ -222,7 +222,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
             _refreshEpisodes();
           },
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         FilterChip(
           label: Text(l10n.podcast_filter_unplayed),
           selected: _selectedFilter == 'unplayed',
@@ -233,7 +233,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
             _refreshEpisodes();
           },
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         FilterChip(
           label: Text(l10n.podcast_filter_played),
           selected: _selectedFilter == 'played',
@@ -244,7 +244,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
             _refreshEpisodes();
           },
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         FilterChip(
           label: Text(l10n.podcast_filter_with_summary),
           selected: _showOnlyWithSummary,
@@ -296,20 +296,20 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
             size: 80,
             color: Theme.of(context).colorScheme.error,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           Text(
             l10n.podcast_failed_load_episodes,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: Theme.of(context).colorScheme.error,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             error.toString(),
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: AppSpacing.xl),
           ElevatedButton.icon(
             onPressed: _refreshEpisodes,
             icon: const Icon(Icons.refresh),
@@ -333,7 +333,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(l10n.podcast_playback_status),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               SegmentedButton<String>(
                 segments: [
                   ButtonSegment(
@@ -356,7 +356,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
                   });
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               CheckboxListTile(
                 title: Text(l10n.podcast_only_with_summary),
                 value: _showOnlyWithSummary,

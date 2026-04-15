@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
@@ -75,7 +77,7 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
       return SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.md),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,14 +88,14 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   l10n.player_sleep_timer_desc,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 // Duration presets
                 Wrap(
                   spacing: 8,
@@ -109,7 +111,7 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                     );
                   }).toList(),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.smMd),
                 const Divider(),
                 // After current episode
                 ListTile(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -47,7 +48,7 @@ class ChatSessionsDrawer extends ConsumerWidget {
                     size: 48,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
                     l10n.podcast_conversation_history,
                     style: Theme.of(context).textTheme.titleLarge,
@@ -93,7 +94,7 @@ class ChatSessionsDrawer extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -145,7 +146,7 @@ class _SessionListTile extends ConsumerWidget {
             : null,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         leading: Icon(
           isSelected ? Icons.chat_bubble : Icons.chat_bubble_outline,
           color: isSelected ? scheme.primary : AppColors.darkOnSurface,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/services/download_provider.dart';
 
@@ -160,7 +161,7 @@ class _IconButton extends StatelessWidget {
         minWidth: size + 16,
         minHeight: size + 16,
       ),
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(AppSpacing.xs),
     );
   }
 }

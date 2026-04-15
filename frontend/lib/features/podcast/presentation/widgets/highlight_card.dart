@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -58,14 +60,14 @@ class HighlightCard extends ConsumerWidget {
                 _buildCompactQuote(context, theme),
               ],
               // 分数和收藏按钮放在原文下面
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.smMd),
               _buildHeader(context, theme),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.smMd),
               _buildScoresSection(context, theme),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.smMd),
               _buildMetadataSection(context, theme),
               if (highlight.topicTags.isNotEmpty) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.smMd),
                 _buildTopicTags(context, theme),
               ],
             ],
@@ -92,7 +94,7 @@ class HighlightCard extends ConsumerWidget {
     final scoreColor = _getScoreColor(context, score);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smMd, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
         color: scoreColor.withValues(alpha: 0.12),
         borderRadius: AppRadius.pillRadius,
@@ -106,7 +108,7 @@ class HighlightCard extends ConsumerWidget {
             size: 14,
             color: scoreColor,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             scoreText,
             style: theme.textTheme.labelMedium?.copyWith(
@@ -148,7 +150,7 @@ class HighlightCard extends ConsumerWidget {
     final l10n = context.l10n;
     return RepaintBoundary(
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.smMd),
         decoration: BoxDecoration(
           color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
           borderRadius: AppRadius.lgRadius,
@@ -166,7 +168,7 @@ class HighlightCard extends ConsumerWidget {
                   size: 16,
                   color: theme.colorScheme.primary,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   l10n.podcast_highlights_original_quote,
                   style: theme.textTheme.labelSmall?.copyWith(
@@ -176,7 +178,7 @@ class HighlightCard extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               highlight.originalText,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -220,7 +222,7 @@ class HighlightCard extends ConsumerWidget {
           size: 13,
           color: theme.colorScheme.onSurfaceVariant,
         ),
-        const SizedBox(width: 5),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             highlight.episodeTitle,
@@ -250,7 +252,7 @@ class HighlightCard extends ConsumerWidget {
             ),
           ),
           visualDensity: VisualDensity.compact,
-          padding: const EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           backgroundColor: theme.colorScheme.secondaryContainer.withValues(
             alpha: 0.4,

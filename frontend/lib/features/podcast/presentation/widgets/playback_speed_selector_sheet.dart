@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
@@ -117,7 +118,7 @@ class _PlaybackSpeedSelectorSheetState
     return SafeArea(
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.md),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,10 +129,10 @@ class _PlaybackSpeedSelectorSheetState
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
                 children: kPlaybackSpeedOptions.map((speed) {
                   return ChoiceChip(
                     label: Text(formatPlaybackSpeed(speed)),
@@ -140,7 +141,7 @@ class _PlaybackSpeedSelectorSheetState
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _applyToSubscription,
@@ -156,7 +157,7 @@ class _PlaybackSpeedSelectorSheetState
                       'Checked: subscription only; unchecked: global',
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
