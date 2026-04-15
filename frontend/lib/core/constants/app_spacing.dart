@@ -1,14 +1,15 @@
 /// Spacing system for the Personal AI Assistant.
 ///
-/// Follows an 4-point incremental scale for consistent spacing.
-/// 极简风格：增加留白，更透气
+/// Follows a 4-point grid scale for consistent, predictable spacing.
 class AppSpacing {
-  const AppSpacing._();
+  AppSpacing._();
 
-  static const double xs = 4;
-  static const double sm = 8;
-  static const double md = 12;
-  static const double lg = 18; // 极简风格：从 16 增加到 18
-  static const double xl = 28; // 极简风格：从 24 增加到 28
-  static const double xxl = 36; // 极简风格：从 32 增加到 36
+  static const double xs = 4; // tight: icon-text gap, compact elements
+  static const double sm = 8; // small: within-group spacing
+  static const double smMd = 12; // medium-small: list item internal
+  static const double md = 16; // standard: default element gap (most used)
+  static const double mdLg = 20; // medium-large: card content padding
+  static const double lg = 24; // large: section separators
+  static const double xl = 32; // extra-large: major block separators
+  static const double xxl = 48; // page-level whitespace
 }
