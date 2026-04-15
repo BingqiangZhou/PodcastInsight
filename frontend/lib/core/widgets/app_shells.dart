@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
@@ -21,7 +22,7 @@ class StatusBadge extends StatelessWidget {
       label: label,
       container: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smMd, vertical: 6),
         decoration: BoxDecoration(
           color: resolvedColor.withValues(alpha: 0.1),
           borderRadius: AppRadius.smRadius,
@@ -85,19 +86,19 @@ class AppSectionHeader extends StatelessWidget {
             ],
           ),
         ),
-        if (trailing != null) ...[const SizedBox(width: 16), trailing!],
+        if (trailing != null) ...[const SizedBox(width: AppSpacing.md), trailing!],
       ],
     );
   }
 }
 
 const double kCompactHeaderContentHeight = 44;
-const double kCompactHeaderItemGap = 14;
+const double kCompactHeaderItemGap = AppSpacing.md;
 const EdgeInsets kCompactHeaderPanelPadding = EdgeInsets.fromLTRB(
-  18,
-  18,
-  18,
-  16,
+  AppSpacing.md,
+  AppSpacing.md,
+  AppSpacing.md,
+  AppSpacing.md,
 );
 
 enum HeaderCapsuleActionButtonDensity { regular, compact, iconOnly }
@@ -169,15 +170,15 @@ class HeaderCapsuleActionButton extends StatelessWidget {
             iconOnlyCircular
                 ? EdgeInsets.zero
                 : EdgeInsets.symmetric(
-                    horizontal: showLabel ? 12 : 14,
-                    vertical: showLabel ? 10 : 12,
+                    horizontal: showLabel ? AppSpacing.smMd : AppSpacing.md,
+                    vertical: showLabel ? AppSpacing.smMd : AppSpacing.smMd,
                   ),
           HeaderCapsuleActionButtonDensity.compact =>
             iconOnlyCircular
                 ? EdgeInsets.zero
                 : EdgeInsets.symmetric(
-                    horizontal: showLabel ? 10 : 12,
-                    vertical: showLabel ? 8 : 10,
+                    horizontal: showLabel ? AppSpacing.smMd : AppSpacing.smMd,
+                    vertical: showLabel ? AppSpacing.sm : AppSpacing.smMd,
                   ),
           HeaderCapsuleActionButtonDensity.iconOnly => EdgeInsets.zero,
         };
@@ -238,7 +239,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
                           ),
                         ),
                         if (showLabel) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: AppSpacing.sm),
                           DefaultTextStyle(
                             style: (theme.textTheme.labelMedium ?? const TextStyle()).copyWith(
                               fontSize: density == HeaderCapsuleActionButtonDensity.compact
@@ -294,7 +295,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
 class SurfacePanel extends StatefulWidget {
   const SurfacePanel({
     required this.child, super.key,
-    this.padding = const EdgeInsets.all(18),
+    this.padding = const EdgeInsets.all(AppSpacing.md),
     this.margin,
     this.borderRadius,
     this.backgroundColor,
@@ -456,7 +457,7 @@ class _HeroHeaderState extends State<HeroHeader> {
     return SizedBox(
       key: widget.key,
       child: SurfacePanel(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
         borderRadius: extension.cardRadius,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,7 +467,7 @@ class _HeroHeaderState extends State<HeroHeader> {
               children: [
                 if (widget.leading != null) ...[
                   widget.leading!,
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.smMd),
                 ],
                 Expanded(
                   child: Column(
@@ -520,14 +521,14 @@ class _HeroHeaderState extends State<HeroHeader> {
                   ),
                 ),
                 if (widget.trailing != null) ...[
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.smMd),
                   Align(alignment: Alignment.topCenter, child: widget.trailing),
                 ],
               ],
             ),
             if (widget.badges.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(spacing: 6, runSpacing: 6, children: widget.badges),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(spacing: AppSpacing.sm, runSpacing: AppSpacing.sm, children: widget.badges),
             ],
           ],
         ),
@@ -613,7 +614,7 @@ class AppEmptyState extends StatelessWidget {
 
     return Center(
       child: SurfacePanel(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
           child: Column(
@@ -628,14 +629,14 @@ class AppEmptyState extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 36, color: scheme.primary),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.mdLg),
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.smMd),
                 Text(
                   subtitle!,
                   textAlign: TextAlign.center,
@@ -644,7 +645,7 @@ class AppEmptyState extends StatelessWidget {
                   ),
                 ),
               ],
-              if (action != null) ...[const SizedBox(height: 24), action!],
+              if (action != null) ...[const SizedBox(height: AppSpacing.lg), action!],
             ],
           ),
         ),
@@ -661,7 +662,7 @@ class ContentShell extends StatelessWidget {
     this.leading,
     this.trailing,
     this.badges = const <Widget>[],
-    this.headerSpacing = 10,
+    this.headerSpacing = AppSpacing.smMd,
     this.maxWidth,
     this.roundedViewport = false,
   });
@@ -731,7 +732,7 @@ class ProfileShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = context.isMobile;
     final showSummary = summary is! SizedBox;
-    final topSectionSpacing = isMobile ? 24.0 : 14.0;
+    final topSectionSpacing = isMobile ? AppSpacing.lg : AppSpacing.md;
     final extension = appThemeOf(context);
 
     return Material(
@@ -754,12 +755,12 @@ class ProfileShell extends StatelessWidget {
                 if (showSummary) ...[
                   SizedBox(height: topSectionSpacing),
                   summary,
-                  const SizedBox(height: 14),
+                  const SizedBox(height: AppSpacing.md),
                 ],
                 if (!showSummary) SizedBox(height: topSectionSpacing),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 28),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.xl),
                     child: child,
                   ),
                 ),
@@ -823,8 +824,8 @@ class AuthShell extends StatelessWidget {
           child: Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
-                horizontal: width < Breakpoints.medium ? 24 : 36,
-                vertical: 28,
+                horizontal: width < Breakpoints.medium ? AppSpacing.lg : AppSpacing.xl,
+                vertical: AppSpacing.xl,
               ),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 480),
@@ -832,10 +833,10 @@ class AuthShell extends StatelessWidget {
                   children: [
                     if (header != null) ...[
                       header!,
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.mdLg),
                     ],
                     SurfacePanel(
-                      padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
+                      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xl),
                       borderRadius: extension.cardRadius,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -845,19 +846,19 @@ class AuthShell extends StatelessWidget {
                             style: Theme.of(context).textTheme.displaySmall,
                           ),
                           if (subtitle.isNotEmpty) ...[
-                            const SizedBox(height: 12),
+                            const SizedBox(height: AppSpacing.smMd),
                             Text(
                               subtitle,
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
-                          const SizedBox(height: 28),
+                          const SizedBox(height: AppSpacing.xl),
                           child,
                         ],
                       ),
                     ),
                     if (footer != null) ...[
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.mdLg),
                       footer!,
                     ],
                   ],

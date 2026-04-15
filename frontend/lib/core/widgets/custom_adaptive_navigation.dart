@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -133,7 +134,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
               ),
               if (widget.floatingActionButton != null)
                 Positioned(
-                  right: 20,
+                  right: AppSpacing.mdLg,
                   bottom: accessoryBodyPadding + widget.globalOverlayBodyPadding + 108,
                   child: widget.floatingActionButton!,
                 ),
@@ -183,25 +184,25 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
           SizedBox(
             width: 72,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xs, AppSpacing.md, AppSpacing.xs, AppSpacing.md),
               child: _CleanSidebar(
                 expanded: false,
                 child: Column(
                   children: [
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AppSpacing.md),
                     _buildBrandLogoBadge(context),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AppSpacing.md),
                     ..._buildNavigationItems(context, compact: true),
                     const Spacer(),
                     if (widget.destinations.isNotEmpty)
                       _buildProfileNavigationItem(context, compact: true),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.smMd),
                   ],
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.smMd),
           Expanded(
             child: _buildContentStack(
               bottomPadding:
@@ -210,10 +211,10 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
               fabBottom:
                   widget.globalOverlayBodyPadding +
                   (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
-                  28,
+                  AppSpacing.xl,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.smMd),
         ],
       ),
     );
@@ -239,7 +240,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                       key: const ValueKey('desktop_navigation_sidebar'),
                       width: animatedWidth,
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(showCompact ? 4 : 12, 12, showCompact ? 4 : 12, 12),
+                        padding: EdgeInsets.fromLTRB(showCompact ? AppSpacing.xs : AppSpacing.smMd, AppSpacing.md, showCompact ? AppSpacing.xs : AppSpacing.smMd, AppSpacing.md),
                         child: _CleanSidebar(
                           expanded: expanded,
                           child: showCompact
@@ -255,7 +256,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+              padding: const EdgeInsets.fromLTRB(0, AppSpacing.md, AppSpacing.md, AppSpacing.md),
               child: _buildContentStack(
                 bottomPadding:
                     widget.globalOverlayBodyPadding +
@@ -263,7 +264,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                 fabBottom:
                     widget.globalOverlayBodyPadding +
                     (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
-                    28,
+                    AppSpacing.xl,
               ),
             ),
           ),
@@ -288,7 +289,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
         ),
         if (widget.floatingActionButton != null)
           Positioned(
-            right: 20,
+            right: AppSpacing.mdLg,
             bottom: fabBottom,
             child: widget.floatingActionButton!,
           ),
@@ -304,11 +305,11 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.smMd, AppSpacing.smMd, AppSpacing.smMd, AppSpacing.sm),
           child: Row(
             children: [
               _buildBrandLogoBadge(context),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.smMd),
               Expanded(
                 child: Text(
                   l10n.sidebarAppTitle,
@@ -325,7 +326,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         ..._buildNavigationItems(context, compact: false),
         const Spacer(),
         if (widget.destinations.isNotEmpty)
@@ -338,14 +339,14 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
     final l10n = context.l10n;
     return Column(
       children: [
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.smMd),
         _buildBrandLogoBadge(context),
         IconButton(
           onPressed: _toggleSidebar,
           tooltip: l10n.sidebarExpandMenu,
           icon: const Icon(Icons.chevron_right),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         ..._buildNavigationItems(context, compact: true),
         const Spacer(),
         if (widget.destinations.isNotEmpty)
@@ -443,7 +444,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
       child: Tooltip(
         message: destination.label,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xs),
           child: _NavInkWell(
             onTap: onTap,
             borderRadius: extension.navItemRadius,
@@ -486,7 +487,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
       selected: isSelected,
       label: destination.label,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smMd, vertical: AppSpacing.xs),
         child: _NavInkWell(
           onTap: onTap,
           borderRadius: extension.navItemRadius,
@@ -497,7 +498,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
             curve: Curves.easeOutCubic,
             child: Container(
               height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               decoration: _buildNavDecoration(isSelected: isSelected, context: context),
               child: Row(
                 children: [
@@ -508,7 +509,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                         ? (destination.selectedIcon ?? destination.icon)
                         : destination.icon,
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: AppSpacing.smMd),
                   Expanded(
                     child: Text(
                       destination.label,
@@ -591,7 +592,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
           splashColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
           highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -602,7 +603,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                   curve: Curves.easeOutCubic,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
+                      horizontal: AppSpacing.md,
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
@@ -670,9 +671,9 @@ class ResponsiveContainer extends StatelessWidget {
     final topPadding = MediaQuery.viewPaddingOf(context).top;
     final resolvedPadding = padding ??
         EdgeInsets.fromLTRB(
-          width < Breakpoints.medium ? 16 : 24,
-          (width < Breakpoints.medium ? 12 : 20) + topPadding,
-          width < Breakpoints.medium ? 16 : 24,
+          width < Breakpoints.medium ? AppSpacing.md : AppSpacing.lg,
+          (width < Breakpoints.medium ? AppSpacing.smMd : AppSpacing.mdLg) + topPadding,
+          width < Breakpoints.medium ? AppSpacing.md : AppSpacing.lg,
           0,
         );
     final resolvedMaxWidth = maxWidth ??
