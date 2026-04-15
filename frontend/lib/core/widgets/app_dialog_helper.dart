@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+
 /// Show a dialog.
 ///
 /// Example:
@@ -61,7 +63,7 @@ Future<bool?> showAppConfirmationDialog({
     context: context,
     builder: (dialogCtx) {
       return Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -69,14 +71,14 @@ Future<bool?> showAppConfirmationDialog({
               title,
               style: theme.textTheme.headlineSmall,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             Text(
               message,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -84,7 +86,7 @@ Future<bool?> showAppConfirmationDialog({
                   onPressed: () => Navigator.of(dialogCtx).pop(false),
                   child: Text(cancelText ?? 'Cancel'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 TextButton(
                   onPressed: () => Navigator.of(dialogCtx).pop(true),
                   style: isDestructive

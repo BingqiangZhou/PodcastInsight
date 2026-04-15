@@ -386,7 +386,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: AppSpacing.sm),
                                     Icon(
                                       Icons.calendar_today_outlined,
                                       size: 13,
@@ -403,7 +403,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                             ).colorScheme.onSurfaceVariant,
                                           ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: AppSpacing.sm),
                                     Icon(
                                       Icons.schedule,
                                       size: 13,

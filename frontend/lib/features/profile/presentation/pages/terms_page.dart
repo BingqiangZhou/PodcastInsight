@@ -126,7 +126,7 @@ class TermsPage extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             body,
             style: theme.textTheme.bodyMedium?.copyWith(

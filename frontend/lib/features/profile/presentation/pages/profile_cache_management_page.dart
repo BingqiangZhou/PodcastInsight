@@ -446,7 +446,7 @@ class _ProfileCacheManagementPageState
             circular: true,
           ),
           if (!isMobile) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             HeaderCapsuleActionButton(
               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               icon: Icons.arrow_back_rounded,
@@ -630,7 +630,7 @@ class _ProfileCacheManagementPageState
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.smMd),
             HeaderCapsuleActionButton(
               key: Key('cache_manage_clean_${category.name}'),
               tooltip: l10n.profile_cache_manage_clean,
@@ -795,7 +795,7 @@ class _ProfileCacheManagementPageState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeaderPanel(context),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.smMd),
                     Expanded(
                       child: FutureBuilder<_MediaCacheStats>(
                         future: _statsFuture,

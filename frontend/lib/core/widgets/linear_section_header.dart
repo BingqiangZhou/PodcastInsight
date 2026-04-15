@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 
 /// A Linear-style section header with title and optional trailing widget.
@@ -18,7 +19,7 @@ class LinearSectionHeader extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.titleSize = 48,
-    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    this.padding = const EdgeInsets.symmetric(horizontal: AppSpacing.mdLg, vertical: AppSpacing.md),
   }) : _isLabel = false;
 
   /// Small uppercase label variant — the Linear design pattern.
@@ -32,7 +33,7 @@ class LinearSectionHeader extends StatelessWidget {
     this.title, {
     super.key,
     this.trailing,
-    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    this.padding = const EdgeInsets.symmetric(horizontal: AppSpacing.mdLg, vertical: AppSpacing.smMd),
   })  : subtitle = null,
         titleSize = 48,
         _isLabel = true;
@@ -104,7 +105,7 @@ class LinearSectionHeader extends StatelessWidget {
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle!,
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -136,7 +137,7 @@ class LinearSubsectionHeader extends StatelessWidget {
     this.leading,
     this.trailing,
     this.titleSize = 24,
-    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    this.padding = const EdgeInsets.symmetric(horizontal: AppSpacing.mdLg, vertical: AppSpacing.smMd),
   });
 
   final String title;
@@ -156,7 +157,7 @@ class LinearSubsectionHeader extends StatelessWidget {
         children: [
           if (leading != null) ...[
             leading!,
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.smMd),
           ],
           Expanded(
             child: Text(

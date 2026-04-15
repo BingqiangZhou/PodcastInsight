@@ -33,7 +33,7 @@ class StatusBadge extends StatelessWidget {
           children: [
             if (icon != null) ...[
               Icon(icon, size: 14, color: resolvedColor),
-              const SizedBox(width: 5),
+              const SizedBox(width: AppSpacing.xs),
             ],
             Text(
               label,
@@ -75,7 +75,7 @@ class AppSectionHeader extends StatelessWidget {
             children: [
               if (!hideTitle) Text(title, style: theme.textTheme.titleLarge),
               if (subtitle != null) ...[
-                if (!hideTitle) const SizedBox(height: 5),
+                if (!hideTitle) const SizedBox(height: AppSpacing.xs),
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -486,7 +486,7 @@ class _HeroHeaderState extends State<HeroHeader> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: AppSpacing.xs),
                       ],
                       _StaggeredFadeIn(
                         delay: const Duration(milliseconds: 50),

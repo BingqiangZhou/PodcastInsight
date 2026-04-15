@@ -114,7 +114,7 @@ class EpisodeCardSkeleton extends StatelessWidget {
               if (showDescription) ...[
                 const SizedBox(height: AppSpacing.sm),
                 const SkeletonBox(height: 12, width: double.infinity),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 SkeletonBox(height: 12, width: compact ? 200 : 280),
               ],
               const SizedBox(height: AppSpacing.sm),

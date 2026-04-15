@@ -300,13 +300,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             Expanded(child: preferencesSection),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.lg),
         _buildSettingsSectionFromConfigs(
           context,
           l10n.profile_support_section,
           supportItems,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.lg),
         _buildSettingsSectionFromConfigs(context, l10n.about, aboutItems),
       ],
     );
@@ -785,7 +785,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       }
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
                     l10n.languageFollowSystem,
                     style: Theme.of(
