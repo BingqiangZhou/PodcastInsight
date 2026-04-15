@@ -122,17 +122,15 @@ class _MiniDockBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final subscriptionTitle = episode.subscriptionTitle;
-    final identityGradientColors =
-        subscriptionTitle != null && subscriptionTitle.isNotEmpty
-            ? AppColors.podcastGradientColors[
-                subscriptionTitle.hashCode % AppColors.podcastGradientColors.length]
-            : AppColors.violetColors;
+    final theme = Theme.of(context);
+    final extension = appThemeOf(context);
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: identityGradientColors,
+        color: extension.cardTierFill,
+        border: Border.all(
+          color: extension.cardTierBorder,
+          width: 0.5,
         ),
         borderRadius: AppRadius.lgRadius,
       ),
@@ -171,9 +169,9 @@ class _MiniDockBody extends ConsumerWidget {
                     episode.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: theme.colorScheme.onSurface,
                       fontSize: 14,
                     ),
                   ),
@@ -219,7 +217,7 @@ class _MiniDockBody extends ConsumerWidget {
                 onPressed: queueSheetOpen
                     ? null
                     : () => _showQueueSheet(context, ref),
-                icon: const Icon(Icons.playlist_play_rounded, color: Colors.white),
+                icon: Icon(Icons.playlist_play_rounded, color: theme.colorScheme.onSurface),
                 iconSize: 24,
               );
             },

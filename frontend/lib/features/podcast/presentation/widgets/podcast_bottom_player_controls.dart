@@ -217,6 +217,7 @@ class _MiniPlayPauseButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transport = ref.watch(audioPlayPauseStateProvider);
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     return IconButton(
       key: key,
       tooltip: transport.isPlaying
@@ -238,15 +239,15 @@ class _MiniPlayPauseButton extends ConsumerWidget {
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
         padding: EdgeInsets.zero,
-        foregroundColor: Colors.white,
+        foregroundColor: theme.colorScheme.onSurface,
       ),
       icon: transport.isLoading
-          ? const SizedBox(
+          ? SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onSurface),
               ),
             )
           : Icon(
@@ -254,7 +255,7 @@ class _MiniPlayPauseButton extends ConsumerWidget {
                   ? Icons.pause_circle_outline_rounded
                   : Icons.play_circle_outline_rounded,
               size: 28,
-              color: Colors.white,
+              color: theme.colorScheme.onSurface,
             ),
     );
   }
@@ -266,13 +267,14 @@ class _MiniProgressIndicator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(audioMiniProgressProvider);
+    final theme = Theme.of(context);
     return RepaintBoundary(
       child: LinearProgressIndicator(
         key: const Key('podcast_bottom_player_mini_progress'),
         value: progress.progress,
         minHeight: 4,
-        color: Colors.white,
-        backgroundColor: Colors.white.withOpacity(0.3),
+        color: theme.colorScheme.primary,
+        backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.2),
       ),
     );
   }
@@ -284,13 +286,14 @@ class _MiniProgressText extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(audioMiniProgressProvider);
+    final theme = Theme.of(context);
     return Text(
       key: const Key('podcast_bottom_player_mini_time'),
       '${progress.formattedPosition} / ${progress.formattedDuration}',
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
-        color: Colors.white,
+      style: TextStyle(
+        color: theme.colorScheme.onSurface,
         fontSize: 11,
         fontWeight: FontWeight.w600,
       ),
