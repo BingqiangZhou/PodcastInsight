@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 class CustomTextField extends StatelessWidget {
 
@@ -43,7 +44,7 @@ class CustomTextField extends StatelessWidget {
             label!,
             style: Theme.of(context).textTheme.labelLarge,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
         ],
         TextFormField(
           controller: controller,

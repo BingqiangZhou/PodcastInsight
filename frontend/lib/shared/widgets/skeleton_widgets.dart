@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/base_episode_card.dart' show BaseEpisodeCard;
 
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
@@ -70,8 +71,8 @@ class EpisodeCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final padding = compact
-        ? const EdgeInsets.symmetric(horizontal: 4, vertical: 6)
-        : const EdgeInsets.fromLTRB(16, 12, 16, 12);
+        ? const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.smMd)
+        : const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.smMd, AppSpacing.md, AppSpacing.smMd);
     final titleFont = compact
         ? theme.textTheme.titleSmall
         : theme.textTheme.titleMedium;
@@ -82,7 +83,7 @@ class EpisodeCardSkeleton extends StatelessWidget {
 
     return ShimmerLoading(
       child: Card(
-        margin: cardMargin ?? (compact ? const EdgeInsets.symmetric(horizontal: 4, vertical: 6) : null),
+        margin: cardMargin ?? (compact ? const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.smMd) : null),
         shape: AppRadius.mdLgShape,
         child: Padding(
           padding: padding,
@@ -97,13 +98,13 @@ class EpisodeCardSkeleton extends StatelessWidget {
                     height: coverSize,
                     borderRadius: coverRadius,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.smMd),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SkeletonBox(height: titleFontSize + 2, width: double.infinity),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: AppSpacing.sm),
                         SkeletonBox(height: titleFontSize + 2, width: compact ? 120 : 180),
                       ],
                     ),
@@ -111,17 +112,17 @@ class EpisodeCardSkeleton extends StatelessWidget {
                 ],
               ),
               if (showDescription) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 const SkeletonBox(height: 12, width: double.infinity),
                 const SizedBox(height: 4),
                 SkeletonBox(height: 12, width: compact ? 200 : 280),
               ],
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               // Meta row
               const Row(
                 children: [
                   SkeletonBox(height: 10, width: 60, borderRadius: 6),
-                  SizedBox(width: 8),
+                  SizedBox(width: AppSpacing.sm),
                   SkeletonBox(height: 10, width: 40, borderRadius: 6),
                   Spacer(),
                   SkeletonCircle(size: 20),
@@ -152,7 +153,7 @@ class SkeletonCardList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       itemCount: itemCount,
       itemBuilder: (context, index) => EpisodeCardSkeleton(
         compact: compact,
@@ -178,16 +179,16 @@ class SkeletonCardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 6,
-        mainAxisSpacing: 6,
+        crossAxisSpacing: AppSpacing.sm,
+        mainAxisSpacing: AppSpacing.sm,
         childAspectRatio: childAspectRatio,
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) => const EpisodeCardSkeleton(
-        
+
       ),
     );
   }

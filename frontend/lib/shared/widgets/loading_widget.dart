@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:shimmer/shimmer.dart';
 
 class LoadingWidget extends StatelessWidget {
@@ -18,8 +19,8 @@ class LoadingWidget extends StatelessWidget {
     final resolvedColor =
         color ?? Theme.of(context).colorScheme.onSurfaceVariant;
     return SizedBox(
-      width: size ?? 24,
-      height: size ?? 24,
+      width: size ?? AppSpacing.md,
+      height: size ?? AppSpacing.md,
       child: CircularProgressIndicator(
         strokeWidth: strokeWidth,
         valueColor: AlwaysStoppedAnimation<Color>(resolvedColor),
@@ -112,7 +113,7 @@ class LoadingOverlay extends StatelessWidget {
             color: scheme.scrim.withValues(alpha: 0.5),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 child: LoadingStatusContent(
                   key: const Key('loading_overlay_content'),
                   subtitle: loadingText,
