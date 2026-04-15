@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -29,9 +28,14 @@ class CompletedStateWidget extends StatelessWidget {
     final duration = transcription.durationSeconds ?? 0;
     final completedAt = transcription.completedAt;
 
-    return SurfaceCard(
-      borderRadius: ext.cardRadius,
-      backgroundColor: scheme.tertiary.withValues(alpha: 0.05),
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.tertiary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(ext.cardRadius),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.15),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -205,9 +209,14 @@ class FailedStateWidget extends StatelessWidget {
     final friendlyMessage = getFriendlyErrorMessage(context, errorMessage);
     final suggestion = getErrorSuggestion(context, errorMessage);
 
-    return SurfaceCard(
-      borderRadius: ext.cardRadius,
-      backgroundColor: scheme.error.withValues(alpha: 0.05),
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.error.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(ext.cardRadius),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.15),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

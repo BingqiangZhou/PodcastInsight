@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
-import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
@@ -146,9 +145,14 @@ class BaseEpisodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final cardContent = SurfaceCard(
-      borderRadius: config.cornerRadius,
-      padding: EdgeInsets.zero,
+    final cardContent = Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(config.cornerRadius),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15),
+        ),
+      ),
       child: Semantics(
         button: true,
         label: title,
@@ -157,8 +161,9 @@ class BaseEpisodeCard extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(config.cornerRadius),
-            child: Padding(
-              padding: config.cardPadding,
+          ),
+          child: Padding(
+            padding: config.cardPadding,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,

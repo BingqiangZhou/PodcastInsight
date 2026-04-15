@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -58,8 +57,14 @@ class TranscriptionStatusWidget extends ConsumerWidget {
     final accentColor = theme.brightness == Brightness.dark
         ? scheme.tertiary
         : scheme.primary;
-    return SurfaceCard(
-      borderRadius: ext.cardRadius,
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(ext.cardRadius),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.15),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
