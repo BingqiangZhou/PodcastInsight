@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
-import 'package:personal_ai_assistant/core/glass/glass_background.dart';
-import 'package:personal_ai_assistant/core/glass/surface_card.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -46,13 +44,9 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
       backgroundColor: Colors.transparent,
       body: Material(
         color: Colors.transparent,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const GlassBackground(theme: GlassBackgroundTheme.neutral, child: SizedBox.expand()),
-            SafeArea(
-              bottom: false,
-              child: ResponsiveContainer(
+        child: SafeArea(
+          bottom: false,
+          child: ResponsiveContainer(
                 maxWidth: 1480,
                 alignment: Alignment.topCenter,
                 child: Column(
@@ -280,9 +274,12 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
   ) {
     return RepaintBoundary(
       key: ValueKey('history_card_${episode.id}'),
-      child: SurfaceCard(
-        borderRadius: kPodcastRowCardCornerRadius,
-        padding: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(kPodcastRowCardCornerRadius),
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.15)),
+        ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
