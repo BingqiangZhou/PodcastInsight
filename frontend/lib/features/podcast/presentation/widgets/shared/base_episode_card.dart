@@ -30,7 +30,7 @@ class EpisodeCardConfig {
     this.descriptionMaxLines = 4,
     this.dense = false,
     this.cardMargin,
-    this.cardPadding = EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
+    this.cardPadding = const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
     this.cornerRadius = 12.0,
     this.showPlayButton = true,
     this.showQueueButton = false,
