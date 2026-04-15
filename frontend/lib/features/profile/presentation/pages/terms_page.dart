@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
@@ -36,12 +37,12 @@ class TermsPage extends StatelessWidget {
                         circular: true,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.smMd),
                     Expanded(
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
+                          horizontal: AppSpacing.mdLg,
+                          vertical: AppSpacing.sm,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,14 +53,14 @@ class TermsPage extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: AppSpacing.sm),
                             Text(
                               l10n.terms_of_service_last_updated,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: AppSpacing.lg),
                             _buildSection(
                               context,
                               title: l10n.terms_section_acceptance,
@@ -95,7 +96,7 @@ class TermsPage extends StatelessWidget {
                               title: l10n.terms_section_contact,
                               body: l10n.terms_section_contact_body,
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: AppSpacing.xl),
                           ],
                         ),
                       ),
@@ -104,9 +105,7 @@ class TermsPage extends StatelessWidget {
                 ),
               ),
             ),
-          ],
         ),
-      ),
     );
   }
 
@@ -117,7 +116,7 @@ class TermsPage extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: AppSpacing.mdLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

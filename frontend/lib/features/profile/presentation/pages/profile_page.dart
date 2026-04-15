@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
@@ -82,7 +83,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             _showLogoutDialog(context);
           }
         },
-        offset: const Offset(0, 48),
+        offset: const Offset(0, AppSpacing.xxl),
         shape: RoundedRectangleBorder(borderRadius: AppRadius.xlRadius),
         itemBuilder: (context) => [
           PopupMenuItem<String>(
@@ -94,7 +95,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   size: 20,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     user?.displayName ?? l10n.profile_guest_user,
@@ -113,7 +114,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   size: 20,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     user?.email ?? l10n.profile_please_login,
@@ -130,7 +131,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Row(
               children: [
                 const Icon(Icons.edit_note, size: 20),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(l10n.profile_edit_profile),
               ],
             ),
@@ -145,7 +146,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   size: 20,
                   color: Theme.of(context).colorScheme.error,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   l10n.logout,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -172,7 +173,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const ProfileActivityCards(),
-          SizedBox(height: compactProfileLayout ? 8 : 12),
+          SizedBox(height: compactProfileLayout ? AppSpacing.sm : AppSpacing.md),
           _buildSettingsContent(context),
         ],
       ),
@@ -270,15 +271,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             l10n.profile_account_settings,
             accountItems,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
           preferencesSection,
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
           _buildSettingsSectionFromConfigs(
             context,
             l10n.profile_support_section,
             supportItems,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
           _buildSettingsSectionFromConfigs(context, l10n.about, aboutItems),
         ],
       );
@@ -295,7 +296,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 accountItems,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(child: preferencesSection),
           ],
         ),
@@ -442,7 +443,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           title: Row(
             children: [
               const Icon(Icons.edit_note),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Text(l10n.profile_edit_profile),
             ],
           ),
@@ -459,7 +460,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   enabled: false,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 TextField(
                   controller: TextEditingController(text: user?.email ?? ''),
                   decoration: InputDecoration(
@@ -468,9 +469,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   enabled: false,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.lg),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
                     color: Colors.transparent,
                     borderRadius: AppRadius.mdLgRadius,
@@ -484,7 +485,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             .colorScheme
                             .onSurfaceVariant,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
                           l10n.profile_edit_coming_soon_subtitle,
@@ -612,7 +613,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.lg),
                       TextFormField(
                         controller: newPasswordController,
                         obscureText: true,
@@ -634,7 +635,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.lg),
                       TextFormField(
                         controller: confirmPasswordController,
                         obscureText: true,
@@ -715,8 +716,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         },
                   child: isChanging
                       ? SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: AppSpacing.mdLg,
+                          height: AppSpacing.mdLg,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: Theme.of(dialogContext)
@@ -826,7 +827,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           title: Row(
             children: [
               Icon(Icons.psychology, size: 48, color: iconColor),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.smMd),
               Expanded(child: Text(l10n.appTitle)),
             ],
           ),
@@ -842,14 +843,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     dialogContext,
                   ).textTheme.bodyLarge?.copyWith(color: iconColor),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   l10n.build_label(packageInfo.buildNumber),
                   style: Theme.of(
                     dialogContext,
                   ).textTheme.bodyLarge?.copyWith(color: iconColor),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   l10n.profile_about_subtitle,
                   style: Theme.of(

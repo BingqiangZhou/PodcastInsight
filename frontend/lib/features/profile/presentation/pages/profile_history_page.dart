@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -53,7 +54,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeaderPanel(context, l10n),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.smMd),
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: () => ref
@@ -73,7 +74,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                     'Resume episodes and review recently played content.',
                                 child: Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.all(24),
+                                    padding: const EdgeInsets.all(AppSpacing.lg),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -84,7 +85,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                             context,
                                           ).colorScheme.onSurfaceVariant,
                                         ),
-                                        const SizedBox(height: 16),
+                                        const SizedBox(height: AppSpacing.lg),
                                         Text(
                                           l10n.server_history_empty,
                                           style: Theme.of(context)
@@ -115,10 +116,10 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(
-                                      20,
-                                      18,
-                                      20,
-                                      14,
+                                      AppSpacing.mdLg,
+                                      AppSpacing.mdLg,
+                                      AppSpacing.mdLg,
+                                      AppSpacing.smMd,
                                     ),
                                     child: AppSectionHeader(
                                       title: l10n.profile_viewed_title,
@@ -173,7 +174,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                 'Resume episodes and review recently played content.',
                             child: Center(
                               child: Padding(
-                                padding: const EdgeInsets.all(24),
+                                padding: const EdgeInsets.all(AppSpacing.lg),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -184,7 +185,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                         context,
                                       ).colorScheme.error,
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: AppSpacing.lg),
                                     Text(
                                       error.toString(),
                                       style: Theme.of(
@@ -204,9 +205,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                 ),
               ),
             ),
-          ],
         ),
-      ),
     );
   }
 
@@ -237,7 +236,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, AppSpacing.mdLg, AppSpacing.mdLg, AppSpacing.smMd),
             child: AppSectionHeader(title: title, subtitle: subtitle),
           ),
           Expanded(child: Center(child: child)),
@@ -253,7 +252,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.mdLg, AppSpacing.mdLg, AppSpacing.mdLg, AppSpacing.smMd),
             child: AppSectionHeader(title: title, subtitle: subtitle),
           ),
           Divider(
@@ -304,7 +303,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                         fallbackImageUrl: episode.subscriptionImageUrl,
                         width: kPodcastRowCardImageSize,
                         height: kPodcastRowCardImageSize,
-                        iconSize: 24,
+                        iconSize: AppSpacing.lg,
                         iconColor: Theme.of(context).colorScheme.primary,
                       ),
                     ),
@@ -318,7 +317,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                             key: ValueKey(
                               'profile_history_title_box_${episode.id}',
                             ),
-                            height: 38,
+                            height: AppSpacing.mdLg + AppSpacing.md + AppSpacing.xs,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
@@ -344,7 +343,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                           ),
                           SizedBox(
                             key: const Key('profile_history_meta_row'),
-                            height: 18,
+                            height: AppSpacing.mdLg,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: FittedBox(
@@ -362,8 +361,8 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                           'profile_history_meta_podcast',
                                         ),
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2,
+                                          horizontal: AppSpacing.sm,
+                                          vertical: AppSpacing.xs,
                                         ),
                                         decoration: BoxDecoration(
                                           color: Theme.of(

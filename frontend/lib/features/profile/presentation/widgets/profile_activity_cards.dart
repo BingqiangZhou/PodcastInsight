@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -17,7 +18,7 @@ class ProfileActivityCards extends ConsumerWidget {
 
   EdgeInsetsGeometry _cardMargin(BuildContext context) {
     if (context.isMobile) {
-      return const EdgeInsets.symmetric(horizontal: 4);
+      return const EdgeInsets.symmetric(horizontal: AppSpacing.xs);
     }
     return EdgeInsets.zero;
   }
@@ -68,7 +69,7 @@ class ProfileActivityCards extends ConsumerWidget {
             showChevron: true,
             cardKey: const Key('profile_subscriptions_card'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _buildActivityCard(
             context,
             icon: Icons.podcasts,
@@ -76,7 +77,7 @@ class ProfileActivityCards extends ConsumerWidget {
             value: episodeCount,
             color: scheme.secondary,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _buildActivityCard(
             context,
             icon: Icons.auto_awesome,
@@ -84,7 +85,7 @@ class ProfileActivityCards extends ConsumerWidget {
             value: summaryCount,
             color: scheme.secondary,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _buildActivityCard(
             context,
             icon: Icons.history,
@@ -95,7 +96,7 @@ class ProfileActivityCards extends ConsumerWidget {
             showChevron: true,
             chevronKey: const Key('profile_viewed_card_chevron'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _buildActivityCard(
             context,
             icon: Icons.summarize_outlined,
@@ -107,7 +108,7 @@ class ProfileActivityCards extends ConsumerWidget {
             showChevron: true,
             cardKey: const Key('profile_daily_report_card'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _buildActivityCard(
             context,
             icon: Icons.lightbulb_outline,
@@ -126,7 +127,7 @@ class ProfileActivityCards extends ConsumerWidget {
       builder: (context, constraints) {
         final maxWidth = constraints.maxWidth;
         final columns = maxWidth >= 1000 ? 4 : 2;
-        final cardWidth = (maxWidth - (columns - 1) * 16) / columns;
+        final cardWidth = (maxWidth - (columns - 1) * AppSpacing.lg) / columns;
 
         final cards = <Widget>[
           _buildActivityCard(
@@ -187,8 +188,8 @@ class ProfileActivityCards extends ConsumerWidget {
         ];
 
         return Wrap(
-          spacing: 16,
-          runSpacing: 16,
+          spacing: AppSpacing.lg,
+          runSpacing: AppSpacing.lg,
           children: [
             for (final card in cards) SizedBox(width: cardWidth, child: card),
           ],
@@ -223,15 +224,15 @@ class ProfileActivityCards extends ConsumerWidget {
           child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: AppSpacing.xl,
+                height: AppSpacing.xl,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   borderRadius: AppRadius.mdRadius,
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,7 +243,7 @@ class ProfileActivityCards extends ConsumerWidget {
                         color: scheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       value,
                       style: theme.textTheme.headlineSmall

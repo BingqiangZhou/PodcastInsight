@@ -3,6 +3,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -298,11 +299,11 @@ class _ProfileCacheManagementPageState
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(
-              width: 20,
-              height: 20,
+              width: AppSpacing.mdLg,
+              height: AppSpacing.mdLg,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Flexible(child: Text(l10n.profile_clearing_cache)),
           ],
         ),
@@ -355,7 +356,7 @@ class _ProfileCacheManagementPageState
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildLegendDot(color, key: dotKey),
-        const SizedBox(width: 6),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
@@ -469,7 +470,7 @@ class _ProfileCacheManagementPageState
       padding: _contentHorizontalPadding(context),
       child: Container(
         key: const Key('cache_manage_overview_section'),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.smMd),
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: AppRadius.xlRadius,
@@ -487,7 +488,7 @@ class _ProfileCacheManagementPageState
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -497,9 +498,9 @@ class _ProfileCacheManagementPageState
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.sm),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: Text(
                     'MB',
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -510,7 +511,7 @@ class _ProfileCacheManagementPageState
                 ),
               ],
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               AppLocalizations.of(
                 context,
@@ -520,17 +521,17 @@ class _ProfileCacheManagementPageState
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             _buildSegmentBar(
               imagesBytes: stats.images.bytes,
               audioBytes: stats.audio.bytes,
               otherBytes: stats.other.bytes,
               palette: palette,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.smMd),
             Wrap(
-              spacing: 16,
-              runSpacing: 8,
+              spacing: AppSpacing.lg,
+              runSpacing: AppSpacing.sm,
               children: [
                 _buildLegendItem(
                   palette.images,
@@ -578,19 +579,19 @@ class _ProfileCacheManagementPageState
           borderRadius: BorderRadius.circular(kPodcastRowCardCornerRadius),
           border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.15)),
         ),
-        padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.smMd, AppSpacing.sm, AppSpacing.sm, AppSpacing.sm),
       child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: AppSpacing.xl,
+              height: AppSpacing.xl,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
                 borderRadius: AppRadius.mdLgRadius,
               ),
               child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -608,11 +609,11 @@ class _ProfileCacheManagementPageState
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       _buildLegendDot(color),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     l10n.profile_cache_manage_item_count(stats.count),
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -622,7 +623,7 @@ class _ProfileCacheManagementPageState
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               _formatMB(stats.bytes),
               style: theme.textTheme.titleMedium?.copyWith(
@@ -664,10 +665,10 @@ class _ProfileCacheManagementPageState
           Expanded(
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.mdLg, AppSpacing.lg, AppSpacing.mdLg),
               children: [
                 _buildOverviewSection(context, stats: stats, palette: palette),
-                const SizedBox(height: 14),
+                const SizedBox(height: AppSpacing.smMd),
                 Padding(
                   padding: _contentHorizontalPadding(context),
                   child: Text(
@@ -679,7 +680,7 @@ class _ProfileCacheManagementPageState
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 _buildDetailRow(
                   context: context,
                   category: _CacheCategory.images,
@@ -707,12 +708,12 @@ class _ProfileCacheManagementPageState
                   stats: stats.other,
                   onClean: () => _deleteCategory(stats, _CacheCategory.other),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Padding(
                   padding: _contentHorizontalPadding(context),
                   child: Container(
                     key: const Key('cache_manage_notice_box'),
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.onSurfaceVariant.withValues(
                         alpha: theme.brightness == Brightness.dark
@@ -728,7 +729,7 @@ class _ProfileCacheManagementPageState
                           key: const Key('cache_manage_notice_icon'),
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             l10n.profile_cache_manage_notice,
@@ -741,13 +742,13 @@ class _ProfileCacheManagementPageState
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     _contentHorizontalInset(context),
                     0,
                     _contentHorizontalInset(context),
-                    4,
+                    AppSpacing.xs,
                   ),
                   child: SizedBox(
                     width: double.infinity,
@@ -763,7 +764,7 @@ class _ProfileCacheManagementPageState
                       style: FilledButton.styleFrom(
                         backgroundColor: palette.deepCleanBackground,
                         foregroundColor: palette.deepCleanForeground,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                         textStyle: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -818,9 +819,7 @@ class _ProfileCacheManagementPageState
                 ),
               ),
             ),
-          ],
         ),
-      ),
     );
   }
 }

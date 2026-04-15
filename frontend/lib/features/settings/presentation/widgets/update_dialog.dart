@@ -5,6 +5,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/services/app_update_service.dart';
@@ -121,8 +122,8 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
       insetPadding: isMobile ? ResponsiveDialogHelper.insetPadding() : null,
       title: Row(
         children: [
-          Icon(Icons.system_update_alt, color: palette.accent, size: 28),
-          const SizedBox(width: 12),
+          Icon(Icons.system_update_alt, color: palette.accent, size: AppSpacing.xl),
+          const SizedBox(width: AppSpacing.smMd),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +150,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
             children: [
               // Release info
               _buildReleaseInfo(context),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
 
               // Release notes
               _buildReleaseNotes(context),
@@ -186,7 +187,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
             child: Text(l10n.update_later),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
 
           // Download button (primary action) — disabled when no platform asset
           Flexible(
@@ -196,8 +197,8 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                   : () => _handleDownload(context),
               icon: _isDownloading
                   ? SizedBox(
-                      width: 16,
-                      height: 16,
+                      width: AppSpacing.lg,
+                      height: AppSpacing.lg,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: palette.loadingIndicator,
@@ -238,8 +239,8 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                   : () => _handleDownload(context),
               icon: _isDownloading
                   ? SizedBox(
-                      width: 16,
-                      height: 16,
+                      width: AppSpacing.lg,
+                      height: AppSpacing.lg,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: palette.loadingIndicator,
@@ -258,7 +259,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 Expanded(
@@ -274,7 +275,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -309,7 +310,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
           Row(
             children: [
               Icon(Icons.info_outline, size: 18, color: palette.accent),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   l10n.update_latest_version,
@@ -353,7 +354,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                   ],
                 ),
                 if (asset != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
                       Icon(
@@ -392,7 +393,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                   ),
                 ),
                 if (asset != null) ...[
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.lg),
                   Icon(
                     Icons.file_download,
                     size: 14,
@@ -430,7 +431,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
             Text(l10n.update_release_notes, style: theme.textTheme.labelMedium),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
@@ -748,7 +749,7 @@ class _ManualUpdateCheckDialogState
               color: palette.loadingIndicator,
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: AppSpacing.mdLg),
           Text(l10n.update_checking, style: theme.textTheme.bodyLarge),
         ],
       );
@@ -759,9 +760,9 @@ class _ManualUpdateCheckDialogState
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.error_outline, size: 56, color: palette.errorIcon),
-          const SizedBox(height: 18),
+          const SizedBox(height: AppSpacing.mdLg),
           Text(l10n.update_check_failed, style: theme.textTheme.titleMedium),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             state.error!,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -855,7 +856,7 @@ void showUpdateAvailableSnackBar({
       content: Row(
         children: [
           const Icon(Icons.system_update_alt, size: 20),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.smMd),
           Expanded(
             child: Text(
               '${l10n.update_new_version_available}: v${release.version}',

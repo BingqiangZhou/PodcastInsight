@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
+import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/font_combination.dart';
@@ -35,37 +36,37 @@ class AppearancePage extends ConsumerWidget {
             title: l10n.appearance_theme_section,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.smMd, AppSpacing.lg, AppSpacing.xs),
                 child: Text(
                   l10n.theme_mode_subtitle,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
                 child: _ThemeModeSelector(),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
 
           // Font Selection Section
           SettingsSectionCard(
             title: l10n.appearance_font_section,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.smMd, AppSpacing.lg, AppSpacing.xs),
                 child: Text(
                   l10n.appearance_font_section_subtitle,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
               const Padding(
-                padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
                 child: _FontDropdown(),
               ),
               const Padding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
                 child: _FontPreview(),
               ),
             ],
@@ -197,7 +198,7 @@ class _FontDropdownState extends ConsumerState<_FontDropdown> {
                   borderSide: BorderSide(color: scheme.primary, width: 2),
                 ),
                 contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
               ),
               onSelected: (value) async {
                 if (value == null) return;
@@ -233,7 +234,7 @@ class _FontDropdownState extends ConsumerState<_FontDropdown> {
                   .toList(),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Tooltip(
             message: l10n.appearance_font_reset,
             child: OutlinedButton(
@@ -251,7 +252,7 @@ class _FontDropdownState extends ConsumerState<_FontDropdown> {
                       }
                     },
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smMd),
                 shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.mdLgRadius,
                 ),
