@@ -30,10 +30,8 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
     final coverSize = 2 * (titleFontSize * titleLineHeightFactor);
     final coverIconSize = (coverSize * 0.58).clamp(14.0, 28.0);
 
-    // Determine identity gradient colors based on subscription title hash
-    final subscriptionTitle = episode.subscriptionTitle ?? l10n.podcast_default_podcast;
-    final colorIndex = subscriptionTitle.hashCode % AppColors.podcastGradientColors.length;
-    final identityGradientColors = AppColors.podcastGradientColors[colorIndex];
+    // Identity gradient colors (all gradients are now monochrome gray)
+    final identityGradientColors = AppColors.podcastGradientColors.first;
 
     return BaseEpisodeCard(
       config: EpisodeCardConfig(
