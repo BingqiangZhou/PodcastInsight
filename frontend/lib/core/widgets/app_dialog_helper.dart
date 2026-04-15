@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 ///
 /// Example:
 /// ```dart
-/// showGlassDialog(
+/// showAppDialog(
 ///   context: context,
 ///   builder: (ctx) => AlertDialog(title: Text('Hello')),
 /// );
 /// ```
-Future<T?> showGlassDialog<T>({
+Future<T?> showAppDialog<T>({
   required BuildContext context,
   required Widget Function(BuildContext) builder,
   bool barrierDismissible = true,
@@ -40,14 +40,14 @@ Future<T?> showGlassDialog<T>({
 ///
 /// Example:
 /// ```dart
-/// final confirmed = await showGlassConfirmationDialog(
+/// final confirmed = await showAppConfirmationDialog(
 ///   context: context,
 ///   title: 'Delete?',
 ///   message: 'This cannot be undone.',
 ///   isDestructive: true,
 /// );
 /// ```
-Future<bool?> showGlassConfirmationDialog({
+Future<bool?> showAppConfirmationDialog({
   required BuildContext context,
   required String title,
   required String message,
@@ -57,9 +57,8 @@ Future<bool?> showGlassConfirmationDialog({
   double borderRadius = 28,
 }) {
   final theme = Theme.of(context);
-  return showGlassDialog<bool>(
+  return showAppDialog<bool>(
     context: context,
-    borderRadius: borderRadius,
     builder: (dialogCtx) {
       return Padding(
         padding: const EdgeInsets.all(24),

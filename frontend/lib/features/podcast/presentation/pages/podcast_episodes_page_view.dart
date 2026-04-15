@@ -322,7 +322,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
 
   void _showFilterDialog() {
     final l10n = context.l10n;
-    showGlassDialog(
+    showAppDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(

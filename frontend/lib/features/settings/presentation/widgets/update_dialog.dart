@@ -10,7 +10,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations_extens
 import 'package:personal_ai_assistant/core/services/app_update_service.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
@@ -84,7 +84,7 @@ class AppUpdateDialog extends ConsumerStatefulWidget {
     required GitHubRelease release,
     required String currentVersion,
   }) {
-    return showGlassDialog(
+    return showAppDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) =>
@@ -652,7 +652,7 @@ class ManualUpdateCheckDialog extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) {
     if (_isShowing) return Future.value();
     _isShowing = true;
-    return showGlassDialog(
+    return showAppDialog(
       context: context,
       builder: (context) => const ManualUpdateCheckDialog(),
     ).whenComplete(() {

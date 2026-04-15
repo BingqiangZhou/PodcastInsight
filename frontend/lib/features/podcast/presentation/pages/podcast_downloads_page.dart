@@ -10,7 +10,7 @@ import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_episodes_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
 
@@ -120,7 +120,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
     List<DownloadTask> tasks,
   ) async {
     final l10n = context.l10n;
-    final confirmed = await showGlassConfirmationDialog(
+    final confirmed = await showAppConfirmationDialog(
       context: context,
       title: l10n.downloads_delete_confirm,
       message: l10n.downloads_delete_confirm_message,

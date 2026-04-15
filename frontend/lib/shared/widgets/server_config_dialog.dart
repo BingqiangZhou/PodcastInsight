@@ -10,7 +10,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations_extens
 import 'package:personal_ai_assistant/core/network/server_health_service.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -369,7 +369,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
     }
 
     // Show confirmation dialog for server switch
-    final confirmed = await showGlassDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: dialogContext,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.transparent,
@@ -391,7 +391,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
     if (confirmed != true) return;
 
     // Show loading dialog (use rootNavigator to show above all other dialogs)
-    showGlassDialog<void>(
+    showAppDialog<void>(
       context: dialogContext,
       barrierDismissible: false,
       useRootNavigator: true,

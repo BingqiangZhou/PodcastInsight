@@ -7,7 +7,7 @@ import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/widgets/password_text_field.dart';
@@ -89,7 +89,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   /// Show server configuration dialog (using shared dialog)
   void _showServerConfigDialog() {
     final serverConfig = ref.read(serverConfigProvider);
-    showGlassDialog(
+    showAppDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => ServerConfigDialog(

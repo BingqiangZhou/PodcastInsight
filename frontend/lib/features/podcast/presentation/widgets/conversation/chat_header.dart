@@ -46,7 +46,7 @@ class ChatHeader extends ConsumerWidget {
         color: Colors.transparent,
         border: Border(
           bottom: BorderSide(
-            color: extension.surfaceTierBorder,
+            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -224,7 +224,7 @@ class _ModelSelectorState extends State<_ModelSelector> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: extension.surfaceTierFill,
+        color: scheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(extension.itemRadius),
       ),
       child: DropdownButton<SummaryModelInfo>(
@@ -285,7 +285,7 @@ class _ModelSelectorState extends State<_ModelSelector> {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: extension.surfaceTierFill,
+                          color: scheme.surfaceContainerLowest,
                           borderRadius: AppRadius.xsRadius,
                         ),
                         child: Text(

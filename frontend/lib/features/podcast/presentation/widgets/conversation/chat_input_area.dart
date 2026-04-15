@@ -33,7 +33,7 @@ class ChatInputArea extends StatelessWidget {
       end: Alignment.bottomRight,
     );
     return Container(
-      color: extension.cardTierFill,
+      color: scheme.surfaceContainerLow,
       padding: const EdgeInsets.all(16),
       child: SafeArea(
       top: false,
@@ -62,13 +62,13 @@ class ChatInputArea extends StatelessWidget {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(extension.cardRadius),
                     borderSide: BorderSide(
-                      color: extension.surfaceTierBorder,
+                      color: scheme.outlineVariant.withValues(alpha: 0.5),
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(extension.cardRadius),
                     borderSide: BorderSide(
-                      color: extension.surfaceTierBorder,
+                      color: scheme.outlineVariant.withValues(alpha: 0.5),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -93,7 +93,7 @@ class ChatInputArea extends StatelessWidget {
                 return Container(
                   decoration: BoxDecoration(
                     gradient: canSend ? gradient : null,
-                    color: canSend ? null : extension.surfaceTierFill,
+                    color: canSend ? null : scheme.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(extension.cardRadius),
                   ),
                   child: IconButton(

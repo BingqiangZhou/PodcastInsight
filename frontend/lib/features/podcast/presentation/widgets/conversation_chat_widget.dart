@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/utils/resource_cleanup_mixin.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
@@ -317,7 +317,7 @@ class ConversationChatWidgetState
 
   Future<void> _startNewChat() async {
     final l10n = context.l10n;
-    final confirmed = await showGlassConfirmationDialog(
+    final confirmed = await showAppConfirmationDialog(
       context: context,
       title: l10n.podcast_conversation_new_chat,
       message: l10n.podcast_conversation_new_chat_confirm,

@@ -39,7 +39,7 @@ class ChatMessageBubble extends StatelessWidget {
         ? l10n.podcast_conversation_user
         : l10n.podcast_conversation_assistant;
 
-    // User: right-aligned with cardTierFill, AI: left-aligned with surfaceTierFill + violet gradient left bar
+    // User: right-aligned with surfaceContainerLow, AI: left-aligned with surfaceContainerLowest + primary gradient left bar
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
@@ -50,7 +50,7 @@ class ChatMessageBubble extends StatelessWidget {
             maxWidth: MediaQuery.sizeOf(context).width * 0.75,
           ),
           decoration: BoxDecoration(
-            color: isUser ? extension.cardTierFill : extension.surfaceTierFill,
+            color: isUser ? scheme.surfaceContainerLow : scheme.surfaceContainerLowest,
             borderRadius: bubbleRadius,
           ),
           child: isUser

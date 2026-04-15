@@ -30,7 +30,7 @@ class ChatEmptyState extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: ext.surfaceTierFill,
+                color: scheme.surfaceContainerLowest,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -59,7 +59,7 @@ class ChatEmptyState extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: ext.surfaceTierFill,
+                  color: scheme.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(ext.cardRadius),
                   border: Border(
                     left: BorderSide(color: scheme.primary, width: 3),

@@ -8,7 +8,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/core/utils/episode_description_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subscription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
@@ -141,7 +141,7 @@ class _ProfileSubscriptionsPageState
             tooltip: l10n.podcast_add_podcast,
             icon: Icons.add,
             onPressed: () {
-              showGlassDialog(
+              showAppDialog(
                 context: context,
                 builder: (context) => const AddPodcastDialog(),
               );

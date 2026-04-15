@@ -11,7 +11,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
@@ -242,7 +242,7 @@ class _ProfileCacheManagementPageState
       (acc, obj) => acc + (obj.length ?? 0),
     );
 
-    final confirm = await showGlassConfirmationDialog(
+    final confirm = await showAppConfirmationDialog(
       context: context,
       title: l10n.profile_clear_cache,
       message: l10n.profile_cache_manage_delete_selected_confirm(
@@ -281,7 +281,7 @@ class _ProfileCacheManagementPageState
 
   Future<void> _clearAll() async {
     final l10n = context.l10n;
-    final confirm = await showGlassConfirmationDialog(
+    final confirm = await showAppConfirmationDialog(
       context: context,
       title: l10n.profile_clear_cache,
       message: l10n.profile_clear_cache_confirm,
@@ -289,7 +289,7 @@ class _ProfileCacheManagementPageState
     );
     if (confirm != true || !mounted) return;
 
-    showGlassDialog<void>(
+    showAppDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(

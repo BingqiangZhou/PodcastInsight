@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
@@ -133,7 +133,7 @@ class _SessionListTile extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: isSelected
-            ? extension.surfaceTierFill
+            ? scheme.surfaceContainerLowest
             : Colors.transparent,
         border: isSelected
             ? Border(
@@ -169,7 +169,7 @@ class _SessionListTile extends ConsumerWidget {
           icon: const Icon(Icons.delete_outline, size: 20),
           color: AppColors.darkOnSurfaceMuted,
           onPressed: () async {
-            final confirm = await showGlassConfirmationDialog(
+            final confirm = await showAppConfirmationDialog(
               context: context,
               title: l10n.podcast_conversation_delete_title,
               message: l10n.podcast_conversation_delete_confirm,
@@ -196,7 +196,7 @@ class _SessionListTile extends ConsumerWidget {
           },
         ),
         selected: isSelected,
-        selectedTileColor: extension.surfaceTierFill,
+        selectedTileColor: scheme.surfaceContainerLowest,
         onTap: () {
           ref
               .read(currentSessionIdProvider(episodeId).notifier)

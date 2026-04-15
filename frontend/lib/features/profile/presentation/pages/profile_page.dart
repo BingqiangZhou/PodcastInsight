@@ -9,7 +9,7 @@ import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
 import 'package:personal_ai_assistant/core/theme/font_provider.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
-import 'package:personal_ai_assistant/core/widgets/glass_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
@@ -413,7 +413,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     BuildContext context, {
     required Widget Function(BuildContext dialogContext) builder, bool barrierDismissible = true,
   }) {
-    return showGlassDialog<T>(
+    return showAppDialog<T>(
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (dialogContext) => LayoutBuilder(
@@ -812,7 +812,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final packageInfo = await PackageInfo.fromPlatform();
     if (!context.mounted) return;
 
-    showGlassDialog<void>(
+    showAppDialog<void>(
       context: context,
       builder: (dialogContext) {
         final iconColor = ResponsiveDialogHelper.iconColor(dialogContext);
@@ -872,7 +872,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _showServerConfigDialog(BuildContext context) {
-    showGlassDialog(
+    showAppDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const ServerConfigDialog(),
