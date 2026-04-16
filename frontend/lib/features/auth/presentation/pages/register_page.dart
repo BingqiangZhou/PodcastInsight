@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -6,6 +8,8 @@ import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/platform/adaptive_haptic.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
@@ -89,6 +93,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       final isAuthenticated = next.isAuthenticated;
 
       if (isAuthenticated && !wasAuthenticated) {
+        AdaptiveHaptic.notificationSuccess(context);
         context.go('/feed');
       } else if (next.error != null &&
           next.error != previous?.error &&
@@ -284,19 +289,34 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 // Remember me checkbox
                 Row(
                   children: [
-                    Checkbox(
-                      value: _rememberMe,
-                      onChanged: (value) async {
-                        setState(() {
-                          _rememberMe = value ?? false;
-                        });
-                        if (!_rememberMe) {
-                          await _secureStorage.delete(
-                            key: AppConstants.savedUsernameKey,
-                          );
-                        }
-                      },
-                    ),
+                    if (Platform.isIOS)
+                      CupertinoSwitch(
+                        value: _rememberMe,
+                        onChanged: (value) async {
+                          setState(() {
+                            _rememberMe = value;
+                          });
+                          if (!_rememberMe) {
+                            await _secureStorage.delete(
+                              key: AppConstants.savedUsernameKey,
+                            );
+                          }
+                        },
+                      )
+                    else
+                      Checkbox(
+                        value: _rememberMe,
+                        onChanged: (value) async {
+                          setState(() {
+                            _rememberMe = value ?? false;
+                          });
+                          if (!_rememberMe) {
+                            await _secureStorage.delete(
+                              key: AppConstants.savedUsernameKey,
+                            );
+                          }
+                        },
+                      ),
                     Text(l10n.auth_remember_me),
                   ],
                 ),
@@ -306,14 +326,24 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 // Terms and conditions
                 Row(
                   children: [
-                    Checkbox(
-                      value: _agreeToTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _agreeToTerms = value ?? false;
-                        });
-                      },
-                    ),
+                    if (Platform.isIOS)
+                      CupertinoSwitch(
+                        value: _agreeToTerms,
+                        onChanged: (value) {
+                          setState(() {
+                            _agreeToTerms = value;
+                          });
+                        },
+                      )
+                    else
+                      Checkbox(
+                        value: _agreeToTerms,
+                        onChanged: (value) {
+                          setState(() {
+                            _agreeToTerms = value ?? false;
+                          });
+                        },
+                      ),
                     Expanded(
                       child: Text.rich(
                         TextSpan(
@@ -365,34 +395,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 const SizedBox(height: AppSpacing.lg),
 
                 // Register button
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: FilledButton(
-                    key: const Key('register_button'),
-                    onPressed: isLoading ? null : _register,
-                    child: isLoading
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Builder(
-                              builder: (context) {
-                                final theme = Theme.of(context);
-                                return Theme(
-                                  data: theme.copyWith(
-                                    colorScheme: theme.colorScheme.copyWith(
-                                      primary: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  child: const CircularProgressIndicator.adaptive(
-                                    strokeWidth: 2,
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        : Text(l10n.auth_create_account),
-                  ),
+                AdaptiveButton(
+                  key: const Key('register_button'),
+                  style: AdaptiveButtonStyle.filled,
+                  onPressed: isLoading ? null : _register,
+                  isLoading: isLoading,
+                  child: Text(l10n.auth_create_account),
                 ),
 
                 const SizedBox(height: AppSpacing.md),
@@ -409,12 +417,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    GestureDetector(
-                      onTap: () => context.go('/login'),
+                    AdaptiveButton(
+                      style: AdaptiveButtonStyle.text,
+                      onPressed: () => context.go('/login'),
                       child: Text(
                         l10n.auth_sign_in_link,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
                       ),

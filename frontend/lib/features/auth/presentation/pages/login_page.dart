@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -7,7 +9,9 @@ import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/platform/adaptive_haptic.dart';
+import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -203,28 +207,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   children: [
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Checkbox(
+                    if (Platform.isIOS)
+                      CupertinoSwitch(
                         value: _rememberMe,
-                        activeColor: Theme.of(context).colorScheme.primary,
-                        checkColor: Colors.white,
-                        side: BorderSide(
-                          color: _rememberMe
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.6),
-                          width: 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: AppRadius.xsRadius,
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         onChanged: (value) async {
                           setState(() {
-                            _rememberMe = value ?? false;
+                            _rememberMe = value;
                           });
                           if (!_rememberMe) {
                             await _secureStorage.delete(
@@ -232,8 +220,39 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             );
                           }
                         },
+                      )
+                    else
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(
+                          value: _rememberMe,
+                          activeColor: Theme.of(context).colorScheme.primary,
+                          checkColor: Colors.white,
+                          side: BorderSide(
+                            color: _rememberMe
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                            width: 2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.xsRadius,
+                          ),
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          onChanged: (value) async {
+                            setState(() {
+                              _rememberMe = value ?? false;
+                            });
+                            if (!_rememberMe) {
+                              await _secureStorage.delete(
+                                key: AppConstants.savedUsernameKey,
+                              );
+                            }
+                          },
+                        ),
                       ),
-                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Flexible(
                       child: Text(
@@ -243,7 +262,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                     ),
                     const Spacer(),
-                    TextButton(
+                    AdaptiveButton(
+                      style: AdaptiveButtonStyle.text,
                       onPressed: () {
                         context.go('/forgot-password');
                       },
@@ -252,34 +272,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    key: const Key('login_button'),
-                    onPressed: isLoading ? null : _login,
-                    child: isLoading
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Builder(
-                              builder: (context) {
-                                final theme = Theme.of(context);
-                                return Theme(
-                                  data: theme.copyWith(
-                                    colorScheme: theme.colorScheme.copyWith(
-                                      primary: theme.colorScheme.onPrimary,
-                                    ),
-                                  ),
-                                  child: const CircularProgressIndicator.adaptive(
-                                    strokeWidth: 2,
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        : Text(l10n.auth_login),
-                  ),
+                AdaptiveButton(
+                  key: const Key('login_button'),
+                  style: AdaptiveButtonStyle.filled,
+                  onPressed: isLoading ? null : _login,
+                  isLoading: isLoading,
+                  child: Text(l10n.auth_login),
                 ),
                 const SizedBox(height: AppSpacing.mdLg),
                 Row(
@@ -291,7 +289,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
-                    TextButton(
+                    AdaptiveButton(
+                      style: AdaptiveButtonStyle.text,
                       onPressed: () => context.go('/register'),
                       child: Text(l10n.auth_sign_up),
                     ),

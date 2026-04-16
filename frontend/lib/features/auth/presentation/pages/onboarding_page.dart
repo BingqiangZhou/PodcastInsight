@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/onboarding_provider.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
@@ -60,7 +63,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 alignment: Alignment.topRight,
                 child: Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.sm, right: AppSpacing.sm),
-                  child: TextButton(
+                  child: AdaptiveButton(
+                    style: AdaptiveButtonStyle.text,
                     onPressed: _completeOnboarding,
                     child: Text(
                       l10n.onboarding_skip,
@@ -76,6 +80,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
               Expanded(
                 child: PageView(
                   controller: _pageController,
+                  physics: Platform.isIOS
+                      ? const BouncingScrollPhysics()
+                      : null,
                   onPageChanged: (page) {
                     setState(() => _currentPage = page);
                   },
@@ -146,26 +153,18 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     const SizedBox(height: AppSpacing.xl),
 
                     // Action button
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: isLastPage
-                            ? _completeOnboarding
-                            : () => _goToPage(_currentPage + 1),
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.mdLgRadius,
-                          ),
-                        ),
-                        child: Text(
-                          isLastPage
-                              ? l10n.onboarding_get_started
-                              : l10n.onboarding_next,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: scheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    AdaptiveButton(
+                      style: AdaptiveButtonStyle.filled,
+                      onPressed: isLastPage
+                          ? _completeOnboarding
+                          : () => _goToPage(_currentPage + 1),
+                      child: Text(
+                        isLastPage
+                            ? l10n.onboarding_get_started
+                            : l10n.onboarding_next,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: scheme.onPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
