@@ -11,3 +11,4 @@ export 'adaptive_text_field.dart';
 export 'adaptive_search_bar.dart';
 export 'adaptive_sliver_app_bar.dart';
 export 'adaptive_segmented_control.dart';
+export 'adaptive_dismissible.dart';
