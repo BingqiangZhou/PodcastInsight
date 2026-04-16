@@ -7,7 +7,6 @@ import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
-import 'package:personal_ai_assistant/core/theme/font_provider.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
@@ -368,7 +367,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return Consumer(
       builder: (context, ref, _) {
         final currentCode = ref.watch(themeModeCodeProvider);
-        final fontCombo = ref.watch(fontCombinationProvider);
         final l10n = context.l10n;
         final themeModeName = switch (currentCode) {
           kThemeModeSystem => l10n.theme_mode_follow_system,
@@ -380,10 +378,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           context,
           icon: Icons.palette_outlined,
           title: l10n.appearance_title,
-          subtitle: l10n.appearance_subtitle(
-            themeModeName,
-            fontCombo.displayName,
-          ),
+          subtitle: themeModeName,
           onTap: () => context.push('/settings/appearance'),
         );
       },

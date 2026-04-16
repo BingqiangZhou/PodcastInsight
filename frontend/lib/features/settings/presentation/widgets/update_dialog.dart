@@ -199,9 +199,8 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                   ? SizedBox(
                       width: AppSpacing.lg,
                       height: AppSpacing.lg,
-                      child: CircularProgressIndicator(
+                      child: CircularProgressIndicator.adaptive(
                         strokeWidth: 2,
-                        color: palette.loadingIndicator,
                       ),
                     )
                   : const Icon(Icons.download, size: 18),
@@ -241,9 +240,8 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                   ? SizedBox(
                       width: AppSpacing.lg,
                       height: AppSpacing.lg,
-                      child: CircularProgressIndicator(
+                      child: CircularProgressIndicator.adaptive(
                         strokeWidth: 2,
-                        color: palette.loadingIndicator,
                       ),
                     )
                   : const Icon(Icons.download, size: 18),
@@ -744,9 +742,8 @@ class _ManualUpdateCheckDialogState
           SizedBox(
             width: 52,
             height: 52,
-            child: CircularProgressIndicator(
+            child: CircularProgressIndicator.adaptive(
               strokeWidth: 3,
-              color: palette.loadingIndicator,
             ),
           ),
           const SizedBox(height: AppSpacing.mdLg),

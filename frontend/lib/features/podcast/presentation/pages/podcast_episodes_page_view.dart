@@ -277,7 +277,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
     final l10n = context.l10n;
     return PopupMenuButton<String>(
       icon: Icon(
-        Icons.more_vert,
+        Icons.adaptive.more,
         color: Theme.of(context).colorScheme.secondary,
       ),
       onSelected: (value) {

@@ -132,7 +132,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                         ? const SizedBox(
                             width: AppSpacing.md,
                             height: AppSpacing.md,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator.adaptive(strokeWidth: 2),
                           )
                         : const Icon(Icons.add),
                     label: Text(

@@ -407,7 +407,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                 const SizedBox(
                   width: AppSpacing.md,
                   height: AppSpacing.md,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator.adaptive(strokeWidth: 2),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(l10n.profile_server_switch_clearing),

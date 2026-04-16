@@ -2,11 +2,9 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/core/theme/font_combination.dart';
 import 'package:personal_ai_assistant/core/theme/responsive_helpers.dart';
 
 /// ============================================================
@@ -21,87 +19,19 @@ import 'package:personal_ai_assistant/core/theme/responsive_helpers.dart';
 class AppTheme {
   AppTheme._();
 
-  // ============================================================
-  // CACHED FONT METADATA / 缓存字体元数据
-  // These are resolved once and reused across all theme builds.
-  // ============================================================
-
-  /// CJK fallback chain shared across all font combinations.
-  static const List<String> _cjkFallback = [
-    'Noto Sans SC',
-    'PingFang SC',
-    'Microsoft YaHei',
-  ];
-
-  /// Per-combo cached heading bases.
-  static final Map<String, TextStyle> _headingBases = {};
-
-  /// Per-combo cached body bases.
-  static final Map<String, TextStyle> _bodyBases = {};
-
-  /// Cached monospace base (IBM Plex Mono — fixed, not user-selectable).
-  static final TextStyle _monoBase = GoogleFonts.ibmPlexMono();
-
-  /// Currently active font combination, set by the app when fonts change.
-  static FontCombination _currentFonts = FontCombination.defaultCombination;
-
-  /// Update the active font combination and invalidate theme cache.
-  static void updateFontCombination(FontCombination fonts) {
-    _currentFonts = fonts;
-    _themeCache.clear();
-  }
-
-  /// Get cached heading base for the given combination.
-  /// Falls back to a plain TextStyle when Google Fonts is unavailable (e.g. tests).
-  static TextStyle _headingBaseFor(FontCombination fonts) =>
-      _headingBases.putIfAbsent(
-        fonts.id,
-        () {
-          try {
-            return GoogleFonts.getFont(fonts.headingFontFamily);
-          } catch (_) {
-            return TextStyle(fontFamily: fonts.headingFontFamily);
-          }
-        },
-      );
-
-  /// Get cached body base for the given combination.
-  /// Falls back to a plain TextStyle when Google Fonts is unavailable (e.g. tests).
-  static TextStyle _bodyBaseFor(FontCombination fonts) => _bodyBases.putIfAbsent(
-        fonts.id,
-        () {
-          try {
-            return GoogleFonts.getFont(
-              fonts.bodyFontFamily,
-              textStyle: const TextStyle(fontFamilyFallback: _cjkFallback),
-            );
-          } catch (_) {
-            return TextStyle(
-              fontFamily: fonts.bodyFontFamily,
-              fontFamilyFallback: _cjkFallback,
-            );
-          }
-        },
-      );
-
-  /// Cached body font family name for the default combination.
-  static final String _bodyFontFamily =
-      GoogleFonts.getFont(FontCombination.defaultCombination.bodyFontFamily)
-          .fontFamily!;
-
   /// Returns a monospace TextStyle suitable for code, timestamps, and data.
-  /// Uses IBM Plex Mono for a refined, readable monospace accent.
   static TextStyle monoStyle({
     double fontSize = 13,
     FontWeight fontWeight = FontWeight.w400,
     double height = 1.5,
     Color? color,
   }) {
-    return _monoBase.copyWith(
+    return TextStyle(
       fontSize: fontSize,
       fontWeight: fontWeight,
       height: height,
       letterSpacing: 0,
+      fontFamily: 'monospace',
       color: color,
     );
   }
@@ -113,7 +43,7 @@ class AppTheme {
 
   /// Transcript body text (fontSize: 15, height: 1.6).
   /// Used across podcast transcript and show notes displays.
-  static TextStyle transcriptBody([Color? color]) => _bodyBaseFor(_currentFonts).copyWith(
+  static TextStyle transcriptBody([Color? color]) => TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w400,
     height: 1.6,
@@ -123,7 +53,7 @@ class AppTheme {
 
   /// Caption text (fontSize: 13, height: 1.4).
   /// Fills the gap between bodySmall (12) and bodyMedium (14).
-  static TextStyle caption([Color? color]) => _bodyBaseFor(_currentFonts).copyWith(
+  static TextStyle caption([Color? color]) => TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w400,
     height: 1.4,
@@ -133,7 +63,7 @@ class AppTheme {
 
   /// Compact metadata text (fontSize: 11, height: 1.3).
   /// For scores, tags, micro-labels.
-  static TextStyle metaSmall([Color? color]) => _bodyBaseFor(_currentFonts).copyWith(
+  static TextStyle metaSmall([Color? color]) => TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w500,
     height: 1.3,
@@ -144,7 +74,7 @@ class AppTheme {
   /// Navigation rail label (fontSize: 10, height: 1.0).
   /// For extremely compact navigation labels.
   static TextStyle navLabel(Color? color, {FontWeight weight = FontWeight.w500}) =>
-    _bodyBaseFor(_currentFonts).copyWith(
+    TextStyle(
       fontSize: 10,
       fontWeight: weight,
       height: 1,
@@ -178,20 +108,19 @@ class AppTheme {
   // Cached so they are only built once per brightness.
   // ============================================================
 
-  /// Theme cache keyed by '${fontComboId}_${brightness}'.
+  /// Theme cache keyed by '${brightness}_${platform}'.
   static final Map<String, ThemeData> _themeCache = {};
 
-  /// Build (or return cached) theme for the given brightness, fonts, and optional platform.
+  /// Build (or return cached) theme for the given brightness and optional platform.
   static ThemeData buildTheme(
-    Brightness brightness,
-    FontCombination fonts, [
+    Brightness brightness, [
     TargetPlatform? platform,
   ]) {
     final resolvedPlatform = platform ?? defaultTargetPlatform;
-    final cacheKey = '${fonts.id}_${brightness.name}_${resolvedPlatform.name}';
+    final cacheKey = '${brightness.name}_${resolvedPlatform.name}';
     return _themeCache.putIfAbsent(
       cacheKey,
-      () => _buildTheme(brightness, fonts, resolvedPlatform),
+      () => _buildTheme(brightness, resolvedPlatform),
     );
   }
 
@@ -217,23 +146,19 @@ class AppTheme {
           color: isDark
               ? AppColors.darkTextPrimary
               : AppColors.lightTextPrimary,
-          fontFamily: _bodyFontFamily,
         ),
       ),
     );
   }
 
-  /// Backward-compatible light theme (uses default fonts and platform).
-  static ThemeData get lightTheme =>
-      buildTheme(Brightness.light, _currentFonts);
+  /// Backward-compatible light theme.
+  static ThemeData get lightTheme => buildTheme(Brightness.light);
 
-  /// Backward-compatible dark theme (uses default fonts and platform).
-  static ThemeData get darkTheme =>
-      buildTheme(Brightness.dark, _currentFonts);
+  /// Backward-compatible dark theme.
+  static ThemeData get darkTheme => buildTheme(Brightness.dark);
 
   static ThemeData _buildTheme(
     Brightness brightness,
-    FontCombination fonts,
     TargetPlatform platform,
   ) {
     final isDark = brightness == Brightness.dark;
@@ -244,11 +169,12 @@ class AppTheme {
       scheme.onSurfaceVariant,
       isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
     );
-    final extension = isDark
-        ? AppThemeExtension.dark
-        : AppThemeExtension.light;
+    final extension = isIOS
+        ? (isDark ? AppThemeExtension.darkIOS : AppThemeExtension.lightIOS)
+        : (isDark ? AppThemeExtension.dark : AppThemeExtension.light);
 
-    final googleTextTheme = _buildGoogleTextTheme(textTheme, fonts);
+    // Use system font on all platforms for native feel.
+    final googleTextTheme = textTheme;
 
     return ThemeData(
       useMaterial3: true,
@@ -258,7 +184,7 @@ class AppTheme {
           ? AppColors.darkBackground
           : AppColors.lightBackground,
       textTheme: googleTextTheme,
-      fontFamily: _bodyBaseFor(fonts).fontFamily,
+      fontFamily: null,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
@@ -308,7 +234,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(isIOS ? 16 : 24),
         ),
         titleTextStyle: _withHeading(textTheme.headlineSmall),
       ),
@@ -320,7 +246,9 @@ class AppTheme {
       iconTheme: IconThemeData(color: scheme.onSurfaceVariant, size: 22),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        fillColor: isIOS
+            ? scheme.surfaceContainerHighest.withValues(alpha: 0.4)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
         hintStyle: _withBody(
           textTheme.bodyMedium?.copyWith(
             color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
@@ -457,7 +385,7 @@ class AppTheme {
           scheme.primary,
           scheme.onPrimary,
           radius: extension.buttonRadius,
-          elevation: 0,
+          elevation: isIOS ? 0 : 0,
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
           textStyle: _withBody(
             textTheme.labelLarge?.copyWith(
@@ -745,35 +673,13 @@ class AppTheme {
     );
   }
 
-  /// Apply heading font to a [TextStyle] using the cached base.
+  /// Apply heading font to a [TextStyle].
   static TextStyle _withHeading(TextStyle? base) {
-    return _headingBaseFor(_currentFonts).merge(base);
+    return base ?? const TextStyle();
   }
 
-  /// Apply body font to a [TextStyle] using the cached base.
+  /// Apply body font to a [TextStyle].
   static TextStyle _withBody(TextStyle? base) {
-    return _bodyBaseFor(_currentFonts).merge(base);
-  }
-
-  /// Build typography with the given font combination.
-  /// Uses cached font family references instead of repeated GoogleFonts calls.
-  static TextTheme _buildGoogleTextTheme(TextTheme baseTheme, FontCombination fonts) {
-    final headingBase = _headingBaseFor(fonts);
-    final bodyBase = _bodyBaseFor(fonts);
-    return baseTheme.copyWith(
-      displaySmall: headingBase.merge(baseTheme.displaySmall),
-      headlineLarge: headingBase.merge(baseTheme.headlineLarge),
-      headlineMedium: headingBase.merge(baseTheme.headlineMedium),
-      headlineSmall: headingBase.merge(baseTheme.headlineSmall),
-      titleLarge: headingBase.merge(baseTheme.titleLarge),
-      titleMedium: bodyBase.merge(baseTheme.titleMedium),
-      titleSmall: bodyBase.merge(baseTheme.titleSmall),
-      bodyLarge: bodyBase.merge(baseTheme.bodyLarge),
-      bodyMedium: bodyBase.merge(baseTheme.bodyMedium),
-      bodySmall: bodyBase.merge(baseTheme.bodySmall),
-      labelLarge: bodyBase.merge(baseTheme.labelLarge),
-      labelMedium: bodyBase.merge(baseTheme.labelMedium),
-      labelSmall: bodyBase.merge(baseTheme.labelSmall),
-    );
+    return base ?? const TextStyle();
   }
 }

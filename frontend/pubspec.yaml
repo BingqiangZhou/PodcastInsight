@@ -38,7 +38,6 @@ dependencies:
   path: ^1.9.1
 
   # UI Components
-  google_fonts: ^8.0.2
   shimmer: ^3.0.0
   flutter_markdown_plus: ^1.0.7
   flutter_widget_from_html: ^0.17.1

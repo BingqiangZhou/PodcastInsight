@@ -10,7 +10,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:personal_ai_assistant/core/app/app.dart';
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
-import 'package:personal_ai_assistant/core/theme/font_provider.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/features/auth/presentation/providers/onboarding_provider.dart';
@@ -118,12 +117,6 @@ void main() {
           ) ??
           kThemeModeSystem;
 
-      final initialFontCombinationId =
-          await storageService.getString(
-            AppConstants.fontCombinationKey,
-          ) ??
-          kFontCombinationDefault;
-
       final customServerUrl = await storageService.getServerBaseUrl();
       if (customServerUrl != null && customServerUrl.isNotEmpty) {
         AppConfig.setServerBaseUrl(customServerUrl);
@@ -152,9 +145,6 @@ void main() {
             audioHandlerProvider.overrideWithValue(platformAudioHandler),
             initialThemeModeCodeProvider.overrideWithValue(
               initialThemeModeCode,
-            ),
-            initialFontCombinationIdProvider.overrideWithValue(
-              initialFontCombinationId,
             ),
             initialOnboardingCompletedProvider.overrideWithValue(
               hasCompletedOnboarding,

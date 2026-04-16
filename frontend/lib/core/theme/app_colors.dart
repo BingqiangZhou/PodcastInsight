@@ -367,6 +367,44 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     podcastGradientColors: AppColors.podcastGradientColors,
   );
 
+  /// Light theme extension for iOS (larger radii, no Material shadows)
+  static const lightIOS = AppThemeExtension(
+    contentMaxWidth: 1240,
+    sectionGap: 24,
+    cardRadius: 16,
+    buttonRadius: 14,
+    navItemRadius: 12,
+    itemRadius: 10,
+    sheetRadius: 20,
+    pillRadius: 999,
+    shadowXs: BoxShadow(color: Color(0x00000000)),
+    shadowSm: BoxShadow(color: Color(0x00000000)),
+    shadowMd: BoxShadow(color: Color(0x00000000)),
+    shadowLg: BoxShadow(color: Color(0x00000000)),
+    chartColors: AppColors.chartColors,
+    aiPrimary: Color(0xFF5856D6),
+    podcastGradientColors: AppColors.podcastGradientColors,
+  );
+
+  /// Dark theme extension for iOS (larger radii, no Material shadows)
+  static const darkIOS = AppThemeExtension(
+    contentMaxWidth: 1240,
+    sectionGap: 24,
+    cardRadius: 16,
+    buttonRadius: 14,
+    navItemRadius: 12,
+    itemRadius: 10,
+    sheetRadius: 20,
+    pillRadius: 999,
+    shadowXs: BoxShadow(color: Color(0x00000000)),
+    shadowSm: BoxShadow(color: Color(0x00000000)),
+    shadowMd: BoxShadow(color: Color(0x00000000)),
+    shadowLg: BoxShadow(color: Color(0x00000000)),
+    chartColors: AppColors.chartColors,
+    aiPrimary: Color(0xFFA5B4FC),
+    podcastGradientColors: AppColors.podcastGradientColors,
+  );
+
   /// Light theme with gradient (non-const, for runtime use)
   static AppThemeExtension get lightWithGradient => light.copyWith(
     shellGradient: const LinearGradient(
