@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/platform/adaptive_page_route.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/pages/auth_verify_page.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/pages/forgot_password_page.dart';
@@ -34,49 +35,24 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<ModalRoute<dynamic>> appRouteObserver =
     RouteObserver<ModalRoute<dynamic>>();
 
-/// Helper to create a custom transition page with fade animation.
 CustomTransitionPage<T> _buildPageWithTransition<T>({
   required GoRouterState state,
   required Widget child,
 }) {
-  return CustomTransitionPage<T>(
-    key: state.pageKey,
+  return adaptivePageTransition<T>(
     child: child,
-    transitionDuration: const Duration(milliseconds: 150),
-    reverseTransitionDuration: const Duration(milliseconds: 150),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curvedAnimation = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOut,
-      );
-      return FadeTransition(
-        opacity: curvedAnimation,
-        child: child,
-      );
-    },
+    pageKey: ValueKey<String>(state.pageKey.value),
   );
 }
 
-/// Helper for modal-style transitions (same as standard for simplicity).
 CustomTransitionPage<T> _buildModalPage<T>({
   required GoRouterState state,
   required Widget child,
 }) {
-  return CustomTransitionPage<T>(
-    key: state.pageKey,
+  return adaptivePageTransition<T>(
     child: child,
-    transitionDuration: const Duration(milliseconds: 150),
-    reverseTransitionDuration: const Duration(milliseconds: 150),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curvedAnimation = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOut,
-      );
-      return FadeTransition(
-        opacity: curvedAnimation,
-        child: child,
-      );
-    },
+    pageKey: ValueKey<String>(state.pageKey.value),
+    fullscreenDialog: true,
   );
 }
 
