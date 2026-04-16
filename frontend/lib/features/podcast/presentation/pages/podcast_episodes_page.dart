@@ -151,21 +151,37 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
 
     return AdaptiveScaffold(
       backgroundColor: Colors.transparent,
-      child: Column(
-        children: [
-          _buildHeader(l10n, fallbackSubscriptionImageUrl),
-
-          Expanded(
+      child: CustomScrollView(
+        slivers: [
+          AdaptiveSliverAppBar(
+            title: widget.podcastTitle ?? l10n.podcast_episodes,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: _buildHeaderCover(fallbackSubscriptionImageUrl),
+            ),
+            actions: _buildHeaderActions(l10n),
+          ),
+          SliverToBoxAdapter(
+            child: MediaQuery.sizeOf(context).width >= 700
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    child: _buildFilterChips(),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sm)),
+          SliverFillRemaining(
+            hasScrollBody: false,
             child: episodesState.isLoading && episodesState.episodes.isEmpty
                 ? const SkeletonCardList(itemCount: 6, compact: true, showDescription: false)
                 : episodesState.error != null
-                ? _buildErrorState(episodesState.error!)
-                : episodesState.episodes.isEmpty
-                ? _buildEmptyState()
-                : RefreshIndicator(
-                    onRefresh: _refreshEpisodes,
-                    child: _buildEpisodesScrollable(episodesState),
-                  ),
+                    ? _buildErrorState(episodesState.error!)
+                    : episodesState.episodes.isEmpty
+                        ? _buildEmptyState()
+                        : RefreshIndicator(
+                            onRefresh: _refreshEpisodes,
+                            child: _buildEpisodesScrollable(episodesState),
+                          ),
           ),
         ],
       ),

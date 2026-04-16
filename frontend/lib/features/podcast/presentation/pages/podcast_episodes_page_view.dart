@@ -1,79 +1,11 @@
 part of 'podcast_episodes_page.dart';
 
 extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
-  Widget _buildHeader(AppLocalizations l10n, String? fallbackImageUrl) {
-    return Padding(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + AppSpacing.sm),
-      child: Container(
-        height: 56,
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        child: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.adaptive.arrow_back),
-              onPressed: () => context.canPop() ? context.pop() : context.go('/'),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            _buildHeaderCover(fallbackImageUrl),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                widget.podcastTitle ?? l10n.podcast_episodes,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            IconButton(
-              icon: _isReparsing
-                  ? SizedBox(
-                      width: AppSpacing.mdLg,
-                      height: AppSpacing.mdLg,
-                      child: Builder(
-                        builder: (context) {
-                          final theme = Theme.of(context);
-                          return Theme(
-                            data: theme.copyWith(
-                              colorScheme: theme.colorScheme.copyWith(
-                                primary: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            child: const CircularProgressIndicator.adaptive(
-                              strokeWidth: 2,
-                            ),
-                          );
-                        },
-                      ),
-                    )
-                  : const Icon(Icons.refresh),
-              onPressed: _isReparsing ? null : _reparseSubscription,
-              tooltip: l10n.podcast_reparse_tooltip,
-            ),
-            if (MediaQuery.sizeOf(context).width < 700) ...[
-              IconButton(
-                icon: const Icon(Icons.filter_list),
-                onPressed: _showFilterDialog,
-                tooltip: l10n.filter,
-              ),
-              _buildMoreMenu(),
-            ] else ...[
-              _buildFilterChips(),
-              const SizedBox(width: AppSpacing.sm),
-              _buildMoreMenu(),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildHeaderCover(String? fallbackImageUrl) {
     final extension = appThemeOf(context);
     return Container(
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(extension.itemRadius),
@@ -83,36 +15,70 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
         child: Builder(
           builder: (context) {
             final sub = widget.subscription;
-
             if (sub?.imageUrl != null) {
               return PodcastImageWidget(
                 imageUrl: sub!.imageUrl,
-                width: 40,
-                height: 40,
-                iconSize: 24,
+                width: 32,
+                height: 32,
+                iconSize: 20,
                 iconColor: Theme.of(context).colorScheme.onPrimaryContainer,
               );
             }
-
             if (fallbackImageUrl != null) {
               return PodcastImageWidget(
                 imageUrl: fallbackImageUrl,
-                width: 40,
-                height: 40,
-                iconSize: 24,
+                width: 32,
+                height: 32,
+                iconSize: 20,
                 iconColor: Theme.of(context).colorScheme.onPrimaryContainer,
               );
             }
-
             return Icon(
               Icons.podcasts,
-              size: 24,
+              size: 20,
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             );
           },
         ),
       ),
     );
+  }
+
+  List<Widget> _buildHeaderActions(AppLocalizations l10n) {
+    return [
+      IconButton(
+        icon: _isReparsing
+            ? SizedBox(
+                width: AppSpacing.mdLg,
+                height: AppSpacing.mdLg,
+                child: Builder(
+                  builder: (context) {
+                    final theme = Theme.of(context);
+                    return Theme(
+                      data: theme.copyWith(
+                        colorScheme: theme.colorScheme.copyWith(
+                          primary: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      child: const CircularProgressIndicator.adaptive(
+                        strokeWidth: 2,
+                      ),
+                    );
+                  },
+                ),
+              )
+            : const Icon(Icons.refresh),
+        onPressed: _isReparsing ? null : _reparseSubscription,
+        tooltip: l10n.podcast_reparse_tooltip,
+      ),
+      if (MediaQuery.sizeOf(context).width < 700)
+        IconButton(
+          icon: const Icon(Icons.filter_list),
+          onPressed: _showFilterDialog,
+          tooltip: l10n.filter,
+        ),
+      _buildMoreMenu(),
+    ];
   }
 
   Widget _buildEpisodesScrollable(PodcastEpisodesState episodesState) {
