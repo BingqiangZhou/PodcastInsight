@@ -6,6 +6,7 @@ import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -65,36 +66,40 @@ class AppearancePage extends ConsumerWidget {
   }
 }
 
-/// Theme mode selection with SegmentedButton.
+/// Theme mode selection with AdaptiveSegmentedControl.
 class _ThemeModeSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final currentCode = ref.watch(themeModeCodeProvider);
 
-    return SegmentedButton<String>(
+    return AdaptiveSegmentedControl<String>(
       key: const Key('appearance_theme_segmented_button'),
-      style: ResponsiveDialogHelper.segmentedButtonStyle(context),
-      segments: [
-        ButtonSegment(
-          value: kThemeModeSystem,
-          label: Text(l10n.theme_mode_follow_system),
-          icon: const Icon(Icons.brightness_auto),
+      segments: {
+        kThemeModeSystem: Row(
+          children: [
+            const Icon(Icons.brightness_auto, size: 16),
+            const SizedBox(width: 8),
+            Text(l10n.theme_mode_follow_system),
+          ],
         ),
-        ButtonSegment(
-          value: kThemeModeLight,
-          label: Text(l10n.theme_mode_light),
-          icon: const Icon(Icons.light_mode),
+        kThemeModeLight: Row(
+          children: [
+            const Icon(Icons.light_mode, size: 16),
+            const SizedBox(width: 8),
+            Text(l10n.theme_mode_light),
+          ],
         ),
-        ButtonSegment(
-          value: kThemeModeDark,
-          label: Text(l10n.theme_mode_dark),
-          icon: const Icon(Icons.dark_mode),
+        kThemeModeDark: Row(
+          children: [
+            const Icon(Icons.dark_mode, size: 16),
+            const SizedBox(width: 8),
+            Text(l10n.theme_mode_dark),
+          ],
         ),
-      ],
-      selected: {currentCode},
-      onSelectionChanged: (selection) async {
-        final value = selection.first;
+      },
+      selected: currentCode,
+      onChanged: (value) async {
         final modeName = switch (value) {
           kThemeModeSystem => l10n.theme_mode_follow_system,
           kThemeModeLight => l10n.theme_mode_light,
