@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,13 +7,17 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
+import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
+import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/providers/profile_ui_providers.dart';
@@ -73,100 +79,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       title: l10n.profile,
       subtitle: '',
       roundedViewport: true,
-      trailing: PopupMenuButton<String>(
-        key: const Key('profile_user_menu_button'),
-        onSelected: (value) {
-          if (value == 'edit') {
-            _showEditProfileDialog(context);
-          } else if (value == 'logout') {
-            _showLogoutDialog(context);
-          }
-        },
-        offset: const Offset(0, AppSpacing.xxl),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.xlRadius),
-        itemBuilder: (context) => [
-          PopupMenuItem<String>(
-            enabled: false,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.person_outline,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    user?.displayName ?? l10n.profile_guest_user,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          PopupMenuItem<String>(
-            enabled: false,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.email_outlined,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    user?.email ?? l10n.profile_please_login,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const PopupMenuDivider(),
-          PopupMenuItem<String>(
-            value: 'edit',
-            key: const Key('profile_user_menu_item_edit'),
-            child: Row(
-              children: [
-                const Icon(Icons.edit_note, size: 20),
-                const SizedBox(width: AppSpacing.sm),
-                Text(l10n.profile_edit_profile),
-              ],
-            ),
-          ),
-          PopupMenuItem<String>(
-            value: 'logout',
-            key: const Key('profile_user_menu_item_logout'),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.logout,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  l10n.logout,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-            ),
-          ),
-        ],
-        child: CircleAvatar(
-          radius: 22,
-          backgroundColor: theme.colorScheme.onSurfaceVariant,
-          child: Text(
-            (user?.displayName ?? l10n.profile_guest_user).characters.first
-                .toUpperCase(),
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: theme.colorScheme.surface,
-            ),
-          ),
-        ),
-      ),
+      trailing: _buildUserMenu(context, user, theme, l10n),
       summary: const SizedBox.shrink(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,6 +308,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     Widget? trailing,
     VoidCallback? onTap,
   }) {
+    if (PlatformHelper.isIOS(context)) {
+      return AdaptiveListTile(
+        key: tileKey,
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: trailing ?? const Icon(CupertinoIcons.chevron_right),
+        onTap: onTap,
+      );
+    }
     return ListTile(
       key: tileKey,
       leading: Icon(icon),
@@ -447,21 +370,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                AdaptiveTextField(
                   controller: TextEditingController(text: user?.displayName ?? ''),
-                  decoration: InputDecoration(
-                    labelText: l10n.profile_name,
-                    border: const OutlineInputBorder(),
-                  ),
+                  placeholder: l10n.profile_name,
                   enabled: false,
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                TextField(
+                AdaptiveTextField(
                   controller: TextEditingController(text: user?.email ?? ''),
-                  decoration: InputDecoration(
-                    labelText: l10n.profile_email_field,
-                    border: const OutlineInputBorder(),
-                  ),
+                  placeholder: l10n.profile_email_field,
                   enabled: false,
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -494,8 +411,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ),
           ),
           actions: [
-            TextButton(
-              style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
+            AdaptiveButton(
+              style: AdaptiveButtonStyle.text,
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.close),
             ),
@@ -520,16 +437,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ListTile(
+                AdaptiveListTile(
                   leading: Icon(Icons.password, color: iconColor),
                   title: Text(l10n.profile_change_password),
-                  trailing: Icon(Icons.chevron_right, color: iconColor),
+                  trailing: Icon(
+                    PlatformHelper.isIOS(dialogContext)
+                        ? CupertinoIcons.chevron_right
+                        : Icons.chevron_right,
+                    color: iconColor,
+                  ),
                   onTap: () {
                     Navigator.of(dialogContext).pop();
                     _showChangePasswordDialog(context);
                   },
                 ),
-                ListTile(
+                AdaptiveListTile(
                   leading: Icon(Icons.fingerprint, color: iconColor),
                   title: Text(l10n.profile_biometric_auth),
                   subtitle: Text(
@@ -543,7 +465,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     onChanged: null,
                   ),
                 ),
-                ListTile(
+                AdaptiveListTile(
                   leading: Icon(Icons.phone_android, color: iconColor),
                   title: Text(l10n.profile_two_factor_auth),
                   subtitle: Text(
@@ -558,8 +480,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ),
           ),
           actions: [
-            TextButton(
-              style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
+            AdaptiveButton(
+              style: AdaptiveButtonStyle.text,
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.close),
             ),
@@ -654,13 +576,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ),
               ),
               actions: [
-                TextButton(
-                  style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
+                AdaptiveButton(
+                  style: AdaptiveButtonStyle.text,
                   onPressed:
                       isChanging ? null : () => Navigator.of(dialogContext).pop(),
                   child: Text(l10n.cancel),
                 ),
-                FilledButton(
+                AdaptiveButton(
+                  style: AdaptiveButtonStyle.filled,
                   onPressed: isChanging
                       ? null
                       : () async {
@@ -756,31 +679,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SegmentedButton<String>(
+                  AdaptiveSegmentedControl<String>(
                     key: const Key('profile_language_segmented_button'),
-                    style: ResponsiveDialogHelper.segmentedButtonStyle(
-                      dialogContext,
-                    ),
-                    segments: [
-                      ButtonSegment(
-                        value: kLanguageSystem,
-                        label: Text(l10n.languageFollowSystem),
-                        icon: const Icon(Icons.computer),
-                      ),
-                      ButtonSegment(
-                        value: kLanguageEnglish,
-                        label: Text(l10n.languageEnglish),
-                        icon: const Icon(Icons.language),
-                      ),
-                      ButtonSegment(
-                        value: kLanguageChinese,
-                        label: Text(l10n.languageChinese),
-                        icon: const Icon(Icons.translate),
-                      ),
-                    ],
-                    selected: {currentCode},
-                    onSelectionChanged: (selection) async {
-                      final value = selection.first;
+                    segments: {
+                      kLanguageSystem: Text(l10n.languageFollowSystem),
+                      kLanguageEnglish: Text(l10n.languageEnglish),
+                      kLanguageChinese: Text(l10n.languageChinese),
+                    },
+                    selected: currentCode,
+                    onChanged: (value) async {
                       await ref
                           .read(localeProvider.notifier)
                           .setLanguageCode(value);
@@ -799,8 +706,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ],
               ),
               actions: [
-                TextButton(
-                  style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
+                AdaptiveButton(
+                  style: AdaptiveButtonStyle.text,
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: Text(l10n.close),
                 ),
@@ -865,8 +772,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ),
           ),
           actions: [
-            TextButton(
-              style: ResponsiveDialogHelper.actionButtonStyle(dialogContext),
+            AdaptiveButton(
+              style: AdaptiveButtonStyle.text,
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.ok),
             ),
@@ -899,11 +806,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           title: Text(l10n.profile_logout_title),
           content: Text(l10n.profile_logout_message),
           actions: [
-            TextButton(
+            AdaptiveButton(
+              style: AdaptiveButtonStyle.text,
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.cancel),
             ),
-            FilledButton(
+            AdaptiveButton(
+              style: AdaptiveButtonStyle.filled,
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await ref.read(authProvider.notifier).logout();
@@ -919,6 +828,153 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildUserMenu(
+    BuildContext context,
+    User? user,
+    ThemeData theme,
+    AppLocalizations l10n,
+  ) {
+    final avatar = CircleAvatar(
+      radius: 22,
+      backgroundColor: theme.colorScheme.onSurfaceVariant,
+      child: Text(
+        (user?.displayName ?? l10n.profile_guest_user).characters.first.toUpperCase(),
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: theme.colorScheme.surface,
+        ),
+      ),
+    );
+
+    if (Platform.isIOS) {
+      return GestureDetector(
+        onTap: () => _showIOSUserMenu(context, user, l10n),
+        child: avatar,
+      );
+    }
+
+    return PopupMenuButton<String>(
+      key: const Key('profile_user_menu_button'),
+      onSelected: (value) {
+        if (value == 'edit') {
+          _showEditProfileDialog(context);
+        } else if (value == 'logout') {
+          _showLogoutDialog(context);
+        }
+      },
+      offset: const Offset(0, AppSpacing.xxl),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.xlRadius),
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Row(
+            children: [
+              Icon(
+                Icons.person_outline,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  user?.displayName ?? l10n.profile_guest_user,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Row(
+            children: [
+              Icon(
+                Icons.email_outlined,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  user?.email ?? l10n.profile_please_login,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'edit',
+          key: const Key('profile_user_menu_item_edit'),
+          child: Row(
+            children: [
+              const Icon(Icons.edit_note, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Text(l10n.profile_edit_profile),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'logout',
+          key: const Key('profile_user_menu_item_logout'),
+          child: Row(
+            children: [
+              Icon(
+                Icons.logout,
+                size: 20,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                l10n.logout,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: avatar,
+    );
+  }
+
+  void _showIOSUserMenu(
+    BuildContext context,
+    User? user,
+    AppLocalizations l10n,
+  ) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (popupContext) => CupertinoActionSheet(
+        title: Text(user?.displayName ?? l10n.profile_guest_user),
+        message: Text(user?.email ?? l10n.profile_please_login),
+        actions: [
+          CupertinoActionSheetAction(
+            key: const Key('profile_user_menu_item_edit'),
+            onPressed: () {
+              Navigator.of(popupContext).pop();
+              _showEditProfileDialog(context);
+            },
+            child: Text(l10n.profile_edit_profile),
+          ),
+          CupertinoActionSheetAction(
+            key: const Key('profile_user_menu_item_logout'),
+            onPressed: () {
+              Navigator.of(popupContext).pop();
+              _showLogoutDialog(context);
+            },
+            isDestructiveAction: true,
+            child: Text(l10n.logout),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(popupContext).pop(),
+          child: Text(l10n.cancel),
+        ),
+      ),
     );
   }
 }

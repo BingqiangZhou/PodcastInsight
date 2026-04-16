@@ -693,9 +693,8 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     );
   }
   Widget _buildShareButton(PodcastEpisodeModel episode) {
-    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return HeaderCapsuleActionButton(
-      tooltip: l10n.share ?? 'Share',
+      tooltip: 'Share',
       icon: Icons.adaptive.share,
       onPressed: () => _shareEpisode(episode),
       circular: true,

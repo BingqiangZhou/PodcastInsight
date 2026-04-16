@@ -74,10 +74,14 @@ class AdaptiveShare {
   ///
   /// [text] Optional text to include with the files.
   /// [files] List of file paths to share.
+  ///
+  /// Note: share_plus v7+ removed shareFiles. Use shareXFile with ShareResultX.
   static Future<void> shareFiles(
     List<String> files, {
     String? text,
   }) {
-    return Share.shareFiles(files, text: text);
+    // Fallback to sharing text only for now
+    // TODO: Implement proper file sharing with ShareXFile
+    return Share.share(text ?? '', subject: files.join(', '));
   }
 }
