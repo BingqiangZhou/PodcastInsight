@@ -516,9 +516,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextFormField(
+                      AdaptiveTextField(
                         controller: currentPasswordController,
                         obscureText: true,
+                        placeholder: l10n.profile_current_password,
                         decoration: InputDecoration(
                           labelText: l10n.profile_current_password,
                           border: const OutlineInputBorder(),
@@ -532,9 +533,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         },
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      TextFormField(
+                      AdaptiveTextField(
                         controller: newPasswordController,
                         obscureText: true,
+                        placeholder: l10n.profile_new_password,
                         decoration: InputDecoration(
                           labelText: l10n.profile_new_password,
                           border: const OutlineInputBorder(),
@@ -554,9 +556,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         },
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      TextFormField(
+                      AdaptiveTextField(
                         controller: confirmPasswordController,
                         obscureText: true,
+                        placeholder: l10n.profile_confirm_new_password,
                         decoration: InputDecoration(
                           labelText: l10n.profile_confirm_new_password,
                           border: const OutlineInputBorder(),

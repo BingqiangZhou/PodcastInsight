@@ -419,10 +419,10 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.xl),
-          ElevatedButton.icon(
+          AdaptiveButton(
             onPressed: _refreshEpisodes,
             icon: const Icon(Icons.refresh),
-            label: Text(l10n.retry),
+            child: Text(l10n.retry),
           ),
         ],
       ),

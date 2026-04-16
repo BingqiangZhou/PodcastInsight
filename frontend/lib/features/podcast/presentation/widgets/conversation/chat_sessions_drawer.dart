@@ -5,6 +5,7 @@ import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
@@ -145,7 +146,7 @@ class _SessionListTile extends ConsumerWidget {
               )
             : null,
       ),
-      child: ListTile(
+      child: AdaptiveListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         leading: Icon(
           isSelected ? Icons.chat_bubble : Icons.chat_bubble_outline,
@@ -196,8 +197,6 @@ class _SessionListTile extends ConsumerWidget {
             }
           },
         ),
-        selected: isSelected,
-        selectedTileColor: scheme.surfaceContainerLowest,
         onTap: () {
           ref
               .read(currentSessionIdProvider(episodeId).notifier)

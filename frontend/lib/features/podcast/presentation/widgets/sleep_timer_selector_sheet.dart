@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 
 /// Represents the user's sleep timer selection.
@@ -114,7 +115,7 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                 const SizedBox(height: AppSpacing.smMd),
                 const Divider(),
                 // After current episode
-                ListTile(
+                AdaptiveListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(
                     Icons.stop_circle_outlined,
@@ -132,7 +133,7 @@ Future<SleepTimerSelection?> showSleepTimerSelectorSheet({
                 // Cancel timer (only when active)
                 if (isTimerActive) ...[
                   const Divider(),
-                  ListTile(
+                  AdaptiveListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(
                       Icons.timer_off,

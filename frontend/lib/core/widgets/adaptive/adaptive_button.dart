@@ -21,6 +21,7 @@ class AdaptiveButton extends StatelessWidget {
     this.style = AdaptiveButtonStyle.filled,
     this.padding,
     this.isLoading = false,
+    this.icon,
   });
 
   final VoidCallback? onPressed;
@@ -28,6 +29,7 @@ class AdaptiveButton extends StatelessWidget {
   final AdaptiveButtonStyle style;
   final EdgeInsetsGeometry? padding;
   final bool isLoading;
+  final Widget? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +41,24 @@ class AdaptiveButton extends StatelessWidget {
 
   Widget _buildCupertino(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveChild = isLoading
-        ? CupertinoActivityIndicator(
-            color: style == AdaptiveButtonStyle.filled
-                ? CupertinoColors.white
-                : theme.colorScheme.primary,
-          )
-        : child;
+    Widget effectiveChild = child;
+
+    if (isLoading) {
+      effectiveChild = CupertinoActivityIndicator(
+        color: style == AdaptiveButtonStyle.filled
+            ? CupertinoColors.white
+            : theme.colorScheme.primary,
+      );
+    } else if (icon != null) {
+      effectiveChild = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon!,
+          const SizedBox(width: 8),
+          Flexible(child: child),
+        ],
+      );
+    }
 
     switch (style) {
       case AdaptiveButtonStyle.filled:
@@ -74,15 +87,26 @@ class AdaptiveButton extends StatelessWidget {
   }
 
   Widget _buildMaterial(BuildContext context) {
-    final effectiveChild = isLoading
-        ? SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator.adaptive(
-              strokeWidth: 2,
-            ),
-          )
-        : child;
+    Widget effectiveChild = child;
+
+    if (isLoading) {
+      effectiveChild = SizedBox(
+        height: 20,
+        width: 20,
+        child: CircularProgressIndicator.adaptive(
+          strokeWidth: 2,
+        ),
+      );
+    } else if (icon != null) {
+      effectiveChild = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon!,
+          const SizedBox(width: 8),
+          child,
+        ],
+      );
+    }
 
     switch (style) {
       case AdaptiveButtonStyle.filled:

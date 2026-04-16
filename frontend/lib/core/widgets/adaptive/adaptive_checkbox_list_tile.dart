@@ -2,43 +2,41 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 
-/// Adaptive list tile.
+/// Adaptive checkbox list tile.
 ///
-/// iOS: [CupertinoListTile] with Cupertino-style padding and dividers.
-/// Android: Material [ListTile].
-class AdaptiveListTile extends StatelessWidget {
-  const AdaptiveListTile({
+/// iOS: [CupertinoListTile] with a trailing [CupertinoCheckbox].
+/// Android: Material [CheckboxListTile].
+class AdaptiveCheckboxListTile extends StatelessWidget {
+  const AdaptiveCheckboxListTile({
     required this.title,
     super.key,
-    this.leading,
     this.subtitle,
-    this.trailing,
-    this.onTap,
-    this.leadingToTitle,
+    this.value,
+    this.onChanged,
     this.contentPadding,
   });
 
-  final Widget? leading;
   final Widget title;
   final Widget? subtitle;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-  final double? leadingToTitle;
+  final bool? value;
+  final ValueChanged<bool?>? onChanged;
   final EdgeInsetsGeometry? contentPadding;
 
   @override
   Widget build(BuildContext context) {
     if (PlatformHelper.isIOS(context)) {
       final cupertinoTile = CupertinoListTile(
-        leading: leading,
         title: DefaultTextStyle(
           style: CupertinoTheme.of(context).textTheme.textStyle,
           child: title,
         ),
         subtitle: subtitle,
-        trailing: trailing,
-        onTap: onTap,
-        leadingToTitle: leadingToTitle ?? 16.0,
+        trailing: CupertinoCheckbox(
+          value: value ?? false,
+          onChanged: onChanged,
+          activeColor: CupertinoColors.systemGreen.resolveFrom(context),
+        ),
+        onTap: () => onChanged?.call(!(value ?? false)),
       );
 
       if (contentPadding != null) {
@@ -50,13 +48,13 @@ class AdaptiveListTile extends StatelessWidget {
       return cupertinoTile;
     }
 
-    return ListTile(
-      leading: leading,
+    return CheckboxListTile(
       title: title,
       subtitle: subtitle,
-      trailing: trailing,
-      onTap: onTap,
+      value: value,
+      onChanged: onChanged,
       contentPadding: contentPadding,
+      controlAffinity: ListTileControlAffinity.trailing,
     );
   }
 }

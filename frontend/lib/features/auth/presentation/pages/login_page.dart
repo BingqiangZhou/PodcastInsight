@@ -135,8 +135,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     });
 
-    return Scaffold(
-      body: LoadingOverlay(
+    return AdaptiveScaffold(
+      child: LoadingOverlay(
         isLoading: isLoading,
         child: AuthShell(
           title: l10n.auth_welcome_back,

@@ -149,9 +149,9 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
     //   logger.AppLogger.debug('  Has subscription image: ${firstEpisode.subscriptionImageUrl != null}');
     // }
 
-    return Scaffold(
+    return AdaptiveScaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
+      child: Column(
         children: [
           _buildHeader(l10n, fallbackSubscriptionImageUrl),
 

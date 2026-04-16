@@ -104,8 +104,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       }
     });
 
-    return Scaffold(
-      body: LoadingOverlay(
+    return AdaptiveScaffold(
+      child: LoadingOverlay(
         isLoading: isLoading,
         child: AuthShell(
           title: l10n.auth_create_account,

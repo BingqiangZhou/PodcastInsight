@@ -3,6 +3,7 @@ import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/playback_speed_options.dart';
 
@@ -142,7 +143,7 @@ class _PlaybackSpeedSelectorSheetState
                 }).toList(),
               ),
               const SizedBox(height: AppSpacing.sm),
-              CheckboxListTile(
+              AdaptiveCheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _applyToSubscription,
                 onChanged: widget.allowApplyToSubscription

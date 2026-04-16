@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 
@@ -88,12 +89,11 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    TextFormField(
+                    AdaptiveTextField(
                       controller: _feedUrlController,
-                      minLines: 1,
+                      placeholder: l10n.podcast_feed_url_hint,
                       decoration: InputDecoration(
                         labelText: l10n.podcast_rss_feed_url,
-                        hintText: l10n.podcast_feed_url_hint,
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.rss_feed),
                         contentPadding: const EdgeInsets.symmetric(
@@ -126,16 +126,11 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                     child: Text(l10n.cancel),
                   ),
                   const SizedBox(width: AppSpacing.md),
-                  ElevatedButton.icon(
+                  AdaptiveButton(
                     onPressed: _isLoading ? null : _addSubscription,
-                    icon: _isLoading
-                        ? const SizedBox(
-                            width: AppSpacing.md,
-                            height: AppSpacing.md,
-                            child: CircularProgressIndicator.adaptive(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.add),
-                    label: Text(
+                    isLoading: _isLoading,
+                    icon: const Icon(Icons.add),
+                    child: Text(
                       _isLoading
                           ? l10n.podcast_adding
                           : l10n.podcast_add_dialog_title,

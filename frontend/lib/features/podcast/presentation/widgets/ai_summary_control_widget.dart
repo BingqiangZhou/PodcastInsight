@@ -5,6 +5,7 @@ import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
@@ -175,30 +176,15 @@ class _AISummaryControlWidgetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ElevatedButton.icon(
+        AdaptiveButton(
           onPressed: isLoading ? null : _generateSummary,
-          icon: isLoading
-              ? SizedBox(
-                  width: isCompact ? 16 : 18,
-                  height: isCompact ? 16 : 18,
-                  child: const CircularProgressIndicator.adaptive(strokeWidth: 2),
-                )
-              : Icon(Icons.auto_awesome, size: isCompact ? 16 : 18),
-          label: Text(
-            isLoading ? l10n.podcast_generating_summary : l10n.podcast_summary_generate,
+          isLoading: isLoading,
+          icon: isLoading ? null : Icon(Icons.auto_awesome, size: isCompact ? 16 : 18),
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? AppSpacing.md : AppSpacing.xl,
+            vertical: isCompact ? AppSpacing.smMd : AppSpacing.md,
           ),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(
-              horizontal: isCompact ? AppSpacing.md : AppSpacing.xl,
-              vertical: isCompact ? AppSpacing.smMd : AppSpacing.md,
-            ),
-            backgroundColor: scheme.primary,
-            foregroundColor: scheme.onPrimary,
-            textStyle: theme.textTheme.labelLarge?.copyWith(
-              fontSize: isCompact ? 13 : null,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          child: Text(isLoading ? l10n.podcast_generating_summary : l10n.podcast_summary_generate),
         ),
         if (hasModelOptions)
           Padding(

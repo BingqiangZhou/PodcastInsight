@@ -8,6 +8,7 @@ import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/utils/debounce.dart';
 import 'package:personal_ai_assistant/core/utils/text_processing_cache.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
@@ -419,24 +420,29 @@ class TranscriptDisplayWidgetState
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-      child: SegmentedButton<TranscriptViewMode>(
-        selected: {_viewMode},
-        onSelectionChanged: (selection) {
-          setState(() => _viewMode = selection.first);
+      child: AdaptiveSegmentedControl<TranscriptViewMode>(
+        selected: _viewMode,
+        onChanged: (value) {
+          setState(() => _viewMode = value);
         },
-        segments: [
-          // Highlights first (default view)
-          ButtonSegment(
-            value: TranscriptViewMode.highlights,
-            label: Text(l10n.podcast_transcript_view_highlights),
-            icon: const Icon(Icons.auto_awesome_outlined, size: 18),
+        segments: {
+          TranscriptViewMode.highlights: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.auto_awesome_outlined, size: 18),
+              const SizedBox(width: 4),
+              Text(l10n.podcast_transcript_view_highlights),
+            ],
           ),
-          ButtonSegment(
-            value: TranscriptViewMode.fullTranscript,
-            label: Text(l10n.podcast_transcript_view_full),
-            icon: const Icon(Icons.article_outlined, size: 18),
+          TranscriptViewMode.fullTranscript: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.article_outlined, size: 18),
+              const SizedBox(width: 4),
+              Text(l10n.podcast_transcript_view_full),
+            ],
           ),
-        ],
+        },
       ),
     );
   }

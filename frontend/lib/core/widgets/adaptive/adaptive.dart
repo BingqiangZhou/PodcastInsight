@@ -12,3 +12,5 @@ export 'adaptive_search_bar.dart';
 export 'adaptive_sliver_app_bar.dart';
 export 'adaptive_segmented_control.dart';
 export 'adaptive_dismissible.dart';
+export 'adaptive_scaffold.dart';
+export 'adaptive_checkbox_list_tile.dart';

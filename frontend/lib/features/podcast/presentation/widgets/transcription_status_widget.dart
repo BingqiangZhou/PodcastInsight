@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -111,16 +112,11 @@ class TranscriptionStatusWidget extends ConsumerWidget {
             // Start button with enhanced feedback
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
+              child: AdaptiveButton(
                 onPressed: () => _startTranscriptionWithFeedback(ref, context),
                 icon: const Icon(Icons.play_arrow),
-                label: Text(l10n.transcription_start_button),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.smMd),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(ext.buttonRadius),
-                  ),
-                ),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.smMd),
+                child: Text(l10n.transcription_start_button),
               ),
             ),
 
