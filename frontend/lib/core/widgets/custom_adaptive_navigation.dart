@@ -641,6 +641,17 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                 }
                 widget.onDestinationSelected?.call(index);
               },
+              onDoubleTap: isSelected
+                  ? () {
+                      AdaptiveHaptic.lightImpact(context);
+                      // Scroll to top via PrimaryScrollController
+                      PrimaryScrollController.of(context).animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    }
+                  : null,
               behavior: HitTestBehavior.opaque,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),

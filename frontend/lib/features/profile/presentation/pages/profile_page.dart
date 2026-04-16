@@ -11,6 +11,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/localization/locale_provider.dart';
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
+import 'package:personal_ai_assistant/core/platform/adaptive_haptic.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
@@ -851,7 +852,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     if (Platform.isIOS) {
       return GestureDetector(
-        onTap: () => _showIOSUserMenu(context, user, l10n),
+        onTap: () {
+          AdaptiveHaptic.lightImpact(context);
+          _showIOSUserMenu(context, user, l10n);
+        },
         child: avatar,
       );
     }

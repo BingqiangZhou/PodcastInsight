@@ -12,6 +12,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_dismissible.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_episodes_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
 
@@ -281,19 +282,9 @@ class _DownloadTaskCard extends ConsumerWidget {
         apiAsync?.asData?.value?.subscriptionImageUrl ??
         apiAsync?.asData?.value?.imageUrl;
 
-    return Dismissible(
+    return AdaptiveDismissible(
       key: ValueKey(task.id),
-      direction: DismissDirection.endToStart,
-      onDismissed: (_) => service.delete(task.episodeId),
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.error,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Icon(Icons.delete, color: theme.colorScheme.onError),
-      ),
+      onDelete: () => service.delete(task.episodeId),
       child: Material(
         color: Colors.transparent,
         child: InkWell(

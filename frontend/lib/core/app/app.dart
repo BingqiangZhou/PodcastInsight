@@ -13,6 +13,7 @@ import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/theme/theme_provider.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/core/services/notification_service.dart';
 import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_server_config_listener.dart';
@@ -213,6 +214,11 @@ class _PersonalAIAssistantAppState
       // Don't block app initialization on auth errors
       // The router will handle redirecting to login if needed
     }
+
+    // Initialize notification service (non-blocking)
+    NotificationService.instance.initialize().catchError((e) {
+      logger.AppLogger.debug('[AppInit] Notification service init failed: $e');
+    });
 
     const minSplash = Duration(milliseconds: 120);
     final elapsed = DateTime.now().difference(startedAt);
