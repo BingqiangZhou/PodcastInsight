@@ -2765,5 +2765,9 @@
     "ai_summary_available": "AI Summary available",
     "@ai_summary_available":  {
                                     "description":  "Tooltip for the AI summary badge on episode cards"
+                                },
+    "calendar_month_format": "Month",
+    "@calendar_month_format":  {
+                                    "description":  "Label for the month calendar format toggle in table_calendar"
                                 }
 }

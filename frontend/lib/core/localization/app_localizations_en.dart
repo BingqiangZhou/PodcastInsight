@@ -2141,4 +2141,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ai_summary_available => 'AI Summary available';
+
+  @override
+  String get calendar_month_format => 'Month';
 }

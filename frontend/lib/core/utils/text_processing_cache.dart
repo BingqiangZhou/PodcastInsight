@@ -49,7 +49,7 @@ class TextProcessingCache {
 
     if (rawDescription == null || rawDescription.isEmpty) return '';
 
-    final cacheKey = rawDescription.hashCode.toString();
+    final cacheKey = rawDescription;
     final entry = _descriptionCache[cacheKey];
 
     if (entry != null) {
@@ -77,7 +77,7 @@ class TextProcessingCache {
 
     if (text.isEmpty) return [];
 
-    final cacheKey = text.hashCode.toString();
+    final cacheKey = text;
     final entry = _sentenceCache[cacheKey];
 
     if (entry != null) {

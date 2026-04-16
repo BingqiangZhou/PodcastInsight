@@ -266,8 +266,10 @@ class AudioDownloadService {
       if (lastDot > 0 && lastDot > path.length - 6) {
         return path.substring(lastDot);
       }
-    } catch (_) {
-      // ignore
+    } catch (e) {
+      logger.AppLogger.debug(
+        '[AudioDownload] Failed to determine file extension: $e',
+      );
     }
     return '.mp3';
   }

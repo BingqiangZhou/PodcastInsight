@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/cache_constants.dart';
 import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
@@ -550,6 +551,20 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
               '[PlaybackRestore] Failed to preload audio source: $e',
             );
           }
+        }
+        // Skip server restore if the local snapshot is recent (<5 min).
+        // The server fetch is mainly useful for cross-device sync; if the
+        // snapshot was just persisted, the data is likely still accurate.
+        final restoredEp = state.currentEpisode;
+        final lastPlayed = restoredEp?.lastPlayedAt;
+        if (lastPlayed != null &&
+            DateTime.now().difference(lastPlayed) <
+                CacheConstants.defaultListCacheDuration) {
+          logger.AppLogger.debug(
+            '[PlaybackRestore] Local snapshot is fresh (<5 min), '
+            'skipping server restore',
+          );
+          return;
         }
         unawaited(_restoreLastPlayedEpisodeFromServer(expectedEpisodeId));
         return;

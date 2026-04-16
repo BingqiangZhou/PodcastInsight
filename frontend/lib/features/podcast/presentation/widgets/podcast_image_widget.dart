@@ -226,9 +226,8 @@ class _PodcastImageWidgetState extends State<PodcastImageWidget> {
           child: Center(
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.4, end: 1),
-              duration: const Duration(milliseconds: 1200),
-              curve: Curves.easeInOut,
-              onEnd: () => setState(() {}),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOut,
               builder: (context, value, child) {
                 return Opacity(
                   opacity: value.clamp(0.0, 1.0),

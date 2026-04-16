@@ -92,25 +92,11 @@ class AppCacheServiceImpl implements AppCacheService {
     // Default varies by device, we set to 100MB
     imageCache.maximumSizeBytes = _AppCacheConfig.maxMemoryCacheSize;
 
-    // Clear any stale cached images on startup
-    imageCache.clear();
-
-    // Clean expired media cache entries from disk
-    _cleanExpiredMediaCache();
-  }
-
-  /// Removes expired entries from the media cache on startup.
-  static Future<void> _cleanExpiredMediaCache() async {
-    try {
-      await AppMediaCacheManager.instance.emptyCache();
-      logger.AppLogger.debug(
-        '[AppCache] Expired media cache entries cleaned',
-      );
-    } catch (e) {
-      logger.AppLogger.debug(
-        '[AppCache] Failed to clean expired media cache: $e',
-      );
-    }
+    // Only clear live images that are no longer pinned by widgets.
+    // Do NOT call imageCache.clear() — that discards all cached images
+    // including valid ones, forcing unnecessary network re-fetches.
+    // flutter_cache_manager handles disk staleness per-file via stalePeriod.
+    imageCache.clearLiveImages();
   }
 
   @override

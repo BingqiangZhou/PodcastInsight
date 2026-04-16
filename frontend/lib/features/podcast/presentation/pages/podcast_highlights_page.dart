@@ -528,7 +528,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
             firstDay: DateTime(2000),
             lastDay: now,
             focusedDay: displayFocusedDay,
-            availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+            availableCalendarFormats: {CalendarFormat.month: context.l10n.calendar_month_format},
             rowHeight: 42,
             daysOfWeekHeight: 22,
             headerStyle: HeaderStyle(

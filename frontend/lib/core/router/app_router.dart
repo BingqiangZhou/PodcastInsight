@@ -94,6 +94,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/auth-verify',
         name: 'auth-verify',
+        redirect: (context, state) {
+          if (kDebugMode) return null; // allow in debug builds
+          return '/login'; // redirect to login in release builds
+        },
         pageBuilder: (context, state) => _buildPageWithTransition(
           state: state,
           child: const AuthVerifyPage(),

@@ -2720,5 +2720,9 @@
     "ai_summary_available": "AI 摘要可用",
     "@ai_summary_available":  {
                                     "description":  "播客单集卡片上 AI 摘要徽章的工具提示"
+                                },
+    "calendar_month_format": "月",
+    "@calendar_month_format":  {
+                                    "description":  "table_calendar 月视图格式标签"
                                 }
 }

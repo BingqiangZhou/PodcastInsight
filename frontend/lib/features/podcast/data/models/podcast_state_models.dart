@@ -37,7 +37,7 @@ class PodcastFeedState extends PaginatedState<PodcastEpisodeModel> {
     DateTime? lastRefreshTime,
   }) {
     return PodcastFeedState(
-      episodes: episodes ?? items.cast<PodcastEpisodeModel>(),
+      episodes: episodes ?? items,
       hasMore: hasMore ?? this.hasMore,
       nextPage: identical(nextPage, _stateNoChange)
           ? this.nextPage
@@ -107,7 +107,7 @@ class PodcastEpisodesState extends PaginatedState<PodcastEpisodeModel> {
     DateTime? lastRefreshTime,
   }) {
     return PodcastEpisodesState(
-      episodes: episodes ?? items.cast<PodcastEpisodeModel>(),
+      episodes: episodes ?? items,
       hasMore: hasMore ?? this.hasMore,
       nextPage: nextPage ?? this.nextPage,
       currentPage: currentPage ?? this.currentPage,
@@ -168,8 +168,7 @@ class PodcastSubscriptionState
     DateTime? lastRefreshTime,
   }) {
     return PodcastSubscriptionState(
-      subscriptions:
-          subscriptions ?? items.cast<PodcastSubscriptionModel>(),
+      subscriptions: subscriptions ?? items,
       hasMore: hasMore ?? this.hasMore,
       nextPage: nextPage ?? this.nextPage,
       currentPage: currentPage ?? this.currentPage,

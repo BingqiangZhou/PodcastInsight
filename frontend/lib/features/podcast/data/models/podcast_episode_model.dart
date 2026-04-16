@@ -228,42 +228,28 @@ class PodcastEpisodeModel extends Equatable {
 
   @override
   List<Object?> get props => [
+    // Identity & UI-relevant fields only.
+    // Expensive fields (description, transcriptContent, aiSummary,
+    // metadata, relatedEpisodes, subscription) are excluded because
+    // they rarely change between state emissions and are costly to
+    // deep-compare. Detail pages use episodeDetailProvider instead.
     id,
     subscriptionId,
     subscriptionImageUrl,
     title,
     subscriptionTitle,
-    description,
     audioUrl,
     audioDuration,
-    audioFileSize,
     publishedAt,
     imageUrl,
-    itemLink,
-    transcriptUrl,
-    transcriptContent,
-    aiSummary,
-    summaryVersion,
-    aiConfidenceScore,
     playCount,
     lastPlayedAt,
-    season,
-    episodeNumber,
-    explicit,
-    status,
-    metadata,
     playbackPosition,
     isPlaying,
     playbackRate,
     isPlayed,
-    createdAt,
-    updatedAt,
+    status,
     summaryStatus,
-    summaryErrorMessage,
-    summaryModelUsed,
-    summaryProcessingTime,
-    subscription,
-    relatedEpisodes,
   ];
 }
 

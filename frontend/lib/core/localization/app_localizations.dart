@@ -3937,6 +3937,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AI Summary available'**
   String get ai_summary_available;
+
+  /// Label for the month calendar format toggle in table_calendar
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get calendar_month_format;
 }
 
 class _AppLocalizationsDelegate

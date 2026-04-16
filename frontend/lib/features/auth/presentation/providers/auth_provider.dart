@@ -280,8 +280,9 @@ class AuthNotifier extends Notifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
         );
-      } catch (_) {
+      } catch (e) {
         // Even if user fetch fails, login was successful
+        logger.AppLogger.debug('[Auth] User fetch after login failed: $e');
         state = state.copyWith(
           isAuthenticated: true,
           isLoading: false,
@@ -344,8 +345,9 @@ class AuthNotifier extends Notifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
         );
-      } catch (_) {
+      } catch (e) {
         // Even if user fetch fails, registration was successful
+        logger.AppLogger.debug('[Auth] User fetch after register failed: $e');
         state = state.copyWith(
           isAuthenticated: true,
           isLoading: false,
@@ -398,8 +400,9 @@ class AuthNotifier extends Notifier<AuthState> {
     final refreshToken = await _secureStorage.getRefreshToken();
     try {
       await _authRepository.logout(refreshToken);
-    } catch (_) {
+    } catch (e) {
       // Even if logout API fails, clear local state
+      logger.AppLogger.debug('[Auth] Logout API call failed: $e');
     }
     await _clearAuthState();
     await _clearPlaybackSnapshot(currentUserId);

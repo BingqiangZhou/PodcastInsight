@@ -2047,4 +2047,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ai_summary_available => 'AI 摘要可用';
+
+  @override
+  String get calendar_month_format => '月';
 }

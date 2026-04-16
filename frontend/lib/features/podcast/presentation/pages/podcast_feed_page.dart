@@ -60,8 +60,11 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
       return;
     }
 
-    final feedState = ref.read(podcastFeedProvider);
-    if (feedState.isLoadingMore || !feedState.hasMore) {
+    final isLoadingMore = ref.read(
+      podcastFeedProvider.select((s) => s.isLoadingMore),
+    );
+    final hasMore = ref.read(podcastFeedProvider.select((s) => s.hasMore));
+    if (isLoadingMore || !hasMore) {
       return;
     }
     ref.read(podcastFeedProvider.notifier).loadMoreFeed();
@@ -78,7 +81,6 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final feedState = ref.watch(podcastFeedProvider);
     return ContentShell(
       title: l10n.podcast_feed_page_title,
       subtitle: '',
@@ -98,7 +100,12 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
           ),
         ],
       ),
-      child: _buildFeedContent(context, ref, feedState),
+      child: _FeedContent(
+        scrollController: _scrollController,
+        awaitingInitialFeed: _awaitingInitialFeed,
+        addingEpisodeIds: _addingEpisodeIds,
+        onAddToQueue: _addToQueue,
+      ),
     );
   }
 
@@ -232,10 +239,96 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
       ),
     );
   }
+}
 
-  Widget _buildEmptyFeedWithEntry(
+/// Feed content widget that watches feed state independently,
+/// so the parent page's header and trailing buttons don't rebuild
+/// on every feed state change (e.g., isLoadingMore toggling).
+class _FeedContent extends ConsumerWidget {
+  const _FeedContent({
+    required this.scrollController,
+    required this.awaitingInitialFeed,
+    required this.addingEpisodeIds,
+    required this.onAddToQueue,
+  });
+
+  final ScrollController scrollController;
+  final bool awaitingInitialFeed;
+  final Set<int> addingEpisodeIds;
+  final Future<void> Function(PodcastEpisodeModel episode) onAddToQueue;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final feedState = ref.watch(podcastFeedProvider);
+    final l10n = context.l10n;
+
+    final showInitialLoading =
+        awaitingInitialFeed &&
+        feedState.episodes.isEmpty &&
+        feedState.error == null;
+
+    if (showInitialLoading ||
+        (feedState.isLoading && feedState.episodes.isEmpty)) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = constraints.maxWidth;
+          final isMobile = screenWidth < Breakpoints.medium;
+          if (isMobile) {
+            return const SkeletonCardList(compact: true);
+          }
+          final crossAxisCount = screenWidth < 900
+              ? 2
+              : (screenWidth < 1200 ? 3 : 4);
+          return SkeletonCardGrid(
+            crossAxisCount: crossAxisCount,
+            itemCount: crossAxisCount * 2,
+          );
+        },
+      );
+    }
+
+    if (feedState.error != null && feedState.episodes.isEmpty) {
+      return AppEmptyState(
+        icon: Icons.error_outline,
+        title: l10n.podcast_failed_to_load_feed,
+        subtitle: feedState.error,
+        action: FilledButton(
+          onPressed: () {
+            ref.read(podcastFeedProvider.notifier).loadInitialFeed();
+          },
+          child: Text(l10n.podcast_retry),
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        final isMobile = screenWidth < Breakpoints.medium;
+
+        if (feedState.episodes.isEmpty) {
+          return _buildEmptyFeed(context, mobile: isMobile, ref: ref);
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => ref
+              .read(podcastFeedProvider.notifier)
+              .refreshFeed(fastReturn: true),
+          child: _buildScrollable(
+            context,
+            ref: ref,
+            feedState: feedState,
+            screenWidth: screenWidth,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyFeed(
     BuildContext context, {
     required bool mobile,
+    required WidgetRef ref,
   }) {
     final l10n = context.l10n;
     return RefreshIndicator(
@@ -269,94 +362,29 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     );
   }
 
-  Widget _buildFeedContent(
-    BuildContext context,
-    WidgetRef localRef,
-    PodcastFeedState feedState,
-  ) {
-    final l10n = context.l10n;
-    final showInitialLoading =
-        _awaitingInitialFeed &&
-        feedState.episodes.isEmpty &&
-        feedState.error == null;
-
-    if (showInitialLoading ||
-        (feedState.isLoading && feedState.episodes.isEmpty)) {
-      // Show skeleton cards matching the eventual layout
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final screenWidth = constraints.maxWidth;
-          final isMobile = screenWidth < Breakpoints.medium;
-          if (isMobile) {
-            return const SkeletonCardList(compact: true);
-          }
-          final crossAxisCount = screenWidth < 900 ? 2 : (screenWidth < 1200 ? 3 : 4);
-          return SkeletonCardGrid(
-            crossAxisCount: crossAxisCount,
-            itemCount: crossAxisCount * 2,
-          );
-        },
-      );
-    }
-
-    if (feedState.error != null && feedState.episodes.isEmpty) {
-      return AppEmptyState(
-        icon: Icons.error_outline,
-        title: l10n.podcast_failed_to_load_feed,
-        subtitle: feedState.error,
-        action: FilledButton(
-          onPressed: () {
-            localRef.read(podcastFeedProvider.notifier).loadInitialFeed();
-          },
-          child: Text(l10n.podcast_retry),
-        ),
-      );
-    }
-
-    // Use LayoutBuilder to switch between mobile and desktop layouts.
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-        final isMobile = screenWidth < Breakpoints.medium;
-
-        if (feedState.episodes.isEmpty) {
-          return _buildEmptyFeedWithEntry(context, mobile: isMobile);
-        }
-
-        return RefreshIndicator(
-          onRefresh: () => localRef
-              .read(podcastFeedProvider.notifier)
-              .refreshFeed(fastReturn: true),
-          child: _buildFeedScrollable(
-            context,
-            feedState: feedState,
-            screenWidth: screenWidth,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFeedScrollable(
+  Widget _buildScrollable(
     BuildContext context, {
+    required WidgetRef ref,
     required PodcastFeedState feedState,
     required double screenWidth,
   }) {
     final isMobile = screenWidth < Breakpoints.medium;
-    final itemCount = feedState.episodes.length + (feedState.hasMore ? 1 : 0);
+    final itemCount =
+        feedState.episodes.length + (feedState.hasMore ? 1 : 0);
 
     if (isMobile) {
       return ListView.builder(
-        controller: _scrollController,
+        controller: scrollController,
         padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
         cacheExtent: ScrollConstants.largeListCacheExtent,
         itemCount: itemCount,
         itemBuilder: (context, index) =>
-            _buildFeedListItem(context, feedState, index, compact: true),
+            _buildListItem(context, ref, feedState, index, compact: true),
       );
     }
 
-    final crossAxisCount = screenWidth < 900 ? 2 : (screenWidth < 1200 ? 3 : 4);
+    final crossAxisCount =
+        screenWidth < 900 ? 2 : (screenWidth < 1200 ? 3 : 4);
     const spacing = AppSpacing.smMd;
     final availableWidth = screenWidth - (crossAxisCount - 1) * spacing;
     final cardWidth = availableWidth / crossAxisCount;
@@ -364,7 +392,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
     final childAspectRatio = cardWidth / desktopCardHeight;
 
     return GridView.builder(
-      controller: _scrollController,
+      controller: scrollController,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
@@ -374,12 +402,13 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) =>
-          _buildFeedListItem(context, feedState, index, compact: false),
+          _buildListItem(context, ref, feedState, index, compact: false),
     );
   }
 
-  Widget _buildFeedListItem(
+  Widget _buildListItem(
     BuildContext context,
+    WidgetRef ref,
     PodcastFeedState feedState,
     int index, {
     required bool compact,
@@ -399,22 +428,19 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
       );
       if (compact) {
         return Center(
-          child: Padding(padding: EdgeInsets.all(AppSpacing.sm), child: loader),
+          child: Padding(
+            padding: EdgeInsets.all(AppSpacing.sm),
+            child: loader,
+          ),
         );
       }
       return Center(child: loader);
     }
 
     final episode = feedState.episodes[index];
-    return compact
-        ? _buildMobileCard(context, episode)
-        : _buildDesktopCard(context, episode);
-  }
-
-  /// Build mobile feed card.
-  Widget _buildMobileCard(BuildContext context, PodcastEpisodeModel episode) {
-    final displayDescription = _getFeedCardDescription(episode.description);
-    final isAddingToQueue = _addingEpisodeIds.contains(episode.id);
+    final displayDescription =
+        TextProcessingCache.getCachedDescription(episode.description);
+    final isAddingToQueue = addingEpisodeIds.contains(episode.id);
 
     void playAndOpenDetail() {
       ref.read(audioPlayerProvider.notifier).playManagedEpisode(episode);
@@ -428,7 +454,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
 
     return PodcastFeedEpisodeCard(
       episode: episode,
-      compact: true,
+      compact: compact,
       isAddingToQueue: isAddingToQueue,
       displayDescription: displayDescription,
       onOpenDetail: () {
@@ -440,48 +466,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
         );
       },
       onPlayAndOpenDetail: playAndOpenDetail,
-      onAddToQueue: () {
-        _addToQueue(episode);
-      },
+      onAddToQueue: () => onAddToQueue(episode),
     );
   }
-
-  /// Build desktop feed card.
-  Widget _buildDesktopCard(BuildContext context, PodcastEpisodeModel episode) {
-    final displayDescription = _getFeedCardDescription(episode.description);
-    final isAddingToQueue = _addingEpisodeIds.contains(episode.id);
-
-    void playAndOpenDetail() {
-      ref.read(audioPlayerProvider.notifier).playManagedEpisode(episode);
-      PodcastNavigation.goToEpisodeDetail(
-        context,
-        episodeId: episode.id,
-        subscriptionId: episode.subscriptionId,
-        episodeTitle: episode.title,
-      );
-    }
-
-    return PodcastFeedEpisodeCard(
-      episode: episode,
-      compact: false,
-      isAddingToQueue: isAddingToQueue,
-      displayDescription: displayDescription,
-      onOpenDetail: () {
-        PodcastNavigation.goToEpisodeDetail(
-          context,
-          episodeId: episode.id,
-          subscriptionId: episode.subscriptionId,
-          episodeTitle: episode.title,
-        );
-      },
-      onPlayAndOpenDetail: playAndOpenDetail,
-      onAddToQueue: () {
-        _addToQueue(episode);
-      },
-    );
-  }
-}
-
-String _getFeedCardDescription(String? description) {
-  return TextProcessingCache.getCachedDescription(description);
 }
