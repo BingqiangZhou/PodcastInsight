@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
-import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/database/app_database.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -10,8 +8,9 @@ import 'package:personal_ai_assistant/core/services/audio_download_service.dart'
 import 'package:personal_ai_assistant/core/services/download_provider.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
-import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
+import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_sliver_app_bar.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_dismissible.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_episodes_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
@@ -28,55 +27,6 @@ class PodcastDownloadsPage extends ConsumerWidget {
     final asyncDownloads = ref.watch(downloadsListProvider);
     final grouped = ref.watch(groupedDownloadsProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Material(
-        color: Colors.transparent,
-        child: SafeArea(
-          bottom: false,
-          child: ResponsiveContainer(
-            maxWidth: 1480,
-            alignment: Alignment.topCenter,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeaderPanel(context, ref, l10n, grouped),
-                const SizedBox(height: AppSpacing.smMd),
-                Expanded(
-                  child: asyncDownloads.when(
-                    data: (tasks) {
-                      if (tasks.isEmpty) {
-                        return _buildEmptyState(context, l10n, tokens);
-                      }
-                      return _buildDownloadsPanel(
-                        context,
-                        grouped,
-                        l10n,
-                        theme,
-                        tokens,
-                      );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator.adaptive()),
-                    error: (e, _) => Center(child: Text(e.toString())),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderPanel(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-    GroupedDownloads grouped,
-  ) {
-    final isMobile = MediaQuery.sizeOf(context).width < Breakpoints.medium;
-
     final deleteButton = grouped.completed.isNotEmpty
         ? HeaderCapsuleActionButton(
             icon: Icons.delete_sweep,
@@ -87,32 +37,44 @@ class PodcastDownloadsPage extends ConsumerWidget {
           )
         : null;
 
-    return CompactHeaderPanel(
-      title: l10n.downloads_page_title,
-      trailing: isMobile
-          ? deleteButton
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (deleteButton != null) ...[
-                  deleteButton,
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                HeaderCapsuleActionButton(
-                  tooltip:
-                      MaterialLocalizations.of(context).backButtonTooltip,
-                  icon: Icons.arrow_back_rounded,
-                  onPressed: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/');
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Material(
+        color: Colors.transparent,
+        child: ResponsiveContainer(
+          maxWidth: 1480,
+          alignment: Alignment.topCenter,
+          child: CustomScrollView(
+            slivers: [
+              AdaptiveSliverAppBar(
+                title: l10n.downloads_page_title,
+                actions: [if (deleteButton != null) deleteButton],
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.smMd)),
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: asyncDownloads.when(
+                  data: (tasks) {
+                    if (tasks.isEmpty) {
+                      return _buildEmptyState(context, l10n, tokens);
                     }
+                    return _buildDownloadsPanel(
+                      context,
+                      grouped,
+                      l10n,
+                      theme,
+                      tokens,
+                    );
                   },
-                  circular: true,
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator.adaptive()),
+                  error: (e, _) => Center(child: Text(e.toString())),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

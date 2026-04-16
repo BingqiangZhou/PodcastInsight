@@ -11,6 +11,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations_extens
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_sliver_app_bar.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
@@ -117,62 +118,30 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       key: const Key('highlights_page'),
       backgroundColor: Colors.transparent,
       body: Material(
         color: Colors.transparent,
-        child: SafeArea(
-          bottom: false,
-          child: ResponsiveContainer(
-            maxWidth: 1480,
-            alignment: Alignment.topCenter,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeaderPanel(context),
-                const SizedBox(height: AppSpacing.smMd),
-                Expanded(child: _buildHighlightsPanel(context)),
-              ],
-            ),
+        child: ResponsiveContainer(
+          maxWidth: 1480,
+          alignment: Alignment.topCenter,
+          child: CustomScrollView(
+            slivers: [
+              AdaptiveSliverAppBar(
+                title: l10n.podcast_highlights_title,
+                actions: [_buildCalendarButton(context)],
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.smMd)),
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: _buildHighlightsPanel(context),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeaderPanel(BuildContext context) {
-    final isMobile =
-        MediaQuery.sizeOf(context).width < Breakpoints.medium;
-    final l10n = context.l10n;
-
-    return CompactHeaderPanel(
-      title: l10n.podcast_highlights_title,
-      trailing: isMobile
-          ? _buildCalendarButton(context)
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildCalendarButton(context),
-                const SizedBox(width: AppSpacing.sm),
-                _buildBackButton(context),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildBackButton(BuildContext context) {
-    return HeaderCapsuleActionButton(
-      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-      icon: Icons.arrow_back_rounded,
-      onPressed: () {
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go('/');
-        }
-      },
-      circular: true,
     );
   }
 

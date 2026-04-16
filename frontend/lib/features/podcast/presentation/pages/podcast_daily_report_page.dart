@@ -12,6 +12,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_sliver_app_bar.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_daily_report_model.dart';
@@ -84,61 +85,30 @@ class _PodcastDailyReportPageState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       key: const Key('daily_report_page'),
       backgroundColor: Colors.transparent,
       body: Material(
         color: Colors.transparent,
-        child: SafeArea(
-          bottom: false,
-          child: ResponsiveContainer(
-            maxWidth: 1480,
-            alignment: Alignment.topCenter,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeaderPanel(context),
-                const SizedBox(height: AppSpacing.smMd),
-                Expanded(child: _buildDailyReportPanel(context)),
-              ],
-            ),
+        child: ResponsiveContainer(
+          maxWidth: 1480,
+          alignment: Alignment.topCenter,
+          child: CustomScrollView(
+            slivers: [
+              AdaptiveSliverAppBar(
+                title: l10n.podcast_daily_report_title,
+                actions: [_buildCalendarButton(context)],
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.smMd)),
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: _buildDailyReportPanel(context),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeaderPanel(BuildContext context) {
-    final l10n = context.l10n;
-    final isMobile =
-        MediaQuery.sizeOf(context).width < Breakpoints.medium;
-    return CompactHeaderPanel(
-      title: l10n.podcast_daily_report_title,
-      trailing: isMobile
-          ? _buildCalendarButton(context)
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildCalendarButton(context),
-                const SizedBox(width: AppSpacing.sm),
-                _buildBackButton(context),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildBackButton(BuildContext context) {
-    return HeaderCapsuleActionButton(
-      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-      icon: Icons.arrow_back_rounded,
-      onPressed: () {
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go('/');
-        }
-      },
-      circular: true,
     );
   }
 
