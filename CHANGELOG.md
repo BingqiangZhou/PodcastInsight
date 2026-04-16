@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.46.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.45.0...v0.46.0) - 2026-04-16 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.46.0))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(docs)* Reorganize specs into lifecycle-based structure ([64e1f70](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/64e1f70e4bdaf82254165c6fd10a2f0614958af8))
+
+### 🎨 Styling
+
+- *(theme)* Replace withOpacity with withValues(alpha:) to fix deprecated warnings ([e65156a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e65156a33b836247a2db76e91b2547b965bc41b5))
+
+### 🐛 Bug Fixes
+
+- *(theme)* Use defaultTargetPlatform instead of hardcoded android ([2370d60](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2370d60c1dd1383ddd4da3d691a9a78269008958))
+- *(theme)* Add missing foundation import for defaultTargetPlatform ([e087adf](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e087adf177bfec4c0e36ca3db00d3f8d0f3b4204))
+- *(navigation)* Enable iOS swipe-back gesture for all pushed pages ([57fb8ad](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/57fb8ad042228838dc7f09f8d36fd9a33608adae))
+
+### 📚 Documentation
+
+- Add platform-adaptive UI design spec ([c41e036](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c41e036de6919cc083d539fd52563a320a120c42))
+- Fix spec review issues in platform-adaptive UI design ([39c5ad8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/39c5ad8bfb6f6e9be1c4fec8a811a8052ce3eaef))
+- Add platform-adaptive UI implementation plan ([ea4634a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ea4634a992093a91baea57bce57d876d8ea0fa64))
+- Update CLAUDE.md and AGENTS.md to reflect current project state ([e183020](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e183020946be084021c122c4047e9d9dce5a246a))
+
+### 🚀 Features
+
+- *(platform)* Add platform helper, iOS-aware theme, and CupertinoTheme wrapper ([a9ff652](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a9ff652c13d2062bfba047f76c0e5cddaf15a23a))
+- *(navigation)* Adaptive page transitions and AppBar helper ([0a36952](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0a36952920433ce7c8375af16d6153b3a78084f1))
+- *(adaptive)* IOS dialogs, bottom sheets, and snackbar feedback ([1a861ed](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1a861ede81e266b40ff8cea210bc7d93921e5a44))
+- *(adaptive)* IOS nav bar, adaptive icons, and ListTile styling ([4f63688](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4f636886c7e8b46b1be2f31bdc640375c30fb043))
+- *(adaptive)* Replace Switch, Slider, CircularProgressIndicator, AlertDialog with .adaptive() ([7bf25ac](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7bf25ac49a359235033ee2f715ff523d382fa6a8))
+
+### 🚜 Refactor
+
+- *(theme)* Remove Google Fonts and font combination feature, use system fonts ([ce26baa](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ce26baac3263eb9cd80836633ebc8a122cc0250d))
+
+
+
 ## [0.45.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.44.0...v0.45.0) - 2026-04-15 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.45.0))
 
 ### ⚙️ Miscellaneous Tasks
