@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 
 /// On desktop/tablet (width >= 600), shows a centred [Dialog] within the
@@ -25,6 +27,22 @@ Future<T?> showAdaptiveSheet<T>({
   }
 
   final screenWidth = MediaQuery.of(resolvedContext).size.width;
+
+  // iOS mobile: use Cupertino modal popup
+  if (PlatformHelper.isIOS(resolvedContext) && screenWidth < 600) {
+    return showCupertinoModalPopup<T>(
+      context: resolvedContext,
+      builder: (sheetCtx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: CupertinoColors.systemBackground.resolveFrom(sheetCtx),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          child: SafeArea(child: builder(sheetCtx)),
+        );
+      },
+    );
+  }
 
   if (screenWidth >= 600) {
     // Desktop / tablet -> centred dialog.

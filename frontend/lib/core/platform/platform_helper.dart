@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
+
 class PlatformHelper {
   PlatformHelper._();
 
@@ -34,5 +36,31 @@ class PlatformHelper {
     if (isDesktop(context) && desktop != null) return desktop;
     if (isIOS(context)) return cupertino;
     return material;
+  }
+
+  /// Show adaptive feedback message.
+  /// iOS: TopFloatingNotice. Android/desktop: SnackBar.
+  static void showAdaptiveFeedback(
+    BuildContext context, {
+    required String message,
+    bool isError = false,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    if (isIOS(context)) {
+      showTopFloatingNotice(
+        context,
+        message: message,
+        isError: isError,
+        duration: duration,
+      );
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: duration,
+      ),
+    );
   }
 }

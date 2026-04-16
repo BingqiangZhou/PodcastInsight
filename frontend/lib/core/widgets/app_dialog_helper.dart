@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 
 /// Show a dialog.
 ///
@@ -19,6 +21,14 @@ Future<T?> showAppDialog<T>({
   double borderRadius = 28,
   bool useRootNavigator = false,
 }) {
+  if (PlatformHelper.isIOS(context)) {
+    return showCupertinoDialog<T>(
+      context: context,
+      barrierDismissible: barrierDismissible,
+      useRootNavigator: useRootNavigator,
+      builder: builder,
+    );
+  }
   return showDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
@@ -58,6 +68,31 @@ Future<bool?> showAppConfirmationDialog({
   bool isDestructive = false,
   double borderRadius = 28,
 }) {
+  if (PlatformHelper.isIOS(context)) {
+    return showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => CupertinoAlertDialog(
+        title: Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(title),
+        ),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(cancelText ?? 'Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: isDestructive,
+            isDefaultAction: true,
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(confirmText ?? 'Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
   final theme = Theme.of(context);
   return showAppDialog<bool>(
     context: context,
