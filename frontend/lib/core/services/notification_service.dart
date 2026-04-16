@@ -1,17 +1,15 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission.notification';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 
 /// Notification service for managing local notifications.
 ///
 /// Supports:
 /// - iOS: APNs-style local notifications
-/// - Android: Firebase Cloud Messaging (FCM) style notifications
+/// - Android: Notification channels
 /// - Permission requests
 /// - Scheduled notifications
-/// - Notification channels (Android)
 class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
@@ -45,17 +43,18 @@ class NotificationService {
       iOS: darwinSettings,
     );
 
-    final success = await _notifications.initialize(
+    final result = await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
+    final success = result ?? false;
     if (success) {
       _initialized = true;
       logger.AppLogger.debug('[NotificationService] Initialized successfully');
 
       // Create notification channels for Android
-      if (Platform.isAndroid) {
+      if (!kIsWeb && Platform.isAndroid) {
         await _createChannels();
       }
     } else {
@@ -98,7 +97,7 @@ class NotificationService {
   ///
   /// Returns true if permissions are granted.
   Future<bool> requestPermissions() async {
-    if (Platform.isIOS) {
+    if (!kIsWeb && Platform.isIOS) {
       final result = await _notifications
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
@@ -110,11 +109,10 @@ class NotificationService {
       return result ?? false;
     }
 
-    // Android permissions are handled at runtime
-    // For Android 13+, we need to request POST_NOTIFICATIONS permission
-    if (Platform.isAndroid) {
-      final status = await Permission.notifications.request();
-      return status.isGranted;
+    if (!kIsWeb && Platform.isAndroid) {
+      final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.requestNotificationsPermission() ?? false;
     }
 
     return true;
@@ -122,16 +120,12 @@ class NotificationService {
 
   /// Check if notification permissions are granted.
   Future<bool> arePermissionsGranted() async {
-    if (Platform.isIOS) {
+    if (!kIsWeb && Platform.isIOS) {
       final result = await _notifications
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
           ?.checkPermissions();
       return result?.isEnabled ?? false;
-    }
-
-    if (Platform.isAndroid) {
-      return await Permission.notifications.isGranted;
     }
 
     return true;
@@ -145,7 +139,7 @@ class NotificationService {
   }) async {
     const androidDetails = AndroidNotificationDetails(
       'new_episodes',
-      channelName: 'New Episodes',
+      'New Episodes',
       channelDescription: 'Notifications for new podcast episodes',
       importance: Importance.high,
       priority: Priority.high,
@@ -164,10 +158,10 @@ class NotificationService {
     );
 
     await _notifications.show(
-      0, // id (0 means auto-generate)
+      0,
       title,
       body,
-      notificationDetails: details,
+      details,
       payload: payload,
     );
   }
@@ -179,7 +173,7 @@ class NotificationService {
   }) async {
     const androidDetails = AndroidNotificationDetails(
       'playback',
-      channelName: 'Playback',
+      'Playback',
       channelDescription: 'Playback status notifications',
       importance: Importance.low,
       priority: Priority.low,
@@ -201,7 +195,7 @@ class NotificationService {
       1,
       title,
       body,
-      notificationDetails: details,
+      details,
     );
   }
 
@@ -221,6 +215,5 @@ class NotificationService {
     logger.AppLogger.debug(
       '[NotificationService] Notification tapped: $payload',
     );
-    // TODO: Navigate to appropriate screen based on payload
   }
 }
