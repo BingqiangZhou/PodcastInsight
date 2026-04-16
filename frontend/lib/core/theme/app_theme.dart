@@ -186,7 +186,7 @@ class AppTheme {
     FontCombination fonts, [
     TargetPlatform? platform,
   ]) {
-    final resolvedPlatform = platform ?? TargetPlatform.android;
+    final resolvedPlatform = platform ?? defaultTargetPlatform;
     final cacheKey = '${fonts.id}_${brightness.name}_${resolvedPlatform.name}';
     return _themeCache.putIfAbsent(
       cacheKey,
@@ -258,22 +258,14 @@ class AppTheme {
           : AppColors.lightBackground,
       textTheme: googleTextTheme,
       fontFamily: _bodyBaseFor(fonts).fontFamily,
-      pageTransitionsTheme: PageTransitionsTheme(
-        builders: isIOS
-            ? {
-                TargetPlatform.iOS: const CupertinoPageTransitionsBuilder(),
-                TargetPlatform.android: const ZoomPageTransitionsBuilder(),
-                TargetPlatform.macOS: const CupertinoPageTransitionsBuilder(),
-                TargetPlatform.windows: const CupertinoPageTransitionsBuilder(),
-                TargetPlatform.linux: const CupertinoPageTransitionsBuilder(),
-              }
-            : {
-                TargetPlatform.iOS: const ZoomPageTransitionsBuilder(),
-                TargetPlatform.android: const ZoomPageTransitionsBuilder(),
-                TargetPlatform.macOS: const ZoomPageTransitionsBuilder(),
-                TargetPlatform.windows: const ZoomPageTransitionsBuilder(),
-                TargetPlatform.linux: const ZoomPageTransitionsBuilder(),
-              },
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.macOS: ZoomPageTransitionsBuilder(),
+          TargetPlatform.windows: ZoomPageTransitionsBuilder(),
+          TargetPlatform.linux: ZoomPageTransitionsBuilder(),
+        },
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
