@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
+import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 
@@ -688,6 +690,40 @@ class ContentShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final extension = appThemeOf(context);
 
+    // iOS: Use CupertinoSliverNavigationBar for native large-title feel
+    if (PlatformHelper.isIOS(context)) {
+      return Material(
+        color: Colors.transparent,
+        child: _ShellViewport(
+          enabled: roundedViewport,
+          clipKey: const Key('content_shell_viewport_clip'),
+          borderRadius: extension.cardRadius,
+          child: ResponsiveContainer(
+            maxWidth: maxWidth ?? extension.contentMaxWidth,
+            child: CustomScrollView(
+              slivers: [
+                CupertinoSliverNavigationBar(
+                  largeTitle: Text(title),
+                  trailing: trailing,
+                  leading: leading,
+                  backgroundColor:
+                      CupertinoColors.systemBackground.withValues(alpha: 0.85),
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(height: headerSpacing),
+                ),
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: child,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Android/desktop: existing HeroHeader + Column layout
     return Material(
       color: Colors.transparent,
       child: _ShellViewport(
@@ -741,6 +777,44 @@ class ProfileShell extends StatelessWidget {
     final topSectionSpacing = isMobile ? AppSpacing.lg : AppSpacing.md;
     final extension = appThemeOf(context);
 
+    // iOS: Use CupertinoSliverNavigationBar for native large-title feel
+    if (PlatformHelper.isIOS(context)) {
+      final slivers = <Widget>[
+        CupertinoSliverNavigationBar(
+          largeTitle: Text(title),
+          trailing: trailing,
+          backgroundColor:
+              CupertinoColors.systemBackground.withValues(alpha: 0.85),
+        ),
+        if (showSummary) ...[
+          SliverToBoxAdapter(child: SizedBox(height: topSectionSpacing)),
+          SliverToBoxAdapter(child: summary),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
+        ],
+        if (!showSummary)
+          SliverToBoxAdapter(child: SizedBox(height: topSectionSpacing)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+            child: child,
+          ),
+        ),
+      ];
+
+      return Material(
+        color: Colors.transparent,
+        child: _ShellViewport(
+          enabled: roundedViewport,
+          clipKey: const Key('profile_shell_viewport_clip'),
+          borderRadius: extension.cardRadius,
+          child: ResponsiveContainer(
+            child: CustomScrollView(slivers: slivers),
+          ),
+        ),
+      );
+    }
+
+    // Android/desktop: existing HeroHeader + Column layout
     return Material(
       color: Colors.transparent,
       child: _ShellViewport(
