@@ -90,16 +90,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      height: 1.08,
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.sm),
                   Wrap(
                     key: const Key('podcast_episode_detail_hero_metadata_row'),
                     spacing: AppSpacing.sm,
@@ -141,16 +131,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      height: 1.02,
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.xs),
                   Text(
                     mobileMetadata,
                     key: const Key(
@@ -236,8 +216,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
               _buildQueueButton(),
               SizedBox(width: AppSpacing.sm),
               _buildShareButton(episode),
-              SizedBox(width: AppSpacing.sm),
-              _buildBackButton(),
             ],
           ),
           SizedBox(height: AppSpacing.sm),
@@ -578,19 +556,6 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       onPressed: _isAddingToQueue ? null : _addCurrentEpisodeToQueue,
       circular: true,
       isLoading: _isAddingToQueue,
-      density: _isCompactPhoneLayout
-          ? HeaderCapsuleActionButtonDensity.compact
-          : HeaderCapsuleActionButtonDensity.regular,
-    );
-  }
-
-  Widget _buildBackButton() {
-    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
-    return HeaderCapsuleActionButton(
-      tooltip: l10n.back_button,
-      icon: Icons.adaptive.arrow_back,
-      onPressed: () => context.canPop() ? context.pop() : context.go('/'),
-      circular: true,
       density: _isCompactPhoneLayout
           ? HeaderCapsuleActionButtonDensity.compact
           : HeaderCapsuleActionButtonDensity.regular,
