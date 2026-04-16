@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -179,22 +180,63 @@ class AppTheme {
   /// Theme cache keyed by '${fontComboId}_${brightness}'.
   static final Map<String, ThemeData> _themeCache = {};
 
-  /// Build (or return cached) theme for the given brightness and fonts.
-  static ThemeData buildTheme(Brightness brightness, FontCombination fonts) {
-    final cacheKey = '${fonts.id}_${brightness.name}';
-    return _themeCache.putIfAbsent(cacheKey, () => _buildTheme(brightness, fonts));
+  /// Build (or return cached) theme for the given brightness, fonts, and optional platform.
+  static ThemeData buildTheme(
+    Brightness brightness,
+    FontCombination fonts, [
+    TargetPlatform? platform,
+  ]) {
+    final resolvedPlatform = platform ?? TargetPlatform.android;
+    final cacheKey = '${fonts.id}_${brightness.name}_${resolvedPlatform.name}';
+    return _themeCache.putIfAbsent(
+      cacheKey,
+      () => _buildTheme(brightness, fonts, resolvedPlatform),
+    );
   }
 
-  /// Backward-compatible light theme (uses default fonts).
+  /// Build (or return cached) CupertinoTheme for the given brightness.
+  static CupertinoThemeData buildCupertinoTheme(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    return CupertinoThemeData(
+      brightness: brightness,
+      primaryColor: isDark
+          ? const Color(0xFF5E5CE6)
+          : AppColors.primary,
+      scaffoldBackgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
+      barBackgroundColor: isDark
+          ? AppColors.darkSurface
+          : AppColors.lightSurface,
+      textTheme: CupertinoTextThemeData(
+        primaryColor: isDark
+            ? AppColors.darkTextPrimary
+            : AppColors.lightTextPrimary,
+        textStyle: TextStyle(
+          color: isDark
+              ? AppColors.darkTextPrimary
+              : AppColors.lightTextPrimary,
+          fontFamily: _bodyFontFamily,
+        ),
+      ),
+    );
+  }
+
+  /// Backward-compatible light theme (uses default fonts and platform).
   static ThemeData get lightTheme =>
       buildTheme(Brightness.light, _currentFonts);
 
-  /// Backward-compatible dark theme (uses default fonts).
+  /// Backward-compatible dark theme (uses default fonts and platform).
   static ThemeData get darkTheme =>
       buildTheme(Brightness.dark, _currentFonts);
 
-  static ThemeData _buildTheme(Brightness brightness, FontCombination fonts) {
+  static ThemeData _buildTheme(
+    Brightness brightness,
+    FontCombination fonts,
+    TargetPlatform platform,
+  ) {
     final isDark = brightness == Brightness.dark;
+    final isIOS = platform == TargetPlatform.iOS;
     final scheme = _buildColorScheme(brightness);
     final textTheme = _buildTextTheme(
       scheme.onSurface,
@@ -216,13 +258,30 @@ class AppTheme {
           : AppColors.lightBackground,
       textTheme: googleTextTheme,
       fontFamily: _bodyBaseFor(fonts).fontFamily,
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: isIOS
+            ? {
+                TargetPlatform.iOS: const CupertinoPageTransitionsBuilder(),
+                TargetPlatform.android: const ZoomPageTransitionsBuilder(),
+                TargetPlatform.macOS: const CupertinoPageTransitionsBuilder(),
+                TargetPlatform.windows: const CupertinoPageTransitionsBuilder(),
+                TargetPlatform.linux: const CupertinoPageTransitionsBuilder(),
+              }
+            : {
+                TargetPlatform.iOS: const ZoomPageTransitionsBuilder(),
+                TargetPlatform.android: const ZoomPageTransitionsBuilder(),
+                TargetPlatform.macOS: const ZoomPageTransitionsBuilder(),
+                TargetPlatform.windows: const ZoomPageTransitionsBuilder(),
+                TargetPlatform.linux: const ZoomPageTransitionsBuilder(),
+              },
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: false,
+        centerTitle: isIOS,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarBrightness: isDark ? Brightness.dark : Brightness.light,

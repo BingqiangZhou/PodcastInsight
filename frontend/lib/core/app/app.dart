@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -352,8 +353,16 @@ class _PersonalAIAssistantAppState
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [Locale('en'), Locale('zh')],
-        builder: (context, child) =>
-            _wrapAppChild(context, child ?? const SizedBox.shrink()),
+        builder: (context, child) {
+          final wrappedChild = _wrapAppChild(
+            context,
+            child ?? const SizedBox.shrink(),
+          );
+          return CupertinoTheme(
+            data: AppTheme.buildCupertinoTheme(Brightness.light),
+            child: wrappedChild,
+          );
+        },
         home: const _SplashScreenWidget(),
       );
     }
@@ -385,8 +394,16 @@ class _PersonalAIAssistantAppState
       ],
       supportedLocales: const [Locale('en'), Locale('zh')],
 
-      builder: (context, child) =>
-          _wrapAppChild(context, child ?? const SizedBox.shrink()),
+      builder: (context, child) {
+        final wrappedChild = _wrapAppChild(
+          context,
+          child ?? const SizedBox.shrink(),
+        );
+        return CupertinoTheme(
+          data: AppTheme.buildCupertinoTheme(Theme.of(context).brightness),
+          child: wrappedChild,
+        );
+      },
     );
   }
 }
