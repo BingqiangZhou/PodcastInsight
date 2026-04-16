@@ -34,18 +34,22 @@ curl http://localhost:8000/api/v1/health
 ```
 backend/app/
   bootstrap/      Lifecycle, middleware, routing, cache warming
-  core/           Config, database, redis, security (jwt/encryption/password/2FA), auth, exceptions, celery
+  core/           Config, database, redis, security (jwt/encryption/password/2FA), auth, exceptions, celery, ai_client, http_client, middleware
   shared/         Cross-domain utilities (repository helpers, schemas, retry, time)
-  domains/        user, subscription, podcast, ai
+  domains/        user, subscription, podcast, ai, media (transcription), content (reports/highlights/conversations)
   http/           Error helpers, route decorators
-  admin/          Admin panel (separate auth, 2FA, CSRF, templates)
+  admin/          Admin panel (separate auth, 2FA, CSRF, server-rendered HTML templates)
 
 frontend/lib/
   core/
     database/       Drift ORM (AppDatabase, DownloadDao, PlaybackDao, EpisodeCacheDao)
-    theme/          AppTheme, AppColors (design tokens), ThemeProvider
-    constants/      AppRadius, AppSpacing, Breakpoints, ScrollConstants
+    theme/          AppTheme, AppColors (design tokens), ThemeProvider, CupertinoTheme for iOS
+    constants/      AppRadius, AppSpacing (4-point grid), Breakpoints, ScrollConstants
     widgets/        CustomAdaptiveNavigation (NOT flutter_adaptive_scaffold)
+    platform/       Platform-aware page transitions, adaptive widgets (.adaptive())
+    network/        Dio client with ETag caching, token refresh, retry
+    services/       Cache, update check, download management
+    storage/        SharedPreferences + SecureStorage wrappers
   features/        auth, podcast (largest), profile, settings, splash, home
   shared/          Cross-feature models, widgets
 ```
@@ -54,15 +58,16 @@ frontend/lib/
 
 ### Backend
 - **uv only** (NEVER pip). **ruff only** for lint/format (NOT black/isort/flake8)
-- All I/O is async (SQLAlchemy async, httpx, redis)
+- All I/O is async (SQLAlchemy async, aiohttp, redis)
 - Exceptions: Service layer raises `BaseCustomError`. Routes use `HTTPException` from `app.http.errors`
-- DI: FastAPI `Depends()`. Migrations: `backend/alembic/` (20 files)
+- DI: FastAPI `Depends()`. Migrations: `backend/alembic/` (23 migrations)
 
 ### Frontend
 - **Material 3 only** (`useMaterial3: true`)
 - Use `CustomAdaptiveNavigation` + `Breakpoints` (NOT flutter_adaptive_scaffold)
+- Platform-adaptive UI: CupertinoTheme wrapper + `.adaptive()` widgets for iOS-native feel
 - Responsive: mobile <600 | tablet 600-1200 | desktop >=1200
-- Theme tokens in `AppColors`
+- Theme tokens in `AppColors`, spacing tokens in `AppSpacing` (4-point grid scale)
 - Run `dart run build_runner build` after modifying `@riverpod`, `@RestApi`, `@JsonSerializable`, or Drift files
 - i18n: Edit both `app_localizations_en.arb` and `app_localizations_zh.arb`, then `flutter gen-l10n`
 - Widget tests MANDATORY for all pages
@@ -82,9 +87,10 @@ frontend/lib/
 |-------|---------|
 | `pip install` | `uv add` or `uv sync` |
 | flutter_adaptive_scaffold | `CustomAdaptiveNavigation` + `Breakpoints` |
-| Hardcoded colors/radii | `AppColors` tokens and `AppRadius` constants |
+| Hardcoded colors/radii/spacing | `AppColors`, `AppRadius`, and `AppSpacing` tokens |
 | Edit `.g.dart` by hand | Edit source, re-run `dart run build_runner build` |
 | Bare ValueError for errors | `BaseCustomError` (service) or `HTTPException` (route) |
+| `Color.withOpacity()` | `Color.withValues(alpha:)` (former is deprecated) |
 | Skip widget tests | Required for all pages |
 
 ## Testing & Completion

@@ -2,11 +2,12 @@
 
 ## Project Structure & Module Organization
 - `backend/`: FastAPI service (DDD layout) with core, shared, and domain modules in `backend/app/`.
-- `backend/alembic/`: database migrations.
+- `backend/alembic/`: database migrations (23 migrations).
 - `backend/tests/` and `backend/app/**/tests/`: backend test suites.
 - `frontend/`: Flutter app with feature modules in `frontend/lib/` and tests in `frontend/test/`.
-- `docker/`: Docker Compose files and deployment assets.
+- `docker/`: Docker Compose files and deployment assets (6 services: postgres, redis, backend, celery_worker, celery_beat, nginx).
 - `docs/` and `specs/`: detailed design notes and active requirements.
+- `scripts/`: Utility scripts (SQL init, API test, optimization verify).
 
 ## Build, Test, and Development Commands
 - Backend dependencies: `cd backend && uv sync --extra dev`
@@ -15,16 +16,19 @@
 - Lint/format (backend): `uv run ruff check .` and `uv run ruff format .`
 - Backend tests: `uv run pytest`
 - Frontend deps: `cd frontend && flutter pub get`
-- Frontend code gen: `cd frontend && dart run build_runner build` (required after modifying `@riverpod`, `@RestApi`, `@JsonSerializable` files)
+- Frontend code gen: `cd frontend && dart run build_runner build` (required after modifying `@riverpod`, `@RestApi`, `@JsonSerializable`, or Drift files)
 - Frontend tests: `flutter test` (unit: `test/unit/`, widget: `test/widget/`, integration: `test/integration/`)
-- Frontend l10n: `flutter gen-l10n` (after editing `app_localizations_en.arb` or `app_localizations_zh.arb`)
-- Docker backend verification (required): `cd docker && docker-compose up -d`
+- Frontend l10n: `flutter gen-l10n` (after editing both `app_localizations_en.arb` and `app_localizations_zh.arb`)
+- Docker backend verification (required): `cd docker && docker compose up -d`
 
 ## Coding Style & Naming Conventions
 - Backend uses `ruff` for linting/formatting; do not use `black`, `isort`, or `flake8`.
 - Use `uv` for Python package management; avoid `pip install`.
-- Follow async/await patterns for I/O in the backend.
+- Follow async/await patterns for I/O in the backend (SQLAlchemy async, aiohttp, redis).
 - Frontend uses Material 3 (`useMaterial3: true`) and `CustomAdaptiveNavigation` with `Breakpoints` class.
+- Frontend uses platform-adaptive UI: CupertinoTheme wrapper and `.adaptive()` widgets for iOS-native feel.
+- Use `AppColors`, `AppRadius`, and `AppSpacing` tokens — no hardcoded colors, radii, or spacing.
+- Use `Color.withValues(alpha:)` instead of deprecated `Color.withOpacity()`.
 
 ## Testing Guidelines
 - Backend: pytest with async tests; run `uv run pytest` before PRs.
