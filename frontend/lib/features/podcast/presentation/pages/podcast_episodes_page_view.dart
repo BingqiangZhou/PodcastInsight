@@ -10,7 +10,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: Icon(Icons.adaptive.arrow_back),
               onPressed: () => context.canPop() ? context.pop() : context.go('/'),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -31,7 +31,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
                   ? SizedBox(
                       width: AppSpacing.mdLg,
                       height: AppSpacing.mdLg,
-                      child: CircularProgressIndicator(
+                      child: CircularProgressIndicator.adaptive(
                         strokeWidth: 2,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -123,7 +123,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(AppSpacing.md),
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator.adaptive(),
                   ),
                 );
               }
@@ -148,7 +148,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
           itemCount: itemCount,
           itemBuilder: (context, index) {
             if (index == episodesState.episodes.length) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator.adaptive());
             }
             final episode = episodesState.episodes[index];
             return _buildEpisodeCard(episode);

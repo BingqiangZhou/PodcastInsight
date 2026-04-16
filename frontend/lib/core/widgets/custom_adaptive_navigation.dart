@@ -6,6 +6,7 @@ import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
@@ -553,6 +554,9 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
   }
 
   Widget _buildMobileNavBar(BuildContext context) {
+    if (PlatformHelper.isIOS(context)) {
+      return _buildIOSMobileNavBar(context);
+    }
     return SizedBox(
       key: const Key('custom_adaptive_navigation_mobile_nav_bar'),
       height: kPodcastGlobalPlayerMobileDockHeight,
@@ -567,6 +571,60 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
               destination,
               isSelected,
               () => widget.onDestinationSelected?.call(index),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  /// iOS-style bottom navigation (CupertinoTabBar aesthetic).
+  /// Uses system icon colors instead of gradient background.
+  Widget _buildIOSMobileNavBar(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: kPodcastGlobalPlayerMobileDockHeight,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(widget.destinations.length, (index) {
+          final destination = widget.destinations[index];
+          final isSelected = index == widget.selectedIndex;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => widget.onDestinationSelected?.call(index),
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconTheme(
+                      data: IconThemeData(
+                        size: 22,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      child: isSelected
+                          ? (destination.selectedIcon ?? destination.icon)
+                          : destination.icon,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      destination.label,
+                      style: AppTheme.navLabel(
+                        isSelected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                        weight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         }),

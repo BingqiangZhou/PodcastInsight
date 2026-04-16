@@ -584,7 +584,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return HeaderCapsuleActionButton(
       tooltip: l10n.back_button,
-      icon: Icons.arrow_back,
+      icon: Icons.adaptive.arrow_back,
       onPressed: () => context.canPop() ? context.pop() : context.go('/'),
       circular: true,
       density: _isCompactPhoneLayout

@@ -116,7 +116,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                  icon: Icon(Icons.adaptive.arrow_back),
                   onPressed: () => context.go('/login'),
                 ),
               ),

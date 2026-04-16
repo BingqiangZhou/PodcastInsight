@@ -355,11 +355,14 @@ class AppTheme {
         focusedErrorBorder: _inputBorder(extension, scheme.error, width: 1.4),
       ),
       listTileTheme: ListTileThemeData(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isIOS ? 20 : 16,
+          vertical: isIOS ? 4 : 0,
+        ),
         iconColor: scheme.onSurfaceVariant,
         textColor: scheme.onSurface,
         shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.mdLgRadius,
+          borderRadius: BorderRadius.circular(isIOS ? 10 : extension.cardRadius),
         ),
       ),
       chipTheme: ChipThemeData(
