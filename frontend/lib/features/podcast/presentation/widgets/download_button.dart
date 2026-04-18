@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/services/download_provider.dart';
@@ -152,16 +151,21 @@ class _IconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttonSize = size + 4;
+    final buttonStyle = IconButton.styleFrom(
+      minimumSize: Size(buttonSize, buttonSize),
+      maximumSize: Size(buttonSize, buttonSize),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      foregroundColor: color,
+    );
+
     return IconButton(
+      style: buttonStyle,
       icon: Icon(icon, size: size),
-      color: color,
       tooltip: tooltip,
       onPressed: onPressed,
-      constraints: BoxConstraints(
-        minWidth: size + 8,
-        minHeight: size,
-      ),
-      padding: EdgeInsets.symmetric(horizontal: context.spacing.xs),
     );
   }
 }
