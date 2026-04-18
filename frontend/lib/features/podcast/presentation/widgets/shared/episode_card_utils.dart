@@ -22,10 +22,11 @@ class EpisodeCardUtils {
   /// - Shrinkwrap tap target
   /// - Compact visual density
   /// - Zero padding
-  static ButtonStyle compactIconButtonStyle(ThemeData theme) {
+  static ButtonStyle compactIconButtonStyle(ThemeData theme, {bool isMobile = false}) {
+    const size = 16.0;
     return IconButton.styleFrom(
-      minimumSize: const Size(28, 28),
-      maximumSize: const Size(28, 28),
+      minimumSize: Size(size, size),
+      maximumSize: Size(size, size),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
