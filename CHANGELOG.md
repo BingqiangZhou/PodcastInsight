@@ -4,6 +4,82 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.47.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.46.0...v0.47.0) - 2026-04-18 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.47.0))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ui)* Deprecate CompactHeaderPanel in favor of AdaptiveSliverAppBar ([81208e6](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/81208e6dd0d15573802ba6a4b58ad67bafdfd420))
+
+### ⚡ Performance
+
+- *(frontend)* Optimize image caching, widget rebuilds, and state management ([38cfcdd](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/38cfcdd121a0ef1ce918e648b7040848a5f56ad0))
+
+### 🎨 Styling
+
+- *(ui)* Tighten card-to-card and title-to-content spacing on mobile ([3748083](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/37480831e5547adb6c5a13341adff0b6f0179084))
+- *(ui)* Further reduce card internal padding on mobile ([da6ed56](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/da6ed565b124d41fa4b86a0427c380bf2086e4ff))
+- *(ui)* Tighten spacing in highlight detail sheet ([699f017](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/699f0172aa4d47395ba78676ac606129677931dc))
+- *(ui)* Tighten internal spacing in episode cards on mobile ([b3a4a33](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b3a4a33655b207f8fe9118a7d91bcce277de4190))
+- *(ui)* Remove description-to-meta gap on mobile in episode cards ([22598db](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/22598db4638622ea071d476d6c32f08c61da693d))
+- *(ui)* Reduce description trailing space in episode cards on mobile ([4fc6b60](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4fc6b60c3130b86bb869f128a3684a2e2b27308a))
+- *(ui)* Reduce card bottom padding and description height on mobile ([cce1844](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/cce184419743215975a56c47ee58fe6f8309084c))
+- *(ui)* Tighten card spacing and align metadata row on all platforms ([ac5e48f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ac5e48ff7ee51edb7cc18eba740a112a83f7cd57))
+- *(ui)* Reduce compact icon button size from 28 to 16 ([5cfafae](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/5cfafae11a97fb1dc489ee4ded312e0cb32a4e55))
+- *(ui)* Compact download button constraints and padding ([dc4dd14](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dc4dd14db24c7913436b961c37fa1c117a9fd450))
+
+### 🐛 Bug Fixes
+
+- *(services)* Correct API usage for home_widget and flutter_local_notifications ([297e54c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/297e54ce175c38e45899db2945c55f61ce091d83))
+
+### 📚 Documentation
+
+- *(spec)* Add iOS optimization and dual-platform differentiation design ([8a4618b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8a4618befd410d947b570a30a37458ebd7fa5992))
+- *(plan)* Add phased iOS optimization implementation plan ([bff9f7b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bff9f7b3bbbfe8123e6e790118299bd3f24d64d7))
+- Add adaptive component coverage completion design spec ([decb44d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/decb44d31a217651ae853b23804b2db2f2414e3f))
+- Add unified title bar design spec ([650d928](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/650d9281bd7afc3076890329cb5bd3192ab34c6c))
+- Add unified title bar implementation plan ([ce93ce5](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ce93ce5e53a588bbe2d8a2f4333140ddf36f3728))
+
+### 🚀 Features
+
+- *(ios)* Phase 4 performance optimization and Phase 5 platform integration ([aa4671a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/aa4671a91d0831943c7c7d60c82081953f8a0384))
+- *(ios)* Integrate haptic feedback and share across app ([0fd81ea](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0fd81ea30732e074910c4d3da30de3962bfa52ea))
+- *(adaptive)* Add core adaptive widget factory for dual-platform UI ([f2b20dd](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f2b20dd08d84c8fab16930439a017bc253f91131))
+- *(adaptive)* Add AdaptiveDismissible for iOS swipe actions ([c4f42b8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c4f42b8c8fb75631519e1aef3e329baff3e4216e))
+- *(platform)* Add notification and home widget service scaffolding ([d790f10](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d790f107204229d291e5c027d6b550feb6ea1f60))
+- *(profile)* Adapt Profile page for iOS with Adaptive components ([86fc0b3](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/86fc0b355a55b1e99cfe0b284a655f4e3ceadcc2))
+- *(auth)* Adapt Auth pages for iOS with Adaptive components ([2905d64](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2905d64fb4c8929bad01de378d278731a9b0308c))
+- *(podcast)* Adapt PodcastEpisodesPage for iOS with Adaptive components ([1f95322](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1f953223c16fd42a9b30e5120d40cb191408bd86))
+- *(settings)* Adapt appearance page for iOS with AdaptiveSegmentedControl ([229749f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/229749f06f84bc5d856a9ce8dcb97b2b99b37bdd))
+- *(ios)* Complete missing implementation items ([f3287e6](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f3287e67627726d3c7acf2aed9f3fee4dd70f6d9))
+- *(ios)* Apply CupertinoSliverNavigationBar to shells and add adaptive component tests ([0ea495e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0ea495e357e3b9bc1a183d61711110a3b8c33500))
+- *(ios)* Complete all remaining optimization tasks ([3b6e7a9](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3b6e7a98957ece1c3b4a5da6ded3ba451c60615c))
+- *(ui)* Complete adaptive component coverage for dual-platform UI ([96fdb10](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/96fdb107837303b555b205b357454f761fb8e318))
+- *(ui)* Enhance AdaptiveSliverAppBar with actions and platform styling ([1f8312e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1f8312ec733f2f2057cba6e5adaa1802d198fb92))
+- *(ui)* Migrate TermsPage and PrivacyPage to AdaptiveSliverAppBar ([058fabd](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/058fabd493da7fc716f55838f45ead8d65897d95))
+- *(ui)* Add AdaptiveSliverAppBar to PodcastEpisodeDetailPage ([77bf13d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/77bf13d8e5cdf4b955059451a527c9526876da7a))
+- *(ui)* Migrate PodcastEpisodesPage header to AdaptiveSliverAppBar ([c228051](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c228051e2d3fd524874d6f7aeffa13cdcd078e24))
+- *(ui)* Migrate podcast sub-pages to AdaptiveSliverAppBar ([c843c9d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c843c9d3e301ed8698a503441d016a664b172223))
+- *(ui)* Migrate profile sub-pages to AdaptiveSliverAppBar ([f21ecd2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f21ecd293a8a0887f2e85438c4d94dfb4a1652eb))
+- *(ui)* Add responsive spacing system for mobile compact layout ([129e8e3](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/129e8e31c40eddfc7a5136d790a03bc11365a1e9))
+- *(ui)* Restore gradient colors and add accent/radius tokens ([d5601c4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d5601c4a9bf15313e98e340822799c79bd6675c7))
+- *(app)* Add lifecycle listener and window_manager for desktop ([0dd9110](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0dd9110972524169f7ab0dfd3c54b32bb8f6b9dd))
+- *(i18n)* Add more and podcast_add_subscription strings ([68f7e02](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/68f7e02810aceb65054ec4f7d50e77c6da551292))
+
+### 🚜 Refactor
+
+- *(android)* Rename package from com.example to com.opc.stella ([1e8fc17](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1e8fc1776071eff0a8e8b3330a174a0c0015efa3))
+- *(core)* Simplify adaptive haptic to work on all platforms ([741e97f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/741e97fc05391b6c1956e4327b3eade637fd3af6))
+- *(ui)* Make compact icon button size and metadata text configurable ([d5dbd8b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d5dbd8b7a7039db37ad1d872f3eb4594990cd340))
+- *(ui)* Unify download button styling with IconButton.styleFrom ([3317094](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/33170941cc9fbeff4a09b280b8b72de71acd1209))
+- *(ui)* Make card button/metadata sizes configurable via EpisodeCardConfig ([4e5aefd](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4e5aefda391f3e66750d07d352d54cce7a4fd09a))
+- *(podcast)* Use unawaited for fire-and-forget async calls in feed page ([9c597bc](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9c597bc0f0b8a865eff3bcf4480f3d434032d7fa))
+
+### 🧪 Testing
+
+- *(profile)* Update package name and widget key assertions ([81675e7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/81675e7ad8732da80f0315c89c8c8639fb0b8041))
+
+
+
 ## [0.46.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.45.0...v0.46.0) - 2026-04-16 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.46.0))
 
 ### ⚙️ Miscellaneous Tasks
