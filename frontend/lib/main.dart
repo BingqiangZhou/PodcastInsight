@@ -16,6 +16,7 @@ import 'package:personal_ai_assistant/features/auth/presentation/providers/onboa
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/audio_handler.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_manager/window_manager.dart';
 
 void main() {
   runZonedGuarded(
@@ -65,10 +66,23 @@ void main() {
         );
         logger.AppLogger.info('AudioService initialized (mobile platform)');
       } else {
-        platformAudioHandler = PodcastAudioHandler();
-        logger.AppLogger.info(
-          'PodcastAudioHandler initialized (desktop platform)',
-        );
+        // Desktop platforms do not require media notification integration
+        // (AudioService.init provides lock-screen controls and persistent
+        // notification on mobile).  A plain handler is sufficient here.
+        try {
+          platformAudioHandler = PodcastAudioHandler();
+          logger.AppLogger.info(
+            'PodcastAudioHandler initialized (desktop platform)',
+          );
+        } catch (e, st) {
+          logger.AppLogger.error(
+            '[AppInit] Failed to create PodcastAudioHandler on desktop',
+            error: e,
+            stackTrace: st,
+          );
+          // Re-throw so the caller knows initialization failed.
+          rethrow;
+        }
       }
 
       if (Platform.isAndroid) {
@@ -78,27 +92,16 @@ void main() {
         }
       }
 
-      SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          systemNavigationBarColor: Colors.transparent,
-          systemNavigationBarIconBrightness: Brightness.dark,
-          systemNavigationBarDividerColor: Colors.transparent,
-        ),
-      );
-
       // Desktop platforms allow all orientations (landscape is natural for desktop).
       // Mobile platforms lock to portrait for consistent mobile UX.
       final isDesktop =
           Platform.isWindows || Platform.isMacOS || Platform.isLinux;
       if (isDesktop) {
-        await SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ]);
+        await WindowManager.instance.ensureInitialized();
+        await WindowManager.instance.setTitle('Stella');
+        await WindowManager.instance.setMinimumSize(const Size(600, 400));
+        // Desktop windows support all orientations natively;
+        // no need to call setPreferredOrientations (it is a no-op).
       } else {
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.portraitUp,

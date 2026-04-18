@@ -18,6 +18,7 @@ import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart'
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_server_config_listener.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_playback_providers.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/widgets/update_dialog.dart';
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
@@ -120,16 +121,19 @@ class _PersonalAIAssistantAppState
   VoidCallback? _routeSyncListener;
   bool _routeSyncScheduled = false;
   String? _pendingRoute;
+  AppLifecycleListener? _lifecycleListener;
 
   @override
   void initState() {
     super.initState();
     _initializeApp();
     _setupRouteListener();
+    _setupLifecycleListener();
   }
 
   @override
   void dispose() {
+    _lifecycleListener?.dispose();
     final router = _routeSyncRouter;
     final listener = _routeSyncListener;
     if (router != null && listener != null) {
@@ -142,6 +146,40 @@ class _PersonalAIAssistantAppState
     // This prevents memory leaks and ensures proper cleanup on app shutdown
     AuthEventNotifier.instance.dispose();
     super.dispose();
+  }
+
+  void _setupLifecycleListener() {
+    _lifecycleListener = AppLifecycleListener(
+      onHide: () {
+        logger.AppLogger.debug('[AppLifecycle] App hidden');
+      },
+      onShow: () {
+        logger.AppLogger.debug('[AppLifecycle] App shown');
+      },
+      onPause: () {
+        logger.AppLogger.debug('[AppLifecycle] App paused');
+      },
+      onRestart: () {
+        logger.AppLogger.debug('[AppLifecycle] App restarted');
+      },
+      onDetach: () {
+        logger.AppLogger.debug('[AppLifecycle] App detached');
+        // Save playback state immediately when app is being destroyed
+        _savePlaybackState();
+      },
+    );
+  }
+
+  void _savePlaybackState() {
+    try {
+      final playerState = ref.read(audioPlayerProvider);
+      if (playerState.currentEpisode != null && playerState.isPlaying) {
+        // Pause playback to save resources when app is detaching
+        ref.read(audioPlayerProvider.notifier).pause();
+      }
+    } catch (e) {
+      logger.AppLogger.debug('[AppLifecycle] Error saving playback state: $e');
+    }
   }
 
   /// Cleanup audio service resources
@@ -361,7 +399,7 @@ class _PersonalAIAssistantAppState
             child ?? const SizedBox.shrink(),
           );
           return CupertinoTheme(
-            data: AppTheme.buildCupertinoTheme(Brightness.light),
+            data: AppTheme.buildCupertinoTheme(Theme.of(context).brightness),
             child: wrappedChild,
           );
         },
