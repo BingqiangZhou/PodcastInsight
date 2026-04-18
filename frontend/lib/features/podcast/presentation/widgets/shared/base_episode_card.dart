@@ -390,9 +390,15 @@ class BaseEpisodeCard extends StatelessWidget {
       style: (isMobile
               ? theme.textTheme.bodyMedium
               : theme.textTheme.bodySmall)
-          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            height: isMobile ? 1.35 : null,
+          ),
       maxLines: config.dense ? 2 : config.descriptionMaxLines,
       overflow: TextOverflow.ellipsis,
+      textHeightBehavior: isMobile
+          ? const TextHeightBehavior(applyHeightToLastDescent: false)
+          : null,
     );
   }
 
