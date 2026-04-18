@@ -238,7 +238,7 @@ void main() {
           if (methodCall.method == 'getAll') {
             return <String, dynamic>{
               'appName': 'Personal AI Assistant',
-              'packageName': 'com.example.personal_ai_assistant',
+              'packageName': 'com.opc.stella',
               'version': '1.2.3',
               'buildNumber': '123',
               'buildSignature': '',
@@ -1171,7 +1171,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final headerRect = tester.getRect(
-      find.byKey(const Key('profile_hero_header')).last,
+      find.byKey(const Key('profile_user_menu_button')),
     );
     final subscriptionsRect = tester.getRect(
       find.byKey(const Key('profile_subscriptions_card')),
@@ -1214,11 +1214,11 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('profile_hero_header')).last, findsOneWidget);
+    expect(find.byType(HeroHeader), findsWidgets);
     expect(find.byKey(const Key('profile_user_menu_button')), findsOneWidget);
     expect(find.byType(SingleChildScrollView), findsWidgets);
     final viewportClip = tester.widget<ClipRRect>(
-      find.byKey(const Key('profile_shell_viewport_clip')),
+      find.byKey(const Key('content_shell_viewport_clip')),
     );
     expect(viewportClip.borderRadius, BorderRadius.circular(14));
   });
