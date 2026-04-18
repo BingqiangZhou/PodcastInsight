@@ -35,6 +35,8 @@ class AppRadius {
   static const double lgXl = 16;
   static const double xl = 20;
   static const double xxl = 28;
+  static const double xxlCard = 22;
+  static const double chip = 18;
   static const double pill = 999;
 
   // ============================================================
@@ -49,6 +51,8 @@ class AppRadius {
   static BorderRadius get lgXlRadius => BorderRadius.circular(lgXl);
   static BorderRadius get xlRadius => BorderRadius.circular(xl);
   static BorderRadius get xxlRadius => BorderRadius.circular(xxl);
+  static BorderRadius get xxlCardRadius => BorderRadius.circular(xxlCard);
+  static BorderRadius get chipRadius => BorderRadius.circular(chip);
   static BorderRadius get card => BorderRadius.circular(cardValue);
   static BorderRadius get button => BorderRadius.circular(buttonValue);
   static BorderRadius get item => BorderRadius.circular(itemValue);

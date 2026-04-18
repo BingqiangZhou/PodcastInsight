@@ -135,12 +135,12 @@ class AppColors {
   // GRADIENT PALETTE - 渐变色板 (Arc-style accents)
   // ============================================================
 
-  static const List<Color> coralColors = [Color(0xFF2a2a2e), Color(0xFF3a3a40)];
-  static const List<Color> violetColors = [Color(0xFF2a2a2e), Color(0xFF3a3a40)];
-  static const List<Color> cyanColors = [Color(0xFF2a2a2e), Color(0xFF3a3a40)];
-  static const List<Color> goldColors = [Color(0xFF2a2a2e), Color(0xFF3a3a40)];
-  static const List<Color> roseColors = [Color(0xFF2a2a2e), Color(0xFF3a3a40)];
-  static const List<Color> skyColors = [Color(0xFF2a2a2e), Color(0xFF3a3a40)];
+  static const List<Color> coralColors = [Color(0xFFFF6B6B), Color(0xFFE84545)];
+  static const List<Color> violetColors = [Color(0xFF7C6AEF), Color(0xFF5845D6)];
+  static const List<Color> cyanColors = [Color(0xFF4FC3D6), Color(0xFF389CAE)];
+  static const List<Color> goldColors = [Color(0xFFF5A623), Color(0xFFD4901E)];
+  static const List<Color> roseColors = [Color(0xFFFF6B8A), Color(0xFFD4536E)];
+  static const List<Color> skyColors = [Color(0xFF5AC8FA), Color(0xFF4AA8D6)];
 
   static const List<List<Color>> podcastGradientColors = [
     coralColors,
@@ -193,6 +193,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.itemRadius,
     required this.sheetRadius,
     required this.pillRadius,
+    required this.warmAccent,
+    required this.coralAccent,
     required this.shadowXs,
     required this.shadowSm,
     required this.shadowMd,
@@ -212,6 +214,10 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final double itemRadius;
   final double sheetRadius;
   final double pillRadius;
+
+  // Accent colors (theme-aware, light/dark variants)
+  final Color warmAccent;
+  final Color coralAccent;
 
   // Shadows
   final BoxShadow shadowXs;
@@ -237,6 +243,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     double? itemRadius,
     double? sheetRadius,
     double? pillRadius,
+    Color? warmAccent,
+    Color? coralAccent,
     BoxShadow? shadowXs,
     BoxShadow? shadowSm,
     BoxShadow? shadowMd,
@@ -255,6 +263,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       itemRadius: itemRadius ?? this.itemRadius,
       sheetRadius: sheetRadius ?? this.sheetRadius,
       pillRadius: pillRadius ?? this.pillRadius,
+      warmAccent: warmAccent ?? this.warmAccent,
+      coralAccent: coralAccent ?? this.coralAccent,
       shadowXs: shadowXs ?? this.shadowXs,
       shadowSm: shadowSm ?? this.shadowSm,
       shadowMd: shadowMd ?? this.shadowMd,
@@ -285,6 +295,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       itemRadius: lerpDouble(itemRadius, other.itemRadius, t)!,
       sheetRadius: lerpDouble(sheetRadius, other.sheetRadius, t)!,
       pillRadius: lerpDouble(pillRadius, other.pillRadius, t)!,
+      warmAccent: Color.lerp(warmAccent, other.warmAccent, t)!,
+      coralAccent: Color.lerp(coralAccent, other.coralAccent, t)!,
       shadowXs: BoxShadow.lerp(shadowXs, other.shadowXs, t)!,
       shadowSm: BoxShadow.lerp(shadowSm, other.shadowSm, t)!,
       shadowMd: BoxShadow.lerp(shadowMd, other.shadowMd, t)!,
@@ -305,6 +317,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     itemRadius: 8,
     sheetRadius: 20,
     pillRadius: 999,
+    warmAccent: AppColors.accentWarm,
+    coralAccent: AppColors.accentCoral,
     shadowXs: BoxShadow(
       color: Color(0x0A000000),
       blurRadius: 1,
@@ -326,8 +340,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       offset: Offset(0, 8),
     ),
     chartColors: AppColors.chartColors,
-    // Legacy properties with fallback values
-    aiPrimary: Color(0xFF5856D6), // systemIndigo
+    aiPrimary: Color(0xFF5856D6),
     podcastGradientColors: AppColors.podcastGradientColors,
   );
 
@@ -341,6 +354,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     itemRadius: 8,
     sheetRadius: 20,
     pillRadius: 999,
+    warmAccent: AppColors.accentWarmDark,
+    coralAccent: AppColors.accentCoralLight,
     shadowXs: BoxShadow(
       color: Color(0x33000000),
       blurRadius: 1,
@@ -362,7 +377,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       offset: Offset(0, 8),
     ),
     chartColors: AppColors.chartColors,
-    // Legacy properties with fallback values
     aiPrimary: Color(0xFFA5B4FC),
     podcastGradientColors: AppColors.podcastGradientColors,
   );
@@ -377,6 +391,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     itemRadius: 10,
     sheetRadius: 20,
     pillRadius: 999,
+    warmAccent: AppColors.accentWarm,
+    coralAccent: AppColors.accentCoral,
     shadowXs: BoxShadow(color: Color(0x00000000)),
     shadowSm: BoxShadow(color: Color(0x00000000)),
     shadowMd: BoxShadow(color: Color(0x00000000)),
@@ -396,6 +412,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     itemRadius: 10,
     sheetRadius: 20,
     pillRadius: 999,
+    warmAccent: AppColors.accentWarmDark,
+    coralAccent: AppColors.accentCoralLight,
     shadowXs: BoxShadow(color: Color(0x00000000)),
     shadowSm: BoxShadow(color: Color(0x00000000)),
     shadowMd: BoxShadow(color: Color(0x00000000)),
