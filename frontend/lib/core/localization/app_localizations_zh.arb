@@ -68,6 +68,10 @@
     "@delete":  {
                     "description":  "删除按钮标签"
                 },
+    "more":  "更多",
+    "@more":  {
+                    "description":  "更多选项按钮标签"
+                },
     "edit":  "编辑",
     "@edit":  {
                   "description":  "编辑按钮标签"

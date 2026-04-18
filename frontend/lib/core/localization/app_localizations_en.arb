@@ -68,6 +68,10 @@
     "@delete":  {
                     "description":  "Delete button label"
                 },
+    "more":  "More",
+    "@more":  {
+                    "description":  "More options button label"
+                },
     "edit":  "Edit",
     "@edit":  {
                   "description":  "Edit button label"
@@ -232,6 +236,7 @@
     "@profile_subscriptions":  {
                                    "description":  "Subscriptions label (without \"My\")"
                                },
+    "podcast_add_subscription":  "Add subscription",
     "@podcast_add_subscription":  {
                                       "description":  "Add subscription button"
                                   },

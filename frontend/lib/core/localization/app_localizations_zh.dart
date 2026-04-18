@@ -60,6 +60,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get delete => '删除';
 
   @override
+  String get more => '更多';
+
+  @override
   String get edit => '编辑';
 
   @override
@@ -181,6 +184,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get profile_subscriptions => '订阅';
+
+  @override
+  String get podcast_add_subscription => '添加订阅';
 
   @override
   String get podcast_episodes => '单集';

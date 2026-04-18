@@ -200,6 +200,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get delete;
 
+  /// More options button label
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get more;
+
   /// Edit button label
   ///
   /// In en, this message translates to:
@@ -445,6 +451,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subscriptions'**
   String get profile_subscriptions;
+
+  /// Add subscription button
+  ///
+  /// In en, this message translates to:
+  /// **'Add subscription'**
+  String get podcast_add_subscription;
 
   /// Episodes label
   ///

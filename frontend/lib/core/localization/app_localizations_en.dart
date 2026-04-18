@@ -60,6 +60,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get more => 'More';
+
+  @override
   String get edit => 'Edit';
 
   @override
@@ -183,6 +186,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profile_subscriptions => 'Subscriptions';
+
+  @override
+  String get podcast_add_subscription => 'Add subscription';
 
   @override
   String get podcast_episodes => 'Episodes';
