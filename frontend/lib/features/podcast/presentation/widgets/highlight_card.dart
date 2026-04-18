@@ -44,10 +44,10 @@ class HighlightCard extends ConsumerWidget {
             ),
           ),
           padding: EdgeInsets.fromLTRB(
-            isCompact ? 12 : 16,
             isCompact ? 10 : 16,
-            isCompact ? 10 : 16,
-            isCompact ? 10 : 14,
+            isCompact ? 8 : 16,
+            isCompact ? 8 : 16,
+            isCompact ? 8 : 14,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

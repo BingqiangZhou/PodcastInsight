@@ -332,7 +332,7 @@ class _SurfacePanelState extends State<SurfacePanel> {
     final radius = widget.borderRadius ?? extension.cardRadius;
     final isMobile = MediaQuery.sizeOf(context).width < 600;
     final effectivePadding = widget.padding ??
-        EdgeInsets.all(isMobile ? AppSpacing.smMd : AppSpacing.md);
+        EdgeInsets.all(isMobile ? AppSpacing.sm : AppSpacing.md);
 
     final panel = Container(
       margin: widget.margin,
