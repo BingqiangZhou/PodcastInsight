@@ -184,11 +184,11 @@ class BaseEpisodeCard extends StatelessWidget {
                   if (config.showDescription &&
                       config.description != null &&
                       config.description!.isNotEmpty) ...[
-                    SizedBox(height: context.spacing.sm),
+                    SizedBox(height: isMobile ? context.spacing.xs : context.spacing.sm),
                     Flexible(child: _buildDescription(context, theme)),
-                    SizedBox(height: context.spacing.xs),
+                    SizedBox(height: context.spacing.xxs),
                   ] else if (config.showDescription) ...[
-                    SizedBox(height: context.spacing.xs),
+                    SizedBox(height: context.spacing.xxs),
                   ],
                   if (_hasMetaOrActions)
                     _buildMetaActionRow(context, theme),
@@ -278,6 +278,7 @@ class BaseEpisodeCard extends StatelessWidget {
 
   Widget _buildHeaderRow(BuildContext context, ThemeData theme) {
     final scheme = theme.colorScheme;
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
     final titleStyle = (config.dense
             ? theme.textTheme.titleSmall
             : theme.textTheme.titleMedium)
@@ -287,7 +288,7 @@ class BaseEpisodeCard extends StatelessWidget {
       children: [
         if (config.showImage && config.imageUrl != null) ...[
           _buildImage(context, theme),
-          SizedBox(width: context.spacing.md),
+          SizedBox(width: isMobile ? context.spacing.smMd : context.spacing.md),
         ],
         Expanded(
           child: Column(
@@ -301,7 +302,7 @@ class BaseEpisodeCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               if (subtitle != null) ...[
-                SizedBox(height: context.spacing.xs),
+                SizedBox(height: context.spacing.xxs),
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -312,7 +313,7 @@ class BaseEpisodeCard extends StatelessWidget {
                 ),
               ],
               if (subtitle2 != null) ...[
-                SizedBox(height: context.spacing.xs),
+                SizedBox(height: context.spacing.xxs),
                 Text(
                   subtitle2!,
                   style: theme.textTheme.bodySmall?.copyWith(
