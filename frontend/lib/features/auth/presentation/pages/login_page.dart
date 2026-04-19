@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
@@ -47,19 +48,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _loadSavedCredentials() async {
-    final savedUsername = await _secureStorage.read(
-      key: AppConstants.savedUsernameKey,
-    );
+    try {
+      final savedUsername = await _secureStorage.read(
+        key: AppConstants.savedUsernameKey,
+      );
 
-    if (!mounted) {
-      return;
-    }
+      if (!mounted) {
+        return;
+      }
 
-    if (savedUsername != null) {
-      setState(() {
-        _emailController.text = savedUsername;
-        _rememberMe = true;
-      });
+      if (savedUsername != null) {
+        setState(() {
+          _emailController.text = savedUsername;
+          _rememberMe = true;
+        });
+      }
+    } on PlatformException {
+      // Keychain unavailable (e.g. macOS without keychain entitlements)
     }
   }
 
@@ -68,14 +73,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (formState == null || !formState.validate()) return;
 
     if (_rememberMe) {
-      await _secureStorage.write(
-        key: AppConstants.savedUsernameKey,
-        value: _emailController.text.trim(),
-      );
-      // Note: password is NOT stored. The auth system's refresh token
-      // handles session persistence securely.
+      try {
+        await _secureStorage.write(
+          key: AppConstants.savedUsernameKey,
+          value: _emailController.text.trim(),
+        );
+      } on PlatformException {
+        // Keychain unavailable
+      }
     } else {
-      await _secureStorage.delete(key: AppConstants.savedUsernameKey);
+      try {
+        await _secureStorage.delete(key: AppConstants.savedUsernameKey);
+      } on PlatformException {
+        // Keychain unavailable
+      }
     }
 
     if (!mounted) {
@@ -220,9 +231,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           _rememberMe = value;
                         });
                         if (!_rememberMe) {
-                          await _secureStorage.delete(
-                            key: AppConstants.savedUsernameKey,
-                          );
+                          try {
+                            await _secureStorage.delete(
+                              key: AppConstants.savedUsernameKey,
+                            );
+                          } on PlatformException {
+                            // Keychain unavailable
+                          }
                         }
                       },
                     ),
