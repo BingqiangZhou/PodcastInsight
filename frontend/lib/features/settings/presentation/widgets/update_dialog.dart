@@ -120,7 +120,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
       backgroundColor: Colors.transparent,
       insetPadding: isMobile
           ? ResponsiveDialogHelper.insetPadding()
-          : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+          : EdgeInsets.symmetric(horizontal: context.spacing.xl, vertical: context.spacing.lg),
       title: Row(
         children: [
           Icon(Icons.system_update_alt, color: palette.accent, size: context.spacing.xl),
@@ -481,7 +481,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                       backgroundColor:
                           Colors.transparent,
                     ),
-                    codeblockPadding: const EdgeInsets.all(12),
+                    codeblockPadding: EdgeInsets.all(context.spacing.smMd),
                     codeblockDecoration: BoxDecoration(
                       color: theme.colorScheme.surface,
                       borderRadius: AppRadius.mdLgRadius,
@@ -489,7 +489,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                         color: theme.colorScheme.outlineVariant,
                       ),
                     ),
-                    blockquotePadding: const EdgeInsets.all(12),
+                    blockquotePadding: EdgeInsets.all(context.spacing.smMd),
                     blockquoteDecoration: BoxDecoration(
                       color: theme.colorScheme.surface,
                       borderRadius: AppRadius.mdLgRadius,
@@ -776,7 +776,7 @@ class _ManualUpdateCheckDialogState
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.error_outline, size: 56, color: palette.errorIcon),
+          Icon(Icons.error_outline, size: 48, color: palette.errorIcon),
           SizedBox(height: context.spacing.mdLg),
           Text(l10n.update_check_failed, style: theme.textTheme.titleMedium),
           SizedBox(height: context.spacing.sm),
