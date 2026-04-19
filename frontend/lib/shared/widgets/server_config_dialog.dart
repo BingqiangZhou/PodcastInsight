@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/network/server_health_service.dart';
@@ -135,33 +137,82 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                 child: _buildConnectionStatusPanel(),
               ),
               SizedBox(height: context.spacing.smMd),
-              TextField(
-                controller: _serverUrlController,
-                decoration: InputDecoration(
-                  labelText: l10n.backend_api_url_label,
-                  hintText: l10n.backend_api_url_hint,
-                  border: const OutlineInputBorder(),
-                  errorText: _connectionStatus == ConnectionStatus.failed
-                      ? _connectionMessage ?? l10n.connection_error_hint
-                      : null,
-                  suffixIcon: ValueListenableBuilder<TextEditingValue>(
+              if (isIOS) ...[
+                CupertinoTextField(
+                  controller: _serverUrlController,
+                  placeholder: l10n.backend_api_url_hint,
+                  onChanged: _onServerUrlChanged,
+                  suffix: ValueListenableBuilder<TextEditingValue>(
                     valueListenable: _serverUrlController,
                     builder: (context, value, child) {
                       return value.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.close),
+                          ? CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
                               onPressed: () {
                                 _serverUrlController.clear();
                                 _onServerUrlChanged('');
                               },
-                              tooltip: l10n.clear,
+                              child: Icon(
+                                CupertinoIcons.clear_thick_circled,
+                                size: 18,
+                                color: scheme.onSurfaceVariant,
+                              ),
                             )
                           : const SizedBox.shrink();
                     },
                   ),
+                  padding: EdgeInsets.all(context.spacing.md),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.tertiarySystemFill,
+                    borderRadius:
+                        BorderRadius.circular(appThemeOf(context).buttonRadius),
+                  ),
                 ),
-                onChanged: _onServerUrlChanged,
-              ),
+                if (_connectionStatus == ConnectionStatus.failed)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: context.spacing.smMd,
+                      top: context.spacing.xs,
+                    ),
+                    child: Text(
+                      _connectionMessage ?? l10n.connection_error_hint,
+                      style: TextStyle(
+                        color: scheme.error,
+                        fontSize:
+                            Theme.of(context).textTheme.bodySmall?.fontSize ??
+                                12,
+                      ),
+                    ),
+                  ),
+              ] else
+                TextField(
+                  controller: _serverUrlController,
+                  decoration: InputDecoration(
+                    labelText: l10n.backend_api_url_label,
+                    hintText: l10n.backend_api_url_hint,
+                    border: const OutlineInputBorder(),
+                    errorText: _connectionStatus == ConnectionStatus.failed
+                        ? _connectionMessage ?? l10n.connection_error_hint
+                        : null,
+                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _serverUrlController,
+                      builder: (context, value, child) {
+                        return value.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {
+                                  _serverUrlController.clear();
+                                  _onServerUrlChanged('');
+                                },
+                                tooltip: l10n.clear,
+                              )
+                            : const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                  onChanged: _onServerUrlChanged,
+                ),
               SizedBox(height: context.spacing.sm),
               Text(
                 l10n.backend_api_description,
