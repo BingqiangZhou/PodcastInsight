@@ -862,6 +862,9 @@ class AuthShell extends StatelessWidget {
     required this.title, required this.subtitle, required this.child, super.key,
     this.header,
     this.footer,
+    this.titleWidget,
+    this.backgroundColor,
+    this.showBorder = true,
   });
 
   final String title;
@@ -869,6 +872,9 @@ class AuthShell extends StatelessWidget {
   final Widget child;
   final Widget? header;
   final Widget? footer;
+  final Widget? titleWidget;
+  final Color? backgroundColor;
+  final bool showBorder;
 
   @override
   Widget build(BuildContext context) {
@@ -882,7 +888,7 @@ class AuthShell extends StatelessWidget {
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
                 horizontal: width < Breakpoints.medium ? context.spacing.lg : context.spacing.xl,
-                vertical: context.spacing.xl,
+                vertical: context.spacing.lg,
               ),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 480),
@@ -890,18 +896,23 @@ class AuthShell extends StatelessWidget {
                   children: [
                     if (header != null) ...[
                       header!,
-                      SizedBox(height: context.spacing.mdLg),
+                      SizedBox(height: context.spacing.md),
                     ],
                     SurfacePanel(
-                      padding: EdgeInsets.fromLTRB(context.spacing.xl, context.spacing.xl, context.spacing.xl, context.spacing.xl),
+                      padding: EdgeInsets.fromLTRB(context.spacing.lg, context.spacing.lg, context.spacing.lg, context.spacing.lg),
                       borderRadius: extension.cardRadius,
+                      backgroundColor: backgroundColor,
+                      showBorder: showBorder,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            title,
-                            style: Theme.of(context).textTheme.displaySmall,
-                          ),
+                          if (titleWidget != null)
+                            titleWidget!
+                          else
+                            Text(
+                              title,
+                              style: Theme.of(context).textTheme.displaySmall,
+                            ),
                           if (subtitle.isNotEmpty) ...[
                             SizedBox(height: context.spacing.smMd),
                             Text(
@@ -909,7 +920,7 @@ class AuthShell extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
-                          SizedBox(height: context.spacing.xl),
+                          SizedBox(height: context.spacing.lg),
                           child,
                         ],
                       ),

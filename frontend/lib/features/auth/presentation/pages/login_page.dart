@@ -138,7 +138,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: AuthShell(
           title: l10n.auth_welcome_back,
           subtitle: '',
-          header: Column(
+          backgroundColor: Colors.transparent,
+          showBorder: false,
+          titleWidget: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Material(
                 color: Colors.transparent,
@@ -146,16 +149,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   onLongPress: _showServerConfigDialog,
                   borderRadius: AppRadius.xxlRadius,
                   child: SizedBox(
-                    width: 96,
-                    height: 96,
+                    width: 56,
+                    height: 56,
                     child: Image.asset('assets/icons/Logo3.png'),
                   ),
                 ),
               ),
-              SizedBox(height: context.spacing.smMd),
-              StatusBadge(
-                label: l10n.auth_brand_name,
-                icon: Icons.auto_awesome,
+              SizedBox(width: context.spacing.md),
+              Flexible(
+                child: Text(
+                  l10n.auth_welcome_back,
+                  style: Theme.of(context).textTheme.headlineLarge,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
