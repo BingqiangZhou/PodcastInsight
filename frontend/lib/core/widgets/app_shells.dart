@@ -751,8 +751,8 @@ class ProfileShell extends StatelessWidget {
     final topSectionSpacing = isMobile ? context.spacing.lg : context.spacing.md;
     final extension = appThemeOf(context);
 
-    // iOS: Use CupertinoSliverNavigationBar for native large-title feel
-    if (PlatformHelper.isIOS(context)) {
+    // Apple (iOS/macOS): Use CupertinoSliverNavigationBar for native large-title feel
+    if (PlatformHelper.isApple(context)) {
       final slivers = <Widget>[
         CupertinoSliverNavigationBar(
           largeTitle: Text(title),
