@@ -113,7 +113,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
 
     final dialogChild = Material(
       color: isIOS ? scheme.surface : scheme.surfaceContainerHigh,
-      borderRadius: isIOS ? BorderRadius.circular(14.0) : AppRadius.xlRadius,
+      borderRadius: isIOS ? AppRadius.lgRadius : AppRadius.xlRadius,
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
         width: dialogWidth,
