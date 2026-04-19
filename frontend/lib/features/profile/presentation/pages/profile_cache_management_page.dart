@@ -146,7 +146,7 @@ class _ProfileCacheManagementPageState
     return _CacheCategory.other;
   }
 
-  Future<int> _objectBytes(CacheObject object) async {
+  int _objectBytes(CacheObject object) {
     final length = object.length;
     if (length != null && length >= 0) return length;
     return 0;
@@ -170,7 +170,7 @@ class _ProfileCacheManagementPageState
       var otherBytes = 0;
 
       for (final obj in objects) {
-        final bytes = await _objectBytes(obj);
+        final bytes = _objectBytes(obj);
         switch (_categoryFor(obj)) {
           case _CacheCategory.images:
             imagesCount += 1;
@@ -291,6 +291,7 @@ class _ProfileCacheManagementPageState
     );
     if (confirm != true || !mounted) return;
 
+    final nav = Navigator.of(context);
     showAppDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -328,12 +329,12 @@ class _ProfileCacheManagementPageState
       ref.invalidate(playbackHistoryLiteProvider);
 
       if (!mounted) return;
-      Navigator.of(context).pop();
+      nav.pop();
       showTopFloatingNotice(context, message: l10n.profile_cache_cleared);
       await _refresh();
     } catch (e) {
       if (!mounted) return;
-      Navigator.of(context).pop();
+      nav.pop();
       showTopFloatingNotice(
         context,
         message: l10n.profile_cache_clear_failed(e.toString()),
@@ -463,7 +464,7 @@ class _ProfileCacheManagementPageState
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  _formatMB(stats.totalBytes).replaceAll(' MB', ''),
+                  (stats.totalBytes / (1024 * 1024)).toStringAsFixed(2),
                   style: theme.textTheme.displaySmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
