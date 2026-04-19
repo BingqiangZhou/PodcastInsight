@@ -3985,6 +3985,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Month'**
   String get calendar_month_format;
+
+  /// Fallback title for episodes when the real title is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Episode #{id}'**
+  String podcast_episode_fallback_title(int id);
 }
 
 class _AppLocalizationsDelegate

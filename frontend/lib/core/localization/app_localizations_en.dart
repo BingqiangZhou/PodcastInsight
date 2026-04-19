@@ -2171,4 +2171,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendar_month_format => 'Month';
+
+  @override
+  String podcast_episode_fallback_title(int id) {
+    return 'Episode #$id';
+  }
 }

@@ -2809,5 +2809,14 @@
     "calendar_month_format": "Month",
     "@calendar_month_format":  {
                                     "description":  "Label for the month calendar format toggle in table_calendar"
+                                },
+    "podcast_episode_fallback_title": "Episode #{id}",
+    "@podcast_episode_fallback_title":  {
+                                    "description":  "Fallback title for episodes when the real title is unavailable",
+                                    "placeholders":  {
+                                        "id":  {
+                                            "type":  "int"
+                                        }
+                                    }
                                 }
 }

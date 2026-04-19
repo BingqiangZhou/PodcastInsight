@@ -2077,4 +2077,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get calendar_month_format => '月';
+
+  @override
+  String podcast_episode_fallback_title(int id) {
+    return '播客集 #$id';
+  }
 }

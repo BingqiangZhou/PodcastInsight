@@ -11,8 +11,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
-import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_sliver_app_bar.dart';
-import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_dismissible.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_episodes_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
 
@@ -45,34 +44,43 @@ class PodcastDownloadsPage extends ConsumerWidget {
         child: ResponsiveContainer(
           maxWidth: 1480,
           alignment: Alignment.topCenter,
-          child: CustomScrollView(
-            slivers: [
-              AdaptiveSliverAppBar(
-                title: l10n.downloads_page_title,
-                actions: [if (deleteButton != null) deleteButton],
-              ),
-              SliverToBoxAdapter(child: SizedBox(height: context.spacing.smMd)),
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: asyncDownloads.when(
-                  data: (tasks) {
-                    if (tasks.isEmpty) {
-                      return _buildEmptyState(context, l10n, tokens);
-                    }
-                    return _buildDownloadsPanel(
-                      context,
-                      grouped,
-                      l10n,
-                      theme,
-                      tokens,
-                    );
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator.adaptive()),
-                  error: (e, _) => Center(child: Text(e.toString())),
-                ),
-              ),
-            ],
+          child: AdaptiveRefreshIndicator.sliver(
+            onRefresh: () async {
+              ref.invalidate(downloadsListProvider);
+            },
+            child: const SizedBox.shrink(),
+            builder: (context, refreshSliver) {
+              return CustomScrollView(
+                slivers: [
+                  if (refreshSliver != null) refreshSliver,
+                  AdaptiveSliverAppBar(
+                    title: l10n.downloads_page_title,
+                    actions: [if (deleteButton != null) deleteButton],
+                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: context.spacing.smMd)),
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: asyncDownloads.when(
+                      data: (tasks) {
+                        if (tasks.isEmpty) {
+                          return _buildEmptyState(context, l10n, tokens);
+                        }
+                        return _buildDownloadsPanel(
+                          context,
+                          grouped,
+                          l10n,
+                          theme,
+                          tokens,
+                        );
+                      },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator.adaptive()),
+                      error: (e, _) => Center(child: Text(e.toString())),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -252,7 +260,7 @@ class _DownloadTaskCard extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: AppRadius.xxlCardRadius,
-          onTap: () {},
+          onTap: null,
           child: Container(
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerLow,
@@ -284,7 +292,7 @@ class _DownloadTaskCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        episodeTitle ?? 'Episode #${task.episodeId}',
+                        episodeTitle ?? l10n.podcast_episode_fallback_title(task.episodeId),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),

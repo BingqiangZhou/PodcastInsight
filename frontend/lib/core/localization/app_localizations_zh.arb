@@ -2763,5 +2763,14 @@
     "calendar_month_format": "月",
     "@calendar_month_format":  {
                                     "description":  "table_calendar 月视图格式标签"
+                                },
+    "podcast_episode_fallback_title": "播客集 #{id}",
+    "@podcast_episode_fallback_title":  {
+                                    "description":  "无法获取实际标题时的播客集后备标题",
+                                    "placeholders":  {
+                                        "id":  {
+                                            "type":  "int"
+                                        }
+                                    }
                                 }
 }
