@@ -1591,6 +1591,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get podcast_highlights_retry => '重试';
 
   @override
+  String get podcast_highlights_load_more_error => '加载更多精选失败，请重试。';
+
+  @override
   String get podcast_highlights_no_highs => '暂无高光';
 
   @override

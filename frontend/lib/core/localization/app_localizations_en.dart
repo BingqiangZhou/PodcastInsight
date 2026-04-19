@@ -1648,6 +1648,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get podcast_highlights_retry => 'Retry';
 
   @override
+  String get podcast_highlights_load_more_error =>
+      'Failed to load more highlights. Please try again.';
+
+  @override
   String get podcast_highlights_no_highs => 'No highlights';
 
   @override

@@ -107,6 +107,15 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     try {
       final selectedDate = ref.read(selectedHighlightDateProvider);
       await ref.read(highlightsProvider.notifier).loadNextPage(date: selectedDate);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.podcast_highlights_load_more_error),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {

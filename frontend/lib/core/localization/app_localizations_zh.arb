@@ -2202,6 +2202,10 @@
     "podcast_highlights_load_failed":  "加载失败",
     "podcast_highlights_cannot_load":  "无法加载高光观点",
     "podcast_highlights_retry":  "重试",
+    "podcast_highlights_load_more_error":  "加载更多精选失败，请重试。",
+    "@podcast_highlights_load_more_error":  {
+                                              "description":  "加载更多精选失败时的错误提示"
+                                          },
     "podcast_highlights_no_highs":  "暂无高光",
     "podcast_highlights_loading_highlights":  "正在加载高光观点",
     "podcast_highlights_favorited":  "已收藏",

@@ -2202,6 +2202,10 @@
     "podcast_highlights_load_failed":  "Failed to load",
     "podcast_highlights_cannot_load":  "Cannot load highlights",
     "podcast_highlights_retry":  "Retry",
+    "podcast_highlights_load_more_error":  "Failed to load more highlights. Please try again.",
+    "@podcast_highlights_load_more_error":  {
+                                              "description":  "Error message when loading more highlights fails"
+                                          },
     "podcast_highlights_no_highs":  "No highlights",
     "podcast_highlights_loading_highlights":  "Loading highlights...",
     "podcast_highlights_favorited":  "Favorited",

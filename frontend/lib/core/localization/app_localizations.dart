@@ -3086,6 +3086,12 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get podcast_highlights_retry;
 
+  /// Error message when loading more highlights fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load more highlights. Please try again.'**
+  String get podcast_highlights_load_more_error;
+
   /// No description provided for @podcast_highlights_no_highs.
   ///
   /// In en, this message translates to:
