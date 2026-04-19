@@ -862,7 +862,7 @@ class _ManualUpdateCheckDialogState
 }
 
 /// Show a top floating notice when an update is available.
-void showUpdateAvailableSnackBar({
+void showUpdateAvailableNotice({
   required BuildContext context,
   required GitHubRelease release,
 }) {

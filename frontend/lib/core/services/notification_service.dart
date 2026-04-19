@@ -51,7 +51,7 @@ class NotificationService {
     );
 
     final result = await _notifications.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
@@ -167,10 +167,10 @@ class NotificationService {
     );
 
     await _notifications.show(
-      0,
-      title,
-      body,
-      details,
+      id: 0,
+      title: title,
+      body: body,
+      notificationDetails: details,
       payload: payload,
     );
   }
@@ -201,10 +201,10 @@ class NotificationService {
     );
 
     await _notifications.show(
-      1,
-      title,
-      body,
-      details,
+      id: 1,
+      title: title,
+      body: body,
+      notificationDetails: details,
     );
   }
 
@@ -215,7 +215,7 @@ class NotificationService {
 
   /// Cancel a specific notification by ID.
   Future<void> cancelById(int id) async {
-    await _notifications.cancel(id);
+    await _notifications.cancel(id: id);
   }
 
   /// Handle notification tap events.
