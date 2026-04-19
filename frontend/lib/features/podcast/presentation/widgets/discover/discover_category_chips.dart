@@ -31,7 +31,10 @@ class DiscoverCategoryChips extends StatelessWidget {
     return SingleChildScrollView(
       key: const Key('podcast_discover_category_chips'),
       scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.symmetric(vertical: context.spacing.xs + context.spacing.xs),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.spacing.sm,
+        vertical: context.spacing.xs + context.spacing.xs,
+      ),
       child: Row(
         children: [
           for (var index = 0; index < chipItems.length; index++) ...[
