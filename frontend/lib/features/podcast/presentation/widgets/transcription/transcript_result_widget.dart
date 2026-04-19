@@ -49,7 +49,7 @@ class CompletedStateWidget extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 color: scheme.tertiary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(40),
+                borderRadius: const BorderRadius.all(Radius.circular(40)),
               ),
               child: Icon(Icons.check_circle, size: 40, color: scheme.tertiary),
             ),
@@ -230,7 +230,7 @@ class FailedStateWidget extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 color: scheme.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(40),
+                borderRadius: const BorderRadius.all(Radius.circular(40)),
               ),
               child: Icon(Icons.error_outline, size: 40, color: scheme.error),
             ),

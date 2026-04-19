@@ -19,7 +19,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       valueListenable: _isHeaderExpandedNotifier,
       builder: (context, isExpanded, _) {
         return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
+          duration: AppDurations.navigationTransition,
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
           child: _buildHeroHeaderCard(
@@ -39,7 +39,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       valueListenable: _isHeaderExpandedNotifier,
       builder: (context, isExpanded, _) {
         return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
+          duration: AppDurations.navigationTransition,
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
           child: _buildHeroHeaderCard(
@@ -258,7 +258,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
             l10n,
             compact: false,
             density: HeaderCapsuleActionButtonDensity.compact,
-            padding: EdgeInsets.symmetric(horizontal: 7, vertical: context.spacing.xs),
+            padding: EdgeInsets.symmetric(horizontal: context.spacing.xsSm, vertical: context.spacing.xs),
           ),
         ],
       ),

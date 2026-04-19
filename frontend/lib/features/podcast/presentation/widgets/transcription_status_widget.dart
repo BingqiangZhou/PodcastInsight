@@ -79,7 +79,7 @@ class TranscriptionStatusWidget extends ConsumerWidget {
               height: 80,
               decoration: BoxDecoration(
                 color: accentColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(40),
+                borderRadius: const BorderRadius.all(Radius.circular(40)),
               ),
               child: Icon(Icons.transcribe, size: 40, color: accentColor),
             ),
