@@ -11,13 +11,16 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 
 /// Search input widget for discover page with country selector.
 ///
-/// Note: This widget uses a raw [TextField] rather than [AdaptiveSearchBar]
-/// because it requires custom styling (focus shadow, country selector button,
-/// dense mode) that does not map to [AdaptiveSearchBar]'s simpler API.
-/// Consider migrating if [AdaptiveSearchBar] gains these capabilities.
+/// Uses a filled surface container background with a prominent border
+/// and focus glow effect for better visual prominence.
 class DiscoverSearchInput extends ConsumerStatefulWidget {
   const DiscoverSearchInput({
-    required this.searchController, required this.searchFocusNode, required this.onSearchChanged, required this.onClearSearch, required this.onCountryTap, super.key,
+    required this.searchController,
+    required this.searchFocusNode,
+    required this.onSearchChanged,
+    required this.onClearSearch,
+    required this.onCountryTap,
+    super.key,
     this.searchMode = search.PodcastSearchMode.podcasts,
     this.isDense = false,
   });
@@ -83,34 +86,59 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
         ? '${l10n.search}$hintLabel...'
         : '${l10n.search} $hintLabel...';
 
-    final borderSide = _isFocused
-        ? BorderSide(color: scheme.primary, width: 1.4)
-        : BorderSide(color: scheme.outlineVariant);
+    final borderColor = _isFocused
+        ? scheme.primary
+        : scheme.outlineVariant.withValues(alpha: 0.5);
+    final borderWidth = _isFocused ? 1.6 : 1.0;
+    final backgroundColor = _isFocused
+        ? scheme.surfaceContainerLow
+        : scheme.surfaceContainerHighest;
 
     return RepaintBoundary(
       key: const Key('podcast_discover_search_input_boundary'),
-      child: Material(
+      child: AnimatedContainer(
         key: const Key('podcast_discover_search_bar'),
-        color: Colors.transparent,
-        shadowColor: _isFocused ? extension.shadowXs.color : Colors.transparent,
-        elevation: _isFocused ? 1 : 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(extension.cardRadius),
-          side: borderSide,
-        ),
-        child: SizedBox(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
         height: widget.isDense ? 44 : 48,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(extension.cardRadius),
+          border: Border.all(color: borderColor, width: borderWidth),
+          boxShadow: _isFocused
+              ? [
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.08),
+                    blurRadius: 8,
+                    spreadRadius: 0,
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: scheme.shadow.withValues(alpha: 0.04),
+                    blurRadius: 2,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+        ),
         child: Row(
           children: [
             Padding(
-              padding: EdgeInsets.only(left: widget.isDense ? context.spacing.smMd : context.spacing.md),
+              padding: EdgeInsets.only(
+                left: widget.isDense ? context.spacing.smMd : context.spacing.md,
+              ),
               child: Icon(
                 Icons.search,
                 size: widget.isDense ? 18 : 20,
-                color: theme.colorScheme.onSurfaceVariant,
+                color: _isFocused
+                    ? scheme.primary
+                    : scheme.onSurfaceVariant,
               ),
             ),
-            SizedBox(width: widget.isDense ? context.spacing.smMd : context.spacing.sm),
+            SizedBox(
+              width: widget.isDense ? context.spacing.smMd : context.spacing.sm,
+            ),
             Expanded(
               child: PlatformHelper.isIOS(context)
                   ? CupertinoTextField(
@@ -121,7 +149,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
                       style: theme.textTheme.bodyMedium,
                       placeholder: hintText,
                       placeholderStyle: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: scheme.onSurfaceVariant,
                       ),
                       decoration: const BoxDecoration(),
                       padding: EdgeInsets.zero,
@@ -146,7 +174,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
                         hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                       onChanged: widget.onSearchChanged,
@@ -161,7 +189,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
                     icon: Icon(
                       Icons.clear,
                       size: widget.isDense ? 16 : 18,
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: scheme.onSurfaceVariant,
                     ),
                   );
                 }
@@ -169,7 +197,9 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
               },
             ),
             Padding(
-              padding: EdgeInsets.only(right: widget.isDense ? context.spacing.smMd : context.spacing.smMd + 1),
+              padding: EdgeInsets.only(
+                right: widget.isDense ? context.spacing.smMd : context.spacing.smMd + 1,
+              ),
               child: _CountryButton(
                 isDense: widget.isDense,
                 onTap: widget.onCountryTap,
@@ -178,7 +208,6 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
           ],
         ),
       ),
-    ),
     );
   }
 }
@@ -195,6 +224,7 @@ class _CountryButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final selectedCountry = ref.watch(
       countrySelectorProvider.select((state) => state.selectedCountry),
     );
@@ -210,7 +240,7 @@ class _CountryButton extends ConsumerWidget {
           height: height,
           padding: EdgeInsets.symmetric(horizontal: context.spacing.sm),
           decoration: BoxDecoration(
-            color: Colors.transparent,
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(height / 2),
           ),
           child: Row(
@@ -219,21 +249,21 @@ class _CountryButton extends ConsumerWidget {
               Icon(
                 Icons.flag_outlined,
                 size: 14,
-                color: theme.colorScheme.onSurfaceVariant,
+                color: scheme.onSurfaceVariant,
               ),
               SizedBox(width: context.spacing.xs),
               Text(
                 selectedCountry.code.toUpperCase(),
                 style: theme.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
               SizedBox(width: context.spacing.xs + context.spacing.xs),
               Icon(
                 Icons.keyboard_arrow_down_rounded,
                 size: 14,
-                color: theme.colorScheme.onSurfaceVariant,
+                color: scheme.onSurfaceVariant,
               ),
             ],
           ),

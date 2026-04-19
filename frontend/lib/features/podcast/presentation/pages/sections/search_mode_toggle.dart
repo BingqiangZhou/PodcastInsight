@@ -5,7 +5,10 @@ import 'package:personal_ai_assistant/core/localization/app_localizations_extens
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart'
     as search;
 
-/// Toggle between episodes and podcasts search modes
+/// Toggle between episodes and podcasts search modes.
+///
+/// Uses a segmented-pill style with a filled background on the selected tab,
+/// similar to [HeaderCapsuleActionButton] styling for visual consistency.
 class SearchModeToggle extends StatelessWidget {
   const SearchModeToggle({
     required this.searchMode,
@@ -22,14 +25,15 @@ class SearchModeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final toggleHeight = isDense ? 30.0 : 32.0;
+    final scheme = theme.colorScheme;
+    final toggleHeight = isDense ? 32.0 : 34.0;
 
     return Container(
       key: const Key('podcast_discover_tab_selector'),
       height: toggleHeight,
       padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color: Colors.transparent,
+        color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(toggleHeight / 2),
       ),
       child: Row(
@@ -83,9 +87,14 @@ class _TabPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    final backgroundColor = selected
+        ? scheme.surfaceContainerLow
+        : Colors.transparent;
     final foregroundColor = selected
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onSurfaceVariant;
+        ? scheme.onSurface
+        : scheme.onSurfaceVariant;
     final labelStyle = theme.textTheme.labelSmall?.copyWith(
       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
       color: foregroundColor,
@@ -96,7 +105,7 @@ class _TabPill extends StatelessWidget {
       curve: Curves.easeOutCubic,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.transparent,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(height / 2),
       ),
       child: Material(
