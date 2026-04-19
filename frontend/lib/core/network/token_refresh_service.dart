@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:personal_ai_assistant/core/app/config/app_config.dart' as config;
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
@@ -78,9 +79,7 @@ class TokenRefreshService {
     final currentCompleter = _refreshCompleter!;
 
     try {
-      final refreshToken = await _secureStorage.read(
-        key: config.AppConstants.refreshTokenKey,
-      );
+      final refreshToken = await _safeRead(config.AppConstants.refreshTokenKey);
       if (refreshToken == null || refreshToken.isEmpty) {
         logger.AppLogger.debug('[TokenRefresh] No refresh token found');
         const result = TokenRefreshResult.failure(
@@ -109,24 +108,15 @@ class TokenRefreshService {
                   : int.tryParse(expiresInRaw?.toString() ?? ''));
 
         if (newAccessToken != null && newAccessToken.isNotEmpty) {
-          await _secureStorage.write(
-            key: config.AppConstants.accessTokenKey,
-            value: newAccessToken,
-          );
+          await _safeWrite(config.AppConstants.accessTokenKey, newAccessToken);
           if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
-            await _secureStorage.write(
-              key: config.AppConstants.refreshTokenKey,
-              value: newRefreshToken,
-            );
+            await _safeWrite(config.AppConstants.refreshTokenKey, newRefreshToken);
           }
           if (expiresInSeconds != null && expiresInSeconds > 0) {
             final expiryTime = DateTime.now().toUtc().add(
               Duration(seconds: expiresInSeconds),
             );
-            await _secureStorage.write(
-              key: config.AppConstants.tokenExpiryKey,
-              value: expiryTime.toIso8601String(),
-            );
+            await _safeWrite(config.AppConstants.tokenExpiryKey, expiryTime.toIso8601String());
             logger.AppLogger.debug(
               '[TokenRefresh] Saved UTC token expiry: $expiryTime',
             );
@@ -134,10 +124,7 @@ class TokenRefreshService {
 
           final expiresAt = responseData['expires_at'] as String?;
           if (expiresAt != null && expiresAt.isNotEmpty) {
-            await _secureStorage.write(
-              key: config.AppConstants.tokenExpiryKey,
-              value: expiresAt,
-            );
+            await _safeWrite(config.AppConstants.tokenExpiryKey, expiresAt);
             logger.AppLogger.debug(
               '[TokenRefresh] Saved server UTC token expiry: $expiresAt',
             );
@@ -175,10 +162,10 @@ class TokenRefreshService {
 
   /// Clear all stored tokens
   Future<void> clearTokens() async {
-    await _secureStorage.delete(key: config.AppConstants.accessTokenKey);
-    await _secureStorage.delete(key: config.AppConstants.refreshTokenKey);
-    await _secureStorage.delete(key: config.AppConstants.tokenExpiryKey);
-    await _secureStorage.delete(key: config.AppConstants.userProfileKey);
+    await _safeDelete(config.AppConstants.accessTokenKey);
+    await _safeDelete(config.AppConstants.refreshTokenKey);
+    await _safeDelete(config.AppConstants.tokenExpiryKey);
+    await _safeDelete(config.AppConstants.userProfileKey);
     logger.AppLogger.debug(
       '[TokenRefresh] Tokens cleared, user will need to re-login',
     );
@@ -193,7 +180,32 @@ class TokenRefreshService {
 
   /// Get the current access token
   Future<String?> getAccessToken() async {
-    return _secureStorage.read(key: config.AppConstants.accessTokenKey);
+    return _safeRead(config.AppConstants.accessTokenKey);
+  }
+
+  Future<void> _safeWrite(String key, String value) async {
+    try {
+      await _secureStorage.write(key: key, value: value);
+    } on PlatformException catch (e) {
+      logger.AppLogger.warning('[TokenRefresh] write($key) failed: ${e.message}');
+    }
+  }
+
+  Future<String?> _safeRead(String key) async {
+    try {
+      return _secureStorage.read(key: key);
+    } on PlatformException catch (e) {
+      logger.AppLogger.warning('[TokenRefresh] read($key) failed: ${e.message}');
+      return null;
+    }
+  }
+
+  Future<void> _safeDelete(String key) async {
+    try {
+      await _secureStorage.delete(key: key);
+    } on PlatformException catch (e) {
+      logger.AppLogger.warning('[TokenRefresh] delete($key) failed: ${e.message}');
+    }
   }
 
   TokenRefreshResult _buildRefreshFailureResult(Object error) {

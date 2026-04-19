@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // Import AppConfig and ApiConstants from the canonical config file
 import 'package:personal_ai_assistant/core/app/config/app_config.dart' as config;
@@ -258,9 +259,13 @@ class DioClient {
 
       if (token == null) {
         // Cache miss: fall back to secure storage and cache the result
-        token = await _secureStorage.read(
-          key: config.AppConstants.accessTokenKey,
-        );
+        try {
+          token = await _secureStorage.read(
+            key: config.AppConstants.accessTokenKey,
+          );
+        } on PlatformException catch (e) {
+          logger.AppLogger.warning('[AUTH] read token failed: ${e.message}');
+        }
         if (token != null) {
           _cachedAccessToken = token;
           if (kDebugMode) {
