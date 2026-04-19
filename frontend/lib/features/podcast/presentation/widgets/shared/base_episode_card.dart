@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/platform/adaptive_haptic.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -158,7 +159,7 @@ class BaseEpisodeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
     final hasDescription =
         config.showDescription &&
         config.description != null &&
@@ -302,7 +303,7 @@ class BaseEpisodeCard extends StatelessWidget {
 
   Widget _buildHeaderRow(BuildContext context, ThemeData theme) {
     final scheme = theme.colorScheme;
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
     final titleStyle =
         (config.dense
                 ? theme.textTheme.titleSmall
@@ -391,7 +392,7 @@ class BaseEpisodeCard extends StatelessWidget {
 
   Widget _buildPlayButton(BuildContext context, ThemeData theme) {
     final l10n = context.l10n;
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
     final iconSize = config.dense ? 22.0 : (isMobile ? 24.0 : 26.0);
     return IconButton(
       tooltip: l10n.podcast_play,
@@ -408,7 +409,7 @@ class BaseEpisodeCard extends StatelessWidget {
   }
 
   Widget _buildDescription(BuildContext context, ThemeData theme) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
     return Text(
       config.description!,
       style: (isMobile ? theme.textTheme.bodyMedium : theme.textTheme.bodySmall)
@@ -426,7 +427,7 @@ class BaseEpisodeCard extends StatelessWidget {
 
   Widget _buildMetaActionRow(BuildContext context, ThemeData theme) {
     final l10n = context.l10n;
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
     final downloadButtonSize =
         config.downloadButtonSize ??
         (config.dense

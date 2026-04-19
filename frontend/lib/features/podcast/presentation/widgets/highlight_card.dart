@@ -30,12 +30,13 @@ class HighlightCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.xxlCardRadius,
-        child: Container(
+    return MergeSemantics(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.xxlCardRadius,
+          child: Container(
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerLow,
             borderRadius: AppRadius.xxlCardRadius,
@@ -74,6 +75,7 @@ class HighlightCard extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -136,7 +138,7 @@ class HighlightCard extends ConsumerWidget {
         style: IconButton.styleFrom(
           minimumSize: const Size(32, 32),
           maximumSize: const Size(32, 32),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          tapTargetSize: MaterialTapTargetSize.padded,
           padding: EdgeInsets.zero,
           foregroundColor: isFavorited
               ? AppColors.sunRay
@@ -253,7 +255,7 @@ class HighlightCard extends ConsumerWidget {
           ),
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.symmetric(horizontal: context.spacing.sm),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          materialTapTargetSize: MaterialTapTargetSize.padded,
           backgroundColor: theme.colorScheme.secondaryContainer.withValues(
             alpha: 0.4,
           ),

@@ -27,10 +27,10 @@ class AdaptiveScaffold extends StatelessWidget {
   /// Whether to resize when the keyboard appears.
   final bool? resizeToAvoidBottomInset;
 
-  /// Bottom navigation bar. Ignored on iOS CupertinoPageScaffold.
+  /// Bottom navigation bar. Layered via Stack on iOS.
   final Widget? bottomNavigationBar;
 
-  /// Floating action button. Ignored on iOS CupertinoPageScaffold.
+  /// Floating action button. Layered via Stack on iOS.
   final Widget? floatingActionButton;
 
   @override
@@ -39,9 +39,30 @@ class AdaptiveScaffold extends StatelessWidget {
       final cupertinoNav = navigationBar is CupertinoNavigationBar
           ? navigationBar as CupertinoNavigationBar?
           : null;
+      final needsStack = bottomNavigationBar != null || floatingActionButton != null;
+      final body = child ?? const SizedBox.shrink();
       return CupertinoPageScaffold(
         navigationBar: cupertinoNav,
-        child: child ?? const SizedBox.shrink(),
+        child: needsStack
+            ? Stack(
+                children: [
+                  body,
+                  if (bottomNavigationBar != null)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: bottomNavigationBar!,
+                    ),
+                  if (floatingActionButton != null)
+                    Positioned(
+                      right: 16,
+                      bottom: 16,
+                      child: floatingActionButton!,
+                    ),
+                ],
+              )
+            : body,
         backgroundColor: backgroundColor,
         resizeToAvoidBottomInset: resizeToAvoidBottomInset ?? true,
       );

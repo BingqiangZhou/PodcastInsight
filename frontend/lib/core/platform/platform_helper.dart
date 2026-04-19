@@ -16,6 +16,11 @@ class PlatformHelper {
     return Theme.of(context).platform == TargetPlatform.android;
   }
 
+  /// Returns true on macOS, Windows, or Linux.
+  ///
+  /// **Note:** Always returns false on web due to the [kIsWeb] guard,
+  /// even when the browser viewport is wide. Use [Breakpoints] for
+  /// width-based layout decisions on web.
   static bool isDesktop(BuildContext context) {
     if (kIsWeb) return false;
     final platform = Theme.of(context).platform;
@@ -24,6 +29,11 @@ class PlatformHelper {
         platform == TargetPlatform.linux;
   }
 
+  /// Returns true on iOS or Android.
+  ///
+  /// **Note:** Always returns false on web due to the [kIsWeb] guard.
+  /// Windows and Linux receive Material (non-Apple) styling but are
+  /// not considered "mobile" — use [isDesktop] for those platforms.
   static bool isMobile(BuildContext context) {
     return isIOS(context) || isAndroid(context);
   }

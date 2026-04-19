@@ -166,11 +166,12 @@ class DiscoverChartRow extends StatelessWidget {
                                   'podcast_discover_subscribe_${item.itemId}',
                                 ),
                                 onPressed: isSubscribed ? null : onSubscribe,
+                                tooltip: 'Subscribe',
                                 style: IconButton.styleFrom(
                                   minimumSize: Size(isDense ? 32 : 36, isDense ? 32 : 36),
                                   maximumSize: Size(isDense ? 32 : 36, isDense ? 32 : 36),
                                   tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
+                                      MaterialTapTargetSize.padded,
                                   visualDensity: VisualDensity.compact,
                                   padding: EdgeInsets.zero,
                                 ),
@@ -195,10 +196,11 @@ class DiscoverChartRow extends StatelessWidget {
                             'podcast_discover_play_${item.itemId}',
                           ),
                           onPressed: onPlay,
+                          tooltip: 'Play',
                           style: IconButton.styleFrom(
                             minimumSize: Size(isDense ? 32 : 36, isDense ? 32 : 36),
                             maximumSize: Size(isDense ? 32 : 36, isDense ? 32 : 36),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            tapTargetSize: MaterialTapTargetSize.padded,
                             visualDensity: VisualDensity.compact,
                             padding: EdgeInsets.zero,
                             foregroundColor:

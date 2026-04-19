@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
@@ -194,7 +195,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
     // Border radius: pill shape for surfaceNeutral, fixed for primaryTinted
     final borderRadius = isSurfaceNeutral
         ? (iconOnlyCircular ? iconOnlySize / 2 : AppRadius.chip)
-        : AppRadius.buttonValue;
+        : context.buttonRadius;
 
     final button = Material(
       color: isSurfaceNeutral
@@ -330,7 +331,7 @@ class _SurfacePanelState extends State<SurfacePanel> {
   Widget build(BuildContext context) {
     final extension = appThemeOf(context);
     final radius = widget.borderRadius ?? extension.cardRadius;
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
     final effectivePadding = widget.padding ??
         EdgeInsets.all(isMobile ? AppSpacing.sm : AppSpacing.md);
 
@@ -352,7 +353,7 @@ class _SurfacePanelState extends State<SurfacePanel> {
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 200),
+      duration: AppDurations.entranceNormal,
       curve: Curves.easeOutCubic,
       onEnd: () => _hasAnimated = true,
       builder: (context, value, child) {
@@ -504,7 +505,7 @@ class _HeroHeaderState extends State<HeroHeader> {
                         SizedBox(height: context.spacing.xs),
                       ],
                       _StaggeredFadeIn(
-                        delay: const Duration(milliseconds: 50),
+                        delay: AppDurations.staggerQuick,
                         animated: _animated,
                         onDone: () {},
                         child: Text(
@@ -517,7 +518,7 @@ class _HeroHeaderState extends State<HeroHeader> {
                       if (hasSubtitle) ...[
                         SizedBox(height: context.spacing.xs),
                         _StaggeredFadeIn(
-                          delay: const Duration(milliseconds: 100),
+                          delay: AppDurations.staggerNormal,
                           animated: _animated,
                           onDone: () {
                             if (!_animated) _animated = true;
@@ -595,14 +596,14 @@ class _StaggeredFadeInState extends State<_StaggeredFadeIn> {
 
     return AnimatedOpacity(
       opacity: _visible ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 200),
+      duration: AppDurations.entranceNormal,
       curve: Curves.easeOutCubic,
       onEnd: () {
         if (_visible) widget.onDone();
       },
       child: AnimatedSlide(
         offset: _visible ? Offset.zero : const Offset(0, 0.02),
-        duration: const Duration(milliseconds: 200),
+        duration: AppDurations.entranceNormal,
         curve: Curves.easeOutCubic,
         child: widget.child,
       ),

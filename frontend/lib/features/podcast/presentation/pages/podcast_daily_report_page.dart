@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -511,7 +512,7 @@ class _PodcastDailyReportPageState
       barrierDismissible: true,
       barrierColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.12),
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      transitionDuration: const Duration(milliseconds: 160),
+      transitionDuration: AppDurations.entranceFast,
       pageBuilder: (dialogContext, animation, secondaryAnimation) {
         final maxPanelWidth = (screenWidth - horizontalPadding * 2)
             .clamp(0.0, CalendarPanelHelper.maxPanelWidth)

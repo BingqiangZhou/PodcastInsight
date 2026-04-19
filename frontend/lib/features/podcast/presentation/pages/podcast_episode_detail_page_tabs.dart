@@ -29,7 +29,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         if (!_isWideScreen) {
           _pageController.animateToPage(
             index,
-            duration: const Duration(milliseconds: 280),
+            duration: AppDurations.transitionNormal,
             curve: Curves.easeInOutCubic,
           );
         }

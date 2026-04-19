@@ -49,7 +49,7 @@ class AdaptiveButton extends StatelessWidget {
     if (isLoading) {
       effectiveChild = CupertinoActivityIndicator(
         color: style == AdaptiveButtonStyle.filled
-            ? CupertinoColors.white
+            ? theme.colorScheme.onPrimary
             : theme.colorScheme.primary,
       );
     } else if (icon != null) {
@@ -68,16 +68,18 @@ class AdaptiveButton extends StatelessWidget {
         return CupertinoButton(
           onPressed: isLoading ? null : onPressed,
           color: theme.colorScheme.primary,
+          borderRadius: BorderRadius.circular(context.buttonRadius),
           padding: padding ??
               EdgeInsets.symmetric(horizontal: context.spacing.md, vertical: context.spacing.smMd),
           child: DefaultTextStyle(
-            style: const TextStyle(color: CupertinoColors.white),
+            style: TextStyle(color: theme.colorScheme.onPrimary),
             child: effectiveChild,
           ),
         );
       case AdaptiveButtonStyle.text:
         return CupertinoButton(
           onPressed: isLoading ? null : onPressed,
+          borderRadius: BorderRadius.circular(context.buttonRadius),
           padding: padding ??
               EdgeInsets.symmetric(horizontal: context.spacing.smMd, vertical: context.spacing.xs),
           child: effectiveChild,
@@ -126,6 +128,9 @@ class AdaptiveButton extends StatelessWidget {
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
             padding: padding,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(context.buttonRadius),
+            ),
           ),
           child: effectiveChild,
         );
@@ -134,6 +139,9 @@ class AdaptiveButton extends StatelessWidget {
           onPressed: isLoading ? null : onPressed,
           style: TextButton.styleFrom(
             padding: padding,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(context.buttonRadius),
+            ),
           ),
           child: effectiveChild,
         );
@@ -142,6 +150,9 @@ class AdaptiveButton extends StatelessWidget {
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
             padding: padding,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(context.buttonRadius),
+            ),
           ),
           child: effectiveChild,
         );

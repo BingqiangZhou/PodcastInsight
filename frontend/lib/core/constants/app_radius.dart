@@ -94,4 +94,23 @@ extension AppRadiusExtension on BuildContext {
         Theme.of(this).extension<AppThemeExtension>();
     return extension?.cardRadius ?? AppRadius.cardValue;
   }
+
+  /// Get the button radius from the current theme.
+  double get buttonRadius {
+    final extension =
+        Theme.of(this).extension<AppThemeExtension>();
+    return extension?.buttonRadius ?? AppRadius.buttonValue;
+  }
+
+  /// Get the item radius from the current theme.
+  double get itemRadius {
+    final extension =
+        Theme.of(this).extension<AppThemeExtension>();
+    return extension?.itemRadius ?? AppRadius.itemValue;
+  }
+
+  /// Convenience getters for BorderRadius.
+  BorderRadius get cardBorderRadius => BorderRadius.circular(cardRadius);
+  BorderRadius get buttonBorderRadius => BorderRadius.circular(buttonRadius);
+  BorderRadius get itemBorderRadius => BorderRadius.circular(itemRadius);
 }

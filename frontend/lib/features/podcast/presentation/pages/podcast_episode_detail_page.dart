@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/database/app_database.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
@@ -57,7 +58,7 @@ class PodcastEpisodeDetailPage extends ConsumerStatefulWidget {
 
 class _PodcastEpisodeDetailPageState
     extends ConsumerState<PodcastEpisodeDetailPage> {
-  static const double _wideLayoutBreakpoint = 1040;
+  static const double _wideLayoutBreakpoint = Breakpoints.wideLayout;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedTabIndex = 0; // 0 = Shownotes, 1 = Transcript, 2 = Summary
   ProviderSubscription<AsyncValue<PodcastTranscriptionResponse?>>?

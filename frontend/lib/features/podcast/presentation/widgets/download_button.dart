@@ -155,7 +155,7 @@ class _IconButton extends StatelessWidget {
     final buttonStyle = IconButton.styleFrom(
       minimumSize: Size(buttonSize, buttonSize),
       maximumSize: Size(buttonSize, buttonSize),
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      tapTargetSize: MaterialTapTargetSize.padded,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       foregroundColor: color,

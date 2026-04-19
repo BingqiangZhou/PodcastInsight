@@ -10,8 +10,17 @@ class Breakpoints {
   /// 中等屏幕断点
   static const double medium = 600;
 
+  /// 窄手机断点
+  static const double mini = 420;
+
+  /// 紧凑平板断点
+  static const double compact = 700;
+
   /// 中大屏幕断点
   static const double mediumLarge = 840;
+
+  /// 宽布局断点
+  static const double wideLayout = 1040;
 
   /// 大屏幕断点
   static const double large = 1200;
@@ -36,6 +45,9 @@ class Breakpoints {
 
   /// 判断是否为移动设备（包含小屏幕）
   static bool isMobile(double width) => width < medium;
+
+  /// 判断是否为窄手机屏幕
+  static bool isMini(double width) => width < mini;
 
   /// 判断是否为平板设备（包含中等和中等大屏幕）
   static bool isTablet(double width) => width >= medium && width < large;

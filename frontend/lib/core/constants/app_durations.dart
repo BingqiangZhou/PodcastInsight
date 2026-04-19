@@ -30,4 +30,10 @@ class AppDurations {
 
   // Scale
   static const Duration scaleFast = Duration(milliseconds: 200);
+
+  // Navigation transitions
+  static const Duration navigationTransition = Duration(milliseconds: 220);
+
+  // Slide animations
+  static const Duration slideNormal = Duration(milliseconds: 260);
 }

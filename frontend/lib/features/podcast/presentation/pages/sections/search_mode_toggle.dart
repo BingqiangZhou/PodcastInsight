@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart'
@@ -101,7 +102,7 @@ class _TabPill extends StatelessWidget {
     );
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
+      duration: AppDurations.transitionFast,
       curve: Curves.easeOutCubic,
       height: height,
       decoration: BoxDecoration(

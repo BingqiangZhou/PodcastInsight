@@ -98,7 +98,7 @@ class DiscoverEpisodeDetailSheet extends StatelessWidget {
                               style: IconButton.styleFrom(
                                 minimumSize: const Size(36, 36),
                                 maximumSize: const Size(36, 36),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                tapTargetSize: MaterialTapTargetSize.padded,
                                 visualDensity: VisualDensity.compact,
                                 padding: EdgeInsets.zero,
                                 foregroundColor: theme.colorScheme.onSurfaceVariant,

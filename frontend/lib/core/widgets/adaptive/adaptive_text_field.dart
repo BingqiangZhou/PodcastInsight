@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -104,7 +103,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
         suffix: widget.suffix,
         padding: EdgeInsets.all(context.spacing.smMd),
         decoration: BoxDecoration(
-          color: CupertinoColors.tertiarySystemFill,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(appThemeOf(context).buttonRadius),
         ),
       );
@@ -124,7 +123,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
                 cupertinoField,
                 if (field.hasError)
                   Padding(
-                    padding: const EdgeInsets.only(left: AppSpacing.smMd, top: AppSpacing.xs),
+                    padding: const EdgeInsetsDirectional.only(start: AppSpacing.smMd, top: AppSpacing.xs),
                     child: Text(
                       field.errorText!,
                       style: TextStyle(
@@ -139,26 +138,6 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
         );
       }
 
-      if (_errorText != null) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            cupertinoField,
-            const SizedBox(height: AppSpacing.xs),
-            Padding(
-              padding: const EdgeInsets.only(left: AppSpacing.smMd, top: AppSpacing.xs),
-              child: Text(
-                _errorText!,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                  fontSize: Theme.of(context).textTheme.bodySmall?.fontSize ?? 12,
-                ),
-              ),
-            ),
-          ],
-        );
-      }
       return cupertinoField;
     }
 

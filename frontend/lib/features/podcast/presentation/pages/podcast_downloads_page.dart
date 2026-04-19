@@ -469,6 +469,7 @@ class _DownloadTaskCard extends ConsumerWidget {
                     child: IconButton(
                       icon: Icon(_trailingIcon(task), size: 18),
                       padding: EdgeInsets.zero,
+                      tooltip: _trailingTooltip(task, l10n),
                       onPressed: _trailingAction(task, service),
                     ),
                   ),
@@ -500,6 +501,14 @@ class _DownloadTaskCard extends ConsumerWidget {
           ),
       DownloadStatus.downloading || DownloadStatus.pending => () => service.cancel(task.episodeId),
       _ => null,
+    };
+  }
+
+  String _trailingTooltip(DownloadTask task, AppLocalizations l10n) {
+    return switch (task.status) {
+      DownloadStatus.failed => l10n.download_button_retry,
+      DownloadStatus.downloading || DownloadStatus.pending => l10n.download_button_cancel,
+      _ => '',
     };
   }
 

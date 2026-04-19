@@ -441,7 +441,7 @@ class _ProfileSubscriptionsPageState
                 extra: subscription,
               );
             },
-            borderRadius: BorderRadius.circular(AppRadius.itemValue),
+            borderRadius: BorderRadius.circular(context.itemRadius),
             child: SizedBox(
             key: ValueKey('profile_subscription_card_content_${subscription.id}'),
             height: kPodcastRowCardTargetHeight,
@@ -454,7 +454,7 @@ class _ProfileSubscriptionsPageState
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(
-                      AppRadius.itemValue,
+                      context.itemRadius,
                     ),
                     child: PodcastImageWidget(
                       imageUrl: subscription.imageUrl,

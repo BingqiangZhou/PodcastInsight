@@ -25,12 +25,12 @@ class EpisodeCardUtils {
   /// - Zero padding
   static ButtonStyle compactIconButtonStyle(
     ThemeData theme, {
-    double buttonSize = 16.0,
+    double buttonSize = 32.0,
   }) {
     return IconButton.styleFrom(
       minimumSize: Size(buttonSize, buttonSize),
       maximumSize: Size(buttonSize, buttonSize),
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      tapTargetSize: MaterialTapTargetSize.padded,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       foregroundColor: theme.colorScheme.onSurfaceVariant,

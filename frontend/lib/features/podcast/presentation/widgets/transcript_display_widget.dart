@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -78,7 +79,7 @@ class TranscriptDisplayWidgetState
     if (controller.hasClients) {
       controller.animateTo(
         0,
-        duration: const Duration(milliseconds: 300),
+        duration: AppDurations.scrollAnimation,
         curve: Curves.easeInOut,
       );
     }
@@ -379,19 +380,21 @@ class TranscriptDisplayWidgetState
       child: Row(
         children: [
           Expanded(
+            // Inline platform branching: custom prefix/suffix and pill-shaped decoration
+            // not supported by AdaptiveTextField/AdaptiveSearchBar APIs.
             child: PlatformHelper.isApple(context)
                 ? CupertinoTextField(
                     controller: _searchController,
                     placeholder: l10n.podcast_transcript_search_hint,
                     prefix: Padding(
-                      padding: EdgeInsets.only(left: context.spacing.sm),
+                      padding: EdgeInsetsDirectional.only(start: context.spacing.sm),
                       child: Icon(CupertinoIcons.search,
                           color: scheme.onSurfaceVariant, size: 18),
                     ),
                     suffix: _isSearching
                         ? CupertinoButton(
                             padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
+                            minimumSize: Size(44, 44),
                             onPressed: _clearSearch,
                             child: Icon(CupertinoIcons.clear_thick_circled,
                                 size: 16, color: scheme.onSurfaceVariant),
@@ -414,6 +417,7 @@ class TranscriptDisplayWidgetState
                       suffixIcon: _isSearching
                           ? IconButton(
                               icon: const Icon(Icons.clear),
+                              tooltip: l10n.clear,
                               onPressed: _clearSearch,
                             )
                           : null,
@@ -861,14 +865,24 @@ class TranscriptDisplayWidgetState
 }
 
 /// Widget for displaying formatted transcription with speaker labels and timestamps
-class FormattedTranscriptWidget extends ConsumerWidget {
+class FormattedTranscriptWidget extends ConsumerStatefulWidget {
 
   const FormattedTranscriptWidget({super.key, this.transcription});
   final PodcastTranscriptionResponse? transcription;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final content = getTranscriptionText(transcription);
+  ConsumerState<FormattedTranscriptWidget> createState() =>
+      _FormattedTranscriptWidgetState();
+}
+
+class _FormattedTranscriptWidgetState
+    extends ConsumerState<FormattedTranscriptWidget> {
+  String? _cachedTranscriptContent;
+  List<TranscriptDialogueSegment>? _cachedSegments;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = getTranscriptionText(widget.transcription);
 
     if (content == null || content.isEmpty) {
       return const TranscriptDisplayWidget(
@@ -877,13 +891,17 @@ class FormattedTranscriptWidget extends ConsumerWidget {
       );
     }
 
-    // Try to parse the transcript for dialogue format
-    final segments = _parseTranscriptSegments(content);
+    // Cache regex parsing — only re-parse when content changes
+    if (_cachedTranscriptContent != content) {
+      _cachedTranscriptContent = content;
+      _cachedSegments = _parseTranscriptSegments(content);
+    }
+    final segments = _cachedSegments!;
 
     if (segments.isEmpty) {
       // Fall back to plain text display
       return TranscriptDisplayWidget(
-        transcription: transcription,
+        transcription: widget.transcription,
         episodeId: 0,
         episodeTitle: '',
       );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 
@@ -83,7 +84,7 @@ class LinearSectionHeader extends StatelessWidget {
   }
 
   Widget _buildDisplay(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
     final effectivePadding = padding ?? EdgeInsets.symmetric(
       horizontal: context.spacing.mdLg,
       vertical: isMobile ? context.spacing.smMd : context.spacing.md,

@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
+
 /// A wrapper widget that provides scroll-to-top functionality for its child content.
 ///
 /// This widget wraps any content in a SingleChildScrollView and exposes
@@ -27,7 +29,7 @@ class ScrollableContentWrapperState extends State<ScrollableContentWrapper>
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
-        duration: const Duration(milliseconds: 300),
+        duration: AppDurations.scrollAnimation,
         curve: Curves.easeInOut,
       );
     }

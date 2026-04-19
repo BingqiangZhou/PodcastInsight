@@ -64,9 +64,9 @@ class DiscoverChartsList extends ConsumerWidget {
           );
         }
 
-        final crossAxisCount = screenWidth < 900
+        final crossAxisCount = screenWidth < Breakpoints.mediumLarge
             ? 2
-            : (screenWidth < 1200 ? 3 : 4);
+            : (screenWidth < Breakpoints.large ? 3 : 4);
         final spacing = context.spacing.sm;
         final availableWidth =
             screenWidth - (crossAxisCount - 1) * spacing;

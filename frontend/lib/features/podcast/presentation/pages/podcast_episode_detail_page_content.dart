@@ -341,6 +341,7 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).maybePop(),
+                      tooltip: l10n.close,
                       icon: const Icon(Icons.close_rounded),
                     ),
                   ],

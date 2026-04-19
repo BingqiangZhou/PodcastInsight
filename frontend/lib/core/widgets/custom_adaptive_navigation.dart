@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
@@ -14,7 +15,7 @@ import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const Duration _kBottomAccessoryPaddingTransition = Duration(milliseconds: 220);
+const Duration _kBottomAccessoryPaddingTransition = AppDurations.navigationTransition;
 
 class CustomAdaptiveNavigation extends ConsumerStatefulWidget {
   const CustomAdaptiveNavigation({
@@ -194,7 +195,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
               child: Align(
                 child: _CleanDock(
                   key: const Key('custom_adaptive_navigation_mobile_dock'),
-                  width: width < 420
+                  width: width < Breakpoints.mini
                       ? width - (kPodcastGlobalPlayerMobileViewportPadding * 2)
                       : 396,
                   child: _buildMobileNavBar(context),
@@ -292,7 +293,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                   return RepaintBoundary(
                     child: TweenAnimationBuilder<double>(
                       tween: Tween<double>(end: expanded ? 240 : 72),
-                      duration: const Duration(milliseconds: 220),
+                      duration: AppDurations.navigationTransition,
                       curve: Curves.easeOutCubic,
                       builder: (context, animatedWidth, child) {
                         final showCompact = animatedWidth < 120;
@@ -336,7 +337,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
         return RepaintBoundary(
           child: TweenAnimationBuilder<double>(
             tween: Tween<double>(end: expanded ? 220 : 64),
-            duration: const Duration(milliseconds: 220),
+            duration: AppDurations.navigationTransition,
             curve: Curves.easeOutCubic,
             builder: (context, animatedWidth, _) {
               final showCompact = animatedWidth < 120;
@@ -375,9 +376,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.3,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xE6FFFFFF)
-                        : const Color(0xD9000000),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -469,8 +468,8 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
               icon,
               size: 13,
               color: isDark
-                  ? const Color(0x4DFFFFFF)
-                  : const Color(0x40000000),
+                  ? Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3)
+                  : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.25),
             ),
           ),
         ),
@@ -479,13 +478,10 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
   }
 
   Widget _buildAppleSeparator(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Divider(
       height: 0.5,
       thickness: 0.5,
-      color: isDark
-          ? const Color(0x12FFFFFF)
-          : const Color(0x12000000),
+      color: Theme.of(context).colorScheme.outlineVariant,
     );
   }
 
@@ -502,18 +498,10 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
     final selectedBgColor = isDark
         ? AppColors.primary.withValues(alpha: 0.18)
         : AppColors.primary.withValues(alpha: 0.12);
-    final selectedIconColor = isDark
-        ? const Color(0xFF7C6AEF)
-        : AppColors.primary;
-    final selectedTextColor = isDark
-        ? Colors.white
-        : const Color(0xFF1a1a2e);
-    final unselectedIconColor = isDark
-        ? const Color(0x73FFFFFF)
-        : const Color(0x66000000);
-    final unselectedTextColor = isDark
-        ? const Color(0xA6FFFFFF)
-        : const Color(0x8C000000);
+    final selectedIconColor = AppColors.primary;
+    final selectedTextColor = theme.colorScheme.onSurface;
+    final unselectedIconColor = theme.colorScheme.onSurfaceVariant;
+    final unselectedTextColor = theme.colorScheme.onSurfaceVariant;
 
     if (compact) {
       return Padding(
@@ -790,7 +778,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
             isSelected: isSelected,
             child: AnimatedScale(
               scale: isSelected ? 1.05 : 1.0,
-              duration: const Duration(milliseconds: 200),
+              duration: AppDurations.scaleFast,
               curve: Curves.easeOutCubic,
               child: Container(
                 width: 44,
@@ -833,7 +821,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
           isSelected: isSelected,
           child: AnimatedScale(
             scale: isSelected ? 1.02 : 1.0,
-            duration: const Duration(milliseconds: 200),
+            duration: AppDurations.scaleFast,
             curve: Curves.easeOutCubic,
             child: Container(
               height: 56,
@@ -942,7 +930,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                       // Scroll to top via PrimaryScrollController
                       PrimaryScrollController.of(context).animateTo(
                         0,
-                        duration: const Duration(milliseconds: 300),
+                        duration: AppDurations.scrollAnimation,
                         curve: Curves.easeOut,
                       );
                     }
@@ -1012,7 +1000,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
               children: [
                 AnimatedScale(
                   scale: isSelected ? 1.05 : 1.0,
-                  duration: const Duration(milliseconds: 200),
+                  duration: AppDurations.scaleFast,
                   curve: Curves.easeOutCubic,
                   child: Container(
                     padding: EdgeInsets.symmetric(
@@ -1032,7 +1020,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                     ),
                     child: ColorFiltered(
                   colorFilter: ColorFilter.mode(
-                    isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
+                    isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
                     BlendMode.srcIn,
                   ),
                   child: isSelected
@@ -1100,7 +1088,7 @@ class ResponsiveContainer extends StatelessWidget {
     final resolvedMaxWidth = maxWidth ??
         (width < Breakpoints.medium
             ? width
-            : width < 900
+            : width < Breakpoints.mediumLarge
                 ? 920
                 : tokens.contentMaxWidth);
 
@@ -1139,8 +1127,8 @@ class _AppleSidebarContainer extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: surfaceColor,
-            border: Border(
-              right: BorderSide(color: borderColor, width: 0.5),
+            border: BorderDirectional(
+              end: BorderSide(color: borderColor, width: 0.5),
             ),
           ),
           child: child,
@@ -1164,7 +1152,7 @@ class _CleanSidebar extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : AppColors.lightSurfaceVariant,
         borderRadius: expanded
-            ? const BorderRadius.horizontal(right: Radius.circular(AppRadius.lg))
+            ? const BorderRadiusDirectional.horizontal(end: Radius.circular(AppRadius.lg))
             : AppRadius.lgXlRadius,
       ),
       child: child,
@@ -1195,8 +1183,7 @@ class _NavInkWellState extends State<_NavInkWell> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final overlayColor = isDark ? Colors.white : Colors.black;
+    final overlayColor = Theme.of(context).colorScheme.onSurface;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -1207,7 +1194,7 @@ class _NavInkWellState extends State<_NavInkWell> {
         highlightColor: overlayColor.withValues(alpha: 0.08),
         hoverColor: Colors.transparent, // We handle hover manually
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: AppDurations.scaleFast,
           curve: Curves.easeOut,
           decoration: BoxDecoration(
             color: _isHovered && !widget.isSelected

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -30,7 +31,7 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = Breakpoints.isMobile(MediaQuery.sizeOf(context).width);
     final titleStyle = theme.textTheme.titleSmall?.copyWith(
       fontWeight: FontWeight.w600,
     );
@@ -47,7 +48,8 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
     // Identity gradient colors (all gradients are now monochrome gray)
     final identityGradientColors = AppColors.podcastGradientColors.first;
 
-    return BaseEpisodeCard(
+    return RepaintBoundary(
+      child: BaseEpisodeCard(
       config: EpisodeCardConfig(
         imageUrl: episode.imageUrl ?? episode.subscriptionImageUrl,
         imageSize: coverSize,
@@ -105,6 +107,7 @@ class PodcastFeedEpisodeCard extends StatelessWidget {
               ),
             ]
           : null,
+    ),
     );
   }
 }

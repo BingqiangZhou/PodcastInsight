@@ -71,7 +71,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
         onPressed: _isReparsing ? null : _reparseSubscription,
         tooltip: l10n.podcast_reparse_tooltip,
       ),
-      if (MediaQuery.sizeOf(context).width < 700)
+      if (MediaQuery.sizeOf(context).width < Breakpoints.compact)
         IconButton(
           icon: const Icon(Icons.filter_list),
           onPressed: _showFilterDialog,
@@ -109,7 +109,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
     final itemCount =
         episodesState.episodes.length + (episodesState.isLoadingMore ? 1 : 0);
     final crossAxisCount =
-        width < 900 ? 2 : (width < 1200 ? 3 : 4);
+        width < Breakpoints.mediumLarge ? 2 : (width < Breakpoints.large ? 3 : 4);
     return SliverGrid(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
