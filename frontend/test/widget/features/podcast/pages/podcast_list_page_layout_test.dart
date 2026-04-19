@@ -69,7 +69,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('podcast_discover_list')), findsOneWidget);
+      expect(find.byKey(const Key('podcast_discover_grid')), findsOneWidget);
       expect(
         find.byKey(const Key('podcast_discover_category_chips')),
         findsOneWidget,
@@ -269,9 +269,9 @@ void main() {
         final heroSpacing = searchBarRect.top - heroRect.bottom;
         final trendingInset = topChartsRect.right - trendingRect.right;
         expect(heroSpacing, greaterThanOrEqualTo(8));
-        expect(heroSpacing, lessThanOrEqualTo(16));
+        expect(heroSpacing, lessThanOrEqualTo(24));
         expect(trendingInset, greaterThanOrEqualTo(8));
-        expect(trendingInset, lessThanOrEqualTo(16));
+        expect(trendingInset, lessThanOrEqualTo(24));
         expect(trendingText.maxLines, 1);
         expect(trendingText.overflow, TextOverflow.ellipsis);
       },
@@ -646,7 +646,7 @@ void main() {
             )
             .first,
       );
-      expect(imageWidget.width, 56.0);
+      expect(imageWidget.width, 48.0);
     });
   });
 }

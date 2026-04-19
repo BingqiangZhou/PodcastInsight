@@ -239,6 +239,7 @@ class _PersonalAIAssistantAppState
             logger.AppLogger.debug(
               '[AppInit] Background auth retry failed: $e',
             );
+            return null;
           });
         }
       });
@@ -257,6 +258,7 @@ class _PersonalAIAssistantAppState
     // Initialize notification service (non-blocking)
     NotificationService.instance.initialize().catchError((e) {
       logger.AppLogger.debug('[AppInit] Notification service init failed: $e');
+      return false;
     });
 
     const minSplash = Duration(milliseconds: 120);

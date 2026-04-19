@@ -352,7 +352,7 @@ void main() {
 
       expect(
         find.byWidgetPredicate(
-          (widget) => widget is SizedBox && widget.width == 358.0,
+          (widget) => widget is SizedBox && widget.width == 362.0,
         ),
         findsOneWidget,
       );

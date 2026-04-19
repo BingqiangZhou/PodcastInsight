@@ -64,8 +64,22 @@ void main() {
 
   group('watchAll', () {
     test('emits tasks ordered by createdAt descending', () async {
-      await dao.insertTask(_makeTask(episodeId: 1));
-      await dao.insertTask(_makeTask(episodeId: 2));
+      // Use explicit createdAt values to guarantee deterministic ordering,
+      // since database-generated defaults can be identical within the same
+      // millisecond.
+      final older = DateTime.now().subtract(const Duration(seconds: 1));
+      final newer = DateTime.now();
+
+      await dao.insertTask(DownloadTasksCompanion.insert(
+        episodeId: 1,
+        audioUrl: 'https://example.com/ep.mp3',
+        createdAt: Value(older),
+      ));
+      await dao.insertTask(DownloadTasksCompanion.insert(
+        episodeId: 2,
+        audioUrl: 'https://example.com/ep.mp3',
+        createdAt: Value(newer),
+      ));
 
       final emitted = <List<DownloadTask>>[];
       final sub = dao.watchAll().listen(emitted.add);

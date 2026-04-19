@@ -475,21 +475,25 @@ void main() {
       });
 
       test('evicts based on max-age when present', () async {
-        // Use a short max-age that prevents fresh cache serving
+        // max-age=0 means "always revalidate": the entry is stored but expires
+        // immediately. getStats() internally calls _evictExpired(), which
+        // removes entries whose age exceeds their TTL (Duration.zero here).
+        // Therefore the cache appears empty right after insertion.
         mockAdapter.response = _response(
           statusCode: 200,
           body: {'result': 'data'},
           headers: {
             'etag': ['"short-max-age"'],
-            'cache-control': ['max-age=0'], // No fresh window
+            'cache-control': ['max-age=0'], // No fresh window, expires immediately
           },
         );
 
         await dio.get('/short-maxage-test');
 
-        // Cache should have the entry (check immediately before it expires)
+        // Entry was stored but expired instantly (max-age=0), so getStats()
+        // evicts it and reports cacheSize 0.
         final stats = interceptor.getStats();
-        expect(stats['cacheSize'], 1);
+        expect(stats['cacheSize'], 0);
 
         // Second request should not use fresh cache (max-age=0 means no fresh window)
         // But it should still make a conditional request with If-None-Match

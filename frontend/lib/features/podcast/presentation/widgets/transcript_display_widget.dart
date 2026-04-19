@@ -460,7 +460,12 @@ class TranscriptDisplayWidgetState
             children: [
               const Icon(Icons.auto_awesome_outlined, size: 18),
               SizedBox(width: context.spacing.xs),
-              Text(l10n.podcast_transcript_view_highlights),
+              Flexible(
+                child: Text(
+                  l10n.podcast_transcript_view_highlights,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           TranscriptViewMode.fullTranscript: Row(
@@ -468,7 +473,12 @@ class TranscriptDisplayWidgetState
             children: [
               const Icon(Icons.article_outlined, size: 18),
               SizedBox(width: context.spacing.xs),
-              Text(l10n.podcast_transcript_view_full),
+              Flexible(
+                child: Text(
+                  l10n.podcast_transcript_view_full,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
         },

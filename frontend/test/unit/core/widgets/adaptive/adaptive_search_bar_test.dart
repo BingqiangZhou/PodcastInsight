@@ -29,7 +29,7 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(platform: TargetPlatform.android),
       );
-      expect(find.byType(SearchBar), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
     });
 
     testWidgets('renders CupertinoSearchTextField on iOS', (tester) async {

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_switch.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/pages/login_page.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/pages/register_page.dart';
 import 'package:personal_ai_assistant/shared/widgets/custom_text_field.dart';
@@ -38,11 +39,13 @@ Future<void> _tapButtonByKey(WidgetTester tester, Key key) async {
 }
 
 Future<void> _setTermsAgreed(WidgetTester tester, bool value) async {
-  final termsCheckbox = find.byType(Checkbox).last;
-  await tester.ensureVisible(termsCheckbox);
-  final currentValue = tester.widget<Checkbox>(termsCheckbox).value ?? false;
+  // The register page has two AdaptiveSwitch widgets:
+  // 1) Remember me  2) Terms agreement — use the last one.
+  final termsSwitch = find.byType(AdaptiveSwitch).last;
+  await tester.ensureVisible(termsSwitch);
+  final currentValue = tester.widget<AdaptiveSwitch>(termsSwitch).value;
   if (currentValue != value) {
-    await tester.tap(termsCheckbox);
+    await tester.tap(termsSwitch);
     await tester.pumpAndSettle();
   }
 }
@@ -241,23 +244,30 @@ void main() {
       expect(find.byIcon(Icons.visibility), findsNothing);
     });
 
-    testWidgets('Should handle remember me checkbox', (
+    testWidgets('Should handle remember me switch', (
       tester,
     ) async {
       await _pumpAuthPage(tester, const LoginPage());
 
-      final checkbox = find.byType(Checkbox);
-      final initialValue = tester.widget<Checkbox>(checkbox).value ?? false;
+      final rememberSwitch = find.byType(AdaptiveSwitch);
+      final initialValue =
+          tester.widget<AdaptiveSwitch>(rememberSwitch).value;
 
-      await tester.tap(checkbox);
+      await tester.tap(rememberSwitch);
       await tester.pump();
 
-      expect(tester.widget<Checkbox>(checkbox).value, isNot(initialValue));
+      expect(
+        tester.widget<AdaptiveSwitch>(rememberSwitch).value,
+        isNot(initialValue),
+      );
 
-      await tester.tap(checkbox);
+      await tester.tap(rememberSwitch);
       await tester.pump();
 
-      expect(tester.widget<Checkbox>(checkbox).value, initialValue);
+      expect(
+        tester.widget<AdaptiveSwitch>(rememberSwitch).value,
+        initialValue,
+      );
     });
 
     testWidgets('Should show terms agreement error', (
@@ -281,7 +291,11 @@ void main() {
 
       await _tapButtonByKey(tester, const Key('register_button'));
 
-      expect(find.text('I agree to the Terms and Conditions'), findsOneWidget);
+      // Terms error is now shown via showTopFloatingNotice overlay
+      expect(
+        find.byKey(const Key('top_floating_notice_message')),
+        findsOneWidget,
+      );
       await tester.pump(const Duration(seconds: 4));
     });
   });

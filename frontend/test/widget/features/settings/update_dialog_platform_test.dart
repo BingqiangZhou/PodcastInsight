@@ -84,9 +84,9 @@ void main() {
     testWidgets(
       'download button is disabled when no platform asset is available',
       (tester) async {
-        // Only has a macOS DMG — on Windows, there's no matching asset.
+        // Only has a Linux AppImage — on macOS, there's no matching asset.
         final release = _buildReleaseWithAssets([
-          _buildAsset('personal-ai-assistant-macos-1.0.0.dmg', 100 * 1024 * 1024),
+          _buildAsset('personal-ai-assistant-linux-1.0.0.tar.gz', 100 * 1024 * 1024),
         ]);
 
         await tester.pumpWidget(_buildTestApp(release));
@@ -107,7 +107,7 @@ void main() {
       'shows "no installer" text when no platform asset is available',
       (tester) async {
         final release = _buildReleaseWithAssets([
-          _buildAsset('personal-ai-assistant-macos-1.0.0.dmg', 100 * 1024 * 1024),
+          _buildAsset('personal-ai-assistant-linux-1.0.0.tar.gz', 100 * 1024 * 1024),
         ]);
 
         await tester.pumpWidget(_buildTestApp(release));
@@ -127,7 +127,7 @@ void main() {
       'hides file size row when no platform asset',
       (tester) async {
         final release = _buildReleaseWithAssets([
-          _buildAsset('personal-ai-assistant-macos-1.0.0.dmg', 100 * 1024 * 1024),
+          _buildAsset('personal-ai-assistant-linux-1.0.0.tar.gz', 100 * 1024 * 1024),
         ]);
 
         await tester.pumpWidget(_buildTestApp(release));

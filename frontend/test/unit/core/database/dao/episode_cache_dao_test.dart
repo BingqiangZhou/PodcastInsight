@@ -94,10 +94,10 @@ void main() {
     });
 
     test('bulk upserts update existing entries', () async {
-      await dao.upsertEpisode(_makeEpisode(id: 1, title: 'Old'));
+      await dao.upsertEpisode(_makeEpisode(id: 1, subscriptionId: 10, title: 'Old'));
 
       await dao.upsertAll([
-        _makeEpisode(id: 1, title: 'New'),
+        _makeEpisode(id: 1, subscriptionId: 10, title: 'New'),
       ]);
 
       final ep = await dao.getById(1);
@@ -144,8 +144,8 @@ void main() {
   group('watchAll', () {
     test('emits all episodes ordered by publishedAt descending', () async {
       await dao.upsertAll([
-        _makeEpisode(id: 1, publishedAt: DateTime(2025, 1, 1)),
-        _makeEpisode(id: 2, publishedAt: DateTime(2025, 3, 1)),
+        _makeEpisode(id: 1, subscriptionId: 10, publishedAt: DateTime(2025, 1, 1)),
+        _makeEpisode(id: 2, subscriptionId: 10, publishedAt: DateTime(2025, 3, 1)),
       ]);
 
       final emitted = <List<EpisodesCacheData>>[];
@@ -175,8 +175,8 @@ void main() {
 
   group('deleteById', () {
     test('deletes a cached episode by id', () async {
-      await dao.upsertEpisode(_makeEpisode(id: 1));
-      await dao.upsertEpisode(_makeEpisode(id: 2));
+      await dao.upsertEpisode(_makeEpisode(id: 1, subscriptionId: 10));
+      await dao.upsertEpisode(_makeEpisode(id: 2, subscriptionId: 10));
 
       await dao.deleteById(1);
 
@@ -216,9 +216,9 @@ void main() {
       final recentDate = now.subtract(const Duration(days: 1));
 
       await dao.upsertAll([
-        _makeEpisode(id: 1, updatedAt: oldDate),
-        _makeEpisode(id: 2, updatedAt: oldDate),
-        _makeEpisode(id: 3, updatedAt: recentDate),
+        _makeEpisode(id: 1, subscriptionId: 10, updatedAt: oldDate),
+        _makeEpisode(id: 2, subscriptionId: 10, updatedAt: oldDate),
+        _makeEpisode(id: 3, subscriptionId: 10, updatedAt: recentDate),
       ]);
 
       final deleted = await dao.evictStaleEntries(maxAge: const Duration(days: 7));
@@ -234,7 +234,7 @@ void main() {
       // Entry updated exactly 7 days ago -- isSmallerThanValue uses strict <
       final boundaryDate = now.subtract(const Duration(days: 7));
 
-      await dao.upsertEpisode(_makeEpisode(id: 1, updatedAt: boundaryDate));
+      await dao.upsertEpisode(_makeEpisode(id: 1, subscriptionId: 10, updatedAt: boundaryDate));
 
       final deleted = await dao.evictStaleEntries(maxAge: const Duration(days: 7));
 
@@ -246,8 +246,8 @@ void main() {
       final now = DateTime.now();
 
       await dao.upsertAll([
-        _makeEpisode(id: 1, updatedAt: now),
-        _makeEpisode(id: 2, updatedAt: now.subtract(const Duration(hours: 1))),
+        _makeEpisode(id: 1, subscriptionId: 10, updatedAt: now),
+        _makeEpisode(id: 2, subscriptionId: 10, updatedAt: now.subtract(const Duration(hours: 1))),
       ]);
 
       final deleted = await dao.evictStaleEntries();
@@ -261,8 +261,8 @@ void main() {
       final now = DateTime.now();
 
       await dao.upsertAll([
-        _makeEpisode(id: 1, updatedAt: now.subtract(const Duration(days: 2))),
-        _makeEpisode(id: 2, updatedAt: now.subtract(const Duration(hours: 12))),
+        _makeEpisode(id: 1, subscriptionId: 10, updatedAt: now.subtract(const Duration(days: 2))),
+        _makeEpisode(id: 2, subscriptionId: 10, updatedAt: now.subtract(const Duration(hours: 12))),
       ]);
 
       final deleted = await dao.evictStaleEntries(maxAge: const Duration(days: 1));
@@ -317,9 +317,9 @@ void main() {
 
     test('limits results', () async {
       await dao.upsertAll([
-        _makeEpisode(id: 1, publishedAt: DateTime(2025, 1, 1)),
-        _makeEpisode(id: 2, publishedAt: DateTime(2025, 2, 1)),
-        _makeEpisode(id: 3, publishedAt: DateTime(2025, 3, 1)),
+        _makeEpisode(id: 1, subscriptionId: 10, publishedAt: DateTime(2025, 1, 1)),
+        _makeEpisode(id: 2, subscriptionId: 10, publishedAt: DateTime(2025, 2, 1)),
+        _makeEpisode(id: 3, subscriptionId: 10, publishedAt: DateTime(2025, 3, 1)),
       ]);
 
       final emitted = <List<EpisodesCacheData>>[];

@@ -64,7 +64,7 @@ void main() {
       find.byKey(const Key('profile_subscriptions_loading_content')),
       findsOneWidget,
     );
-        expect(find.byType(SurfacePanel), findsOneWidget);
+        expect(find.byType(SurfacePanel), findsNothing);
   });
 
   testWidgets('shows empty state when no subscriptions', (

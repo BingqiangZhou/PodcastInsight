@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_segmented_control.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_episode_detail_page.dart';
 import '../../../../helpers/podcast_episode_detail_helper.dart';
@@ -149,9 +150,10 @@ void main() {
       final context = tester.element(find.byType(PodcastEpisodeDetailPage));
       final l10n = AppLocalizations.of(context)!;
 
-      final summaryTabFinder = find.byKey(
-        const Key('episode_detail_mobile_tab_2'),
-      );
+      // Tab switching is now handled by AdaptiveSegmentedControl<int>,
+      // which renders a Material SegmentedButton on non-iOS platforms.
+      // Tap the "Summary" segment label to switch to tab index 2.
+      final summaryTabFinder = find.text(l10n.podcast_tab_summary);
       await tester.ensureVisible(summaryTabFinder);
       await tester.tap(summaryTabFinder);
       await tester.pumpAndSettle();
@@ -172,9 +174,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final summaryTabFinder = find.byKey(
-        const Key('episode_detail_mobile_tab_2'),
-      );
+      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
+      final l10n = AppLocalizations.of(context)!;
+
+      // Tap the "Summary" segment label to switch to tab index 2.
+      final summaryTabFinder = find.text(l10n.podcast_tab_summary);
       await tester.ensureVisible(summaryTabFinder);
       await tester.tap(summaryTabFinder);
       await tester.pumpAndSettle();
@@ -187,32 +191,7 @@ void main() {
   // From podcast_episode_detail_page_tab_indicator_test.dart
   // =========================================================================
   group('PodcastEpisodeDetailPage mobile tab selection', () {
-    testWidgets('selected tab uses underline styling', (tester) async {
-      addTearDown(() async => tester.binding.setSurfaceSize(null));
-      await tester.binding.setSurfaceSize(const Size(390, 844));
-
-      await tester.pumpWidget(
-        createEpisodeDetailWidget(
-          episode: createTestEpisode(description: '<p>Description</p>'),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_0')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_1')),
-        findsNothing,
-      );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_2')),
-        findsNothing,
-      );
-    });
-
-    testWidgets('tap transcript tab updates selected underline', (
+    testWidgets('AdaptiveSegmentedControl renders with shownotes selected', (
       tester,
     ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
@@ -225,28 +204,26 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final transcriptTabFinder = find.byKey(
-        const Key('episode_detail_mobile_tab_1'),
-      );
-      await tester.ensureVisible(transcriptTabFinder);
-      await tester.tap(transcriptTabFinder);
-      await tester.pumpAndSettle();
-
+      // AdaptiveSegmentedControl<int> is present
       expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_0')),
-        findsNothing,
-      );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_1')),
+        find.byType(AdaptiveSegmentedControl<int>),
         findsOneWidget,
       );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_2')),
-        findsNothing,
-      );
+
+      // On non-iOS (test environment), a SegmentedButton is rendered.
+      // The "Shownotes" tab (index 0) is selected by default.
+      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
+      final l10n = AppLocalizations.of(context)!;
+
+      // Verify all three tab labels are visible
+      expect(find.text(l10n.podcast_tab_shownotes), findsWidgets);
+      expect(find.text(l10n.podcast_tab_transcript), findsWidgets);
+      expect(find.text(l10n.podcast_tab_summary), findsWidgets);
     });
 
-    testWidgets('tap summary tab updates selected underline', (tester) async {
+    testWidgets('tap transcript tab updates selected segment', (
+      tester,
+    ) async {
       addTearDown(() async => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
@@ -257,23 +234,50 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final summaryTabFinder = find.byKey(
-        const Key('episode_detail_mobile_tab_2'),
+      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
+      final l10n = AppLocalizations.of(context)!;
+
+      // Tap the "Transcript" segment label to switch to tab index 1
+      final transcriptTabFinder = find.text(l10n.podcast_tab_transcript);
+      await tester.ensureVisible(transcriptTabFinder);
+      await tester.tap(transcriptTabFinder);
+      await tester.pumpAndSettle();
+
+      // Verify the page switched by checking the transcript content surface
+      // appears (mobile layout uses PageView with surface keys)
+      expect(
+        find.byKey(
+          const Key('podcast_episode_detail_mobile_content_surface_1'),
+        ),
+        findsOneWidget,
       );
+    });
+
+    testWidgets('tap summary tab updates selected segment', (tester) async {
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+
+      await tester.pumpWidget(
+        createEpisodeDetailWidget(
+          episode: createTestEpisode(description: '<p>Description</p>'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(PodcastEpisodeDetailPage));
+      final l10n = AppLocalizations.of(context)!;
+
+      // Tap the "Summary" segment label to switch to tab index 2
+      final summaryTabFinder = find.text(l10n.podcast_tab_summary);
       await tester.ensureVisible(summaryTabFinder);
       await tester.tap(summaryTabFinder);
       await tester.pumpAndSettle();
 
+      // Verify the page switched by checking the summary content surface
       expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_0')),
-        findsNothing,
-      );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_1')),
-        findsNothing,
-      );
-      expect(
-        find.byKey(const Key('episode_detail_mobile_tab_indicator_2')),
+        find.byKey(
+          const Key('podcast_episode_detail_mobile_content_surface_2'),
+        ),
         findsOneWidget,
       );
     });

@@ -128,7 +128,7 @@ class DiscoverChartRow extends StatelessWidget {
                     children: [
                       Text(
                         item.title,
-                        maxLines: 2,
+                        maxLines: isDense ? 1 : 2,
                         overflow: TextOverflow.ellipsis,
                         style: titleStyle,
                       ),

@@ -137,7 +137,7 @@ void main() {
       final sidebarSize = tester.getSize(
         find.byKey(const ValueKey('desktop_navigation_sidebar')),
       );
-      expect(sidebarSize.width, closeTo(60, 0.1));
+      expect(sidebarSize.width, closeTo(72, 0.1));
     });
   });
 }

@@ -93,7 +93,7 @@ void main() {
       final state = await dao.getByEpisodeId(1);
       expect(state!.positionSeconds, 150);
       // lastUpdatedAt should be updated (later than original)
-      expect(state.lastUpdatedAt, greaterThan(DateTime(2025, 1, 1)));
+      expect(state.lastUpdatedAt.isAfter(DateTime(2025, 1, 1)), isTrue);
     });
 
     test('does nothing when no matching episode exists', () async {

@@ -36,7 +36,7 @@ void main() {
 
       final playerFinder = find.byType(PodcastBottomPlayerWidget);
       expect(playerFinder, findsOneWidget);
-      final listFinder = find.byType(ListView);
+      final listFinder = find.byType(CustomScrollView);
       final miniPlayerFinder = find.byKey(
         const Key('podcast_bottom_player_mini_wrapper'),
       );

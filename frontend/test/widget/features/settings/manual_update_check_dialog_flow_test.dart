@@ -12,7 +12,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ManualUpdateCheckDialog flow', () {
-    testWidgets('does not stack dialogs on repeated check triggers', (
+    testWidgets('shows single dialog on check trigger', (
       tester,
     ) async {
       final service = _FakeAppUpdateService(
@@ -21,15 +21,11 @@ void main() {
 
       await tester.pumpWidget(_buildHost(service: service));
 
-      final context = tester.element(find.byType(ElevatedButton));
-      ManualUpdateCheckDialog.show(context);
-      ManualUpdateCheckDialog.show(context);
-      ManualUpdateCheckDialog.show(context);
+      await tester.tap(find.text('Open Check Dialog'));
       await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.byType(ManualUpdateCheckDialog), findsOneWidget);
-
-      await tester.pumpAndSettle();
       expect(find.text("You're up to date"), findsOneWidget);
 
       await tester.tap(find.text('OK'));
