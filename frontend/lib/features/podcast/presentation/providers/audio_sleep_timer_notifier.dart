@@ -36,9 +36,7 @@ extension AudioSleepTimerNotifier on AudioPlayerNotifier {
 
     _timers.cancel(AudioPlayerNotifier._kSleepTimerTick);
 
-    if (state.sleepTimerAfterEpisode &&
-        state.sleepTimerEndTime == null &&
-        state.sleepTimerRemainingLabel == 'After current episode') {
+    if (state.sleepTimerAfterEpisode && state.sleepTimerEndTime == null) {
       return;
     }
 

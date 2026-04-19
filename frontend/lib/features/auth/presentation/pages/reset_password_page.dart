@@ -132,6 +132,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   icon: Icon(Icons.adaptive.arrow_back),
                   onPressed: () => context.go('/login'),
                 ),
@@ -158,13 +159,13 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
               ),
             ],
           ),
-          child: _passwordReset ? _buildSuccessContent(l10n) : _buildFormContent(l10n),
+          child: _passwordReset ? _buildSuccessContent(l10n) : _buildFormContent(l10n, isLoading),
         ),
       ),
     );
   }
 
-  Widget _buildFormContent(AppLocalizations l10n) {
+  Widget _buildFormContent(AppLocalizations l10n, bool isLoading) {
     return Form(
       key: _formKey,
       child: Column(
@@ -188,6 +189,15 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
               }
               if (value.length < 8) {
                 return l10n.auth_password_too_short;
+              }
+              if (!value.contains(RegExp('[A-Z]'))) {
+                return l10n.auth_password_requirement_uppercase;
+              }
+              if (!value.contains(RegExp('[a-z]'))) {
+                return l10n.auth_password_requirement_lowercase;
+              }
+              if (!value.contains(RegExp('[0-9]'))) {
+                return l10n.auth_password_requirement_number;
               }
               return null;
             },
@@ -265,7 +275,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
             height: context.spacing.xl,
             child: FilledButton(
               key: const Key('reset_password_button'),
-              onPressed: _submitResetPassword,
+              onPressed: isLoading ? null : _submitResetPassword,
               child: Text(l10n.auth_reset_password),
             ),
           ),

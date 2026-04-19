@@ -142,16 +142,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           titleWidget: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onLongPress: _showServerConfigDialog,
-                  borderRadius: AppRadius.xxlRadius,
-                  child: SizedBox(
-                    width: 56,
-                    height: 56,
-                    child: Image.asset('assets/icons/Logo3.png'),
-                  ),
+              GestureDetector(
+                onLongPress: _showServerConfigDialog,
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: Image.asset('assets/icons/Logo3.png'),
                 ),
               ),
               SizedBox(width: context.spacing.md),
@@ -205,7 +201,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     if (value == null || value.isEmpty) {
                       return l10n.auth_enter_password;
                     }
-                    if (value.length < 6) {
+                    if (value.length < 8) {
                       return l10n.auth_password_too_short;
                     }
                     return null;

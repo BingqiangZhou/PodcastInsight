@@ -116,6 +116,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   icon: Icon(Icons.adaptive.arrow_back),
                   onPressed: () => context.go('/login'),
                 ),
@@ -142,13 +143,13 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               ),
             ],
           ),
-          child: _emailSent ? _buildSuccessContent(l10n) : _buildFormContent(l10n),
+          child: _emailSent ? _buildSuccessContent(l10n) : _buildFormContent(l10n, isLoading),
         ),
       ),
     );
   }
 
-  Widget _buildFormContent(AppLocalizations? l10n) {
+  Widget _buildFormContent(AppLocalizations? l10n, bool isLoading) {
     return Form(
       key: _formKey,
       child: Column(
@@ -165,7 +166,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               if (value == null || value.isEmpty) {
                 return l10n?.auth_enter_email ?? _fallbackEnterEmail;
               }
-              if (!value.contains('@')) {
+              final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+              if (!emailRegex.hasMatch(value.trim())) {
                 return l10n?.auth_enter_valid_email ??
                     _fallbackEnterValidEmail;
               }
@@ -178,7 +180,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             height: context.spacing.xl,
             child: FilledButton(
               key: const Key('forgot_password_submit_button'),
-              onPressed: _submitForgotPassword,
+              onPressed: isLoading ? null : _submitForgotPassword,
               child: Text(
                 l10n?.auth_send_reset_link ?? _fallbackSendResetLink,
               ),
