@@ -429,15 +429,10 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
   String _formatPlaybackPosition(BuildContext context, int seconds) {
     final l10n = context.l10n;
     final duration = Duration(seconds: seconds);
-    final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final remainingSeconds = duration.inSeconds.remainder(60);
 
-    if (hours > 0) {
-      return TimeFormatter.formatDuration(duration);
-    }
-
-    if (remainingSeconds > 0) {
+    if (duration.inHours > 0 || remainingSeconds > 0) {
       return TimeFormatter.formatDuration(duration);
     }
 
