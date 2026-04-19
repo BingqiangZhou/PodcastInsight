@@ -1,5 +1,8 @@
 part of 'podcast_episode_detail_page.dart';
 
+const double _artworkBorderRadiusWide = 18;
+const double _artworkBorderRadiusCompact = 10;
+
 extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   bool get _isCompactPhoneLayout =>
       MediaQuery.sizeOf(context).width < Breakpoints.medium;
@@ -163,7 +166,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     required bool isWide,
   }) {
     final size = isWide ? 76.0 : 44.0;
-    final borderRadius = BorderRadius.circular(isWide ? 18 : 10);
+    final borderRadius = BorderRadius.circular(isWide ? _artworkBorderRadiusWide : _artworkBorderRadiusCompact);
     final artwork = Container(
       key: Key(
         isWide
@@ -209,7 +212,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                   width: size,
                   height: size,
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.3),
+                    color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.3),
                     borderRadius: borderRadius,
                   ),
                   alignment: Alignment.center,
@@ -217,7 +220,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
                     isPlaying
                         ? Icons.graphic_eq_rounded
                         : Icons.play_arrow_rounded,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     size: size * 0.4,
                   ),
                 );
