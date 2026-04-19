@@ -107,6 +107,35 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
         ),
       );
 
+      if (widget.validator != null) {
+        return FormField<String>(
+          key: widget.formFieldKey,
+          initialValue: widget.controller?.text,
+          validator: widget.validator,
+          builder: (field) {
+            _errorText = field.errorText;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                cupertinoField,
+                if (field.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(left: AppSpacing.smMd, top: AppSpacing.xs),
+                    child: Text(
+                      field.errorText!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: Theme.of(context).textTheme.bodySmall?.fontSize ?? 12,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      }
+
       if (_errorText != null) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
