@@ -199,7 +199,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
               subtitle: l10n.podcast_highlights_items(highlightsResponse?.total ?? 0),
@@ -284,7 +284,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+          padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
           child: AppSectionHeader(
             title: EpisodeCardUtils.formatDate(headerDate),
             subtitle: l10n.podcast_highlights_loading,
@@ -318,7 +318,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
               subtitle: l10n.podcast_highlights_load_failed,
@@ -377,7 +377,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(headerDate),
               subtitle: l10n.podcast_highlights_no_highs,

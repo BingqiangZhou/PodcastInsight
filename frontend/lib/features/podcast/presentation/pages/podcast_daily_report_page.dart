@@ -263,7 +263,7 @@ class _PodcastDailyReportPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
             child: AppSectionHeader(
               title: EpisodeCardUtils.formatDate(currentReport.reportDate ?? headerDate),
               subtitle:
@@ -327,7 +327,7 @@ class _PodcastDailyReportPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
             child: AppSectionHeader(
               title: title,
               subtitle: subtitle,
@@ -362,7 +362,7 @@ class _PodcastDailyReportPageState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+          padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
           child: AppSectionHeader(
             title: title,
             subtitle: subtitle,
@@ -400,7 +400,7 @@ class _PodcastDailyReportPageState
             borderRadius: AppRadius.xxlCardRadius,
             border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
           ),
-          padding: EdgeInsets.fromLTRB(context.spacing.md, context.spacing.md, context.spacing.md, 14),
+          padding: EdgeInsets.fromLTRB(context.spacing.md, context.spacing.md, context.spacing.md, context.spacing.smMd),
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

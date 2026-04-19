@@ -148,7 +148,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
             child: AppSectionHeader(
               title: l10n.downloads_page_title,
               subtitle: l10n.downloads_empty,
@@ -222,7 +222,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, 18, context.spacing.mdLg, 14),
+            padding: EdgeInsets.fromLTRB(context.spacing.mdLg, context.spacing.md, context.spacing.mdLg, context.spacing.smMd),
             child: AppSectionHeader(
               title: l10n.downloads_page_title,
               subtitle: l10n.downloads_items(totalDownloads),
