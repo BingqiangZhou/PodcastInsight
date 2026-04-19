@@ -77,7 +77,6 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
           onPressed: _showFilterDialog,
           tooltip: l10n.filter,
         ),
-      _buildMoreMenu(),
     ];
   }
 
@@ -293,27 +292,6 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMoreMenu() {
-    final l10n = context.l10n;
-    return IconButton(
-      icon: Icon(
-        Icons.adaptive.more,
-        color: Theme.of(context).colorScheme.secondary,
-      ),
-      onPressed: () => _showMoreMenu(l10n),
-      tooltip: l10n.more,
-    );
-  }
-
-  void _showMoreMenu(AppLocalizations l10n) {
-    showAdaptiveActionSheet(
-      context: context,
-      title: Text(l10n.podcast_episodes),
-      actions: [],
-      cancelWidget: Text(l10n.cancel),
     );
   }
 
