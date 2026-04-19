@@ -168,6 +168,8 @@ class _PodcastEpisodeDetailPageState
         episodeDetailProvider(widget.episodeId).future,
       );
 
+      if (!mounted) return;
+
       logger.AppLogger.debug(
         '[Playback] Loaded episode detail: ID=${episodeDetailAsync?.id}, Title=${episodeDetailAsync?.title}',
       );
@@ -356,6 +358,7 @@ class _PodcastEpisodeDetailPageState
       // Reset tab selection
       _selectedTabIndex = 0;
       _shownotesAnchors = const <ShownotesAnchor>[];
+      _selectedSummaryText = '';
 
       _bindTranscriptionNoticeListener();
       // No manual provider release needed - family.autoDispose handles cleanup
