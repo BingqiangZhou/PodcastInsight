@@ -434,7 +434,7 @@ class _ProfileSubscriptionsPageState
         ),
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
+          child: AdaptiveInkWell(
             onTap: () {
               context.push(
                 '/podcast/episodes/${subscription.id}',

@@ -31,10 +31,14 @@ class PasswordTextField extends StatelessWidget {
       label: label,
       obscureText: obscureText,
       prefixIcon: const Icon(Icons.lock_outline),
-      suffixIcon: IconButton(
-        key: toggleButtonKey,
-        icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
-        onPressed: onToggleVisibility,
+      suffixIcon: Semantics(
+        button: true,
+        label: obscureText ? 'Show password' : 'Hide password',
+        child: IconButton(
+          key: toggleButtonKey,
+          icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
+          onPressed: onToggleVisibility,
+        ),
       ),
       onChanged: onChanged,
       validator: validator,

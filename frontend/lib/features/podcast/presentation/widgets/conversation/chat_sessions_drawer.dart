@@ -168,6 +168,7 @@ class _SessionListTile extends ConsumerWidget {
           ),
         ),
         trailing: IconButton(
+          tooltip: l10n.delete,
           icon: const Icon(Icons.delete_outline, size: 20),
           color: AppColors.darkOnSurfaceMuted,
           onPressed: () async {

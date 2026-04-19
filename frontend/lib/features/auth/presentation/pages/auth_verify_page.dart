@@ -415,7 +415,7 @@ class _TestButton extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: AdaptiveInkWell(
           onTap: onPressed,
           borderRadius: AppRadius.mdLgRadius,
           child: Padding(

@@ -13,6 +13,7 @@ import 'package:personal_ai_assistant/core/network/server_health_service.dart';
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/providers/core_providers.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -387,7 +388,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   }
 
   Widget _buildMaterialProtocolDropdown(ColorScheme scheme) {
-    return InkWell(
+    return AdaptiveInkWell(
       onTap: () {
         final newValue = _selectedProtocol == 'https://' ? 'http://' : 'https://';
         setState(() {

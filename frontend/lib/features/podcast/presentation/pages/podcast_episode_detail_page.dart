@@ -19,6 +19,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_segmented_control.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/core/utils/html_sanitizer.dart';
@@ -359,7 +360,7 @@ class _PodcastEpisodeDetailPageState
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: AppRadius.lgXlRadius,
         ),
-        child: InkWell(
+        child: AdaptiveInkWell(
           onTap: _scrollToTop,
           child: SizedBox(
             width: 32,

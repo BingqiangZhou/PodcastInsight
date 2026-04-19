@@ -16,13 +16,27 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
 
 /// Page for managing downloaded podcast episodes.
-class PodcastDownloadsPage extends ConsumerWidget {
+class PodcastDownloadsPage extends ConsumerStatefulWidget {
   const PodcastDownloadsPage({super.key});
+
+  @override
+  ConsumerState<PodcastDownloadsPage> createState() =>
+      _PodcastDownloadsPageState();
+}
+
+class _PodcastDownloadsPageState extends ConsumerState<PodcastDownloadsPage> {
+  final ScrollController _scrollController = ScrollController();
 
   static const double _bottomBufferForPlayer = 100;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final tokens = appThemeOf(context);
@@ -53,32 +67,36 @@ class PodcastDownloadsPage extends ConsumerWidget {
             },
             child: const SizedBox.shrink(),
             builder: (context, refreshSliver) {
-              return CustomScrollView(
-                slivers: [
-                  if (refreshSliver != null) refreshSliver,
-                  AdaptiveSliverAppBar(
-                    title: l10n.downloads_page_title,
-                    actions: [if (deleteButton != null) deleteButton],
-                  ),
-                  SliverToBoxAdapter(child: SizedBox(height: context.spacing.smMd)),
-                  ...asyncDownloads.when(
-                    data: (tasks) {
-                      if (tasks.isEmpty) {
-                        return _buildEmptySlivers(context, l10n, tokens);
-                      }
-                      return _buildDataSlivers(
-                        context,
-                        grouped,
-                        l10n,
-                        theme,
-                        tokens,
-                      );
-                    },
-                    loading: () => _buildLoadingSlivers(context, l10n, tokens),
-                    error: (e, _) =>
-                        _buildErrorSlivers(context, ref, l10n, theme, e),
-                  ),
-                ],
+              return Scrollbar(
+                controller: _scrollController,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    if (refreshSliver != null) refreshSliver,
+                    AdaptiveSliverAppBar(
+                      title: l10n.downloads_page_title,
+                      actions: [if (deleteButton != null) deleteButton],
+                    ),
+                    SliverToBoxAdapter(child: SizedBox(height: context.spacing.smMd)),
+                    ...asyncDownloads.when(
+                      data: (tasks) {
+                        if (tasks.isEmpty) {
+                          return _buildEmptySlivers(context, l10n, tokens);
+                        }
+                        return _buildDataSlivers(
+                          context,
+                          grouped,
+                          l10n,
+                          theme,
+                          tokens,
+                        );
+                      },
+                      loading: () => _buildLoadingSlivers(context, l10n, tokens),
+                      error: (e, _) =>
+                          _buildErrorSlivers(context, ref, l10n, theme, e),
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -395,7 +413,7 @@ class _DownloadTaskCard extends ConsumerWidget {
       onDelete: () => service.delete(task.episodeId),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: AdaptiveInkWell(
           borderRadius: AppRadius.xxlCardRadius,
           onTap: null,
           child: Container(

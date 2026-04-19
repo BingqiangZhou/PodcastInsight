@@ -6,6 +6,7 @@ import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
 
@@ -115,7 +116,7 @@ class CountrySelectorDropdown extends ConsumerWidget {
         : colorScheme.surfaceContainerHighest.withValues(alpha: 0.35);
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: AdaptiveInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
         child: Ink(

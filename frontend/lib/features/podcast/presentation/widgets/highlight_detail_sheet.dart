@@ -6,6 +6,7 @@ import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_score_indicator.dart';
@@ -386,8 +387,9 @@ class _HighlightListItem extends StatelessWidget {
             color: scheme.outlineVariant.withValues(alpha: 0.15),
           ),
         ),
-        child: InkWell(
+        child: AdaptiveInkWell(
           onTap: onTap,
+          borderRadius: AppRadius.mdLgRadius,
           child: Padding(
             padding: EdgeInsets.all(context.spacing.smMd),
             child: Column(

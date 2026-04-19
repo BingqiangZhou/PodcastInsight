@@ -334,7 +334,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
         ),
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
+          child: AdaptiveInkWell(
             onTap: () =>
                 context.push('/podcast/episode/detail/${episode.id}'),
             borderRadius: BorderRadius.circular(context.itemRadius),

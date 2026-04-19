@@ -191,7 +191,7 @@ class _PodcastFeedPageState extends ConsumerState<PodcastFeedPage> {
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
             ),
           ),
-          child: InkWell(
+          child: AdaptiveInkWell(
             borderRadius: BorderRadius.circular(borderRadius),
             onTap: () =>
                 PodcastNavigation.goToDailyReport(context),
@@ -379,13 +379,16 @@ class _FeedContent extends ConsumerWidget {
     final itemCount = feedState.episodes.length + (feedState.hasMore ? 1 : 0);
 
     if (isMobile) {
-      return ListView.builder(
+      return Scrollbar(
         controller: scrollController,
-        padding: EdgeInsets.symmetric(vertical: context.spacing.sm),
-        cacheExtent: ScrollConstants.largeListCacheExtent,
-        itemCount: itemCount,
-        itemBuilder: (context, index) =>
-            _buildListItem(context, ref, feedState, index, compact: true),
+        child: ListView.builder(
+          controller: scrollController,
+          padding: EdgeInsets.symmetric(vertical: context.spacing.sm),
+          cacheExtent: ScrollConstants.largeListCacheExtent,
+          itemCount: itemCount,
+          itemBuilder: (context, index) =>
+              _buildListItem(context, ref, feedState, index, compact: true),
+        ),
       );
     }
 
@@ -396,18 +399,21 @@ class _FeedContent extends ConsumerWidget {
     const desktopCardHeight = 172.0;
     final childAspectRatio = cardWidth / desktopCardHeight;
 
-    return GridView.builder(
+    return Scrollbar(
       controller: scrollController,
-      padding: EdgeInsets.symmetric(vertical: context.spacing.sm),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: spacing,
-        mainAxisSpacing: spacing,
-        childAspectRatio: childAspectRatio,
+      child: GridView.builder(
+        controller: scrollController,
+        padding: EdgeInsets.symmetric(vertical: context.spacing.sm),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+          childAspectRatio: childAspectRatio,
+        ),
+        itemCount: itemCount,
+        itemBuilder: (context, index) =>
+            _buildListItem(context, ref, feedState, index, compact: false),
       ),
-      itemCount: itemCount,
-      itemBuilder: (context, index) =>
-          _buildListItem(context, ref, feedState, index, compact: false),
     );
   }
 

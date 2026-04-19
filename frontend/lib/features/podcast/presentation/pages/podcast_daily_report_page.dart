@@ -11,6 +11,7 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_sliver_app_bar.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
@@ -453,7 +454,7 @@ class _PodcastDailyReportPageState
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: AdaptiveInkWell(
         key: Key('daily_report_item_${item.episodeId}'),
         onTap: () {
           context.push('/podcast/episode/detail/${item.episodeId}');

@@ -322,7 +322,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           borderRadius: AppRadius.pillRadius,
           side: BorderSide(color: resolvedColor.withValues(alpha: 0.18)),
         ),
-        child: InkWell(
+        child: AdaptiveInkWell(
           borderRadius: AppRadius.pillRadius,
           onTap: onTap,
           child: iconOnly
@@ -454,7 +454,8 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     EdgeInsetsGeometry? padding,
     HeaderCapsuleActionButtonStyle? style,
   }) {
-    return Consumer(
+    return RepaintBoundary(
+      child: Consumer(
       builder: (context, ref, _) {
         final playStateInfo = ref.watch(audioEpisodePlayStateProvider);
         final effectiveDensity =
@@ -502,6 +503,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           },
         );
       },
+    ),
     );
   }
 
@@ -540,7 +542,8 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     PodcastEpisodeModel episode,
     AppLocalizations l10n,
   ) {
-    return Consumer(
+    return RepaintBoundary(
+      child: Consumer(
       builder: (context, ref, _) {
         final theme = Theme.of(context);
         final playStateInfo = ref.watch(audioEpisodePlayStateProvider);
@@ -561,6 +564,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
           _EpisodeDetailPlayState.play => const SizedBox.shrink(),
         };
       },
+    ),
     );
   }
 

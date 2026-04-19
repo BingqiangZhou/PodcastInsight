@@ -8,6 +8,7 @@ import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
+import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/navigation/podcast_navigation.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
@@ -29,7 +30,7 @@ class ProfileActivityCards extends ConsumerWidget {
     required Widget child,
   }) {
     if (onTap == null) return child;
-    return InkWell(
+    return AdaptiveInkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(borderRadius),
       child: child,
