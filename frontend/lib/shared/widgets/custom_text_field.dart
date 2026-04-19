@@ -45,6 +45,13 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
+  FormFieldState<String>? _formFieldState;
+
+  void _handleChanged(String value) {
+    _formFieldState?.didChange(value);
+    widget.onChanged?.call(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (PlatformHelper.isApple(context)) {
@@ -117,7 +124,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       keyboardType: widget.keyboardType,
       enabled: widget.enabled,
       maxLines: widget.maxLines,
-      onChanged: widget.onChanged,
+      onChanged: _handleChanged,
       onSubmitted: widget.onSubmitted,
       autofillHints: widget.autofillHints,
       placeholder: widget.hint,
@@ -166,8 +173,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
         _buildLabel(context),
         if (widget.validator != null)
           FormField<String>(
+            initialValue: widget.controller.text,
             validator: widget.validator,
             builder: (field) {
+              _formFieldState = field;
               final error = widget.errorText ?? field.errorText;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -57,6 +57,7 @@ class AdaptiveTextField extends StatefulWidget {
 
 class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
   String? _errorText;
+  FormFieldState<String>? _formFieldState;
 
   void _validate(String? value) {
     if (widget.validator != null) {
@@ -73,6 +74,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
   }
 
   void _handleChanged(String value) {
+    _formFieldState?.didChange(value);
     widget.onChanged?.call(value);
     // Clear error when user starts typing
     if (_errorText != null) {
@@ -113,6 +115,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
           initialValue: widget.controller?.text,
           validator: widget.validator,
           builder: (field) {
+            _formFieldState = field;
             _errorText = field.errorText;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
