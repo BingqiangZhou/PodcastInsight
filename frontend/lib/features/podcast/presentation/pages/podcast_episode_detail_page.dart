@@ -300,7 +300,7 @@ class _PodcastEpisodeDetailPageState
               if (episodeDetail != null)
                 IconButton(
                   icon: const Icon(Icons.auto_awesome_outlined),
-                  tooltip: AppLocalizations.of(context)?.podcast_tab_chat ?? 'Chat',
+                  tooltip: (AppLocalizations.of(context) ?? AppLocalizationsEn()).podcast_tab_chat,
                   onPressed: _openChatDrawer,
                 ),
             ],
