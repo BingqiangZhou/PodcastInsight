@@ -4,6 +4,11 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
   bool get _isCompactPhoneLayout =>
       MediaQuery.sizeOf(context).width < Breakpoints.medium;
 
+  HeaderCapsuleActionButtonDensity get _buttonDensity =>
+      _isCompactPhoneLayout
+          ? HeaderCapsuleActionButtonDensity.compact
+          : HeaderCapsuleActionButtonDensity.regular;
+
   bool get _isUltraCompactPhoneLayout => MediaQuery.sizeOf(context).width < 360;
 
   Widget _buildHeader(PodcastEpisodeModel episode) {
@@ -562,9 +567,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       onPressed: _isAddingToQueue ? null : _addCurrentEpisodeToQueue,
       circular: true,
       isLoading: _isAddingToQueue,
-      density: _isCompactPhoneLayout
-          ? HeaderCapsuleActionButtonDensity.compact
-          : HeaderCapsuleActionButtonDensity.regular,
+      density: _buttonDensity,
     );
   }
 
@@ -628,9 +631,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       icon: Icons.adaptive.share,
       onPressed: () => _shareEpisode(episode),
       circular: true,
-      density: _isCompactPhoneLayout
-          ? HeaderCapsuleActionButtonDensity.compact
-          : HeaderCapsuleActionButtonDensity.regular,
+      density: _buttonDensity,
     );
   }
 
@@ -643,9 +644,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       icon: Icons.link_rounded,
       onPressed: () => unawaited(_launchEpisodeSource(episode)),
       circular: true,
-      density: _isCompactPhoneLayout
-          ? HeaderCapsuleActionButtonDensity.compact
-          : HeaderCapsuleActionButtonDensity.regular,
+      density: _buttonDensity,
     );
   }
 
