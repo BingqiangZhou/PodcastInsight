@@ -70,7 +70,10 @@ class AdaptiveButton extends StatelessWidget {
           color: theme.colorScheme.primary,
           padding: padding ??
               EdgeInsets.symmetric(horizontal: context.spacing.md, vertical: context.spacing.smMd),
-          child: effectiveChild,
+          child: DefaultTextStyle(
+            style: const TextStyle(color: CupertinoColors.white),
+            child: effectiveChild,
+          ),
         );
       case AdaptiveButtonStyle.text:
         return CupertinoButton(
