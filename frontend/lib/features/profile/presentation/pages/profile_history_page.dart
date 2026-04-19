@@ -62,8 +62,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                         return _buildPanelScaffold(
                           context,
                           title: l10n.profile_viewed_title,
-                          subtitle:
-                              'Resume episodes and review recently played content.',
+                          subtitle: l10n.profile_history_subtitle,
                           child: Center(
                             child: Padding(
                               padding: EdgeInsets.all(context.spacing.lg),
@@ -116,7 +115,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                               child: AppSectionHeader(
                                 title: l10n.profile_viewed_title,
                                 subtitle:
-                                    '${episodes.length} recently played episodes',
+                                    l10n.profile_history_episode_count(episodes.length),
                                 hideTitle: true,
                               ),
                             ),
@@ -149,8 +148,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                     loading: () => _buildPanelScaffold(
                       context,
                       title: l10n.profile_viewed_title,
-                      subtitle:
-                          'Resume episodes and review recently played content.',
+                      subtitle: l10n.profile_history_subtitle,
                       child: LoadingStatusContent(
                         key: const Key('profile_history_loading_content'),
                         title: l10n.loading,
@@ -162,8 +160,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                     error: (error, _) => _buildPanelScaffold(
                       context,
                       title: l10n.profile_viewed_title,
-                      subtitle:
-                          'Resume episodes and review recently played content.',
+                      subtitle: l10n.profile_history_subtitle,
                       child: Center(
                         child: Padding(
                           padding: EdgeInsets.all(context.spacing.lg),
