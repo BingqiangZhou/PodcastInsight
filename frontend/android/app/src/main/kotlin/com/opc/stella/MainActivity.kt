@@ -3,7 +3,6 @@ package com.opc.stella
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.annotation.NonNull
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
