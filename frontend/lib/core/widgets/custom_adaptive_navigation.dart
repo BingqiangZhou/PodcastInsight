@@ -265,13 +265,25 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
   }
 
   Widget _buildDesktopLayout(BuildContext context) {
+    final isApple = PlatformHelper.isApple(context);
+    final contentPadding = EdgeInsets.fromLTRB(
+      0,
+      context.spacing.md,
+      context.spacing.md,
+      context.spacing.md,
+    );
+    final contentBottomPadding =
+        widget.globalOverlayBodyPadding +
+        (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0);
+    final fabBottom = contentBottomPadding + context.spacing.xl;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: widget.appBar,
       body: Row(
         children: [
-          if (PlatformHelper.isApple(context))
-            _buildAppleSidebar(context)
+          if (isApple)
+            _buildAppleSidebarAnimated(context)
           else
             Expanded(
               child: ValueListenableBuilder<bool>(
@@ -303,118 +315,298 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                 },
               ),
             ),
-          if (!PlatformHelper.isApple(context))
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, context.spacing.md, context.spacing.md, context.spacing.md),
-                child: _buildContentStack(
-                  bottomPadding:
-                      widget.globalOverlayBodyPadding +
-                      (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0),
-                  fabBottom:
-                      widget.globalOverlayBodyPadding +
-                      (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
-                      context.spacing.xl,
-                ),
+          Expanded(
+            child: Padding(
+              padding: contentPadding,
+              child: _buildContentStack(
+                bottomPadding: contentBottomPadding,
+                fabBottom: fabBottom,
               ),
             ),
-          if (PlatformHelper.isApple(context))
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, context.spacing.md, context.spacing.md, context.spacing.md),
-                child: _buildContentStack(
-                  bottomPadding:
-                      widget.globalOverlayBodyPadding +
-                      (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0),
-                  fabBottom:
-                      widget.globalOverlayBodyPadding +
-                      (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
-                      context.spacing.xl,
-                ),
-              ),
-            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAppleSidebar(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+  Widget _buildAppleSidebarAnimated(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _sidebarExpanded,
+      builder: (context, expanded, _) {
+        return RepaintBoundary(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(end: expanded ? 220 : 64),
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            builder: (context, animatedWidth, _) {
+              final showCompact = animatedWidth < 120;
+              return SizedBox(
+                key: const ValueKey('apple_desktop_sidebar'),
+                width: animatedWidth,
+                child: _AppleSidebarContainer(
+                  child: showCompact
+                      ? _buildAppleSidebarCompact(context)
+                      : _buildAppleSidebarExpanded(context),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
-    return Container(
-      width: 220,
-      decoration: BoxDecoration(
-        color: isDark
-            ? CupertinoColors.systemBackground.darkColor.withOpacity(0.85)
-            : CupertinoColors.systemBackground.color.withOpacity(0.85),
-        border: Border(
-          right: BorderSide(
-            color: isDark
-                ? CupertinoColors.separator.darkColor
-                : CupertinoColors.separator.color,
-            width: 0.5,
+  Widget _buildAppleSidebarExpanded(BuildContext context) {
+    return Column(
+      children: [
+        // Brand header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+          child: Row(
+            children: [
+              _buildBrandLogoBadge(context),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  context.l10n.sidebarAppTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xE6FFFFFF)
+                        : const Color(0xD9000000),
+                  ),
+                ),
+              ),
+              _buildAppleSidebarToggle(context, Icons.chevron_left),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Main navigation items
+        ...List.generate(
+          widget.destinations.length > 1
+              ? widget.destinations.length - 1
+              : widget.destinations.length,
+          (index) => _buildAppleSidebarItem(context, index, compact: false),
+        ),
+        const Spacer(),
+        // Separator
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: _buildAppleSeparator(context),
+        ),
+        // Profile item
+        if (widget.destinations.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 12),
+            child: _buildAppleSidebarItem(
+              context,
+              widget.destinations.length - 1,
+              compact: false,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAppleSidebarCompact(BuildContext context) {
+    return Column(
+      children: [
+        // Brand logo
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 14, 0, 4),
+          child: _buildBrandLogoBadge(context),
+        ),
+        _buildAppleSidebarToggle(context, Icons.chevron_right),
+        const SizedBox(height: 4),
+        // Main navigation items
+        ...List.generate(
+          widget.destinations.length > 1
+              ? widget.destinations.length - 1
+              : widget.destinations.length,
+          (index) => _buildAppleSidebarItem(context, index, compact: true),
+        ),
+        const Spacer(),
+        // Separator
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 13),
+          child: _buildAppleSeparator(context),
+        ),
+        // Profile item
+        if (widget.destinations.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 12),
+            child: _buildAppleSidebarItem(
+              context,
+              widget.destinations.length - 1,
+              compact: true,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAppleSidebarToggle(BuildContext context, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: _toggleSidebar,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Tooltip(
+            message: icon == Icons.chevron_left
+                ? context.l10n.sidebarCollapseMenu
+                : context.l10n.sidebarExpandMenu,
+            child: Icon(
+              icon,
+              size: 13,
+              color: isDark
+                  ? const Color(0x4DFFFFFF)
+                  : const Color(0x40000000),
+            ),
           ),
         ),
       ),
-      child: Column(
-        children: [
-          // Main navigation items
-          ...List.generate(
-            widget.destinations.length > 1 ? widget.destinations.length - 1 : widget.destinations.length,
-            (index) => _buildAppleSidebarItem(context, index),
-          ),
-          const Spacer(),
-          // Profile item at bottom (if exists)
-          if (widget.destinations.length > 1)
-            _buildAppleSidebarItem(context, widget.destinations.length - 1),
-        ],
-      ),
     );
   }
 
-  Widget _buildAppleSidebarItem(BuildContext context, int index) {
+  Widget _buildAppleSeparator(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Divider(
+      height: 0.5,
+      thickness: 0.5,
+      color: isDark
+          ? const Color(0x12FFFFFF)
+          : const Color(0x12000000),
+    );
+  }
+
+  Widget _buildAppleSidebarItem(
+    BuildContext context,
+    int index, {
+    required bool compact,
+  }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isSelected = index == widget.selectedIndex;
     final destination = widget.destinations[index];
 
-    return GestureDetector(
-      onTap: () => widget.onDestinationSelected?.call(index),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          color: isSelected
-              ? (isDark
-                  ? CupertinoColors.systemBackground.darkColor.withOpacity(0.1)
-                  : CupertinoColors.systemBackground.color.withOpacity(0.06))
-              : null,
+    final selectedBgColor = isDark
+        ? AppColors.primary.withValues(alpha: 0.18)
+        : AppColors.primary.withValues(alpha: 0.12);
+    final selectedIconColor = isDark
+        ? const Color(0xFF7C6AEF)
+        : AppColors.primary;
+    final selectedTextColor = isDark
+        ? Colors.white
+        : const Color(0xFF1a1a2e);
+    final unselectedIconColor = isDark
+        ? const Color(0x73FFFFFF)
+        : const Color(0x66000000);
+    final unselectedTextColor = isDark
+        ? const Color(0xA6FFFFFF)
+        : const Color(0x8C000000);
+
+    if (compact) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Semantics(
+          button: true,
+          selected: isSelected,
+          label: destination.label,
+          child: Tooltip(
+            message: destination.label,
+            child: _NavInkWell(
+              onTap: () => widget.onDestinationSelected?.call(index),
+              borderRadius: 8,
+              isSelected: isSelected,
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isSelected ? selectedBgColor : null,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: IconTheme(
+                    data: IconThemeData(
+                      size: 18,
+                      color: isSelected
+                          ? selectedIconColor
+                          : unselectedIconColor,
+                    ),
+                    child: isSelected
+                        ? (destination.selectedIcon ?? destination.icon)
+                        : destination.icon,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 18,
-              height: 18,
-              child: FittedBox(
-                child: isSelected
-                    ? (destination.selectedIcon ?? destination.icon)
-                    : destination.icon,
-              ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: destination.label,
+        child: _NavInkWell(
+          onTap: () => widget.onDestinationSelected?.call(index),
+          borderRadius: 7,
+          isSelected: isSelected,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: isSelected ? selectedBgColor : null,
+              borderRadius: BorderRadius.circular(7),
             ),
-            const SizedBox(width: 10),
-            Text(
-              destination.label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : (isDark ? CupertinoColors.systemGrey.darkColor : CupertinoColors.systemGrey),
-              ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 17,
+                  height: 17,
+                  child: FittedBox(
+                    child: IconTheme(
+                      data: IconThemeData(
+                        color: isSelected
+                            ? selectedIconColor
+                            : unselectedIconColor,
+                      ),
+                      child: isSelected
+                          ? (destination.selectedIcon ?? destination.icon)
+                          : destination.icon,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    destination.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                      color: isSelected
+                          ? selectedTextColor
+                          : unselectedTextColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -918,6 +1110,39 @@ class ResponsiveContainer extends StatelessWidget {
         padding: resolvedPadding,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: resolvedMaxWidth),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// macOS-native sidebar with vibrancy (backdrop blur + translucent surface)
+class _AppleSidebarContainer extends StatelessWidget {
+  const _AppleSidebarContainer({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark
+        ? CupertinoColors.systemBackground.darkColor.withValues(alpha: 0.75)
+        : CupertinoColors.systemBackground.color.withValues(alpha: 0.80);
+    final borderColor = isDark
+        ? CupertinoColors.separator.darkColor
+        : CupertinoColors.separator.color;
+
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+        child: Container(
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            border: Border(
+              right: BorderSide(color: borderColor, width: 0.5),
+            ),
+          ),
           child: child,
         ),
       ),
