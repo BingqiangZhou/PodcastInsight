@@ -6,6 +6,7 @@ import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 /// Manages the notification toggle preference stored in local storage.
 class NotificationPreferenceNotifier extends Notifier<bool> {
   static const String _storageKey = 'profile_notifications_enabled';
+  bool _isInitialized = false;
 
   @override
   bool build() {
@@ -21,17 +22,20 @@ class NotificationPreferenceNotifier extends Notifier<bool> {
         state = saved;
       }
     } catch (e) {
-      logger.AppLogger.debug('Error loading notification preference: $e');
+      logger.AppLogger.warning('Error loading notification preference: $e');
+    } finally {
+      _isInitialized = true;
     }
   }
 
   Future<void> setEnabled(bool value) async {
     state = value;
+    if (!_isInitialized) return;
     try {
       final storage = ref.read(localStorageServiceProvider);
       await storage.saveBool(_storageKey, value);
     } catch (e) {
-      logger.AppLogger.debug('Error saving notification preference: $e');
+      logger.AppLogger.warning('Error saving notification preference: $e');
     }
   }
 }
