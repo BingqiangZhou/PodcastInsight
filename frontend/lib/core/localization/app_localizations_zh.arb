@@ -64,6 +64,10 @@
     "@save":  {
                   "description":  "保存按钮标签"
               },
+    "share":  "分享",
+    "@share":  {
+                   "description":  "分享按钮标签"
+               },
     "delete":  "删除",
     "@delete":  {
                     "description":  "删除按钮标签"
@@ -390,6 +394,15 @@
                                                                   }
                                                       }
                                  },
+    "podcast_share_episode_failed":  "分享失败：{error}",
+    "@podcast_share_episode_failed":  {
+                                          "description":  "分享单集失败时的错误提示",
+                                          "placeholders":  {
+                                                               "error":  {
+                                                                             "type":  "String"
+                                                                         }
+                                                           }
+                                      },
     "podcast_default_podcast":  "播客",
     "@podcast_default_podcast":  {
                                      "description":  "默认播客名称"
@@ -2246,6 +2259,10 @@
                                                                         "type":  "int"
                                                                     }
                                                        }
+                                },
+    "podcast_explicit_label":  "18+",
+    "@podcast_explicit_label":  {
+                                    "description":  "成人内容标签"
                                 },
     "podcast_summary_task_added":  "总结已进入任务列表",
     "connection_error_prefix":  "连接错误: {error}",

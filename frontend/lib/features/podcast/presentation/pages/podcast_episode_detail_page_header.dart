@@ -70,7 +70,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
         ),
       if (episode.explicit)
         StatusBadge(
-          label: '18+',
+          label: l10n.podcast_explicit_label,
           icon: Icons.explicit_outlined,
           color: theme.colorScheme.tertiary,
         ),
@@ -622,8 +622,9 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
     );
   }
   Widget _buildShareButton(PodcastEpisodeModel episode) {
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     return HeaderCapsuleActionButton(
-      tooltip: 'Share',
+      tooltip: l10n.share,
       icon: Icons.adaptive.share,
       onPressed: () => _shareEpisode(episode),
       circular: true,
@@ -669,7 +670,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
       if (mounted) {
         showTopFloatingNotice(
           context,
-          message: 'Failed to share: $error',
+          message: l10n.podcast_share_episode_failed(error.toString()),
           isError: true,
           extraTopOffset: 72,
         );

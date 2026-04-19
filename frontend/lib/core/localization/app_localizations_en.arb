@@ -64,6 +64,10 @@
     "@save":  {
                   "description":  "Save button label"
               },
+    "share":  "Share",
+    "@share":  {
+                   "description":  "Share button label"
+               },
     "delete":  "Delete",
     "@delete":  {
                     "description":  "Delete button label"
@@ -390,6 +394,15 @@
                                                                   }
                                                       }
                                  },
+    "podcast_share_episode_failed":  "Failed to share: {error}",
+    "@podcast_share_episode_failed":  {
+                                          "description":  "Error message when sharing an episode fails",
+                                          "placeholders":  {
+                                                               "error":  {
+                                                                             "type":  "String"
+                                                                         }
+                                                           }
+                                      },
     "podcast_default_podcast":  "Podcast",
     "@podcast_default_podcast":  {
                                      "description":  "Default podcast name"
@@ -2292,6 +2305,10 @@
                                                                         "type":  "int"
                                                                     }
                                                        }
+                                },
+    "podcast_explicit_label":  "18+",
+    "@podcast_explicit_label":  {
+                                    "description":  "Label for explicit content badge"
                                 },
     "podcast_summary_task_added":  "Summary task added to task list",
     "connection_error_prefix":  "Connection error: {error}",

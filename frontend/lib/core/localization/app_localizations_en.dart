@@ -57,6 +57,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get save => 'Save';
 
   @override
+  String get share => 'Share';
+
+  @override
   String get delete => 'Delete';
 
   @override
@@ -302,6 +305,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String podcast_share_truncated(int max) {
     return 'Content truncated to first $max characters';
+  }
+
+  @override
+  String podcast_share_episode_failed(String error) {
+    return 'Failed to share: $error';
   }
 
   @override
@@ -1751,6 +1759,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String podcast_episode_number(int number) {
     return 'EP $number';
   }
+
+  @override
+  String get podcast_explicit_label => '18+';
 
   @override
   String get podcast_summary_task_added => 'Summary task added to task list';

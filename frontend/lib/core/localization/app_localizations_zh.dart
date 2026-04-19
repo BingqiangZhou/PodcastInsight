@@ -57,6 +57,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get save => '保存';
 
   @override
+  String get share => '分享';
+
+  @override
   String get delete => '删除';
 
   @override
@@ -295,6 +298,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String podcast_share_truncated(int max) {
     return '内容已截断为前 $max 个字符';
+  }
+
+  @override
+  String podcast_share_episode_failed(String error) {
+    return '分享失败：$error';
   }
 
   @override
@@ -1680,6 +1688,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String podcast_episode_number(int number) {
     return '第 $number 集';
   }
+
+  @override
+  String get podcast_explicit_label => '18+';
 
   @override
   String get podcast_summary_task_added => '总结已进入任务列表';

@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save;
 
+  /// Share button label
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
   /// Delete button label
   ///
   /// In en, this message translates to:
@@ -667,6 +673,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Content truncated to first {max} characters'**
   String podcast_share_truncated(int max);
+
+  /// Error message when sharing an episode fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to share: {error}'**
+  String podcast_share_episode_failed(String error);
 
   /// Default podcast name
   ///
@@ -3247,6 +3259,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'EP {number}'**
   String podcast_episode_number(int number);
+
+  /// Label for explicit content badge
+  ///
+  /// In en, this message translates to:
+  /// **'18+'**
+  String get podcast_explicit_label;
 
   /// No description provided for @podcast_summary_task_added.
   ///

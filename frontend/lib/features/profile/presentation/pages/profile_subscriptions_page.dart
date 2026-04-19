@@ -444,7 +444,7 @@ class _ProfileSubscriptionsPageState
         padding: EdgeInsets.all(context.spacing.lg),
         child: Center(
           child: Text(
-            '${l10n.profile_subscriptions}: $total',
+            l10n.profile_subscriptions_all_loaded(total),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
