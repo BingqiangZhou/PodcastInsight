@@ -31,8 +31,14 @@ class NotificationService {
       '@mipmap/ic_launcher',
     );
 
-    // iOS initialization settings
+    // iOS/macOS initialization settings
     const darwinSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    const macOSSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -41,6 +47,7 @@ class NotificationService {
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: darwinSettings,
+      macOS: macOSSettings,
     );
 
     final result = await _notifications.initialize(
@@ -58,7 +65,9 @@ class NotificationService {
         await _createChannels();
       }
     } else {
-      logger.AppLogger.error('[NotificationService] Failed to initialize');
+      // Not all platforms support local notifications (e.g. macOS)
+      _initialized = true;
+      logger.AppLogger.debug('[NotificationService] Platform returned false, continuing');
     }
 
     return success;
