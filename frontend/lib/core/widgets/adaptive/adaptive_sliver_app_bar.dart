@@ -48,17 +48,32 @@ class AdaptiveSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (PlatformHelper.isIOS(context)) {
+      Widget? iosLeading = leading;
+      bool iosAutoImply = automaticallyImplyLeading;
+
+      if (iosLeading == null && automaticallyImplyLeading) {
+        final route = ModalRoute.of(context);
+        if (route?.canPop ?? false) {
+          iosLeading = CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => Navigator.of(context).maybePop(),
+            child: const Icon(CupertinoIcons.back),
+          );
+          iosAutoImply = false;
+        }
+      }
+
       return CupertinoSliverNavigationBar(
         largeTitle: largeTitle ? Text(title) : null,
         middle: largeTitle ? null : Text(title),
         trailing: actions != null && actions!.isNotEmpty
             ? Row(mainAxisSize: MainAxisSize.min, children: actions!)
             : null,
-        leading: leading,
+        leading: iosLeading,
         backgroundColor: backgroundColor ??
             CupertinoColors.systemBackground.withValues(alpha: 0.85),
         bottom: bottom,
-        automaticallyImplyLeading: automaticallyImplyLeading,
+        automaticallyImplyLeading: iosAutoImply,
         heroTag: heroTag ?? const _DefaultHeroTag(),
       );
     }

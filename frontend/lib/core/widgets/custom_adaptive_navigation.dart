@@ -770,12 +770,18 @@ class ResponsiveContainer extends StatelessWidget {
     this.alignment,
     this.maxWidth,
     this.padding,
+    this.avoidTopSafeArea = false,
   });
 
   final Widget child;
   final double? maxWidth;
   final EdgeInsetsGeometry? padding;
   final AlignmentGeometry? alignment;
+
+  /// When true on iOS, skip adding the safe area top inset to padding.
+  /// Use with AdaptiveSliverAppBar (CupertinoSliverNavigationBar) which
+  /// already handles the safe area internally.
+  final bool avoidTopSafeArea;
 
   @override
   Widget build(BuildContext context) {
@@ -785,7 +791,9 @@ class ResponsiveContainer extends StatelessWidget {
             ? AppThemeExtension.dark
             : AppThemeExtension.light);
 
-    final topPadding = MediaQuery.viewPaddingOf(context).top;
+    final topPadding = (avoidTopSafeArea && PlatformHelper.isIOS(context))
+        ? 0.0
+        : MediaQuery.viewPaddingOf(context).top;
     final resolvedPadding = padding ??
         EdgeInsets.fromLTRB(
           width < Breakpoints.medium ? context.spacing.md : context.spacing.lg,
