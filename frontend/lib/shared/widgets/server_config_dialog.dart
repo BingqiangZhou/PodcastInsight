@@ -31,6 +31,7 @@ class ServerConfigDialog extends ConsumerStatefulWidget {
 
 class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   late TextEditingController _serverUrlController;
+  String _selectedProtocol = 'https://';
   ConnectionStatus _connectionStatus = ConnectionStatus.unverified;
   String? _connectionMessage;
   late final ServerHealthService _healthService;
@@ -40,6 +41,45 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   static const String _serverHistoryKey = 'server_history_list';
   static const int _maxHistoryItems = 5;
   bool _isDisposed = false;
+
+  static const List<String> _protocols = ['https://', 'http://'];
+
+  /// Combined URL from protocol dropdown + host text input.
+  /// Strips any scheme the user may have pasted into the host field.
+  String get _fullUrl {
+    var host = _serverUrlController.text.trim();
+    // Strip scheme if user pasted a full URL
+    for (final scheme in _protocols) {
+      if (host.startsWith(scheme)) {
+        host = host.substring(scheme.length);
+        break;
+      }
+    }
+    // Also handle scheme without slashes
+    if (host.startsWith('http:')) {
+      host = host.substring(5);
+    } else if (host.startsWith('https:')) {
+      host = host.substring(6);
+    }
+    return '$_selectedProtocol$host';
+  }
+
+  /// Strip scheme from a URL, returning only host:port.
+  static String _stripScheme(String url) {
+    for (final scheme in _protocols) {
+      if (url.startsWith(scheme)) {
+        return url.substring(scheme.length);
+      }
+    }
+    return url;
+  }
+
+  /// Detect protocol from a full URL.
+  static String _detectProtocol(String url) {
+    if (url.startsWith('https://')) return 'https://';
+    if (url.startsWith('http://')) return 'http://';
+    return 'https://';
+  }
 
   /// Get local server URL based on platform
   String get _localServerUrl {
@@ -52,14 +92,24 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
   @override
   void initState() {
     super.initState();
-    _serverUrlController = TextEditingController(text: widget.initialUrl ?? '');
+    _serverUrlController = TextEditingController();
     _healthService = ref.read(serverHealthServiceFactoryProvider)();
-    if (_serverUrlController.text.isEmpty) {
+
+    // Resolve initial URL: from widget param or current config
+    var initialUrl = widget.initialUrl ?? '';
+    if (initialUrl.isEmpty) {
       final serverConfigState = ref.read(serverConfigProvider);
       if (serverConfigState.serverUrl.isNotEmpty) {
-        _serverUrlController.text = serverConfigState.serverUrl;
+        initialUrl = serverConfigState.serverUrl;
       }
     }
+
+    // Parse protocol and host from the initial URL
+    if (initialUrl.isNotEmpty) {
+      _selectedProtocol = _detectProtocol(initialUrl);
+      _serverUrlController.text = _stripScheme(initialUrl);
+    }
+
     _loadServerHistory();
   }
 
@@ -138,35 +188,59 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
               ),
               SizedBox(height: context.spacing.smMd),
               if (isIOS) ...[
-                CupertinoTextField(
-                  controller: _serverUrlController,
-                  placeholder: l10n.backend_api_url_hint,
-                  onChanged: _onServerUrlChanged,
-                  suffix: ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _serverUrlController,
-                    builder: (context, value, child) {
-                      return value.text.isNotEmpty
-                          ? CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                              onPressed: () {
-                                _serverUrlController.clear();
-                                _onServerUrlChanged('');
-                              },
-                              child: Icon(
-                                CupertinoIcons.clear_thick_circled,
-                                size: 18,
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            )
-                          : const SizedBox.shrink();
-                    },
-                  ),
-                  padding: EdgeInsets.all(context.spacing.md),
+                Container(
                   decoration: BoxDecoration(
                     color: CupertinoColors.tertiarySystemFill,
                     borderRadius:
                         BorderRadius.circular(appThemeOf(context).buttonRadius),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          context.spacing.md,
+                          context.spacing.sm,
+                          context.spacing.md,
+                          0,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _buildCupertinoProtocolDropdown(scheme),
+                        ),
+                      ),
+                      CupertinoTextField(
+                        controller: _serverUrlController,
+                        placeholder: l10n.backend_api_url_hint,
+                        onChanged: _onServerUrlChanged,
+                        suffix: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _serverUrlController,
+                          builder: (context, value, child) {
+                            return value.text.isNotEmpty
+                                ? CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size.zero,
+                                    onPressed: () {
+                                      _serverUrlController.clear();
+                                      _onServerUrlChanged('');
+                                    },
+                                    child: Icon(
+                                      CupertinoIcons.clear_thick_circled,
+                                      size: 18,
+                                      color: scheme.onSurfaceVariant,
+                                    ),
+                                  )
+                                : const SizedBox.shrink();
+                          },
+                        ),
+                        padding: EdgeInsets.fromLTRB(
+                          context.spacing.md,
+                          context.spacing.sm,
+                          context.spacing.md,
+                          context.spacing.md,
+                        ),
+                        decoration: const BoxDecoration(),
+                      ),
+                    ],
                   ),
                 ),
                 if (_connectionStatus == ConnectionStatus.failed)
@@ -195,6 +269,8 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                     errorText: _connectionStatus == ConnectionStatus.failed
                         ? _connectionMessage ?? l10n.connection_error_hint
                         : null,
+                    prefixIcon: _buildMaterialProtocolDropdown(scheme),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                     suffixIcon: ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _serverUrlController,
                       builder: (context, value, child) {
@@ -236,7 +312,10 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                     return InputChip(
                       label: Text(url, style: Theme.of(context).textTheme.labelSmall),
                       onPressed: () {
-                        _serverUrlController.text = url;
+                        setState(() {
+                          _selectedProtocol = _detectProtocol(url);
+                        });
+                        _serverUrlController.text = _stripScheme(url);
                         _onServerUrlChanged(url);
                       },
                       labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -256,7 +335,10 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                 children: [
                   OutlinedButton.icon(
                     onPressed: () {
-                      _serverUrlController.text = _localServerUrl;
+                      setState(() {
+                        _selectedProtocol = 'http://';
+                      });
+                      _serverUrlController.text = _stripScheme(_localServerUrl);
                       _onServerUrlChanged(_localServerUrl);
                     },
                     style: OutlinedButton.styleFrom(
@@ -297,6 +379,83 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.all(context.spacing.md),
       child: dialogChild,
+    );
+  }
+
+  Widget _buildMaterialProtocolDropdown(ColorScheme scheme) {
+    return InkWell(
+      onTap: () {
+        final newValue = _selectedProtocol == 'https://' ? 'http://' : 'https://';
+        setState(() {
+          _selectedProtocol = newValue;
+        });
+        _onServerUrlChanged(_serverUrlController.text);
+      },
+      borderRadius: AppRadius.smRadius,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _selectedProtocol.replaceAll('://', '').toUpperCase(),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: scheme.primary,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.swap_horiz,
+              size: 16,
+              color: scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              height: 20,
+              child: VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: scheme.outlineVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCupertinoProtocolDropdown(ColorScheme scheme) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 4),
+      child: CupertinoSlidingSegmentedControl<String>(
+        groupValue: _selectedProtocol,
+        onValueChanged: (value) {
+          if (value != null && value != _selectedProtocol) {
+            setState(() {
+              _selectedProtocol = value;
+            });
+            _onServerUrlChanged(_serverUrlController.text);
+          }
+        },
+        children: {
+          for (final p in _protocols)
+            p: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text(
+                p.replaceAll('://', '').toUpperCase(),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: _selectedProtocol == p
+                      ? FontWeight.w600
+                      : FontWeight.w500,
+                ),
+              ),
+            ),
+        },
+      ),
     );
   }
 
@@ -371,7 +530,34 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
     _debounceTimer?.cancel();
     _healthCheckSubscription?.cancel();
 
-    if (value.trim().isEmpty) {
+    // Detect if user pasted a full URL with scheme
+    var host = value.trim();
+    var detectedProtocol = _selectedProtocol;
+    var schemeChanged = false;
+    for (final scheme in _protocols) {
+      if (host.startsWith(scheme)) {
+        detectedProtocol = scheme;
+        host = host.substring(scheme.length);
+        schemeChanged = true;
+        break;
+      }
+    }
+
+    if (schemeChanged && detectedProtocol != _selectedProtocol) {
+      _selectedProtocol = detectedProtocol;
+      // Update text controller to show only host part (after current frame)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final sel = _serverUrlController.selection;
+          _serverUrlController.text = host;
+          if (sel.start > host.length) {
+            _serverUrlController.selection = TextSelection.collapsed(offset: host.length);
+          }
+        }
+      });
+    }
+
+    if (host.isEmpty) {
       setState(() {
         _connectionStatus = ConnectionStatus.unverified;
         _connectionMessage = null;
@@ -384,8 +570,9 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
       _connectionMessage = null;
     });
 
+    final fullUrl = schemeChanged ? '$detectedProtocol$host' : _fullUrl;
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      _verifyServerConnection(value);
+      _verifyServerConnection(fullUrl);
     });
   }
 
@@ -416,8 +603,8 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
 
   Future<void> _saveServerConfig(BuildContext dialogContext) async {
     final l10n = context.l10n;
-    final baseUrl = _serverUrlController.text.trim();
-    if (baseUrl.isEmpty) return;
+    final baseUrl = _fullUrl;
+    if (baseUrl == _selectedProtocol) return; // Empty host
 
     final currentUrl = ref.read(serverConfigProvider).serverUrl;
 
