@@ -59,60 +59,68 @@ Future<void> showAdaptiveActionSheet({
   return showModalBottomSheet<void>(
     context: context,
     builder: (sheetContext) {
-      return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (title != null || message != null)
-              Padding(
-                padding: EdgeInsets.fromLTRB(context.spacing.md, context.spacing.md, context.spacing.md, context.spacing.sm),
-                child: Column(
-                  children: [
-                    if (title != null)
-                      DefaultTextStyle(
-                        style: Theme.of(context).textTheme.titleMedium!,
-                        child: title,
-                      ),
-                    if (message != null)
-                      Padding(
-                        padding: EdgeInsets.only(top: context.spacing.xs),
-                        child: DefaultTextStyle(
-                          style: Theme.of(context).textTheme.bodyMedium!,
-                          child: message,
+      final theme = Theme.of(sheetContext);
+      return Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (title != null || message != null)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(context.spacing.md, context.spacing.md, context.spacing.md, context.spacing.sm),
+                  child: Column(
+                    children: [
+                      if (title != null)
+                        DefaultTextStyle(
+                          style: theme.textTheme.titleMedium!,
+                          child: title,
                         ),
-                      ),
-                  ],
-                ),
-              ),
-            ...actions.map((action) {
-              return ListTile(
-                key: action.key,
-                title: DefaultTextStyle(
-                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    color: action.isDestructive
-                        ? Theme.of(context).colorScheme.error
-                        : null,
+                      if (message != null)
+                        Padding(
+                          padding: EdgeInsets.only(top: context.spacing.xs),
+                          child: DefaultTextStyle(
+                            style: theme.textTheme.bodyMedium!,
+                            child: message,
+                          ),
+                        ),
+                    ],
                   ),
-                  child: action.child,
                 ),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  action.onPressed?.call();
-                },
-              );
-            }),
-            if (cancelWidget != null)
-              ListTile(
-                title: DefaultTextStyle(
-                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
+              ...actions.map((action) {
+                return ListTile(
+                  key: action.key,
+                  title: DefaultTextStyle(
+                    style: theme.textTheme.bodyLarge!.copyWith(
+                      color: action.isDestructive
+                          ? theme.colorScheme.error
+                          : null,
+                    ),
+                    child: action.child,
                   ),
-                  child: cancelWidget,
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    action.onPressed?.call();
+                  },
+                );
+              }),
+              if (cancelWidget != null)
+                ListTile(
+                  title: DefaultTextStyle(
+                    style: theme.textTheme.bodyLarge!.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    child: cancelWidget,
+                  ),
+                  onTap: () => Navigator.of(sheetContext).pop(),
                 ),
-                onTap: () => Navigator.of(sheetContext).pop(),
-              ),
-          ],
+            ],
+          ),
         ),
       );
     },
