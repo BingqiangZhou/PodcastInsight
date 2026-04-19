@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -134,8 +135,8 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
         : 0.0;
     final totalBottomReserve = dockReserve + accessoryBodyPadding + widget.globalOverlayBodyPadding;
 
-    // iOS: Use PageView for tab swipe gesture
-    final shouldUsePageView = PlatformHelper.isIOS(context) &&
+    // Apple platforms: Use PageView for tab swipe gesture
+    final shouldUsePageView = PlatformHelper.isApple(context) &&
         widget.destinations.length > 1;
 
     return Scaffold(
@@ -269,49 +270,152 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
       appBar: widget.appBar,
       body: Row(
         children: [
-          ValueListenableBuilder<bool>(
-            valueListenable: _sidebarExpanded,
-            builder: (context, expanded, child) {
-              return RepaintBoundary(
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(end: expanded ? 240 : 72),
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, animatedWidth, child) {
-                    final showCompact = animatedWidth < 120;
-                    return SizedBox(
-                      key: const ValueKey('desktop_navigation_sidebar'),
-                      width: animatedWidth,
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(showCompact ? context.spacing.xs : context.spacing.smMd, context.spacing.md, showCompact ? context.spacing.xs : context.spacing.smMd, context.spacing.md),
-                        child: _CleanSidebar(
-                          expanded: expanded,
-                          child: showCompact
-                              ? _buildDesktopCollapsedSidebar(context)
-                              : _buildDesktopExpandedSidebar(context),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(0, context.spacing.md, context.spacing.md, context.spacing.md),
-              child: _buildContentStack(
-                bottomPadding:
-                    widget.globalOverlayBodyPadding +
-                    (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0),
-                fabBottom:
-                    widget.globalOverlayBodyPadding +
-                    (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
-                    context.spacing.xl,
+          if (PlatformHelper.isApple(context))
+            _buildAppleSidebar(context)
+          else
+            Expanded(
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _sidebarExpanded,
+                builder: (context, expanded, child) {
+                  return RepaintBoundary(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(end: expanded ? 240 : 72),
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, animatedWidth, child) {
+                        final showCompact = animatedWidth < 120;
+                        return SizedBox(
+                          key: const ValueKey('desktop_navigation_sidebar'),
+                          width: animatedWidth,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(showCompact ? context.spacing.xs : context.spacing.smMd, context.spacing.md, showCompact ? context.spacing.xs : context.spacing.smMd, context.spacing.md),
+                            child: _CleanSidebar(
+                              expanded: expanded,
+                              child: showCompact
+                                  ? _buildDesktopCollapsedSidebar(context)
+                                  : _buildDesktopExpandedSidebar(context),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             ),
-          ),
+          if (!PlatformHelper.isApple(context))
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, context.spacing.md, context.spacing.md, context.spacing.md),
+                child: _buildContentStack(
+                  bottomPadding:
+                      widget.globalOverlayBodyPadding +
+                      (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0),
+                  fabBottom:
+                      widget.globalOverlayBodyPadding +
+                      (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
+                      context.spacing.xl,
+                ),
+              ),
+            ),
+          if (PlatformHelper.isApple(context))
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, context.spacing.md, context.spacing.md, context.spacing.md),
+                child: _buildContentStack(
+                  bottomPadding:
+                      widget.globalOverlayBodyPadding +
+                      (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0),
+                  fabBottom:
+                      widget.globalOverlayBodyPadding +
+                      (widget.bottomAccessory != null ? widget.bottomAccessoryBodyPadding : 0) +
+                      context.spacing.xl,
+                ),
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAppleSidebar(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: 220,
+      decoration: BoxDecoration(
+        color: isDark
+            ? CupertinoColors.systemBackground.darkColor.withOpacity(0.85)
+            : CupertinoColors.systemBackground.color.withOpacity(0.85),
+        border: Border(
+          right: BorderSide(
+            color: isDark
+                ? CupertinoColors.separator.darkColor
+                : CupertinoColors.separator.color,
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Main navigation items
+          ...List.generate(
+            widget.destinations.length > 1 ? widget.destinations.length - 1 : widget.destinations.length,
+            (index) => _buildAppleSidebarItem(context, index),
+          ),
+          const Spacer(),
+          // Profile item at bottom (if exists)
+          if (widget.destinations.length > 1)
+            _buildAppleSidebarItem(context, widget.destinations.length - 1),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppleSidebarItem(BuildContext context, int index) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final isSelected = index == widget.selectedIndex;
+    final destination = widget.destinations[index];
+
+    return GestureDetector(
+      onTap: () => widget.onDestinationSelected?.call(index),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(6),
+          color: isSelected
+              ? (isDark
+                  ? CupertinoColors.systemBackground.darkColor.withOpacity(0.1)
+                  : CupertinoColors.systemBackground.color.withOpacity(0.06))
+              : null,
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: FittedBox(
+                child: isSelected
+                    ? (destination.selectedIcon ?? destination.icon)
+                    : destination.icon,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              destination.label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : (isDark ? CupertinoColors.systemGrey.darkColor : CupertinoColors.systemGrey),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -596,7 +700,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
   }
 
   Widget _buildMobileNavBar(BuildContext context) {
-    if (PlatformHelper.isIOS(context)) {
+    if (PlatformHelper.isApple(context)) {
       return _buildIOSMobileNavBar(context);
     }
     return SizedBox(
@@ -791,7 +895,7 @@ class ResponsiveContainer extends StatelessWidget {
             ? AppThemeExtension.dark
             : AppThemeExtension.light);
 
-    final topPadding = (avoidTopSafeArea && PlatformHelper.isIOS(context))
+    final topPadding = (avoidTopSafeArea && PlatformHelper.isApple(context))
         ? 0.0
         : MediaQuery.viewPaddingOf(context).top;
     final resolvedPadding = padding ??
