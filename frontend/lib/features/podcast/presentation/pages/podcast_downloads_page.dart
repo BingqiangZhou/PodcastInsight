@@ -19,6 +19,8 @@ import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podc
 class PodcastDownloadsPage extends ConsumerWidget {
   const PodcastDownloadsPage({super.key});
 
+  static const double _bottomBufferForPlayer = 100;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -84,7 +86,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
                             children: [
                               Icon(
                                 Icons.error_outline,
-                                size: 56,
+                                size: 48,
                                 color: theme.colorScheme.error,
                               ),
                               SizedBox(height: context.spacing.lg),
@@ -239,7 +241,7 @@ class PodcastDownloadsPage extends ConsumerWidget {
                 left: context.spacing.sm,
                 right: context.spacing.sm,
                 top: context.spacing.sm,
-                bottom: 100,
+                bottom: _bottomBufferForPlayer,
               ),
               itemCount: allTasks.length,
               itemBuilder: (context, index) {
@@ -293,7 +295,7 @@ class _DownloadTaskCard extends ConsumerWidget {
               borderRadius: AppRadius.xxlCardRadius,
               border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15)),
             ),
-            padding: EdgeInsets.fromLTRB(context.spacing.md, 14, context.spacing.smMd, 14),
+            padding: EdgeInsets.fromLTRB(context.spacing.md, context.spacing.smMd, context.spacing.smMd, context.spacing.smMd),
             child: Row(
               children: [
                 // Leading image or status icon
