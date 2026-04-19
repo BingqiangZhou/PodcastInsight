@@ -100,6 +100,7 @@ class _ThemeModeSelector extends ConsumerWidget {
       },
       selected: currentCode,
       onChanged: (value) async {
+        if (value == currentCode) return;
         final modeName = switch (value) {
           kThemeModeSystem => l10n.theme_mode_follow_system,
           kThemeModeLight => l10n.theme_mode_light,

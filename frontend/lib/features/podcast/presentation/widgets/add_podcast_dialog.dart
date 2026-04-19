@@ -52,7 +52,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
         final l10n = context.l10n;
         showTopFloatingNotice(
           context,
-          message: '${l10n.podcast_failed_add} $error',
+          message: l10n.podcast_failed_add,
           isError: true,
         );
       }
@@ -108,7 +108,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                         if (value == null || value.isEmpty) {
                           return l10n.podcast_enter_url;
                         }
-                        if (!value.startsWith('http')) {
+                        if (!(value.startsWith('http://') || value.startsWith('https://'))) {
                           return l10n.validation_invalid_url;
                         }
                         return null;
