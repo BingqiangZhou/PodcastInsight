@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -99,7 +100,7 @@ class _CategoryChip extends StatelessWidget {
 
     return TweenAnimationBuilder<double>(
       tween: Tween(end: selected ? 1.05 : 1.0),
-      duration: const Duration(milliseconds: 200),
+      duration: AppDurations.scaleFast,
       curve: Curves.easeOutCubic,
       builder: (context, scale, child) {
         return Transform.scale(scale: scale, child: child);

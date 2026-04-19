@@ -25,7 +25,7 @@ class AppColors {
   static const Color lightSurfaceElevated = Color(0xFFFFFFFF);
   static const Color lightOnBackground = Color(0xFF1a1a2e);
   static const Color lightOnSurface = Color(0x991a1a2e); // rgba 0.6
-  static const Color lightOnSurfaceMuted = Color(0x591a1a2e); // rgba 0.35
+  static const Color lightOnSurfaceMuted = Color(0x8C1a1a2e); // rgba 0.55
   static const Color lightBorder = Color(0x0F000000); // rgba 0.06
 
   // Text Colors - 文字色系 (Apple HIG label colors)
@@ -50,7 +50,7 @@ class AppColors {
   static const Color darkSurfaceElevated = Color(0xFF252540);
   static const Color darkOnBackground = Color(0xE6FFFFFF); // rgba 0.9
   static const Color darkOnSurface = Color(0x80FFFFFF); // rgba 0.5
-  static const Color darkOnSurfaceMuted = Color(0x40FFFFFF); // rgba 0.25
+  static const Color darkOnSurfaceMuted = Color(0x80FFFFFF); // rgba 0.50
   static const Color darkBorder = Color(0x0FFFFFFF); // rgba 0.06
   static const Color darkBorderHover = Color(0x1FFFFFFF); // rgba 0.12
 

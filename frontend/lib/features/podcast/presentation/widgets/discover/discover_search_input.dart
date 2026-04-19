@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -98,7 +99,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
       key: const Key('podcast_discover_search_input_boundary'),
       child: AnimatedContainer(
         key: const Key('podcast_discover_search_bar'),
-        duration: const Duration(milliseconds: 200),
+        duration: AppDurations.entranceNormal,
         curve: Curves.easeOutCubic,
         height: widget.isDense ? 44 : 48,
         decoration: BoxDecoration(
@@ -125,8 +126,8 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
         child: Row(
           children: [
             Padding(
-              padding: EdgeInsets.only(
-                left: widget.isDense ? context.spacing.smMd : context.spacing.md,
+              padding: EdgeInsetsDirectional.only(
+                start: widget.isDense ? context.spacing.smMd : context.spacing.md,
               ),
               child: Icon(
                 Icons.search,
@@ -140,6 +141,8 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
               width: widget.isDense ? context.spacing.smMd : context.spacing.sm,
             ),
             Expanded(
+              // Inline platform branching: custom search decoration (dense mode, no border)
+              // doesn't map cleanly to AdaptiveTextField/AdaptiveSearchBar APIs.
               child: PlatformHelper.isApple(context)
                   ? CupertinoTextField(
                       key: const Key('podcast_discover_search_input'),
@@ -186,6 +189,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
                 if (value.text.isNotEmpty) {
                   return IconButton(
                     onPressed: widget.onClearSearch,
+                    tooltip: l10n.clear,
                     icon: Icon(
                       Icons.clear,
                       size: widget.isDense ? 16 : 18,
@@ -197,8 +201,8 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
               },
             ),
             Padding(
-              padding: EdgeInsets.only(
-                right: widget.isDense ? context.spacing.smMd : context.spacing.smMd + 1,
+              padding: EdgeInsetsDirectional.only(
+                end: widget.isDense ? context.spacing.smMd : context.spacing.smMd + 1,
               ),
               child: _CountryButton(
                 isDense: widget.isDense,

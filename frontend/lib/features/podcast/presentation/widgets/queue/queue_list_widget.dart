@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/scroll_constants.dart';
@@ -82,7 +83,7 @@ class _QueueListState extends ConsumerState<QueueList> {
     if (animate) {
       await _scrollController.animateTo(
         clampedOffset,
-        duration: const Duration(milliseconds: 260),
+        duration: AppDurations.slideNormal,
         curve: Curves.easeOutCubic,
       );
     } else {
@@ -258,7 +259,7 @@ class QueueListItem extends ConsumerWidget {
         borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
+          duration: AppDurations.transitionFast,
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -439,7 +440,7 @@ class QueueItemCover extends StatelessWidget {
         children: [
           Positioned.fill(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.itemValue),
+              borderRadius: BorderRadius.circular(context.itemRadius),
               child: imageUrl != null && imageUrl.isNotEmpty
                   ? PodcastImageWidget(
                       imageUrl: imageUrl,

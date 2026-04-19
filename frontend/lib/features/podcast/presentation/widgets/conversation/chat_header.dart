@@ -100,7 +100,7 @@ class ChatHeader extends ConsumerWidget {
                 data: (models) {
                   if (models.length <= 1) return const SizedBox.shrink();
                   return Padding(
-                    padding: EdgeInsets.only(right: context.spacing.sm),
+                    padding: EdgeInsetsDirectional.only(end: context.spacing.sm),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(
                         maxWidth: modelSelectorMaxWidth,
@@ -118,7 +118,7 @@ class ChatHeader extends ConsumerWidget {
               ),
               Expanded(
                 child: Align(
-                  alignment: Alignment.centerRight,
+                  alignment: AlignmentDirectional.centerEnd,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     reverse: true,
@@ -250,7 +250,7 @@ class _ModelSelectorState extends State<_ModelSelector> {
           return widget.models
               .map(
                 (model) => Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Text(
                     model.displayName,
                     maxLines: 1,
@@ -280,7 +280,7 @@ class _ModelSelectorState extends State<_ModelSelector> {
                   ),
                   if (model.isDefault)
                     Padding(
-                      padding: EdgeInsets.only(left: context.spacing.sm),
+                      padding: EdgeInsetsDirectional.only(start: context.spacing.sm),
                       child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: context.spacing.xs,

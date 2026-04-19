@@ -29,11 +29,11 @@ class ChatMessageBubble extends StatelessWidget {
     final extension = appThemeOf(context);
     final isUser = message.isUser;
     final cardR = extension.cardRadius;
-    final bubbleRadius = BorderRadius.only(
-      topLeft: isUser ? Radius.circular(cardR) : const Radius.circular(4),
-      topRight: isUser ? const Radius.circular(4) : Radius.circular(cardR),
-      bottomLeft: Radius.circular(cardR),
-      bottomRight: Radius.circular(cardR),
+    final bubbleRadius = BorderRadiusDirectional.only(
+      topStart: isUser ? Radius.circular(cardR) : const Radius.circular(4),
+      topEnd: isUser ? const Radius.circular(4) : Radius.circular(cardR),
+      bottomStart: Radius.circular(cardR),
+      bottomEnd: Radius.circular(cardR),
     );
     final l10n = AppLocalizations.of(context)!;
     final roleLabel = isUser
@@ -42,7 +42,7 @@ class ChatMessageBubble extends StatelessWidget {
 
     // User: right-aligned with surfaceContainerLow, AI: left-aligned with surfaceContainerLowest + primary gradient left bar
     return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: isSelectMode ? onToggleSelection : null,

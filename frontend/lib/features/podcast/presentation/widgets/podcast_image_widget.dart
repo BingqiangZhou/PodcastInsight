@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/services/app_cache_service.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
@@ -227,7 +228,7 @@ class _PodcastImageWidgetState extends State<PodcastImageWidget> {
             child: Center(
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.4, end: 1),
-                duration: const Duration(milliseconds: 800),
+                duration: AppDurations.shimmerPulse,
                 curve: Curves.easeOut,
                 builder: (context, value, child) {
                   return Opacity(

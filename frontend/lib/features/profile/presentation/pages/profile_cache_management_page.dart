@@ -557,7 +557,7 @@ class _ProfileCacheManagementPageState
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(AppRadius.itemValue),
+          borderRadius: BorderRadius.circular(context.itemRadius),
           border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.15)),
         ),
         padding: EdgeInsets.fromLTRB(context.spacing.smMd, context.spacing.sm, context.spacing.sm, context.spacing.sm),

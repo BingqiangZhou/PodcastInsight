@@ -140,7 +140,7 @@ class _HighlightDetailContent extends StatelessWidget {
           Icon(
             Icons.format_quote,
             size: 20,
-            color: scheme.primary.withValues(alpha: 0.6),
+            color: scheme.primary.withValues(alpha: 0.7),
           ),
           SizedBox(width: context.spacing.smMd),
           Expanded(

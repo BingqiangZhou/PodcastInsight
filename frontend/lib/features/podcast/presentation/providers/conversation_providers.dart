@@ -196,6 +196,11 @@ class ConversationNotifier extends Notifier<ConversationState> {
 
   @override
   ConversationState build() {
+    ref.onDispose(() {
+      _loadCompleter?.completeError('Disposed');
+      _loadCompleter = null;
+    });
+
     // Watch current session ID to reload on change
     final sessionId = ref.watch(currentSessionIdProvider(episodeId));
 

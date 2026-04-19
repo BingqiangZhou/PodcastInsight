@@ -73,12 +73,15 @@ class ChatMessagesList extends StatelessWidget {
       separatorBuilder: (context, index) => SizedBox(height: context.spacing.md),
       itemBuilder: (context, index) {
         final message = messages[index];
-        return ChatMessageBubble(
-          message: message,
-          isSelectMode: isSelectMode,
-          isSelected: isMessageSelected(message),
-          onToggleSelection: () => onToggleSelection(message),
-          onTextSelected: onTextSelected,
+        return RepaintBoundary(
+          key: ValueKey('chat_message_${message.id}'),
+          child: ChatMessageBubble(
+            message: message,
+            isSelectMode: isSelectMode,
+            isSelected: isMessageSelected(message),
+            onToggleSelection: () => onToggleSelection(message),
+            onTextSelected: onTextSelected,
+          ),
         );
       },
     );

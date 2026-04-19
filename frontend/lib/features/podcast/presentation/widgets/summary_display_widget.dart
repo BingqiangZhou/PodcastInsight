@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_en.dart';
@@ -68,7 +69,7 @@ class SummaryDisplayWidgetState
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
-        duration: const Duration(milliseconds: 300),
+        duration: AppDurations.scrollAnimation,
         curve: Curves.easeInOut,
       );
     }
@@ -92,7 +93,7 @@ class SummaryDisplayWidgetState
       children: [
         // Share all button
         Align(
-          alignment: Alignment.centerRight,
+          alignment: AlignmentDirectional.centerEnd,
           child: TextButton.icon(
             onPressed: widget.onShareAll != null
                 ? () => unawaited(

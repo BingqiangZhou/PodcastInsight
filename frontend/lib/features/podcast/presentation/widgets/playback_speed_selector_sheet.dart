@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
@@ -115,7 +115,7 @@ class _PlaybackSpeedSelectorSheetState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -126,7 +126,7 @@ class _PlaybackSpeedSelectorSheetState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n?.player_playback_speed_title ?? 'Playback Speed',
+                l10n.player_playback_speed_title,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -151,12 +151,10 @@ class _PlaybackSpeedSelectorSheetState
                     ? _toggleApplyToSubscription
                     : null,
                 title: Text(
-                  l10n?.player_apply_subscription_only ??
-                      'Only apply to current show (current subscription)',
+                  l10n.player_apply_subscription_only,
                 ),
                 subtitle: Text(
-                  l10n?.player_apply_subscription_subtitle ??
-                      'Checked: subscription only; unchecked: global',
+                  l10n.player_apply_subscription_subtitle,
                 ),
               ),
               SizedBox(height: context.spacing.sm),
@@ -171,7 +169,7 @@ class _PlaybackSpeedSelectorSheetState
                       ),
                     );
                   },
-                  child: Text(l10n?.apply_button ?? 'Apply'),
+                  child: Text(l10n.apply_button),
                 ),
               ),
             ],

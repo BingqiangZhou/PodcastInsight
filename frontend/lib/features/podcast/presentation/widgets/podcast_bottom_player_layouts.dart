@@ -62,7 +62,7 @@ class _PodcastMiniDock extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final content = Padding(
       key: const Key('podcast_bottom_player_mini_wrapper'),
       padding: EdgeInsets.fromLTRB(
@@ -86,9 +86,9 @@ class _PodcastMiniDock extends ConsumerWidget {
               episode: episode,
               onExpand: () => _openExpandedPlayer(ref),
               showPrimaryKeys: true,
-              pauseTooltip: l10n?.podcast_player_pause ?? 'Pause',
-              playTooltip: l10n?.podcast_player_play ?? 'Play',
-              listTooltip: l10n?.podcast_player_list ?? 'List',
+              pauseTooltip: l10n.podcast_player_pause,
+              playTooltip: l10n.podcast_player_play,
+              listTooltip: l10n.podcast_player_list,
             ),
           ),
         ),
@@ -121,7 +121,7 @@ class _MiniDockBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final extension = appThemeOf(context);
 
@@ -139,7 +139,7 @@ class _MiniDockBody extends ConsumerWidget {
         children: [
           Semantics(
             button: true,
-            label: l10n?.player_expand_player ?? 'Expand player',
+            label: l10n.player_expand_player,
             child: GestureDetector(
               onTap: onExpand,
               child: RepaintBoundary(
@@ -383,13 +383,13 @@ class _ExpandedHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     return Row(
       children: [
         Expanded(
           child: Text(
-            l10n?.podcast_player_now_playing ?? 'Now Playing',
+            l10n.podcast_player_now_playing,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w800,
@@ -399,7 +399,7 @@ class _ExpandedHeader extends ConsumerWidget {
         _SleepTimerButton(onPressed: () => _showSleepSelector(context, ref)),
         IconButton(
           key: const Key('podcast_bottom_player_collapse'),
-          tooltip: l10n?.podcast_player_collapse ?? 'Collapse',
+          tooltip: l10n.podcast_player_collapse,
           onPressed: () =>
               ref.read(podcastPlayerUiProvider.notifier).collapse(),
           icon: const Icon(Icons.close_rounded),

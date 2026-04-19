@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as html_parser;
@@ -79,7 +80,7 @@ class ShownotesDisplayWidgetState
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
-        duration: const Duration(milliseconds: 300),
+        duration: AppDurations.scrollAnimation,
         curve: Curves.easeInOut,
       );
     }
@@ -95,7 +96,7 @@ class ShownotesDisplayWidgetState
 
     await Scrollable.ensureVisible(
       targetContext,
-      duration: const Duration(milliseconds: 280),
+      duration: AppDurations.transitionNormal,
       curve: Curves.easeInOutCubic,
       alignment: 0.08,
     );

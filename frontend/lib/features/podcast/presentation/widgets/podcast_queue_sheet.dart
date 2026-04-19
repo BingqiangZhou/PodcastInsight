@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive_sheet_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
@@ -53,8 +53,8 @@ class PodcastQueueSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final title = l10n?.queue_up_next ?? l10n?.podcast_player_list ?? 'Up Next';
+    final l10n = context.l10n;
+    final title = l10n.queue_up_next;
     final queueAsync = ref.watch(podcastQueueControllerProvider);
     final queueOperation = ref.watch(podcastQueueOperationProvider);
     final queueSyncing = ref.watch(audioQueueSyncingProvider);
@@ -77,8 +77,8 @@ class PodcastQueueSheet extends ConsumerWidget {
         queueSyncing: queueSyncing,
         onRefresh: notifier.loadQueue,
         body: QueueLoadingState(
-          title: l10n?.podcast_queue_loading_title ?? 'Loading',
-          subtitle: l10n?.podcast_queue_loading_subtitle ?? 'Please wait...',
+          title: l10n.podcast_queue_loading_title,
+          subtitle: l10n.podcast_queue_loading_subtitle,
         ),
       );
     } else if (queue != null) {
@@ -91,9 +91,9 @@ class PodcastQueueSheet extends ConsumerWidget {
         body: queue.items.isEmpty
             ? QueueEmptyStateList(
                 icon: Icons.playlist_play,
-                title: l10n?.queue_is_empty ?? 'Queue is empty',
+                title: l10n.queue_is_empty,
                 subtitle:
-                    l10n?.pull_to_refresh ?? 'Pull to refresh for updates.',
+                    l10n.pull_to_refresh,
               )
             : QueueList(queue: queue),
       );
@@ -106,14 +106,12 @@ class PodcastQueueSheet extends ConsumerWidget {
         onRefresh: notifier.loadQueue,
         body: QueueEmptyStateList(
           icon: Icons.error_outline,
-          title: l10n?.error ?? 'Error',
-          subtitle:
-              l10n?.failed_to_load_queue(queueAsync.error.toString()) ??
-              'Failed to load queue: ${queueAsync.error}',
+          title: l10n.error,
+          subtitle: l10n.failed_to_load_queue(queueAsync.error.toString()),
           action: FilledButton.tonalIcon(
             onPressed: notifier.loadQueue,
             icon: const Icon(Icons.refresh),
-            label: Text(l10n?.retry ?? 'Retry'),
+            label: Text(l10n.retry),
           ),
         ),
       );

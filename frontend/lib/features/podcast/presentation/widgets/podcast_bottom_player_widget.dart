@@ -4,9 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/platform/adaptive_haptic.dart';
 import 'package:personal_ai_assistant/core/providers/route_provider.dart';
 import 'package:personal_ai_assistant/core/router/app_router.dart';
@@ -26,7 +27,7 @@ part 'podcast_bottom_player_actions.dart';
 part 'podcast_bottom_player_controls.dart';
 part 'podcast_bottom_player_layouts.dart';
 
-const _kPlayerTransition = Duration(milliseconds: 220);
+const _kPlayerTransition = AppDurations.navigationTransition;
 
 class PodcastBottomPlayerWidget extends ConsumerWidget {
   const PodcastBottomPlayerWidget({

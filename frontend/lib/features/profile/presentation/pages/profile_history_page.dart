@@ -337,7 +337,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
           child: InkWell(
             onTap: () =>
                 context.push('/podcast/episode/detail/${episode.id}'),
-            borderRadius: BorderRadius.circular(AppRadius.itemValue),
+            borderRadius: BorderRadius.circular(context.itemRadius),
             child: SizedBox(
               key: ValueKey(
                   'profile_history_card_content_${episode.id}'),
@@ -351,7 +351,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(
-                        AppRadius.itemValue,
+                        context.itemRadius,
                       ),
                       child: PodcastImageWidget(
                         imageUrl: episode.imageUrl,

@@ -98,6 +98,7 @@ class ChatInputArea extends StatelessWidget {
                   ),
                   child: IconButton(
                     onPressed: canSend ? onSend : null,
+                    tooltip: l10n.podcast_conversation_send_hint,
                     icon: isSending
                         ? SizedBox(
                             width: 20,

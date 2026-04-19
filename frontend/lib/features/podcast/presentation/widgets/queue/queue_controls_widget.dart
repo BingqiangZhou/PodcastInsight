@@ -3,6 +3,7 @@ import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_queue_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 
@@ -24,7 +25,7 @@ class QueueHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final statusLabel = queueStatusLabel(
       l10n,
@@ -66,7 +67,7 @@ class QueueHeader extends StatelessWidget {
                         QueueInfoChip(
                           icon: Icons.queue_music_rounded,
                           label:
-                              '${itemCount ?? 0} ${l10n?.queue_in_queue ?? 'in queue'}',
+                              '${itemCount ?? 0} ${l10n.queue_in_queue}',
                         ),
                       if (itemCount != null && statusLabel != null)
                         SizedBox(width: context.spacing.sm),
@@ -82,13 +83,13 @@ class QueueHeader extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: l10n?.refresh ?? 'Refresh',
+                  tooltip: l10n.refresh,
                   onPressed: onRefresh,
                   visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.refresh),
                 ),
                 IconButton(
-                  tooltip: l10n?.close ?? 'Close',
+                  tooltip: l10n.close,
                   onPressed: () => Navigator.of(context).pop(),
                   visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.close),
@@ -152,23 +153,23 @@ class QueueInfoChip extends StatelessWidget {
 /// Returns a human-readable status label for the current queue operation, or
 /// `null` when the queue is idle and not syncing.
 String? queueStatusLabel(
-  AppLocalizations? l10n, {
+  AppLocalizations l10n, {
   required QueueOperationState queueOperation,
   required bool queueSyncing,
 }) {
   switch (queueOperation.kind) {
     case QueueOperationKind.initialLoading:
-      return l10n?.loading ?? 'Loading...';
+      return l10n.loading;
     case QueueOperationKind.refreshing:
-      return l10n?.refreshing ?? 'Refreshing...';
+      return l10n.refreshing;
     case QueueOperationKind.reordering:
-      return l10n?.queue_saving_order ?? 'Saving order';
+      return l10n.queue_saving_order;
     case QueueOperationKind.removing:
     case QueueOperationKind.activating:
-      return l10n?.queue_updating ?? 'Updating queue';
+      return l10n.queue_updating;
     case QueueOperationKind.idle:
       if (queueSyncing) {
-        return l10n?.queue_syncing ?? 'Syncing queue';
+        return l10n.queue_syncing;
       }
       return null;
   }

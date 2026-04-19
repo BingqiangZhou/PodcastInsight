@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/episode_card_utils.dart';
 
@@ -86,7 +87,7 @@ class CalendarPanelHelper {
 
     return Center(
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
+        duration: AppDurations.entranceFast,
         key: Key('${keyPrefix}_${EpisodeCardUtils.formatDate(normalizedDay)}'),
         width: 38,
         height: 38,

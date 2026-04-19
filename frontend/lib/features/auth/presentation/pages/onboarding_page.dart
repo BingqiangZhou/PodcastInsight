@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
@@ -41,7 +42,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   void _goToPage(int page) {
     unawaited(_pageController.animateToPage(
       page,
-      duration: const Duration(milliseconds: 300),
+      duration: AppDurations.scrollAnimation,
       curve: Curves.easeInOut,
     ));
   }
@@ -137,7 +138,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       children: List.generate(_pageCount, (index) {
                         final isActive = _currentPage == index;
                         return AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
+                          duration: AppDurations.entranceNormal,
                           margin: EdgeInsets.symmetric(horizontal: context.spacing.xs),
                           width: isActive ? 24 : 8,
                           height: 8,

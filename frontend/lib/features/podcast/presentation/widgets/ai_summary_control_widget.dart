@@ -383,7 +383,7 @@ class _AISummaryControlWidgetState
                 Text(model.displayName),
                 if (model.isDefault)
                   Padding(
-                    padding: EdgeInsets.only(left: context.spacing.sm),
+                    padding: EdgeInsetsDirectional.only(start: context.spacing.sm),
                     child: Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: context.spacing.xsSm,
@@ -455,6 +455,7 @@ class _AISummaryControlWidgetState
           ),
           IconButton(
             iconSize: 16,
+            tooltip: 'Dismiss',
             icon: const Icon(Icons.close),
             onPressed: () {
               final provider = summaryProvider(widget.episodeId);

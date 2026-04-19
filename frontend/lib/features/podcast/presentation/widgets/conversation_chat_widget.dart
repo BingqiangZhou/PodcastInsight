@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/utils/resource_cleanup_mixin.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
@@ -58,7 +59,7 @@ class ConversationChatWidgetState
     }
     _scrollController.animateTo(
       0,
-      duration: const Duration(milliseconds: 300),
+      duration: AppDurations.scrollAnimation,
       curve: Curves.easeInOut,
     );
   }
@@ -69,7 +70,7 @@ class ConversationChatWidgetState
     _messageController.addListener(_onMessageInputChanged);
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
-        _scheduleScrollToBottom(const Duration(milliseconds: 300));
+        _scheduleScrollToBottom(AppDurations.scrollAnimation);
       }
     });
     // Auto-select default model
@@ -131,7 +132,7 @@ class ConversationChatWidgetState
       (previous, next) {
         _syncSelectedMessageIds(next.messages);
         if (next.messages.length > (previous?.messages.length ?? 0)) {
-          _scheduleScrollToBottom(const Duration(milliseconds: 100));
+          _scheduleScrollToBottom(AppDurations.staggerNormal);
         }
       },
     );
@@ -150,7 +151,7 @@ class ConversationChatWidgetState
     if (_scrollController.position.maxScrollExtent > 0) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
+        duration: AppDurations.scrollAnimation,
         curve: Curves.easeOut,
       );
     }
@@ -366,16 +367,20 @@ class ConversationChatWidgetState
             ),
           ),
 
-          // Input field
-          ChatInputArea(
-            controller: _messageController,
-            focusNode: _focusNode,
-            inputTextNotifier: _inputTextNotifier,
-            isReady: conversationState.isReady,
-            isSending: conversationState.isSending,
-            hasSummary: widget.aiSummary != null,
-            onSend: _sendMessage,
-          ),
+          // Input field — scoped rebuild via Consumer so only isReady/isSending
+          // changes trigger this subtree, not message-list streaming updates.
+          Consumer(builder: (context, ref, _) {
+            final state = ref.watch(conversationProvider(widget.episodeId));
+            return ChatInputArea(
+              controller: _messageController,
+              focusNode: _focusNode,
+              inputTextNotifier: _inputTextNotifier,
+              isReady: state.isReady,
+              isSending: state.isSending,
+              hasSummary: widget.aiSummary != null,
+              onSend: _sendMessage,
+            );
+          }),
         ],
       ),
     );

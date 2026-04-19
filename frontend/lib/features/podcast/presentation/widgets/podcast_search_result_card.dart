@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -40,7 +41,7 @@ class PodcastSearchResultCard extends StatelessWidget {
     final imageSize = dense ? 52.0 : kPodcastRowCardImageSize;
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+      duration: AppDurations.entranceSlow,
       transitionBuilder: (child, animation) {
         return FadeTransition(
           opacity: animation,
@@ -61,7 +62,7 @@ class PodcastSearchResultCard extends StatelessWidget {
             horizontal: cardHorizontalPadding,
             vertical: cardVerticalPadding,
           ),
-          cornerRadius: AppRadius.itemValue,
+          cornerRadius: context.itemRadius,
           titleMaxLines: 1,
           showPlayButton: false,
           showSubscribeAction: true,

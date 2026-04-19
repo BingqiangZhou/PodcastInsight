@@ -5,7 +5,7 @@ class _TransportRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -51,7 +51,7 @@ class _TransportRow extends StatelessWidget {
                 ref.watch(podcastPlayerQueueSheetOpenProvider);
             return IconButton(
               key: const Key('podcast_bottom_player_playlist'),
-              tooltip: l10n?.podcast_player_list ?? 'List',
+              tooltip: l10n.podcast_player_list,
               onPressed: queueSheetOpen
                   ? null
                   : () => _showQueueSheet(context, ref),
@@ -101,13 +101,13 @@ class _SleepTimerButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final isActive = ref.watch(audioSleepTimerActiveProvider);
     final theme = Theme.of(context);
 
     return IconButton(
       key: const Key('podcast_bottom_player_sleep'),
-      tooltip: l10n?.podcast_player_sleep_mode ?? 'Sleep Mode',
+      tooltip: l10n.podcast_player_sleep_mode,
       onPressed: onPressed,
       icon: Transform.flip(
         flipX: true,
@@ -139,10 +139,10 @@ class _SkipButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final tooltip = switch (tooltipLocalizationKey) {
-      _TooltipKey.rewind10 => l10n?.podcast_player_rewind_10 ?? 'Rewind 10s',
-      _TooltipKey.forward30 => l10n?.podcast_player_forward_30 ?? 'Forward 30s',
+      _TooltipKey.rewind10 => l10n.podcast_player_rewind_10,
+      _TooltipKey.forward30 => l10n.podcast_player_forward_30,
     };
 
     return IconButton(
@@ -171,7 +171,7 @@ class _PlayPauseButtonLarge extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transport = ref.watch(audioPlayPauseStateProvider);
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final theme = Theme.of(context);
 
     return Container(
@@ -183,8 +183,8 @@ class _PlayPauseButtonLarge extends ConsumerWidget {
         key: const Key('podcast_bottom_player_play_pause'),
         iconSize: 42,
         tooltip: transport.isPlaying
-            ? (l10n?.podcast_player_pause ?? 'Pause')
-            : (l10n?.podcast_player_play ?? 'Play'),
+            ? l10n.podcast_player_pause
+            : l10n.podcast_player_play,
         onPressed: () async {
           AdaptiveHaptic.mediumImpact();
           if (transport.isLoading) {
@@ -218,14 +218,14 @@ class _MiniPlayPauseButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transport = ref.watch(audioPlayPauseStateProvider);
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     return RepaintBoundary(
       child: IconButton(
         key: key,
         tooltip: transport.isPlaying
-            ? (l10n?.podcast_player_pause ?? 'Pause')
-            : (l10n?.podcast_player_play ?? 'Play'),
+            ? l10n.podcast_player_pause
+            : l10n.podcast_player_play,
         onPressed: () async {
           AdaptiveHaptic.mediumImpact();
           if (transport.isLoading) {
@@ -240,7 +240,7 @@ class _MiniPlayPauseButton extends ConsumerWidget {
         style: IconButton.styleFrom(
           minimumSize: const Size(40, 40),
           maximumSize: const Size(40, 40),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          tapTargetSize: MaterialTapTargetSize.padded,
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           foregroundColor: theme.colorScheme.onSurface,

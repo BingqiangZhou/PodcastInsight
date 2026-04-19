@@ -300,7 +300,7 @@ class AuthVerifyPage extends ConsumerWidget {
                       child: Text(
                         status.message,
                         style: AppTheme.monoStyle(
-                          fontSize: 14,
+                          fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14,
                           fontWeight: FontWeight.w500,
                           color: status.color,
                         ),
@@ -423,7 +423,7 @@ class _TestButton extends StatelessWidget {
             child: Text(
               text,
               style: AppTheme.monoStyle(
-                fontSize: 16,
+                fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16,
                 fontWeight: FontWeight.w600,
               ),
             ),
