@@ -133,7 +133,7 @@ extension _PodcastEpisodeDetailPageLayout on _PodcastEpisodeDetailPageState {
                   onPageChanged: (index) {
                     _updatePageState(() {
                       _selectedTabIndex = index;
-                      _updateHeaderStateForTab(index);
+                      _updateHeaderStateForTab();
                     });
                   },
                   children: List<Widget>.generate(pageCount, (index) {

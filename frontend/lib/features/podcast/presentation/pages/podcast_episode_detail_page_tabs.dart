@@ -24,7 +24,7 @@ extension _PodcastEpisodeDetailPageTabs on _PodcastEpisodeDetailPageState {
         }
         _updatePageState(() {
           _selectedTabIndex = index;
-          _updateHeaderStateForTab(index);
+          _updateHeaderStateForTab();
         });
         if (!_isWideScreen) {
           _pageController.animateToPage(
