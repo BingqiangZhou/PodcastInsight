@@ -18,6 +18,7 @@ import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_card.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/widgets/calendar_panel_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/episode_card_utils.dart';
 import 'package:personal_ai_assistant/shared/widgets/loading_widget.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -682,49 +683,15 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     bool isOutside = false,
     bool isDisabled = false,
   }) {
-    final theme = Theme.of(context);
-    final normalizedDay = _toDateOnly(day);
-    final selected = isSelected || _isSameDate(normalizedDay, selectedDate);
-    var textColor = theme.colorScheme.onSurface;
-    if (selected) {
-      textColor = theme.colorScheme.onPrimary;
-    } else if (isOutside || isDisabled) {
-      textColor = theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
-    } else if (isToday) {
-      textColor = theme.colorScheme.primary;
-    }
-
-    return Center(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        key: Key(
-            'highlights_calendar_day_${EpisodeCardUtils.formatDate(normalizedDay)}'),
-        width: 38,
-        height: 38,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected
-              ? theme.colorScheme.primary
-              : theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: isOutside || isDisabled ? 0.18 : 0.22,
-                ),
-          borderRadius: BorderRadius.circular(appThemeOf(context).cardRadius),
-          border: Border.all(
-            color: isToday && !selected
-                ? theme.colorScheme.primary.withValues(alpha: 0.75)
-                : theme.colorScheme.outlineVariant.withValues(
-                    alpha: selected ? 0 : 0.35,
-                  ),
-          ),
-        ),
-        child: Text(
-          '${normalizedDay.day}',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: textColor,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          ),
-        ),
-      ),
+    return CalendarPanelHelper.buildCalendarDayCell(
+      context,
+      day,
+      selectedDate: selectedDate,
+      keyPrefix: 'highlights_calendar_day',
+      isSelected: isSelected,
+      isToday: isToday,
+      isOutside: isOutside,
+      isDisabled: isDisabled,
     );
   }
 
