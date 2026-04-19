@@ -41,6 +41,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   final ScrollController _scrollController = ScrollController();
   late DateTime _focusedCalendarDay;
   bool _isLoadingMore = false;
+  bool _hasMore = false;
 
   @override
   void initState() {
@@ -71,10 +72,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
   void _onScroll() {
     if (_isLoadingMore) return;
 
-    final highlightsAsync = ref.read(highlightsProvider);
-    final hasMore = highlightsAsync.value?.hasMore ?? false;
-
-    if (!hasMore) return;
+    if (!_hasMore) return;
 
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
@@ -165,6 +163,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     final tokens = appThemeOf(context);
     final l10n = context.l10n;
     final highlightsAsync = ref.watch(highlightsProvider);
+    _hasMore = highlightsAsync.value?.hasMore ?? false;
     final selectedDate = ref.watch(selectedHighlightDateProvider);
     final headerDate = selectedDate ?? _focusedCalendarDay;
 
