@@ -12,7 +12,7 @@ Page<T> adaptivePageTransition<T>({
   required ValueKey<String> pageKey,
   bool fullscreenDialog = false,
 }) {
-  if (defaultTargetPlatform == TargetPlatform.iOS) {
+  if (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) {
     return CupertinoPage<T>(
       key: pageKey,
       child: child,

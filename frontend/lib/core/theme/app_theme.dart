@@ -163,7 +163,7 @@ class AppTheme {
     TargetPlatform platform,
   ) {
     final isDark = brightness == Brightness.dark;
-    final isIOS = platform == TargetPlatform.iOS;
+    final isIOS = platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
     final scheme = _buildColorScheme(brightness);
     final textTheme = _buildTextTheme(
       scheme.onSurface,
@@ -192,7 +192,7 @@ class AppTheme {
         builders: {
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
           TargetPlatform.android: ZoomPageTransitionsBuilder(),
-          TargetPlatform.macOS: ZoomPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
           TargetPlatform.windows: ZoomPageTransitionsBuilder(),
           TargetPlatform.linux: ZoomPageTransitionsBuilder(),
         },
