@@ -149,35 +149,38 @@ class _PodcastEpisodesPageState extends ConsumerState<PodcastEpisodesPage> {
             onRefresh: _refreshEpisodes,
             child: const SizedBox.shrink(),
             builder: (context, refreshSliver) {
-              return CustomScrollView(
+              return Scrollbar(
                 controller: _scrollController,
-                slivers: [
-                  if (refreshSliver != null) refreshSliver,
-                  AdaptiveSliverAppBar(
-                    title: widget.podcastTitle ?? l10n.podcast_episodes,
-                    leading: Padding(
-                      padding: EdgeInsetsDirectional.only(start: context.spacing.xs),
-                      child: _buildHeaderCover(fallbackSubscriptionImageUrl),
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    if (refreshSliver != null) refreshSliver,
+                    AdaptiveSliverAppBar(
+                      title: widget.podcastTitle ?? l10n.podcast_episodes,
+                      leading: Padding(
+                        padding: EdgeInsetsDirectional.only(start: context.spacing.xs),
+                        child: _buildHeaderCover(fallbackSubscriptionImageUrl),
+                      ),
+                      actions: _buildHeaderActions(l10n),
                     ),
-                    actions: _buildHeaderActions(l10n),
-                  ),
-                  SliverToBoxAdapter(
-                    child: MediaQuery.sizeOf(context).width >= Breakpoints.compact
-                        ? Padding(
-                            padding: EdgeInsets.symmetric(horizontal: context.spacing.md),
-                            child: _buildFilterChips(),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  SliverToBoxAdapter(child: SizedBox(height: context.spacing.sm)),
-                  ...episodesState.isLoading && episodesState.episodes.isEmpty
-                      ? _buildLoadingSlivers()
-                      : episodesState.error != null
-                          ? _buildErrorSlivers(episodesState.error!)
-                          : episodesState.episodes.isEmpty
-                              ? _buildEmptySlivers()
-                              : _buildDataSlivers(episodesState),
-                ],
+                    SliverToBoxAdapter(
+                      child: MediaQuery.sizeOf(context).width >= Breakpoints.compact
+                          ? Padding(
+                              padding: EdgeInsets.symmetric(horizontal: context.spacing.md),
+                              child: _buildFilterChips(),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    SliverToBoxAdapter(child: SizedBox(height: context.spacing.sm)),
+                    ...episodesState.isLoading && episodesState.episodes.isEmpty
+                        ? _buildLoadingSlivers()
+                        : episodesState.error != null
+                            ? _buildErrorSlivers(episodesState.error!)
+                            : episodesState.episodes.isEmpty
+                                ? _buildEmptySlivers()
+                                : _buildDataSlivers(episodesState),
+                  ],
+                ),
               );
             },
           ),

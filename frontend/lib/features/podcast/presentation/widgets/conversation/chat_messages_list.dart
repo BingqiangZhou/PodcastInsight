@@ -66,24 +66,27 @@ class ChatMessagesList extends StatelessWidget {
       return emptyStateWidget;
     }
 
-    return ListView.separated(
+    return Scrollbar(
       controller: scrollController,
-      padding: EdgeInsets.all(context.spacing.md),
-      itemCount: messages.length,
-      separatorBuilder: (context, index) => SizedBox(height: context.spacing.md),
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        return RepaintBoundary(
-          key: ValueKey('chat_message_${message.id}'),
-          child: ChatMessageBubble(
-            message: message,
-            isSelectMode: isSelectMode,
-            isSelected: isMessageSelected(message),
-            onToggleSelection: () => onToggleSelection(message),
-            onTextSelected: onTextSelected,
-          ),
-        );
-      },
+      child: ListView.separated(
+        controller: scrollController,
+        padding: EdgeInsets.all(context.spacing.md),
+        itemCount: messages.length,
+        separatorBuilder: (context, index) => SizedBox(height: context.spacing.md),
+        itemBuilder: (context, index) {
+          final message = messages[index];
+          return RepaintBoundary(
+            key: ValueKey('chat_message_${message.id}'),
+            child: ChatMessageBubble(
+              message: message,
+              isSelectMode: isSelectMode,
+              isSelected: isMessageSelected(message),
+              onToggleSelection: () => onToggleSelection(message),
+              onTextSelected: onTextSelected,
+            ),
+          );
+        },
+      ),
     );
   }
 }

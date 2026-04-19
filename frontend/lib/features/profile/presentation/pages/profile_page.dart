@@ -35,6 +35,8 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +48,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ref.read(profileStatsProvider.notifier).load(forceRefresh: true);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   double _dialogMaxWidth(BuildContext context) {
@@ -92,15 +100,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       subtitle: '',
       roundedViewport: true,
       trailing: _buildUserMenu(context, user, theme, l10n),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.only(bottom: context.spacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const ProfileActivityCards(),
-            SizedBox(height: compactProfileLayout ? context.spacing.sm : context.spacing.md),
-            _buildSettingsContent(context),
-          ],
+      child: Scrollbar(
+        controller: _scrollController,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          padding: EdgeInsets.only(bottom: context.spacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const ProfileActivityCards(),
+              SizedBox(height: compactProfileLayout ? context.spacing.sm : context.spacing.md),
+              _buildSettingsContent(context),
+            ],
+          ),
         ),
       ),
     );
