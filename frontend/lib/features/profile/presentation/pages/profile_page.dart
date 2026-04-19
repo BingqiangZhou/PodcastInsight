@@ -844,7 +844,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       radius: 22,
       backgroundColor: theme.colorScheme.onSurfaceVariant,
       child: Text(
-        (user?.displayName ?? l10n.profile_guest_user).characters.first.toUpperCase(),
+        (user?.displayName ?? l10n.profile_guest_user).characters.firstOrNull?.toUpperCase() ?? '?',
         style: theme.textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w700,
           color: theme.colorScheme.surface,
