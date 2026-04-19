@@ -28,13 +28,22 @@ class PlatformHelper {
     return isIOS(context) || isAndroid(context);
   }
 
+  static bool isMacOS(BuildContext context) {
+    if (kIsWeb) return false;
+    return Theme.of(context).platform == TargetPlatform.macOS;
+  }
+
+  static bool isApple(BuildContext context) {
+    return isIOS(context) || isMacOS(context);
+  }
+
   static T platformValue<T>(BuildContext context, {
     required T material,
     required T cupertino,
     T? desktop,
   }) {
     if (isDesktop(context) && desktop != null) return desktop;
-    if (isIOS(context)) return cupertino;
+    if (isApple(context)) return cupertino;
     return material;
   }
 
@@ -46,7 +55,7 @@ class PlatformHelper {
     bool isError = false,
     Duration duration = const Duration(seconds: 3),
   }) {
-    if (isIOS(context)) {
+    if (isApple(context)) {
       showTopFloatingNotice(
         context,
         message: message,
