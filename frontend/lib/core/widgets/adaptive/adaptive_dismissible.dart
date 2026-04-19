@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
-import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 
@@ -61,8 +61,8 @@ class AdaptiveDismissible extends StatelessWidget {
       onDismissed: (_) => onDelete(),
       background: Container(
         color: Theme.of(context).colorScheme.error,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: AppSpacing.mdLg),
+        alignment: AlignmentDirectional.centerEnd,
+        padding: const EdgeInsetsDirectional.only(end: AppSpacing.mdLg),
         child: Icon(Icons.delete, color: Theme.of(context).colorScheme.onError),
       ),
       child: child,
@@ -70,19 +70,20 @@ class AdaptiveDismissible extends StatelessWidget {
   }
 
   Widget _buildDeleteBackground(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      color: CupertinoColors.systemRed,
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.only(right: AppSpacing.mdLg),
+      color: scheme.error,
+      alignment: AlignmentDirectional.centerEnd,
+      padding: const EdgeInsetsDirectional.only(end: AppSpacing.mdLg),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(CupertinoIcons.delete, color: CupertinoColors.white),
+          Icon(CupertinoIcons.delete, color: scheme.onError),
           const SizedBox(height: AppSpacing.xxs),
           Text(
-            l10n?.delete ?? 'Delete',
-            style: AppTheme.metaSmall(CupertinoColors.white),
+            l10n.delete,
+            style: AppTheme.metaSmall(scheme.onError),
           ),
         ],
       ),
@@ -90,21 +91,25 @@ class AdaptiveDismissible extends StatelessWidget {
   }
 
   Widget _buildSecondaryBackground(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final color = secondaryActionColor ?? CupertinoColors.activeBlue;
-    final label = secondaryActionLabel ?? l10n?.more ?? 'More';
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    final color = secondaryActionColor ?? scheme.primary;
+    final label = secondaryActionLabel ?? l10n.more;
+    final onActionColor = secondaryActionColor != null
+        ? color.computeLuminance() > 0.5 ? Colors.black : Colors.white
+        : scheme.onPrimary;
     return Container(
       color: color,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.only(left: AppSpacing.mdLg),
+      alignment: AlignmentDirectional.centerStart,
+      padding: const EdgeInsetsDirectional.only(start: AppSpacing.mdLg),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(CupertinoIcons.ellipsis, color: CupertinoColors.white),
+          Icon(CupertinoIcons.ellipsis, color: onActionColor),
           const SizedBox(height: AppSpacing.xxs),
           Text(
             label,
-            style: AppTheme.metaSmall(CupertinoColors.white),
+            style: AppTheme.metaSmall(onActionColor),
           ),
         ],
       ),

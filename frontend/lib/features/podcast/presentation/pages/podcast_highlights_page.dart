@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,7 @@ import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive_sliver_app_
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
+import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_card.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/calendar_panel_helper.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/shared/episode_card_utils.dart';
@@ -108,11 +110,10 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       await ref.read(highlightsProvider.notifier).loadNextPage(date: selectedDate);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.podcast_highlights_load_more_error),
-            duration: const Duration(seconds: 3),
-          ),
+        showTopFloatingNotice(
+          context,
+          message: context.l10n.podcast_highlights_load_more_error,
+          isError: true,
         );
       }
     } finally {
@@ -460,7 +461,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
       barrierDismissible: true,
       barrierColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.12),
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      transitionDuration: const Duration(milliseconds: 160),
+      transitionDuration: AppDurations.entranceFast,
       pageBuilder: (dialogContext, animation, secondaryAnimation) {
         final maxPanelWidth = (screenWidth - horizontalPadding * 2)
             .clamp(0.0, CalendarPanelHelper.maxPanelWidth)

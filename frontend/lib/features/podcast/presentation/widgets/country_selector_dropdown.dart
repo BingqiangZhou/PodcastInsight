@@ -15,7 +15,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/co
 /// 1. 顶部显示当前选中国家（带下拉箭头）
 /// 2. 常用地区：水平滚动的快捷按钮（带国旗）
 /// 3. 所有地区：可滚动列表（显示国家代码+名称+对勾）
-class CountrySelectorDropdown extends ConsumerStatefulWidget {
+class CountrySelectorDropdown extends ConsumerWidget {
   const CountrySelectorDropdown({
     super.key,
     this.onCountryChanged,
@@ -24,14 +24,7 @@ class CountrySelectorDropdown extends ConsumerStatefulWidget {
   final ValueChanged<PodcastCountry>? onCountryChanged;
 
   @override
-  ConsumerState<CountrySelectorDropdown> createState() =>
-      _CountrySelectorDropdownState();
-}
-
-class _CountrySelectorDropdownState
-    extends ConsumerState<CountrySelectorDropdown> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final countryState = ref.watch(countrySelectorProvider);
     final countryNotifier = ref.read(countrySelectorProvider.notifier);
@@ -77,9 +70,7 @@ class _CountrySelectorDropdownState
               l10n.podcast_country_label,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white
-                    : colorScheme.onSurface,
+                color: colorScheme.onSurface,
               ),
             ),
           ),
@@ -89,7 +80,7 @@ class _CountrySelectorDropdownState
             child: ListView.separated(
               itemCount: PodcastCountry.values.length,
               padding: EdgeInsets.fromLTRB(context.spacing.smMd, context.spacing.sm, context.spacing.smMd, context.spacing.mdLg),
-              separatorBuilder: (_, _) => SizedBox(height: context.spacing.sm),
+              separatorBuilder: (_, __) => SizedBox(height: context.spacing.sm),
               itemBuilder: (context, index) {
                 final country = PodcastCountry.values[index];
                 final isSelected = country == selectedCountry;
@@ -176,7 +167,7 @@ class _CountrySelectorDropdownState
   /// 选择国家
   void _selectCountry(PodcastCountry country, CountrySelectorNotifier countryNotifier) {
     countryNotifier.selectCountry(country);
-    widget.onCountryChanged?.call(country);
+    onCountryChanged?.call(country);
   }
 
   /// 获取国家名称

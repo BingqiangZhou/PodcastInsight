@@ -204,7 +204,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                           0,
                         ),
                         child: Align(
-                          alignment: Alignment.centerLeft,
+                          alignment: AlignmentDirectional.centerStart,
                           child: _buildCupertinoProtocolDropdown(scheme),
                         ),
                       ),
@@ -218,7 +218,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                             return value.text.isNotEmpty
                                 ? CupertinoButton(
                                     padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
+                                    minimumSize: Size(44, 44),
                                     onPressed: () {
                                       _serverUrlController.clear();
                                       _onServerUrlChanged('');
@@ -245,8 +245,8 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                 ),
                 if (_connectionStatus == ConnectionStatus.failed)
                   Padding(
-                    padding: EdgeInsets.only(
-                      left: context.spacing.smMd,
+                    padding: EdgeInsetsDirectional.only(
+                      start: context.spacing.smMd,
                       top: context.spacing.xs,
                     ),
                     child: Text(
@@ -400,7 +400,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
             Text(
               _selectedProtocol.replaceAll('://', '').toUpperCase(),
               style: TextStyle(
-                fontSize: 14,
+                fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14,
                 fontWeight: FontWeight.w600,
                 color: scheme.primary,
                 letterSpacing: 0.5,
@@ -429,7 +429,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
 
   Widget _buildCupertinoProtocolDropdown(ColorScheme scheme) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8, right: 4),
+      padding: const EdgeInsetsDirectional.only(start: 8, end: 4),
       child: CupertinoSlidingSegmentedControl<String>(
         groupValue: _selectedProtocol,
         onValueChanged: (value) {
@@ -447,7 +447,7 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
               child: Text(
                 p.replaceAll('://', '').toUpperCase(),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: Theme.of(context).textTheme.labelMedium?.fontSize ?? 12,
                   fontWeight: _selectedProtocol == p
                       ? FontWeight.w600
                       : FontWeight.w500,

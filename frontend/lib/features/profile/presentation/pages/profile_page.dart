@@ -319,26 +319,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     Widget? trailing,
     VoidCallback? onTap,
   }) {
-    if (PlatformHelper.isApple(context)) {
-      return AdaptiveListTile(
-        key: tileKey,
-        leading: Icon(icon),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: trailing ?? const Icon(CupertinoIcons.chevron_right),
-        onTap: onTap,
-      );
-    }
-    return ListTile(
+    return AdaptiveListTile(
       key: tileKey,
       leading: Icon(icon),
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: trailing ?? const Icon(Icons.chevron_right),
+      trailing: trailing,
       onTap: onTap,
     );
   }
 
+  // Does not use showAppDialog because profile dialogs need constrained width,
+  // which showAppDialog does not support. See app_dialog_helper.dart.
   Future<T?> _showConstrainedDialog<T>(
     BuildContext context, {
     required Widget Function(BuildContext dialogContext) builder, bool barrierDismissible = true,
@@ -395,13 +387,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           Padding(
             padding: EdgeInsets.fromLTRB(context.spacing.lg, isIOS ? AppSpacing.mdLg : AppSpacing.lg, context.spacing.lg, isIOS ? AppSpacing.sm : AppSpacing.md),
             child: Align(
-              alignment: isIOS ? Alignment.center : Alignment.centerLeft,
+              alignment: isIOS ? Alignment.center : AlignmentDirectional.centerStart,
               child: DefaultTextStyle(
                 style: isIOS
                     ? CupertinoTheme.of(dialogContext)
                         .textTheme
                         .textStyle
-                        .copyWith(fontSize: 17, fontWeight: FontWeight.w600)
+                        .copyWith(fontSize: theme.textTheme.titleLarge?.fontSize, fontWeight: FontWeight.w600)
                     : theme.textTheme.titleLarge!,
                 child: title,
               ),
@@ -410,13 +402,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           Padding(
             padding: EdgeInsets.fromLTRB(context.spacing.lg, 0, context.spacing.lg, context.spacing.md),
             child: Align(
-              alignment: isIOS ? Alignment.center : Alignment.centerLeft,
+              alignment: isIOS ? Alignment.center : AlignmentDirectional.centerStart,
               child: DefaultTextStyle(
                 style: isIOS
                     ? CupertinoTheme.of(dialogContext)
                         .textTheme
                         .textStyle
-                        .copyWith(fontSize: 13)
+                        .copyWith(fontSize: theme.textTheme.bodyMedium?.fontSize)
                     : theme.textTheme.bodyMedium!,
                 child: content,
               ),

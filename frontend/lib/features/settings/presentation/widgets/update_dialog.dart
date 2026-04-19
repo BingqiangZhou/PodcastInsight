@@ -861,39 +861,16 @@ class _ManualUpdateCheckDialogState
   }
 }
 
-/// Simple "No Update" SnackBar for quick feedback
+/// Show a top floating notice when an update is available.
 void showUpdateAvailableSnackBar({
   required BuildContext context,
   required GitHubRelease release,
 }) {
   final l10n = context.l10n;
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Row(
-        children: [
-          const Icon(Icons.system_update_alt, size: 20),
-          SizedBox(width: context.spacing.smMd),
-          Expanded(
-            child: Text(
-              '${l10n.update_new_version_available}: v${release.version}',
-            ),
-          ),
-        ],
-      ),
-      action: SnackBarAction(
-        label: l10n.update_download,
-        onPressed: () {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          AppUpdateDialog.show(
-            context: context,
-            release: release,
-            currentVersion: AppUpdateService.getCurrentVersionSync(),
-          );
-        },
-      ),
-      duration: const Duration(seconds: 10),
-      behavior: SnackBarBehavior.floating,
-    ),
+  showTopFloatingNotice(
+    context,
+    message: '${l10n.update_new_version_available}: v${release.version}',
+    duration: const Duration(seconds: 10),
   );
 }
