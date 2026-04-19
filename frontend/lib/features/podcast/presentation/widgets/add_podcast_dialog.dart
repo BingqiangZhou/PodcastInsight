@@ -6,6 +6,7 @@ import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
+import 'package:personal_ai_assistant/core/widgets/responsive_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 
@@ -68,8 +69,11 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final dialogMaxWidth = ResponsiveDialogHelper.maxWidth(context, desktopMaxWidth: 500);
+    final dialogMaxHeight = MediaQuery.sizeOf(context).height * 0.8;
     return Dialog(
       backgroundColor: Colors.transparent,
+      insetPadding: ResponsiveDialogHelper.insetPadding(),
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -77,7 +81,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
         ),
         padding: EdgeInsets.all(context.spacing.lg),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+          constraints: BoxConstraints(maxWidth: dialogMaxWidth, maxHeight: dialogMaxHeight),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
