@@ -923,6 +923,10 @@
     "@update_download_failed":  {
                                     "description":  "下载失败错误消息"
                                 },
+    "update_download_url_failed":  "无法打开下载链接",
+    "@update_download_url_failed":  {
+                                        "description":  "无法打开下载链接时的提示"
+                                    },
     "update_checking":  "正在检查更新...",
     "@update_checking":  {
                              "description":  "正在检查更新消息"

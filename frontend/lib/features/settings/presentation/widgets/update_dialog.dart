@@ -320,7 +320,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: context.spacing.sm),
               Text(
                 'v${widget.release.version}',
                 style: theme.textTheme.titleMedium?.copyWith(
@@ -330,7 +330,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: context.spacing.sm),
           // Release date and file size - aligned with icon
           if (isMobile) ...[
             // Mobile: vertical layout
@@ -344,7 +344,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                       size: 14,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: context.spacing.sm),
                     Expanded(
                       child: Text(
                         '${l10n.update_published_at}: ${widget.release.formattedPublishedDate}',
@@ -364,7 +364,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                         size: 14,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: context.spacing.sm),
                       Expanded(
                         child: Text(
                           '${l10n.update_file_size}: ${asset.formattedSize}',
@@ -387,7 +387,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                   size: 14,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: context.spacing.sm),
                 Text(
                   '${l10n.update_published_at}: ${widget.release.formattedPublishedDate}',
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -401,7 +401,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                     size: 14,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: context.spacing.sm),
                   Text(
                     '${l10n.update_file_size}: ${asset.formattedSize}',
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -429,7 +429,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
         Row(
           children: [
             Icon(Icons.description, size: 18, color: palette.accent),
-            const SizedBox(width: 8),
+            SizedBox(width: context.spacing.sm),
             Text(l10n.update_release_notes, style: theme.textTheme.labelMedium),
           ],
         ),
@@ -567,6 +567,14 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
         final uri = Uri.parse(widget.release.htmlUrl);
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          if (context.mounted) {
+            showTopFloatingNotice(
+              context,
+              message: context.l10n.update_download_url_failed,
+              isError: true,
+            );
+          }
         }
       } else if (PlatformHelper.isAndroid(context) &&
           AppUpdateService.supportsBackgroundDownload) {
@@ -604,6 +612,14 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
           final releaseUri = Uri.parse(widget.release.htmlUrl);
           if (await canLaunchUrl(releaseUri)) {
             await launchUrl(releaseUri, mode: LaunchMode.externalApplication);
+          } else {
+            if (context.mounted) {
+              showTopFloatingNotice(
+                context,
+                message: context.l10n.update_download_url_failed,
+                isError: true,
+              );
+            }
           }
         }
       }
@@ -612,7 +628,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
         final l10n = context.l10n;
         showTopFloatingNotice(
           context,
-          message: '${l10n.update_download_failed}: $e',
+          message: l10n.update_download_failed,
           isError: true,
         );
       }
@@ -655,12 +671,14 @@ class ManualUpdateCheckDialog extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) {
     if (_isShowing) return Future.value();
     _isShowing = true;
-    return showAppDialog(
-      context: context,
-      builder: (context) => const ManualUpdateCheckDialog(),
-    ).whenComplete(() {
+    try {
+      return showAppDialog(
+        context: context,
+        builder: (context) => const ManualUpdateCheckDialog(),
+      );
+    } finally {
       _isShowing = false;
-    });
+    }
   }
 
   @override
@@ -784,7 +802,7 @@ class _ManualUpdateCheckDialogState
       mainAxisSize: MainAxisSize.min,
       children: [
         _UpdateStatusMark(color: palette.stateSecondaryText),
-        const SizedBox(height: 18),
+        SizedBox(height: context.spacing.lg),
         Text(
           key: const Key('manual_update_uptodate_text'),
           l10n.update_up_to_date,
@@ -793,7 +811,7 @@ class _ManualUpdateCheckDialogState
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: context.spacing.smMd),
         Text(
           'v${state.currentVersion}',
           style: theme.textTheme.bodyMedium?.copyWith(

@@ -705,6 +705,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get update_download_failed => 'Download failed';
 
   @override
+  String get update_download_url_failed => 'Could not open download link';
+
+  @override
   String get update_checking => 'Checking for updates...';
 
   @override

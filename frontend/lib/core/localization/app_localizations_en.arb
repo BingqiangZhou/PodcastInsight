@@ -923,6 +923,10 @@
     "@update_download_failed":  {
                                     "description":  "Download failed error message"
                                 },
+    "update_download_url_failed":  "Could not open download link",
+    "@update_download_url_failed":  {
+                                        "description":  "Message shown when the download URL cannot be opened"
+                                    },
     "update_checking":  "Checking for updates...",
     "@update_checking":  {
                              "description":  "Checking for updates message"

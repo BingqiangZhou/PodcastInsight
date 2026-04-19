@@ -1418,6 +1418,12 @@ abstract class AppLocalizations {
   /// **'Download failed'**
   String get update_download_failed;
 
+  /// Message shown when the download URL cannot be opened
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open download link'**
+  String get update_download_url_failed;
+
   /// Checking for updates message
   ///
   /// In en, this message translates to:

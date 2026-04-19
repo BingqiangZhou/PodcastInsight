@@ -688,6 +688,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get update_download_failed => '下载失败';
 
   @override
+  String get update_download_url_failed => '无法打开下载链接';
+
+  @override
   String get update_checking => '正在检查更新...';
 
   @override
