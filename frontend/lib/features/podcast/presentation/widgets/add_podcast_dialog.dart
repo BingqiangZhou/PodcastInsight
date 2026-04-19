@@ -82,7 +82,8 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
         padding: EdgeInsets.all(context.spacing.lg),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: dialogMaxWidth, maxHeight: dialogMaxHeight),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -145,6 +146,7 @@ class _AddPodcastDialogState extends ConsumerState<AddPodcastDialog> {
                 ],
               ),
             ],
+          ),
           ),
         ),
       ),

@@ -197,9 +197,12 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
 
     return Hero(
       tag: 'episode_cover_${episode.id}',
-      child: GestureDetector(
-        onTap: () => unawaited(_playOrResumeFromDetail(episode)),
-        child: Stack(
+      child: Semantics(
+        button: true,
+        hint: 'Play episode',
+        child: GestureDetector(
+          onTap: () => unawaited(_playOrResumeFromDetail(episode)),
+          child: Stack(
           alignment: Alignment.center,
           children: [
             artwork,
@@ -228,6 +231,7 @@ extension _PodcastEpisodeDetailPageHeader on _PodcastEpisodeDetailPageState {
             ),
           ],
         ),
+      ),
       ),
     );
   }

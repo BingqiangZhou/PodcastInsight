@@ -365,6 +365,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
                   title: Text(l10n.podcast_only_with_summary),
                   trailing: AdaptiveSwitch(
                     value: _showOnlyWithSummary,
+                    semanticLabel: l10n.podcast_only_with_summary,
                     onChanged: (value) {
                       setDialogState(() {
                         _showOnlyWithSummary = value;

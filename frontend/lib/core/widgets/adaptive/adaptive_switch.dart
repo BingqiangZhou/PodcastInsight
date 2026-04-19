@@ -13,29 +13,47 @@ class AdaptiveSwitch extends StatelessWidget {
     this.onChanged,
     this.activeColor,
     this.focusNode,
+    this.semanticLabel,
   });
 
   final bool value;
   final ValueChanged<bool>? onChanged;
   final Color? activeColor;
   final FocusNode? focusNode;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
     if (PlatformHelper.isApple(context)) {
-      return CupertinoSwitch(
+      final cupertinoSwitch = CupertinoSwitch(
         value: value,
         onChanged: onChanged,
         activeTrackColor: activeColor ?? Theme.of(context).colorScheme.primary,
         focusNode: focusNode,
       );
+      if (semanticLabel != null) {
+        return Semantics(
+          label: semanticLabel,
+          toggled: value,
+          child: cupertinoSwitch,
+        );
+      }
+      return cupertinoSwitch;
     }
 
-    return Switch(
+    final materialSwitch = Switch(
       value: value,
       onChanged: onChanged,
       activeTrackColor: activeColor ?? Theme.of(context).colorScheme.primary,
       focusNode: focusNode,
     );
+    if (semanticLabel != null) {
+      return Semantics(
+        label: semanticLabel,
+        toggled: value,
+        child: materialSwitch,
+      );
+    }
+    return materialSwitch;
   }
 }

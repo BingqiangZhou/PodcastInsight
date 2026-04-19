@@ -15,6 +15,7 @@ class PodcastImageWidget extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.iconColor,
     this.iconSize,
+    this.semanticLabel,
   });
   final String? imageUrl;
   final String? fallbackImageUrl;
@@ -23,6 +24,7 @@ class PodcastImageWidget extends StatefulWidget {
   final BoxFit fit;
   final Color? iconColor;
   final double? iconSize;
+  final String? semanticLabel;
 
   @override
   State<PodcastImageWidget> createState() => _PodcastImageWidgetState();
@@ -215,6 +217,7 @@ class _PodcastImageWidgetState extends State<PodcastImageWidget> {
         width: widget.width,
         height: widget.height,
         fit: widget.fit,
+        semanticLabel: widget.semanticLabel,
         gaplessPlayback: true,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;

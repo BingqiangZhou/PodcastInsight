@@ -299,11 +299,15 @@ class _PodcastExpandedOverlay extends ConsumerWidget {
             duration: _kPlayerTransition,
             curve: Curves.easeOutCubic,
             opacity: visible ? 1 : 0,
-            child: GestureDetector(
-              onTap: () =>
-                  ref.read(podcastPlayerUiProvider.notifier).collapse(),
-              child: ColoredBox(
-                color: theme.colorScheme.scrim.withValues(alpha: 0.22),
+            child: Semantics(
+              button: true,
+              hint: 'Collapse player',
+              child: GestureDetector(
+                onTap: () =>
+                    ref.read(podcastPlayerUiProvider.notifier).collapse(),
+                child: ColoredBox(
+                  color: theme.colorScheme.scrim.withValues(alpha: 0.22),
+                ),
               ),
             ),
           ),
@@ -341,21 +345,24 @@ class _ExpandedPanelContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Center(
-            child: GestureDetector(
-              key: showPrimaryKeys
-                  ? const Key('podcast_bottom_player_drag_handle')
-                  : null,
-              behavior: HitTestBehavior.opaque,
-              onVerticalDragEnd: (_) => ProviderScope.containerOf(
-                context,
-                listen: false,
-              ).read(podcastPlayerUiProvider.notifier).collapse(),
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  borderRadius: AppRadius.pillRadius,
+            child: Semantics(
+              hint: 'Drag to collapse player',
+              child: GestureDetector(
+                key: showPrimaryKeys
+                    ? const Key('podcast_bottom_player_drag_handle')
+                    : null,
+                behavior: HitTestBehavior.opaque,
+                onVerticalDragEnd: (_) => ProviderScope.containerOf(
+                  context,
+                  listen: false,
+                ).read(podcastPlayerUiProvider.notifier).collapse(),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    borderRadius: AppRadius.pillRadius,
+                  ),
                 ),
               ),
             ),
@@ -436,28 +443,31 @@ class _ExpandedHero extends ConsumerWidget {
         ),
         SizedBox(width: context.spacing.smMd),
         Expanded(
-          child: GestureDetector(
-            key: const Key('podcast_bottom_player_expanded_title'),
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              var resolvedCurrentLocation = currentLocation;
-              try {
-                resolvedCurrentLocation = GoRouterState.of(context).uri.toString();
-              } catch (e) {
-                logger.AppLogger.debug('[BottomPlayer] Failed to get current route: $e');
-              }
-              final episodeDetailPath =
-                  '/podcast/episodes/${episode.subscriptionId}/${episode.id}';
-              if (resolvedCurrentLocation.startsWith(episodeDetailPath)) {
-                return;
-              }
-              PodcastNavigation.goToEpisodeDetail(
-                context,
-                episodeId: episode.id,
-                subscriptionId: episode.subscriptionId,
-                episodeTitle: episode.title,
-              );
-            },
+          child: Semantics(
+            button: true,
+            hint: 'View episode details',
+            child: GestureDetector(
+              key: const Key('podcast_bottom_player_expanded_title'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                var resolvedCurrentLocation = currentLocation;
+                try {
+                  resolvedCurrentLocation = GoRouterState.of(context).uri.toString();
+                } catch (e) {
+                  logger.AppLogger.debug('[BottomPlayer] Failed to get current route: $e');
+                }
+                final episodeDetailPath =
+                    '/podcast/episodes/${episode.subscriptionId}/${episode.id}';
+                if (resolvedCurrentLocation.startsWith(episodeDetailPath)) {
+                  return;
+                }
+                PodcastNavigation.goToEpisodeDetail(
+                  context,
+                  episodeId: episode.id,
+                  subscriptionId: episode.subscriptionId,
+                  episodeTitle: episode.title,
+                );
+              },
             child: SizedBox(
               key: const Key('podcast_bottom_player_expanded_text_block'),
               height: imageSize,
@@ -507,6 +517,7 @@ class _ExpandedHero extends ConsumerWidget {
             ),
           ),
         ),
+      ),
       ],
     );
   }

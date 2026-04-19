@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -30,7 +28,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _secureStorage = const FlutterSecureStorage();
   bool _obscurePassword = true;
   bool _rememberMe = false;
 
@@ -48,23 +45,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _loadSavedCredentials() async {
-    try {
-      final savedUsername = await _secureStorage.read(
-        key: AppConstants.savedUsernameKey,
-      );
+    final storage = ref.read(secureStorageProvider);
+    final savedUsername = await storage.get(AppConstants.savedUsernameKey);
+    final savedPassword = await storage.get(AppConstants.savedPasswordKey);
 
-      if (!mounted) {
-        return;
-      }
+    if (!mounted) return;
 
-      if (savedUsername != null) {
-        setState(() {
-          _emailController.text = savedUsername;
-          _rememberMe = true;
-        });
-      }
-    } on PlatformException {
-      // Keychain unavailable (e.g. macOS without keychain entitlements)
+    if (savedUsername != null) {
+      setState(() {
+        _emailController.text = savedUsername;
+        _passwordController.text = savedPassword ?? '';
+        _rememberMe = true;
+      });
     }
   }
 
@@ -73,20 +65,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (formState == null || !formState.validate()) return;
 
     if (_rememberMe) {
-      try {
-        await _secureStorage.write(
-          key: AppConstants.savedUsernameKey,
-          value: _emailController.text.trim(),
-        );
-      } on PlatformException {
-        // Keychain unavailable
-      }
+      final storage = ref.read(secureStorageProvider);
+      await storage.save(AppConstants.savedUsernameKey, _emailController.text.trim());
+      await storage.save(AppConstants.savedPasswordKey, _passwordController.text);
     } else {
-      try {
-        await _secureStorage.delete(key: AppConstants.savedUsernameKey);
-      } on PlatformException {
-        // Keychain unavailable
-      }
+      final storage = ref.read(secureStorageProvider);
+      await storage.remove(AppConstants.savedUsernameKey);
+      await storage.remove(AppConstants.savedPasswordKey);
     }
 
     if (!mounted) {
@@ -228,18 +213,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   children: [
                     AdaptiveSwitch(
                       value: _rememberMe,
+                      semanticLabel: l10n.auth_remember_me,
                       onChanged: (value) async {
                         setState(() {
                           _rememberMe = value;
                         });
                         if (!_rememberMe) {
-                          try {
-                            await _secureStorage.delete(
-                              key: AppConstants.savedUsernameKey,
-                            );
-                          } on PlatformException {
-                            // Keychain unavailable
-                          }
+                          final storage = ref.read(secureStorageProvider);
+                          await storage.remove(AppConstants.savedUsernameKey);
+                          await storage.remove(AppConstants.savedPasswordKey);
                         }
                       },
                     ),

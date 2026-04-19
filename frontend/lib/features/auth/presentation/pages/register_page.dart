@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -29,7 +28,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _usernameController = TextEditingController();
-  final _secureStorage = const FlutterSecureStorage();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
@@ -63,12 +61,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     }
 
     if (_rememberMe) {
-      await _secureStorage.write(
-        key: AppConstants.savedUsernameKey,
-        value: _emailController.text.trim(),
-      );
+      final storage = ref.read(secureStorageProvider);
+      await storage.save(AppConstants.savedUsernameKey, _emailController.text.trim());
+      await storage.save(AppConstants.savedPasswordKey, _passwordController.text);
     } else {
-      await _secureStorage.delete(key: AppConstants.savedUsernameKey);
+      final storage = ref.read(secureStorageProvider);
+      await storage.remove(AppConstants.savedUsernameKey);
+      await storage.remove(AppConstants.savedPasswordKey);
     }
 
     ref.read(authProvider.notifier).register(
@@ -298,14 +297,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   children: [
                     AdaptiveSwitch(
                       value: _rememberMe,
+                      semanticLabel: l10n.auth_remember_me,
                       onChanged: (value) async {
                         setState(() {
                           _rememberMe = value;
                         });
                         if (!_rememberMe) {
-                          await _secureStorage.delete(
-                            key: AppConstants.savedUsernameKey,
-                          );
+                          final storage = ref.read(secureStorageProvider);
+                          await storage.remove(AppConstants.savedUsernameKey);
+                          await storage.remove(AppConstants.savedPasswordKey);
                         }
                       },
                     ),
@@ -320,6 +320,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   children: [
                     AdaptiveSwitch(
                       value: _agreeToTerms,
+                      semanticLabel: l10n.auth_terms_and_conditions,
                       onChanged: (value) {
                         setState(() {
                           _agreeToTerms = value;

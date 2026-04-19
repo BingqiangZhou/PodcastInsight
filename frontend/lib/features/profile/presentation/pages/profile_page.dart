@@ -826,13 +826,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       ),
     );
 
-    return GestureDetector(
-      key: const Key('profile_user_menu_button'),
-      onTap: () {
-        AdaptiveHaptic.lightImpact();
-        _showUserMenu(context, user, l10n);
-      },
-      child: avatar,
+    return Semantics(
+      button: true,
+      hint: 'User menu',
+      child: GestureDetector(
+        key: const Key('profile_user_menu_button'),
+        onTap: () {
+          AdaptiveHaptic.lightImpact();
+          _showUserMenu(context, user, l10n);
+        },
+        child: avatar,
+      ),
     );
   }
 

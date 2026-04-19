@@ -36,6 +36,7 @@ Future<T?> showAppDialog<T>({
     useRootNavigator: useRootNavigator,
     builder: (dialogCtx) {
       return Container(
+        constraints: const BoxConstraints(maxWidth: 560),
         decoration: BoxDecoration(
           color: Theme.of(dialogCtx).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(borderRadius),
@@ -117,23 +118,27 @@ Future<bool?> showAppConfirmationDialog({
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogCtx).pop(false),
-                  child: Text(cancelText ?? 'Cancel'),
+                Flexible(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(dialogCtx).pop(false),
+                    child: Text(cancelText ?? 'Cancel'),
+                  ),
                 ),
                 SizedBox(width: context.spacing.sm),
-                TextButton(
-                  onPressed: () => Navigator.of(dialogCtx).pop(true),
-                  style: isDestructive
-                      ? TextButton.styleFrom(
-                          foregroundColor: theme.colorScheme.error,
-                        )
-                      : null,
-                  child: Text(
-                    confirmText ?? 'Confirm',
+                Flexible(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(dialogCtx).pop(true),
                     style: isDestructive
-                        ? TextStyle(color: theme.colorScheme.error)
+                        ? TextButton.styleFrom(
+                            foregroundColor: theme.colorScheme.error,
+                          )
                         : null,
+                    child: Text(
+                      confirmText ?? 'Confirm',
+                      style: isDestructive
+                          ? TextStyle(color: theme.colorScheme.error)
+                          : null,
+                    ),
                   ),
                 ),
               ],

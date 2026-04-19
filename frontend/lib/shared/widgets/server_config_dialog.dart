@@ -354,16 +354,20 @@ class _ServerConfigDialogState extends ConsumerState<ServerConfigDialog> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(l10n.cancel),
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(l10n.cancel),
+                        ),
                       ),
                       SizedBox(width: context.spacing.sm),
-                      TextButton(
-                        onPressed: _connectionStatus == ConnectionStatus.success
-                            ? () => _saveServerConfig(context)
-                            : null,
-                        child: Text(l10n.save),
+                      Flexible(
+                        child: TextButton(
+                          onPressed: _connectionStatus == ConnectionStatus.success
+                              ? () => _saveServerConfig(context)
+                              : null,
+                          child: Text(l10n.save),
+                        ),
                       ),
                     ],
                   ),

@@ -7,6 +7,7 @@ class AppConstants {
   static const String tokenExpiryKey = 'token_expiry';
   static const String userProfileKey = 'user_profile';
   static const String savedUsernameKey = 'saved_username';
+  static const String savedPasswordKey = 'saved_password';
   static const String hasCompletedOnboardingKey = 'has_completed_onboarding';
 }
 

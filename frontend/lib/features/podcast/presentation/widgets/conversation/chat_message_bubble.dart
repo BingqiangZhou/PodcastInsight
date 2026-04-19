@@ -43,10 +43,14 @@ class ChatMessageBubble extends StatelessWidget {
     // User: right-aligned with surfaceContainerLow, AI: left-aligned with surfaceContainerLowest + primary gradient left bar
     return Align(
       alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: isSelectMode ? onToggleSelection : null,
-        child: Container(
+      child: Semantics(
+        button: true,
+        hint: 'Select message',
+        enabled: isSelectMode,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: isSelectMode ? onToggleSelection : null,
+          child: Container(
           constraints: BoxConstraints(
             maxWidth: MediaQuery.sizeOf(context).width * 0.75,
           ),
@@ -71,6 +75,7 @@ class ChatMessageBubble extends StatelessWidget {
                   extension,
                 ),
         ),
+      ),
       ),
     );
   }

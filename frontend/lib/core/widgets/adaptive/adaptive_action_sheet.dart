@@ -58,6 +58,7 @@ Future<void> showAdaptiveActionSheet({
 
   return showModalBottomSheet<void>(
     context: context,
+    isScrollControlled: true,
     builder: (sheetContext) {
       final theme = Theme.of(sheetContext);
       return Container(
@@ -67,7 +68,8 @@ Future<void> showAdaptiveActionSheet({
         ),
         clipBehavior: Clip.antiAlias,
         child: SafeArea(
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (title != null || message != null)
@@ -120,6 +122,7 @@ Future<void> showAdaptiveActionSheet({
                   onTap: () => Navigator.of(sheetContext).pop(),
                 ),
             ],
+          ),
           ),
         ),
       );

@@ -74,6 +74,7 @@ class _PodcastHighlightsPageState extends ConsumerState<PodcastHighlightsPage> {
     if (_isLoadingMore) return;
 
     if (!_hasMore) return;
+    if (!_scrollController.hasClients) return;
 
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;

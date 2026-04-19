@@ -171,11 +171,13 @@ class HighlightCard extends ConsumerWidget {
                   color: theme.colorScheme.primary,
                 ),
                 SizedBox(width: context.spacing.sm),
-                Text(
-                  l10n.podcast_highlights_original_quote,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+                Flexible(
+                  child: Text(
+                    l10n.podcast_highlights_original_quote,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
