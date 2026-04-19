@@ -172,6 +172,7 @@ class ShownotesDisplayWidgetState
   }
 
   Future<void> _refreshShownotesCache() async {
+    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
     final nextShownotes = _resolveShownotesContent(widget.episode);
     if (nextShownotes.isEmpty) {
       if (mounted && _shownotes.isNotEmpty) {
@@ -211,7 +212,7 @@ class ShownotesDisplayWidgetState
     }
     final nextSections = nextSanitized.isEmpty
         ? const <_ShownotesSection>[]
-        : _extractSections(nextSanitized);
+        : _extractSections(nextSanitized, fallbackTitle: l10n.podcast_tab_shownotes);
     final nextAnchors = nextSections
         .map((section) => section.anchor)
         .toList(growable: false);
@@ -302,7 +303,10 @@ class ShownotesDisplayWidgetState
     });
   }
 
-  List<_ShownotesSection> _extractSections(String sanitizedShownotes) {
+  List<_ShownotesSection> _extractSections(
+    String sanitizedShownotes, {
+    String fallbackTitle = 'Shownotes',
+  }) {
     final fragment = html_parser.parseFragment(sanitizedShownotes);
     final nodes = fragment.nodes
         .where((node) => _nodeText(node).isNotEmpty)
@@ -323,9 +327,9 @@ class ShownotesDisplayWidgetState
 
     return <_ShownotesSection>[
       _ShownotesSection(
-        anchor: const ShownotesAnchor(
+        anchor: ShownotesAnchor(
           id: 'shownotes-0',
-          title: 'Shownotes',
+          title: fallbackTitle,
           index: 0,
         ),
         contentHtml: sanitizedShownotes,
@@ -531,6 +535,7 @@ class ShownotesDisplayWidgetState
         }
       },
       onErrorBuilder: (context, error, stackTrace) {
+        final errorL10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
         return Container(
           padding: EdgeInsets.all(context.spacing.md),
           child: Column(
@@ -541,7 +546,7 @@ class ShownotesDisplayWidgetState
               ),
               SizedBox(height: context.spacing.sm),
               Text(
-                'Failed to render shownotes',
+                errorL10n.podcast_error_loading,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.error,
                 ),

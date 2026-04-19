@@ -36,4 +36,8 @@ class AppDurations {
 
   // Slide animations
   static const Duration slideNormal = Duration(milliseconds: 260);
+
+  // Debounce durations
+  static const Duration debounceSearch = Duration(milliseconds: 300);
+  static const Duration debounceMedium = Duration(milliseconds: 400);
 }

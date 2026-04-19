@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -167,7 +168,7 @@ class DiscoverChartRow extends StatelessWidget {
                                   'podcast_discover_subscribe_${item.itemId}',
                                 ),
                                 onPressed: isSubscribed ? null : onSubscribe,
-                                tooltip: 'Subscribe',
+                                tooltip: context.l10n.podcast_subscribe,
                                 style: IconButton.styleFrom(
                                   minimumSize: Size(isDense ? 32 : 36, isDense ? 32 : 36),
                                   maximumSize: Size(isDense ? 32 : 36, isDense ? 32 : 36),
@@ -197,7 +198,7 @@ class DiscoverChartRow extends StatelessWidget {
                             'podcast_discover_play_${item.itemId}',
                           ),
                           onPressed: onPlay,
-                          tooltip: 'Play',
+                          tooltip: context.l10n.podcast_play,
                           style: IconButton.styleFrom(
                             minimumSize: Size(isDense ? 32 : 36, isDense ? 32 : 36),
                             maximumSize: Size(isDense ? 32 : 36, isDense ? 32 : 36),

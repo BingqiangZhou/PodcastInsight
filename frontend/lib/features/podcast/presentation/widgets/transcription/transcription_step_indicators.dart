@@ -65,11 +65,11 @@ class TranscriptionStatusStepIcon extends StatelessWidget {
       case 2:
         return const Icon(Icons.transform, size: 16, color: AppColors.warning);
       case 3:
-        return const Icon(Icons.content_cut, size: 16, color: Colors.purple);
+        return const Icon(Icons.content_cut, size: 16, color: AppColors.chart5);
       case 4:
-        return const Icon(Icons.transcribe, size: 16, color: Colors.teal);
+        return const Icon(Icons.transcribe, size: 16, color: AppColors.chart7);
       case 5:
-        return const Icon(Icons.merge_type, size: 16, color: Colors.green);
+        return const Icon(Icons.merge_type, size: 16, color: AppColors.leaf);
       default:
         return const Icon(Icons.pending, size: 16, color: AppColors.lightOnSurfaceMuted);
     }

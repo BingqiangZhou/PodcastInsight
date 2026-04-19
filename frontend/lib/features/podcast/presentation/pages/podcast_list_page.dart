@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
@@ -99,7 +100,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     }
     _searchDebounce?.cancel();
     _searchDebounce = DebounceTimer(
-      const Duration(milliseconds: 400),
+      AppDurations.debounceMedium,
       () {
         final notifier = ref.read(search.podcastSearchProvider.notifier);
         final mode = ref.read(search.podcastSearchProvider).searchMode;

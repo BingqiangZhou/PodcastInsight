@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/utils/debounce.dart' as utils;
 import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episode_lookup_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart';
@@ -12,7 +13,7 @@ part 'podcast_search_provider.g.dart';
 enum PodcastSearchMode { podcasts, episodes }
 
 final podcastSearchDebounceDurationProvider = Provider<Duration>((ref) {
-  return const Duration(milliseconds: 400);
+  return AppDurations.debounceMedium;
 });
 
 class PodcastSearchState extends Equatable {

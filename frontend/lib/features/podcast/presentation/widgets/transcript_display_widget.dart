@@ -104,7 +104,7 @@ class TranscriptDisplayWidgetState
       });
       _searchDebounce?.cancel();
       _searchDebounce = DebounceTimer(
-        const Duration(milliseconds: 300),
+        AppDurations.debounceSearch,
         () => _performSearch(query),
       );
     } else {

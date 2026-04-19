@@ -46,6 +46,12 @@ import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 /// - **Desktop**: Basic playback controls (no lock screen)
 class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
 
+  /// Default strings used when no media is loaded or metadata is unavailable.
+  /// These are system-level notification labels that don't have l10n access.
+  static const String _defaultMediaTitle = 'No media';
+  static const String _defaultArtist = 'Unknown';
+  static const String _legacyPlaybackTitle = 'Audio Playback';
+
   PodcastAudioHandler() : _player = AudioPlayer() {
     // Setup player event listeners
     _listenPlayerEvents();
@@ -54,8 +60,8 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     mediaItem.add(
       const MediaItem(
         id: 'default',
-        title: 'No media',
-        artist: 'Unknown',
+        title: _defaultMediaTitle,
+        artist: _defaultArtist,
       ),
     );
 
@@ -332,7 +338,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     final newMediaItem = MediaItem(
       id: id,
       title: title,
-      artist: artist ?? 'Unknown',
+      artist: artist ?? _defaultArtist,
       album: album,
       artUri: validArtUri,
       duration: durationHint,
@@ -383,8 +389,8 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
     mediaItem.add(
       MediaItem(
         id: url,
-        title: 'Audio Playback',
-        artist: 'Unknown',
+        title: _legacyPlaybackTitle,
+        artist: _defaultArtist,
         extras: <String, dynamic>{'url': url},
       ),
     );
