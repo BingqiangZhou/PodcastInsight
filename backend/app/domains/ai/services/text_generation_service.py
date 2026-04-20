@@ -13,7 +13,6 @@ import time
 from typing import Any
 
 import aiofiles
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.ai_client import AIClientService
