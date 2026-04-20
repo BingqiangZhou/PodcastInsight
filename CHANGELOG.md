@@ -4,7 +4,113 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.51.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.50.0...v0.51.0) - 2026-04-20 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.51.0))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Remove pyjwt, bcrypt, itsdangerous, email-validator ([dba7b8a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dba7b8ad672471f60650513cbf6e792cb64f5b9b))
+- *(podcast)* Remove stale task_orchestration_service from services ([fb2c39b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/fb2c39b8f0a1aec54c377764ca55a61e93bfe004))
+- Remove SpotlightService (TODO stubs with no implementation) ([89012a4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/89012a4a588ccaab8e6d7f056001e6bf029c828e))
+
+### ⚡ Performance
+
+- *(backend)* Tune database pool sizes, add admin check cache, and fix worker shutdown cleanup ([7001b65](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7001b65c75d171e8c2de4ed5eec925a0d85de7fe))
+
+### 🎨 Styling
+
+- *(backend)* Rename migration to follow NNN_ naming convention ([218b997](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/218b9977e392997d534633375cd3f1719f75e455))
+- *(backend)* Fix lint issues found by ruff --fix ([d70f1e5](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d70f1e5a47d190aa67e81baae764a1c116e20a2b))
+- *(ai)* Fix import ordering in text_generation_service ([7b2d270](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7b2d270cf6754750368e10ec29d5b96ae7635e5a))
+- *(podcast)* Fix import ordering in route modules ([a354477](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a3544770158cd8bb6c26926682836c5eb8a0b545))
+- *(podcast)* Add missing newline at end of playback_service ([c69880c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c69880c393768372a7e0032839842df147f46d71))
+
+### 🐛 Bug Fixes
+
+- *(repo)* Add lazyload option to prevent eager loading in get_or_create_queue ([3c700d3](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3c700d3a8bef7c77219c7674145dcda8f513f8a3))
+- *(security)* Harden server deployment (P0 + P1) ([3dd917d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3dd917d8881316f4fb20b79636c8a0b6b001faea))
+- Update Redis API usage after consolidation ([18f4b17](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/18f4b1749a749a36c414de0919e3eb13785bc5a8))
+- Remove User model imports from downstream files ([c84e335](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c84e335d4e67c018d3b545c03a126e3c8a1c0610))
+- Remove duplicate is_podcast_subscription function after domain merge ([f11ca9d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f11ca9da33b0fd3209e9ff882e0d42388e2cd35b))
+- Remove task_routes from celery config, add missing security tests ([8b58274](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8b5827453e279a89c7d8297d663186c4277bd9cf))
+- *(network)* Update remaining AuthenticationException reference in podcast_feed_providers ([377c40b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/377c40b44c6b5da24c26af55e063cfc22e515ec1))
+- *(frontend)* Resolve import issues from Phase 1-4 simplification ([fa0573d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/fa0573d94b5297ed9e7157ae6dcf8c4907444f99))
+- *(frontend)* Update test imports for merged podcast providers ([96185b2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/96185b2d2d6bab30e700af6fcd80a42dc193bc0a))
+- *(test)* Update discover/layout test overrides for manual NotifierProvider ([d2a56be](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d2a56bec3f5f18b13d74221486b6f90fd6b0d592))
+- *(test)* Update imports for merged podcast providers ([256ce3f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/256ce3fdd8dc5b5519f958df7c7e952a18d262b6))
+- *(profile)* Show app version and remove self-import ([52db275](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/52db27530e7897b62750eb23851dfd14adfc2883))
+
+### 📚 Documentation
+
+- Add backend architecture simplification design ([553b175](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/553b1755fac49d5a2aa5bb490f02b3220b7f6eb0))
+- Add backend simplification implementation plan (6 phases, 41 tasks) ([0ed30d8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0ed30d895dafcb7e44a94fb305b742f8c9c9cd16))
+- Add frontend deep simplification design spec ([0ab6c86](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0ab6c869a84527ff30fa1803c203c1d029f3046a))
+
+### 🚀 Features
+
+- *(backend)* Add migration to drop simplification tables ([77ef2f0](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/77ef2f093a7186998df42efff7161b72ef507122))
+- *(settings)* Enable pyright-lsp plugin in settings.json ([f65f6fb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f65f6fbb2b765f08d5e8f14df0c9faec1a4973be))
+- *(network)* Replace manual ETag interceptor with dio_cache_interceptor ([3e78ffa](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3e78ffac12bbd632b9db21beb3f8102beb864c22))
+- *(network)* Inline retry logic into DioClient ([9dbf408](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9dbf408cf842ac219ce01c6af5d0eec934484fbc))
+
+### 🚜 Refactor
+
+- *(backend)* Simplify architecture for single-user personal app ([f71615a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f71615a088263cdcc157d34617d1c70a886f7abb))
+- *(backend)* Flatten Redis AppCache, remove dead code ([ac66fc6](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ac66fc699ceb769f10c93cfeb1aebf7cdde9a3e0))
+- *(config)* Remove JWT/multi-user fields, add API_KEY ([d8e0fd8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d8e0fd8f99a70fe4fde94fb0d154cadba2e9cfcf))
+- *(security)* Delete jwt.py and password.py, keep Fernet encryption only ([2caff14](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2caff146d9cd8053fa72bf530133592f69cd735d))
+- *(auth)* Replace JWT auth with API key authentication ([6515320](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/65153208bf2482aa32b417404d74f5afa083c129))
+- *(database)* Remove Celery worker session caches and thread-safe locking ([3b22839](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3b22839784981b74ab460f57a08d30ceb4d14ed3))
+- *(redis)* Consolidate to single redis.py, remove domain-specific methods ([166ba04](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/166ba045b59c5e5678aa1588530cae308b09e828))
+- *(alembic)* Remove JWT and password mocks from env.py ([4b400e9](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4b400e9f652659661e5846bcdc80b5574849992d))
+- Delete user domain and auth routes ([4a3ddaa](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4a3ddaa56b9ac5e5fa842efdde9900676e56bb97))
+- *(admin)* Replace itsdangerous cookie auth with API key ([68547bb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/68547bb13dd380080de44dee65526d0ad6a98fe8))
+- *(bootstrap)* Remove first-run middleware and cache warming ([4ad076c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4ad076c4a41dbeec951e429f1216f9c91763d143))
+- *(admin)* Remove User model imports, use API key auth ([417c5ec](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/417c5ec2382c33bdf0f4ae9ffe529fa083870f50))
+- *(admin)* Replace user-based setup/login with API key login ([154e3d7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/154e3d767c573a89baca8f47ecc834dc422b008d))
+- *(podcast)* Move subscription models into podcast/models.py ([3cf97ff](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3cf97ff8e50922e989b54a2be92067e82744e398))
+- *(podcast)* Move subscription parsers into podcast/parsers/ ([368bb6d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/368bb6d2724a1917e9cfc222222c8689c0bc59e4))
+- Merge subscription/media/content domains into podcast ([2ed3162](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2ed3162028bd16d84607cf225a17b00073929acd))
+- *(celery)* Simplify beat schedule and update tests ([86d463c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/86d463c05ca0e763c6a92670014d44658639619f))
+- *(backend)* Remove unused user/token/password-reset schemas from shared ([977b132](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/977b1325e86e974cd8cb7c626e99269be4f069c6))
+- *(docker)* Merge celery_beat into celery_worker, remove OBS_ALERT vars ([6ac2ec0](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6ac2ec0ae719523c62f2aa2c3f8bc29c44a86ea1))
+- *(ai)* Consolidate 6 AI services into 2 files ([bcf7d9c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bcf7d9ce9bf7beab2dbb8d824379f5857053e6a6))
+- *(ai)* Update import paths after service consolidation ([148bef1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/148bef13985f0e37a21fe51856eab5651f6ce1d1))
+- *(podcast)* Consolidate 14 podcast services into 6 files ([f254511](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f2545115c35bbf350c848ea44f6a63547a99cade))
+- *(podcast)* Consolidate 13 repositories into 2 files ([0a77da1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0a77da12038dd001e842efba341ea7bdc3eb3c57))
+- *(podcast)* Move task_orchestration from services to tasks ([41a2230](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/41a2230eac95ac04746e0b5470b264fb72d8a155))
+- *(theme)* Derive iOS theme extensions from base via copyWith ([7accc75](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7accc75ce713af12930b08c69bdcc4acd02aba51))
+- *(theme)* Remove unused responsive helper re-exports from AppTheme ([38a7067](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/38a70676af098c3b941894d9fe3586790e27137b))
+- *(frontend)* Simplify TextProcessingCache from 385 to 122 lines ([29799c2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/29799c2b13f3a132ed019b6e17d2e33315fdc22d))
+- *(network)* Simplify request deduplication with Future-based map ([c25f33d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c25f33d6ebfd70796450846163c98fbe038804ac))
+- *(theme)* Extract text style helpers to AppTextStyles ([2e70db8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/2e70db8d07f839132ac880e7d000ea85b98cad15))
+- Replace ResourceCleanupMixin with manual cleanup in ConversationChatWidget ([9938f8d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9938f8d264f0c20b834fed817191a595bd073dc4))
+- *(theme)* Drive platform differences from AppThemeExtension fields ([ad53de4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ad53de4760229bcea8fb031655457ca0caa63b47))
+- Remove server-config event bus, inline cleanup into ServerConfigNotifier ([023e38d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/023e38df6d3accdbefae57b25e67c9e256efe701))
+- *(podcast)* Inline CachedAsyncNotifier and DeduplicatingNotifier base classes ([a0af830](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a0af8308cefd8284b22254c0258fda455831c046))
+- *(podcast)* Merge transcription and summary providers into conversation_providers ([3834b98](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3834b98f0ec5cc4ae69e631f91487d4db2c509a9))
+- *(podcast)* Merge discover and country_selector into podcast_search_provider ([0ee74e2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0ee74e22dcd596266fc1a02a433a49fa98137d26))
+- *(podcast)* Merge core, subscription, and stats into podcast_providers ([4938ed1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4938ed18c7d6715afb8335adb5c5417380461716))
+- *(podcast)* Merge audio handler and selectors into playback providers ([c59e9cf](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c59e9cf53b564f7c62ced5a56d07c5e76bd98aeb))
+- *(podcast)* Merge player UI state and layout into playback providers ([1a82b80](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1a82b803dd5f1d63c54b8d8a638e20aeacccba9b))
+- *(utils)* Simplify TextProcessingCache from 122 to 67 lines ([3429376](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3429376887dc3ab482842063595c73cb2ce03466))
+- *(network)* Optimize DioClient from 685 to 292 lines ([81edf4b](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/81edf4b194ec887cd504e2c5cfb4c6a03b73f61f))
+
+### 🧪 Testing
+
+- Fix test failures after backend simplification ([b7644b0](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/b7644b0591d455973b15d56e02e97315458a4606))
+- *(admin)* Rewrite IP binding test for API key auth ([962f38c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/962f38cd2aa4e063d8b4964fae8e8cfaf91db70c))
+- Remove obsolete JWT/password security tests ([9f046d1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9f046d1b50cf34dea2b21443e396b5b180370662))
+- Fix Redis API test failures after cache consolidation ([dc01451](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dc0145111814dcc8a6ef72ccf2ee2d2571ccf598))
+- Fix admin, celery, and integration test failures after simplification ([72d875f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/72d875f406febff33cdca069155ec348e1eccc13))
+- *(network)* Update dio_client_test.dart for simplified architecture ([dbfbebc](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dbfbebc48d156ba45ddfdd67cd950b7efdc1f447))
+
+
+
 ## [0.50.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.49.0...v0.50.0) - 2026-04-19 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.50.0))
+
+### Revert
+
+- *(ci)* Restore macOS runners to macos-latest ([f01fec0](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f01fec08f3695f7efe0d71d82b34266f6492b0a1))
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -36,6 +142,9 @@ All notable changes to this project will be documented in this file.
 - *(auth)* Add TextInputAction for keyboard chaining on auth forms (round 5) ([c3bf9bd](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c3bf9bd648e53c12b96914bb7150b2d1e1f745d8))
 - *(ui)* Improve accessibility semantics, dialog constraints, and responsive layout (round 7) ([e0f613f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e0f613fe0cdba996129d68a72aafe01280a3b7c4))
 - Resolve functional bugs in sleep timer and auth validation ([51d8401](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/51d84017274eed2dbf765b198b8624d21cec6ec1))
+- *(ci)* Upgrade macOS runners to macos-26 for Xcode 26.2 ([e462217](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e4622175c20907fa2fe1a1b8b34d604d4aa79633))
+- *(deps)* Downgrade connectivity_plus to ^7.0.0 ([c620473](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c62047326aa813010c93ff3966b0e30384a2e203))
+- *(deps)* Pin connectivity_plus to >=7.0.0 <7.1.0 ([8ecf454](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8ecf454461ec23774d8225ec09ca93ce8b20d031))
 
 ### 🚀 Features
 
