@@ -195,6 +195,11 @@ async def close_db() -> None:
     await asyncio.sleep(0.1)
 
 
+async def close_worker_db_runtimes() -> None:
+    """Dispose DB engines for worker runtime cleanup (shutdown hook)."""
+    await close_db()
+
+
 async def check_db_health() -> dict[str, Any]:
     """Return runtime DB health metrics."""
     if not is_database_configured():

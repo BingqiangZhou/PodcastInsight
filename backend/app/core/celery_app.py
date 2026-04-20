@@ -22,11 +22,6 @@ _celery_app: Celery | None = None
 def _build_beat_schedule() -> dict[str, Any]:
     settings = get_settings()
     beat_schedule = {
-        "log-task-statistics": {
-            "task": "app.domains.podcast.tasks.tasks_maintenance.log_periodic_task_statistics",
-            "schedule": 600.0,
-            "options": {"queue": "default"},
-        },
         "refresh-podcast-feeds": {
             "task": "app.domains.podcast.tasks.tasks_subscription.refresh_all_podcast_feeds",
             "schedule": crontab(minute=0),
@@ -49,7 +44,7 @@ def _build_beat_schedule() -> dict[str, Any]:
         },
         "extract-pending-highlights": {
             "task": "app.domains.podcast.tasks.tasks_highlight.extract_pending_highlights",
-            "schedule": crontab(minute=30),  # 每小时30分执行
+            "schedule": crontab(minute=30),
             "options": {"queue": "default"},
         },
     }
@@ -151,13 +146,8 @@ try:
         """Dispose DB engines when a Celery worker child process shuts down."""
         try:
             from app.core.database import close_worker_db_runtimes
-            from app.domains.podcast.tasks._runlog import dispose_runlog_engine
 
-            async def _shutdown():
-                await dispose_runlog_engine()
-                await close_worker_db_runtimes()
-
-            asyncio.run(_shutdown())
+            asyncio.run(close_worker_db_runtimes())
         except Exception:
             _logger.warning(
                 "Failed to dispose worker DB engines during shutdown", exc_info=True

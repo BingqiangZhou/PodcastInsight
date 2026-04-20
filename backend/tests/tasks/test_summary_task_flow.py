@@ -18,16 +18,6 @@ async def _worker_session_factory(session_obj):
     yield session_obj
 
 
-@asynccontextmanager
-async def _acquired_lock(*args, **kwargs):
-    yield True
-
-
-@asynccontextmanager
-async def _skipped_lock(*args, **kwargs):
-    yield False
-
-
 @pytest.mark.asyncio
 async def test_generate_pending_summaries_success(monkeypatch):
     generated = []
@@ -177,28 +167,9 @@ async def test_handler_delegates_to_summary_workflow(monkeypatch):
         "app.domains.podcast.tasks.tasks_summary.SummaryWorkflowService",
         _FakeWorkflow,
     )
-    monkeypatch.setattr(
-        "app.domains.podcast.tasks.tasks_summary.single_instance_task_lock",
-        _acquired_lock,
-    )
 
     result = await generate_pending_summaries_handler(object())
     assert result == {"status": "success", "processed": 1, "failed": 0}
-
-
-@pytest.mark.asyncio
-async def test_handler_skips_when_summary_lock_is_held(monkeypatch):
-    monkeypatch.setattr(
-        "app.domains.podcast.tasks.tasks_summary.single_instance_task_lock",
-        _skipped_lock,
-    )
-
-    result = await generate_pending_summaries_handler(object())
-
-    assert result == {
-        "status": "skipped_locked",
-        "reason": "summary_task_already_running",
-    }
 
 
 def test_generate_pending_summaries_retries_on_failure(monkeypatch):
@@ -209,14 +180,8 @@ def test_generate_pending_summaries_retries_on_failure(monkeypatch):
         coro.close()
         raise RuntimeError("summary failed")
 
-    logs = []
-
-    def _log_task_run(**kwargs):
-        logs.append(kwargs)
-
     task = summary_generation.generate_pending_summaries
     monkeypatch.setattr(summary_generation, "run_async", _run_async_raise)
-    monkeypatch.setattr(summary_generation, "log_task_run", _log_task_run)
 
     def _retry(*, countdown):
         raise _RetryError(countdown)
@@ -226,17 +191,8 @@ def test_generate_pending_summaries_retries_on_failure(monkeypatch):
     with pytest.raises(_RetryError):
         task.run()
 
-    assert logs
-    assert logs[-1]["status"] == "failed"
-
 
 def test_generate_episode_summary_task_delegates_to_workflow(monkeypatch):
-    logs = []
-
-    def _log_task_run(**kwargs):
-        logs.append(kwargs)
-
-    monkeypatch.setattr(summary_generation, "log_task_run", _log_task_run)
     monkeypatch.setattr(
         summary_generation,
         "worker_session",
@@ -269,5 +225,3 @@ def test_generate_episode_summary_task_delegates_to_workflow(monkeypatch):
     )
 
     assert result["episode_id"] == 15
-    assert logs
-    assert logs[-1]["status"] == "success"

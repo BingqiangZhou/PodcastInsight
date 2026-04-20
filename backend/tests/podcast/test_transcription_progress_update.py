@@ -23,7 +23,7 @@ async def test_update_task_progress_in_progress_path_no_name_error(monkeypatch):
 
     throttle = _NoopThrottle()
     monkeypatch.setattr(
-        "app.domains.media.transcription.service._progress_throttle",
+        "app.domains.podcast.transcription.service._progress_throttle",
         throttle,
     )
 

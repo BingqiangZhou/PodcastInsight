@@ -106,10 +106,6 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_success() -> None:
             "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
             return_value=parser,
         ),
-        patch(
-            "app.domains.podcast.services.task_orchestration_service.worker_db_session",
-            _fake_worker_db_session,
-        ),
     ):
         result = await PodcastTaskOrchestrationService(
             session
@@ -151,10 +147,6 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_exception() -> None
         patch(
             "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
             return_value=parser,
-        ),
-        patch(
-            "app.domains.podcast.services.task_orchestration_service.worker_db_session",
-            _fake_worker_db_session,
         ),
     ):
         result = await PodcastTaskOrchestrationService(

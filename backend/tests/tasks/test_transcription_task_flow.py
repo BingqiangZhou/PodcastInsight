@@ -135,14 +135,8 @@ def test_transcription_task_retries_on_failure(monkeypatch):
         coro.close()
         raise RuntimeError("boom")
 
-    logs = []
-
-    def _log_task_run(**kwargs):
-        logs.append(kwargs)
-
     task = transcription.process_audio_transcription
     monkeypatch.setattr(transcription, "run_async", _run_async_raise)
-    monkeypatch.setattr(transcription, "log_task_run", _log_task_run)
 
     def _retry(*, countdown):
         raise _RetryError(countdown)
@@ -151,9 +145,6 @@ def test_transcription_task_retries_on_failure(monkeypatch):
 
     with pytest.raises(_RetryError):
         task.run(task_id=123, config_db_id=None)
-
-    assert logs
-    assert logs[-1]["status"] == "failed"
 
 
 @pytest.mark.asyncio

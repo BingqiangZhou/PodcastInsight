@@ -12,7 +12,6 @@ def test_admin_routes_snapshot() -> None:
 
     expected_paths = {
         "/api/v1/admin/",
-        "/api/v1/admin/setup",
         "/api/v1/admin/login",
         "/api/v1/admin/logout",
         "/api/v1/admin/apikeys",
