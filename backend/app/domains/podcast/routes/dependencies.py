@@ -31,7 +31,7 @@ from app.domains.podcast.services.playback_service import (
 from app.domains.podcast.services.schedule_service import PodcastScheduleService
 from app.domains.podcast.services.search_service import PodcastSearchService
 from app.domains.podcast.services.stats_service import PodcastStatsService
-from app.domains.podcast.services.task_orchestration_service import (
+from app.domains.podcast.tasks.task_orchestration import (
     PodcastTaskOrchestrationService,
 )
 from app.domains.podcast.services.transcription_service import (

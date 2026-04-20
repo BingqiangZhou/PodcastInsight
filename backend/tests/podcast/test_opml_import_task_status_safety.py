@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from app.domains.podcast.models import PodcastEpisode
-from app.domains.podcast.services.task_orchestration_service import (
+from app.domains.podcast.tasks.task_orchestration import (
     PodcastTaskOrchestrationService,
 )
 from app.domains.podcast.tasks.tasks_maintenance import (
@@ -63,11 +63,11 @@ async def test_opml_background_handler_does_not_mutate_existing_episode_status()
 
     with (
         patch(
-            "app.domains.podcast.services.task_orchestration_service.PodcastSubscriptionRepository",
+            "app.domains.podcast.tasks.task_orchestration.PodcastSubscriptionRepository",
             return_value=mock_repo,
         ),
         patch(
-            "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
+            "app.domains.podcast.tasks.task_orchestration.SecureRSSParser",
             return_value=mock_parser,
         ),
     ):

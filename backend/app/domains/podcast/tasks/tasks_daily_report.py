@@ -3,7 +3,7 @@
 from datetime import date
 
 from app.core.celery_app import celery_app
-from app.domains.podcast.services.task_orchestration_service import (
+from app.domains.podcast.tasks.task_orchestration import (
     PodcastTaskOrchestrationService,
 )
 from app.domains.podcast.tasks.runtime import (

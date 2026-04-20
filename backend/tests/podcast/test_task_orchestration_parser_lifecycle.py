@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.domains.podcast.services.task_orchestration_service import (
+from app.domains.podcast.tasks.task_orchestration import (
     PodcastTaskOrchestrationService,
 )
 
@@ -103,15 +103,15 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_success() -> None:
 
     with (
         patch(
-            "app.domains.podcast.services.task_orchestration_service.PodcastSubscriptionRepository",
+            "app.domains.podcast.tasks.task_orchestration.PodcastSubscriptionRepository",
             return_value=repo,
         ),
         patch(
-            "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
+            "app.domains.podcast.tasks.task_orchestration.SecureRSSParser",
             return_value=parser,
         ),
         patch(
-            "app.domains.podcast.services.task_orchestration_service.get_async_session_factory",
+            "app.domains.podcast.tasks.task_orchestration.get_async_session_factory",
             return_value=_fake_session_factory,
         ),
     ):
@@ -149,15 +149,15 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_exception() -> None
 
     with (
         patch(
-            "app.domains.podcast.services.task_orchestration_service.PodcastSubscriptionRepository",
+            "app.domains.podcast.tasks.task_orchestration.PodcastSubscriptionRepository",
             return_value=repo,
         ),
         patch(
-            "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
+            "app.domains.podcast.tasks.task_orchestration.SecureRSSParser",
             return_value=parser,
         ),
         patch(
-            "app.domains.podcast.services.task_orchestration_service.get_async_session_factory",
+            "app.domains.podcast.tasks.task_orchestration.get_async_session_factory",
             return_value=_fake_session_factory,
         ),
     ):
@@ -178,11 +178,11 @@ async def test_process_opml_subscription_episodes_closes_parser_on_failure() -> 
 
     with (
         patch(
-            "app.domains.podcast.services.task_orchestration_service.PodcastSubscriptionRepository",
+            "app.domains.podcast.tasks.task_orchestration.PodcastSubscriptionRepository",
             return_value=repo,
         ),
         patch(
-            "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
+            "app.domains.podcast.tasks.task_orchestration.SecureRSSParser",
             return_value=parser,
         ),
     ):
@@ -206,11 +206,11 @@ async def test_process_opml_subscription_episodes_closes_parser_on_exception() -
 
     with (
         patch(
-            "app.domains.podcast.services.task_orchestration_service.PodcastSubscriptionRepository",
+            "app.domains.podcast.tasks.task_orchestration.PodcastSubscriptionRepository",
             return_value=repo,
         ),
         patch(
-            "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
+            "app.domains.podcast.tasks.task_orchestration.SecureRSSParser",
             return_value=parser,
         ),
         pytest.raises(RuntimeError, match="parse boom"),

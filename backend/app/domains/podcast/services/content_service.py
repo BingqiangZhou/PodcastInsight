@@ -1746,7 +1746,7 @@ class DailyReportService:
     def _task_orchestration_service(self):
         factory = self._task_orchestration_service_factory
         if factory is None:
-            from app.domains.podcast.services.task_orchestration_service import (
+            from app.domains.podcast.tasks.task_orchestration import (
                 PodcastTaskOrchestrationService,
             )
 

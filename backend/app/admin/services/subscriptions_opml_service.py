@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.podcast.models import Subscription, UserSubscription
 from app.domains.podcast.services.episode_service import PodcastSubscriptionService
-from app.domains.podcast.services.task_orchestration_service import (
+from app.domains.podcast.tasks.task_orchestration import (
     PodcastTaskOrchestrationService,
 )
 from app.shared.schemas import SubscriptionCreate

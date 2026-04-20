@@ -5,7 +5,7 @@ import pytest
 from app.domains.podcast.services import (
     task_orchestration_service as task_orchestration_module,
 )
-from app.domains.podcast.services.task_orchestration_service import (
+from app.domains.podcast.tasks.task_orchestration import (
     FeedSyncOrchestrator,
     PodcastTaskOrchestrationService,
 )
