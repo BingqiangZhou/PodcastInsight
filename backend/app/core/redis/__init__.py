@@ -7,24 +7,18 @@ Usage:
     await redis.cache_set("key", "value", ttl=3600)
 """
 
+import asyncio
+import hashlib
 import logging
 import secrets
 import threading
-from typing import Any
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
 
 import orjson
 
 from app.core.cache_ttl import CacheTTL
-from app.core.redis.cache import (
-    CacheOperations,
-    LockOperations,
-    PodcastCacheOperations,
-    SortedSetOperations,
-    safe_cache_get,
-    safe_cache_invalidate,
-    safe_cache_write,
-)
-from app.core.redis.client import RedisClientManager
+from app.core.redis.client import RedisClientManager, redis_json_default
 
 
 logger = logging.getLogger(__name__)
@@ -37,92 +31,108 @@ _NULL_CACHE_TTL = 60
 _shared_redis: "AppCache | None" = None
 _shared_redis_lock = threading.Lock()
 
+
 # ---------------------------------------------------------------------------
-# Delegation decorator: replaces boilerplate wrapper methods
+# Safe Cache Operation Helpers
+# (swallow exceptions for best-effort cache operations)
 # ---------------------------------------------------------------------------
 
-_DELEGATE_SPECS: dict[str, tuple[type, str, dict[str, Any]]] = {
-    # --- CacheOperations (client passed as first positional arg) ---
-    "cache_get": (CacheOperations, "cache_get", {}),
-    "cache_set": (CacheOperations, "cache_set", {}),
-    "cache_delete": (CacheOperations, "cache_delete", {}),
-    "cache_hget": (CacheOperations, "cache_hget", {}),
-    "cache_hgetall": (CacheOperations, "cache_hgetall", {}),
-    "cache_hset": (CacheOperations, "cache_hset", {}),
-    # --- SortedSetOperations ---
-    "sorted_set_add": (SortedSetOperations, "sorted_set_add", {}),
-    "sorted_set_remove": (SortedSetOperations, "sorted_set_remove", {}),
-    "sorted_set_cardinality": (SortedSetOperations, "sorted_set_cardinality", {}),
-    "sorted_set_range_by_score": (SortedSetOperations, "sorted_set_range_by_score", {}),
-    "sorted_set_remove_by_score": (
-        SortedSetOperations,
-        "sorted_set_remove_by_score",
-        {},
-    ),
-}
+T = TypeVar("T")
 
 
-def _apply_delegates(cls: type) -> type:
-    """Class decorator that attaches auto-delegation methods to *cls*."""
-    for method_name, (
-        mixin_cls,
-        mixin_method_name,
-        extra_kw,
-    ) in _DELEGATE_SPECS.items():
-        _make_delegate(cls, method_name, mixin_cls, mixin_method_name, extra_kw)
-    return cls
+async def _safe_cache_operation(
+    operation: Callable[[], Awaitable[T]],
+    *,
+    log_warning: Callable[[str], None],
+    error_message: str,
+    default: T | None = None,
+) -> T | None:
+    try:
+        return await operation()
+    except Exception as exc:
+        log_warning(f"{error_message}: {exc}")
+        return default
 
 
-def _make_delegate(
-    cls: type,
-    method_name: str,
-    mixin_cls: type,
-    mixin_method_name: str,
-    extra_kw: dict[str, Any],
-) -> None:
-    """Create and attach a single delegation method to *cls*."""
-    mixin_fn = getattr(mixin_cls, mixin_method_name)
-
-    async def _delegate(self, *args: Any, **kwargs: Any) -> Any:
-        client = await self._get_client()
-        kwargs.update(extra_kw)
-        return await mixin_fn(self, client, *args, **kwargs)
-
-    _delegate.__qualname__ = f"{cls.__name__}.{method_name}"
-    _delegate.__name__ = method_name
-    setattr(cls, method_name, _delegate)
+async def safe_cache_get(
+    getter: Callable[[], Awaitable[T]],
+    *,
+    log_warning: Callable[[str], None],
+    error_message: str,
+) -> T | None:
+    return await _safe_cache_operation(
+        getter,
+        log_warning=log_warning,
+        error_message=error_message,
+        default=None,
+    )
 
 
-class _DeferredScript:
-    """Deferred Lua script that gets the client when executed."""
+async def safe_cache_write(
+    writer: Callable[[], Awaitable[object]],
+    *,
+    log_warning: Callable[[str], None],
+    error_message: str,
+) -> bool:
+    result = await _safe_cache_operation(
+        writer,
+        log_warning=log_warning,
+        error_message=error_message,
+        default=None,
+    )
+    return result is not None
 
-    def __init__(self, redis_helper: "AppCache", script: str):
-        self._redis = redis_helper
-        self._script = script
-        self._cached_script = None
 
-    async def __call__(self, keys: list[str] = None, args: list[Any] = None):
-        if self._cached_script is None:
-            client = await self._redis._get_client()
-            self._cached_script = client.register_script(self._script)
-        return await self._cached_script(keys=keys, args=args)
+async def safe_cache_invalidate(
+    invalidator: Callable[[], Awaitable[object]],
+    *,
+    log_warning: Callable[[str], None],
+    error_message: str,
+) -> bool:
+    result = await _safe_cache_operation(
+        invalidator,
+        log_warning=log_warning,
+        error_message=error_message,
+        default=None,
+    )
+    return result is not None
 
 
-@_apply_delegates
-class AppCache(
-    RedisClientManager,
-    CacheOperations,
-    PodcastCacheOperations,
-    LockOperations,
-    SortedSetOperations,
-):
+# ---------------------------------------------------------------------------
+# Helper utilities
+# ---------------------------------------------------------------------------
+
+
+def _stable_hash(value: str) -> str:
+    normalized = value.strip().lower()
+    return hashlib.md5(normalized.encode("utf-8")).hexdigest()
+
+
+def _hash_search_query(query: str, search_in: str, page: int, size: int) -> str:
+    query_str = f"{query}:{search_in}:{page}:{size}".lower()
+    return hashlib.md5(query_str.encode("utf-8")).hexdigest()
+
+
+async def _delete_keys_nonblocking(client: Any, *keys: str) -> int:
+    if not keys:
+        return 0
+    try:
+        return int(await client.unlink(*keys) or 0)
+    except Exception:
+        return int(await client.delete(*keys) or 0)
+
+
+# ---------------------------------------------------------------------------
+# AppCache - thin wrapper over redis-py async client
+# ---------------------------------------------------------------------------
+
+
+class AppCache(RedisClientManager):
     """Unified Redis cache with distributed lock and sorted sets."""
 
-    _hash_search_query = PodcastCacheOperations._hash_search_query
-
     def __init__(self):
-        RedisClientManager.__init__(self)
-        self._background_tasks: set = set()
+        super().__init__()
+        self._background_tasks: set[asyncio.Task] = set()
 
     # === Key Scanning ===
 
@@ -138,89 +148,43 @@ class AppCache(
 
     # === Key Deletion ===
 
-    async def _delete_keys_nonblocking(self, *keys: str) -> int:
+    async def delete_keys(self, *keys: str) -> int:
         if not keys:
             return 0
         if keys and not isinstance(keys[0], str):
             keys = keys[1:]
         if not keys:
             return 0
-
         client = await self._get_client()
-        try:
-            return int(await client.unlink(*keys) or 0)
-        except Exception:
-            return int(await client.delete(*keys) or 0)
+        return await _delete_keys_nonblocking(client, *keys)
 
-    async def delete_keys(self, *keys: str) -> int:
-        return await self._delete_keys_nonblocking(*keys)
+    _delete_keys = delete_keys
 
-    _delete_keys = _delete_keys_nonblocking
+    # === Primitive cache operations ===
 
-    # === Pipeline Support ===
-
-    def pipeline(self):
-        return self._PipelineContextManager(self)
-
-    class _PipelineContextManager:
-        def __init__(self, redis_helper: "AppCache"):
-            self._redis = redis_helper
-            self._client = None
-            self._pipe = None
-
-        async def __aenter__(self):
-            self._client = await self._redis._get_client()
-            self._pipe = self._client.pipeline()
-            return self._pipe
-
-        async def __aexit__(self, exc_type, exc_val, exc_tb):
-            if self._pipe and exc_type is None:
-                await self._pipe.execute()
-
-        def __getattr__(self, name):
-            return getattr(self._pipe, name)
-
-    # === Raw Client Access ===
-
-    async def incr(self, key: str) -> int:
+    async def cache_get(self, key: str) -> str | None:
         client = await self._get_client()
-        return int(await client.incr(key) or 0)
+        return await client.get(key)
 
-    async def expire(self, key: str, seconds: int) -> bool:
+    async def cache_set(self, key: str, value: str, ttl: int = CacheTTL.DEFAULT) -> bool:
         client = await self._get_client()
-        return bool(await client.expire(key, seconds))
+        result = await client.setex(key, ttl, value)
+        return result
 
-    async def get(self, key: str) -> str | None:
-        return await self.cache_get(key)
-
-    async def setex(self, key: str, ttl: int, value: str) -> bool:
-        return await self.cache_set(key, value, ttl=ttl)
-
-    async def ttl(self, key: str) -> int:
+    async def cache_delete(self, key: str) -> bool:
         client = await self._get_client()
-        return int(await client.ttl(key) or -1)
+        result = await client.delete(key)
+        return result
 
-    async def get_ttl(self, key: str) -> int:
-        return await self.ttl(key)
+    # === JSON cache helpers ===
 
-    # === Lua Script Support ===
-
-    def register_script(self, script: str):
-        if self._client is None:
-            return _DeferredScript(self, script)
-        return self._client.register_script(script)
-
-    # === Custom JSON cache overrides ===
-
-    async def cache_get_json(
-        self, key: str, _client: Any = None, _record_lookup: Any = None
-    ) -> Any | None:
+    async def cache_get_json(self, key: str) -> Any | None:
         client = await self._get_client()
         data = await client.get(key)
         if data:
             # Check for null value marker to prevent cache penetration
             if isinstance(data, bytes) and data == _NULL_VALUE_MARKER.encode():
-                return None  # Cache hit for null value — return None without calling loader
+                return None
             if isinstance(data, str) and data == _NULL_VALUE_MARKER:
                 return None
             try:
@@ -229,14 +193,9 @@ class AppCache(
                 return None
         return None
 
-    async def cache_set_json(
-        self, key: str, value: Any, _client: Any = None, ttl: int = CacheTTL.DEFAULT
-    ) -> bool:
-        from app.core.redis.client import redis_json_default
-
+    async def cache_set_json(self, key: str, value: Any, ttl: int = CacheTTL.DEFAULT) -> bool:
         client = await self._get_client()
         try:
-            # Use null marker for None values to prevent cache penetration
             if value is None:
                 return bool(await client.setex(key, _NULL_CACHE_TTL, _NULL_VALUE_MARKER))
             json_str = orjson.dumps(value, default=redis_json_default).decode("utf-8")
@@ -244,7 +203,7 @@ class AppCache(
         except (TypeError, ValueError):
             return False
 
-    # === Anti-Stampede Cache ===
+    # === Anti-stampede cache (inlined from old cache_get_with_lock) ===
 
     async def cache_get_with_lock(
         self,
@@ -255,84 +214,113 @@ class AppCache(
         max_wait_time: float = 3.0,
     ) -> tuple[Any, bool]:
         client = await self._get_client()
-        return await CacheOperations.cache_get_with_lock(
-            self,
-            key=key,
-            loader=loader,
-            client=client,
-            ttl=ttl,
-            lock_timeout=lock_timeout,
-            max_wait_time=max_wait_time,
-        )
+        value = await self.cache_get_json(key)
+        if value is not None:
+            return value, True
 
-    async def cache_get_or_load(
-        self,
-        key: str,
-        loader: Any,
-        ttl: int = CacheTTL.DEFAULT,
-        stale_ttl: int = CacheTTL.STALE_REFRESH,
-    ) -> Any:
-        client = await self._get_client()
-        return await CacheOperations.cache_get_or_load(
-            self,
-            key=key,
-            loader=loader,
-            client=client,
-            ttl=ttl,
-            stale_ttl=stale_ttl,
-        )
+        lock_key = f"lock:{key}"
+        lock_acquired = await client.set(lock_key, "1", nx=True, ex=lock_timeout)
 
-    # === Stats Cache Invalidation ===
+        if lock_acquired:
+            try:
+                value = await loader()
+                if value is None:
+                    await client.setex(key, _NULL_CACHE_TTL, _NULL_VALUE_MARKER)
+                else:
+                    await self.cache_set_json(key, value, ttl)
+                return value, False
+            except Exception:
+                import contextlib
+
+                with contextlib.suppress(Exception):
+                    await client.setex(f"{key}:error", 5, "1")
+                raise
+            finally:
+                await _delete_keys_nonblocking(client, lock_key)
+        else:
+            wait_start = asyncio.get_running_loop().time()
+            initial_delay = 0.05
+            max_delay = 0.5
+            attempt = 0
+
+            while (asyncio.get_running_loop().time() - wait_start) < max_wait_time:
+                delay = min(initial_delay * (2**attempt), max_delay)
+                await asyncio.sleep(delay)
+
+                value = await self.cache_get_json(key)
+                if value is not None:
+                    return value, True
+
+                lock_exists = await client.exists(lock_key)
+                if not lock_exists:
+                    lock_acquired = await client.set(
+                        lock_key, "1", nx=True, ex=lock_timeout,
+                    )
+                    if lock_acquired:
+                        try:
+                            value = await loader()
+                            await self.cache_set_json(key, value, ttl)
+                            return value, False
+                        finally:
+                            await _delete_keys_nonblocking(client, lock_key)
+
+                attempt += 1
+
+            value = await loader()
+            await self.cache_set_json(key, value, ttl)
+            return value, False
+
+    # === User Stats ===
+
+    async def get_user_stats(self, user_id: int) -> dict | None:
+        return await self.cache_get_json(f"podcast:stats:{user_id}")
+
+    async def set_user_stats(self, user_id: int, stats: dict) -> bool:
+        return await self.cache_set_json(f"podcast:stats:{user_id}", stats, ttl=CacheTTL.STATS_LONG)
 
     async def invalidate_user_stats(self, user_id: int) -> None:
         client = await self._get_client()
         await client.delete(f"podcast:stats:{user_id}")
 
+    # === Profile Stats ===
+
+    async def get_profile_stats(self, user_id: int) -> dict | None:
+        return await self.cache_get_json(f"podcast:stats:profile:{user_id}")
+
+    async def set_profile_stats(self, user_id: int, stats: dict) -> bool:
+        return await self.cache_set_json(f"podcast:stats:profile:{user_id}", stats, ttl=CacheTTL.STATS_SHORT)
+
     async def invalidate_profile_stats(self, user_id: int) -> None:
         client = await self._get_client()
         await client.delete(f"podcast:stats:profile:{user_id}")
 
-    # === User Stats ===
-
-    async def get_user_stats(self, user_id: int) -> dict | None:
-        client = await self._get_client()
-        return await PodcastCacheOperations.get_user_stats(
-            self, client, user_id, cache_get_json_func=self.cache_get_json
-        )
-
-    async def set_user_stats(self, user_id: int, stats: dict) -> bool:
-        client = await self._get_client()
-        return await PodcastCacheOperations.set_user_stats(
-            self, client, user_id, stats, cache_set_json_func=self.cache_set_json
-        )
-
-    async def get_profile_stats(self, user_id: int) -> dict | None:
-        client = await self._get_client()
-        return await PodcastCacheOperations.get_profile_stats(
-            self, client, user_id, cache_get_json_func=self.cache_get_json
-        )
-
-    async def set_profile_stats(self, user_id: int, stats: dict) -> bool:
-        client = await self._get_client()
-        return await PodcastCacheOperations.set_profile_stats(
-            self, client, user_id, stats, cache_set_json_func=self.cache_set_json
-        )
-
     # === Subscription List ===
 
+    def _subscription_index_key(self, user_id: int) -> str:
+        return f"podcast:subscriptions:index:{user_id}"
+
+    def _subscription_list_key(
+        self,
+        user_id: int,
+        page: int,
+        size: int,
+        filters: dict[str, Any] | None = None,
+    ) -> str:
+        payload = {
+            "user_id": user_id,
+            "page": page,
+            "size": size,
+            "filters": filters or {},
+        }
+        payload_str = orjson.dumps(payload, option=orjson.OPT_SORT_KEYS).decode("utf-8")
+        token = _stable_hash(payload_str)
+        return f"podcast:subscriptions:v2:{user_id}:{token}"
+
     async def get_subscription_list(
-        self, user_id: int, page: int, size: int, filters: dict[str, Any] | None = None
+        self, user_id: int, page: int, size: int, filters: dict[str, Any] | None = None,
     ) -> dict | None:
-        client = await self._get_client()
-        return await PodcastCacheOperations.get_subscription_list(
-            self,
-            client,
-            user_id,
-            page,
-            size,
-            filters=filters,
-            cache_get_json_func=self.cache_get_json,
-        )
+        key = self._subscription_list_key(user_id, page, size, filters=filters)
+        return await self.cache_get_json(key)
 
     async def set_subscription_list(
         self,
@@ -342,154 +330,116 @@ class AppCache(
         data: dict,
         filters: dict[str, Any] | None = None,
     ) -> bool:
+        key = self._subscription_list_key(user_id, page, size, filters=filters)
+        index_key = self._subscription_index_key(user_id)
+
+        try:
+            json_str = orjson.dumps(data).decode("utf-8")
+        except (TypeError, ValueError):
+            return False
+
         client = await self._get_client()
-        return await PodcastCacheOperations.set_subscription_list(
-            self,
-            client,
-            user_id,
-            page,
-            size,
-            data,
-            filters=filters,
-            cache_set_json_func=self.cache_set_json,
-        )
+        async with client.pipeline() as pipe:
+            pipe.setex(key, CacheTTL.SUBSCRIPTION_LIST, json_str)
+            pipe.sadd(index_key, key)
+            pipe.expire(index_key, 1800)
+            await pipe.execute()
+        return True
 
     async def invalidate_subscription_list(self, user_id: int) -> None:
         client = await self._get_client()
-        await PodcastCacheOperations.invalidate_subscription_list(
-            self,
-            client,
-            user_id,
-            scan_keys_func=self.scan_keys,
-            delete_keys_func=self._delete_keys,
-        )
+        index_key = self._subscription_index_key(user_id)
+        keys = list(await client.smembers(index_key))
+        if not keys:
+            keys = await self._scan_keys(f"podcast:subscriptions:v2:{user_id}:*")
+        if keys:
+            await _delete_keys_nonblocking(client, *keys, index_key)
 
     # === Episode List ===
 
+    def _episode_index_key(self, subscription_id: int) -> str:
+        return f"podcast:episodes:index:{subscription_id}"
+
     async def get_episode_list(
-        self, subscription_id: int, page: int, size: int
+        self, subscription_id: int, page: int, size: int,
     ) -> dict | None:
-        client = await self._get_client()
-        return await PodcastCacheOperations.get_episode_list(
-            self,
-            client,
-            subscription_id,
-            page,
-            size,
-            cache_get_json_func=self.cache_get_json,
-        )
+        key = f"podcast:episodes:{subscription_id}:{page}:{size}"
+        return await self.cache_get_json(key)
 
     async def set_episode_list(
-        self, subscription_id: int, page: int, size: int, data: dict
+        self, subscription_id: int, page: int, size: int, data: dict,
     ) -> bool:
+        key = f"podcast:episodes:{subscription_id}:{page}:{size}"
+        index_key = self._episode_index_key(subscription_id)
+
+        try:
+            json_str = orjson.dumps(data).decode("utf-8")
+        except (TypeError, ValueError):
+            return False
+
         client = await self._get_client()
-        return await PodcastCacheOperations.set_episode_list(
-            self,
-            client,
-            subscription_id,
-            page,
-            size,
-            data,
-            cache_set_json_func=self.cache_set_json,
-        )
+        async with client.pipeline() as pipe:
+            pipe.setex(key, CacheTTL.EPISODE_LIST, json_str)
+            pipe.sadd(index_key, key)
+            pipe.expire(index_key, 1800)
+            await pipe.execute()
+        return True
 
     async def invalidate_episode_list(self, subscription_id: int) -> None:
         client = await self._get_client()
-        await PodcastCacheOperations.invalidate_episode_list(
-            self,
-            client,
-            subscription_id,
-            scan_keys_func=self.scan_keys,
-            delete_keys_func=self._delete_keys,
-        )
+        index_key = self._episode_index_key(subscription_id)
+        keys = list(await client.smembers(index_key))
+        if not keys:
+            keys = await self._scan_keys(f"podcast:episodes:{subscription_id}:*")
+        if keys:
+            await _delete_keys_nonblocking(client, *keys, index_key)
 
     # === Episode Detail ===
 
-    async def get_episode_detail(
-        self,
-        episode_id: int,
-        loader: Any,
-    ) -> Any | None:
-        client = await self._get_client()
-        return await PodcastCacheOperations.get_episode_detail(
-            self,
-            client,
-            episode_id,
-            loader=loader,
-            cache_get_with_lock_func=self.cache_get_with_lock,
+    async def get_episode_detail(self, episode_id: int, loader: Any) -> Any | None:
+        key = f"podcast:episode:detail:{episode_id}"
+        result, _from_cache = await self.cache_get_with_lock(
+            key=key, loader=loader, ttl=CacheTTL.EPISODE_DETAIL,
         )
+        return result
 
     async def invalidate_episode_detail(self, episode_id: int) -> None:
         client = await self._get_client()
-        await PodcastCacheOperations.invalidate_episode_detail(
-            self,
-            client,
-            episode_id,
-            cache_delete_func=self.cache_delete,
-        )
+        await client.delete(f"podcast:episode:detail:{episode_id}")
 
     # === Highlight Dates ===
 
-    async def get_highlight_dates(
-        self,
-        user_id: int,
-        loader: Any,
-    ) -> list[str]:
-        client = await self._get_client()
-        return await PodcastCacheOperations.get_highlight_dates(
-            self,
-            client,
-            user_id,
-            loader=loader,
-            cache_get_with_lock_func=self.cache_get_with_lock,
+    async def get_highlight_dates(self, user_id: int, loader: Any) -> list[str]:
+        key = f"highlights:dates:{user_id}"
+        result, _from_cache = await self.cache_get_with_lock(
+            key=key, loader=loader, ttl=CacheTTL.HIGHLIGHT_DATES,
         )
+        return result or []
 
     async def invalidate_highlight_dates(self, user_id: int) -> None:
         client = await self._get_client()
-        await PodcastCacheOperations.invalidate_highlight_dates(
-            self,
-            client,
-            user_id,
-            cache_delete_func=self.cache_delete,
-        )
+        await client.delete(f"highlights:dates:{user_id}")
 
     # === Playback Rate ===
 
     async def get_effective_playback_rate(
-        self,
-        user_id: int,
-        subscription_id: int | None,
-        loader: Any,
+        self, user_id: int, subscription_id: int | None, loader: Any,
     ) -> Any | None:
-        client = await self._get_client()
-        return await PodcastCacheOperations.get_effective_playback_rate(
-            self,
-            client,
-            user_id,
-            subscription_id,
-            loader=loader,
-            cache_get_with_lock_func=self.cache_get_with_lock,
+        key = f"playback:rate:{user_id}:{subscription_id or 'global'}"
+        result, _from_cache = await self.cache_get_with_lock(
+            key=key, loader=loader, ttl=CacheTTL.PLAYBACK_RATE,
         )
+        return result
 
     async def invalidate_playback_rate(
-        self,
-        user_id: int,
-        subscription_id: int | None = None,
+        self, user_id: int, subscription_id: int | None = None,
     ) -> None:
         client = await self._get_client()
-        await PodcastCacheOperations.invalidate_playback_rate(
-            self,
-            client,
-            user_id,
-            subscription_id=subscription_id,
-            cache_delete_func=self.cache_delete,
-        )
+        await client.delete(f"playback:rate:{user_id}:{subscription_id or 'global'}")
 
     # === User Progress ===
 
-    async def set_user_progress(
-        self, user_id: int, episode_id: int, progress: float
-    ) -> None:
+    async def set_user_progress(self, user_id: int, episode_id: int, progress: float) -> None:
         client = await self._get_client()
         await client.setex(
             f"podcast:progress:{user_id}:{episode_id}",
@@ -512,10 +462,35 @@ class AppCache(
             pipe.expire(key, CacheTTL.EPISODE_METADATA)
             await pipe.execute()
 
+    # === AI Summary ===
+
+    async def set_ai_summary(self, episode_id: int, summary: str, version: str = "v1") -> None:
+        client = await self._get_client()
+        key = f"podcast:summary:{episode_id}:{version}"
+        await client.setex(key, CacheTTL.AI_SUMMARY, summary)
+
+    # === Search Results ===
+
+    _hash_search_query = staticmethod(_hash_search_query)
+
+    async def get_search_results(
+        self, query: str, search_in: str, page: int, size: int,
+    ) -> dict | None:
+        hash_key = _hash_search_query(query, search_in, page, size)
+        key = f"podcast:search:v2:{hash_key}"
+        return await self.cache_get_json(key)
+
+    async def set_search_results(
+        self, query: str, search_in: str, page: int, size: int, data: dict,
+    ) -> bool:
+        hash_key = _hash_search_query(query, search_in, page, size)
+        key = f"podcast:search:v2:{hash_key}"
+        return await self.cache_set_json(key, data, ttl=CacheTTL.STALE_REFRESH)
+
     # === Distributed Lock ===
 
     async def acquire_lock(
-        self, lock_name: str, expire: int = CacheTTL.LOCK_TIMEOUT, value: str = "1"
+        self, lock_name: str, expire: int = CacheTTL.LOCK_TIMEOUT, value: str = "1",
     ) -> bool:
         client = await self._get_client()
         return bool(
@@ -527,18 +502,18 @@ class AppCache(
         await client.delete(f"podcast:lock:{lock_name}")
 
     async def set_if_not_exists(
-        self, key: str, value: str, *, ttl: int | None = None
+        self, key: str, value: str, *, ttl: int | None = None,
     ) -> bool:
         client = await self._get_client()
         return bool(await client.set(key, value, ex=ttl, nx=True))
 
     async def acquire_owned_lock(
-        self, lock_name: str, *, expire: int = CacheTTL.LOCK_TIMEOUT
+        self, lock_name: str, *, expire: int = CacheTTL.LOCK_TIMEOUT,
     ) -> str | None:
         client = await self._get_client()
         token = secrets.token_urlsafe(16)
         acquired = await client.set(
-            f"podcast:lock:{lock_name}", token, ex=expire, nx=True
+            f"podcast:lock:{lock_name}", token, ex=expire, nx=True,
         )
         return token if acquired else None
 
@@ -551,6 +526,45 @@ class AppCache(
             token,
         )
         return bool(result)
+
+    # === Sorted-Set Operations ===
+
+    async def sorted_set_add(self, key: str, member: str, score: float) -> int:
+        client = await self._get_client()
+        result = await client.zadd(key, {member: score})
+        return int(result or 0)
+
+    async def sorted_set_remove(self, key: str, *members: str) -> int:
+        if not members:
+            return 0
+        client = await self._get_client()
+        result = await client.zrem(key, *members)
+        return int(result or 0)
+
+    async def sorted_set_cardinality(self, key: str) -> int:
+        client = await self._get_client()
+        result = await client.zcard(key)
+        return int(result or 0)
+
+    async def sorted_set_range_by_score(
+        self, key: str, min_score: float | str, max_score: float | str,
+    ) -> list[str]:
+        client = await self._get_client()
+        result = await client.zrangebyscore(key, min_score, max_score)
+        return list(result)
+
+    async def sorted_set_remove_by_score(
+        self, key: str, min_score: float | str, max_score: float | str,
+    ) -> int:
+        client = await self._get_client()
+        result = await client.zremrangebyscore(key, min_score, max_score)
+        return int(result or 0)
+
+    # === Utility ===
+
+    async def get_ttl(self, key: str) -> int:
+        client = await self._get_client()
+        return int(await client.ttl(key) or -1)
 
 
 # Backward-compatible alias

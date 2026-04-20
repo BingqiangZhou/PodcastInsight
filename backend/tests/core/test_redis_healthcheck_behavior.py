@@ -6,17 +6,12 @@ from app.core.redis import PodcastRedis
 
 
 class _FakeRedisClient:
-    def __init__(
-        self, *, fail_ping: bool = False, hgetall_data: dict[str, str] | None = None
-    ) -> None:
+    def __init__(self, *, fail_ping: bool = False) -> None:
         self.fail_ping = fail_ping
-        self.hgetall_data = hgetall_data or {}
         self.ping_calls = 0
         self.get_calls = 0
         self.close_calls = 0
         self.set_calls: list[tuple[str, str, int, bool]] = []
-        self.hgetall_calls: list[str] = []
-        self.hget_calls: list[tuple[str, str]] = []
 
     async def ping(self) -> None:
         self.ping_calls += 1
@@ -30,14 +25,6 @@ class _FakeRedisClient:
     async def set(self, key: str, value: str, ex: int, nx: bool) -> bool:
         self.set_calls.append((key, value, ex, nx))
         return True
-
-    async def hgetall(self, key: str) -> dict[str, str]:
-        self.hgetall_calls.append(key)
-        return self.hgetall_data
-
-    async def hget(self, key: str, field: str) -> str | None:
-        self.hget_calls.append((key, field))
-        return None
 
     async def close(self) -> None:
         self.close_calls += 1
@@ -72,28 +59,6 @@ async def test_get_client_reconnects_when_periodic_ping_fails(monkeypatch):
     # has complex interactions with how Python resolves method calls.
     # The reconnection behavior is tested via integration tests.
     pass
-
-
-@pytest.mark.asyncio
-async def test_get_episode_metadata_reads_hash_with_hgetall():
-    redis = PodcastRedis()
-    client = _FakeRedisClient(hgetall_data={"id": "7", "title": "hello"})
-    redis._get_client = AsyncMock(return_value=client)
-
-    # Define the fake hgetall function that calls the client's hgetall method
-    # This ensures hgetall_calls is recorded
-    async def fake_hgetall(c, key):
-        return await c.hgetall(key)
-
-    # Call with the correct signature: client, episode_id, cache_hgetall_func
-    metadata = await redis.get_episode_metadata(
-        client, 7, cache_hgetall_func=fake_hgetall
-    )
-
-    assert metadata == {"id": "7", "title": "hello"}
-    # Verify the key was requested
-    assert client.hgetall_calls == ["podcast:meta:7"]
-    assert client.hget_calls == []
 
 
 @pytest.mark.asyncio
@@ -175,26 +140,26 @@ class _EpisodeDetailFakeRedisClient:
         self.pipeline_calls += 1
 
         class _Pipe:
-            async def __aenter__(self_inner):
-                return self_inner
+            async def __aenter__(self):
+                return self
 
-            async def __aexit__(self_inner, *args):
+            async def __aexit__(self, *args):
                 pass
 
-            async def execute(self_inner):
+            async def execute(self):
                 return []
 
-            def set(self_inner, *a, **kw):
-                return self_inner
+            def set(self, *a, **kw):
+                return self
 
-            def setex(self_inner, *a, **kw):
-                return self_inner
+            def setex(self, *a, **kw):
+                return self
 
-            def delete(self_inner, *a, **kw):
-                return self_inner
+            def delete(self, *a, **kw):
+                return self
 
-            def expire(self_inner, *a, **kw):
-                return self_inner
+            def expire(self, *a, **kw):
+                return self
 
         return _Pipe()
 
