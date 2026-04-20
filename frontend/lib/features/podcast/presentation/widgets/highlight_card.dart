@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
@@ -251,7 +252,7 @@ class HighlightCard extends ConsumerWidget {
         return Chip(
           label: Text(
             tag,
-            style: AppTheme.navLabel(
+            style: AppTextStyles.navLabel(
               null,
               weight: FontWeight.w600,
             ),

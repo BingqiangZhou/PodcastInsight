@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -269,7 +270,7 @@ class _AppUpdateDialogState extends ConsumerState<AppUpdateDialog> {
                     icon: const Icon(Icons.skip_next, size: 18),
                     label: Text(
                       l10n.update_skip_this_version,
-                      style: AppTheme.caption(),
+                      style: AppTextStyles.caption(),
                     ),
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: spacing.sm),

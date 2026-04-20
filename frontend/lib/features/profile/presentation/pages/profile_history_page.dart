@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -382,7 +383,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                   'profile_history_title_${episode.id}',
                                 ),
                                 episode.title,
-                                style: AppTheme.caption(
+                                style: AppTextStyles.caption(
                                       Theme.of(context).colorScheme.onSurface,
                                     ).copyWith(
                                       fontWeight: FontWeight.w700,
@@ -438,7 +439,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                               )!.podcast_default_podcast,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: AppTheme.navLabel(
+                                          style: AppTextStyles.navLabel(
                                                 Theme.of(context)
                                                     .colorScheme
                                                     .onPrimary,
@@ -459,7 +460,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                     Text(
                                       _formatPlayedAt(
                                           context, episode.lastPlayedAt),
-                                      style: AppTheme.metaSmall(
+                                      style: AppTextStyles.metaSmall(
                                             Theme.of(
                                               context,
                                             ).colorScheme.onSurfaceVariant,
@@ -476,7 +477,7 @@ class _ProfileHistoryPageState extends ConsumerState<ProfileHistoryPage> {
                                     SizedBox(width: context.spacing.xs),
                                     Text(
                                       _buildProgressText(context, episode),
-                                      style: AppTheme.metaSmall(
+                                      style: AppTextStyles.metaSmall(
                                             Theme.of(
                                               context,
                                             ).colorScheme.onSurfaceVariant,

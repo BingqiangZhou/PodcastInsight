@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -136,7 +137,7 @@ class _TranscriptionStepIndicator extends StatelessWidget {
           label,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
-          style: AppTheme.navLabel(
+          style: AppTextStyles.navLabel(
             iconColor,
             weight: status == TranscriptionStepStatus.current
                 ? FontWeight.w600

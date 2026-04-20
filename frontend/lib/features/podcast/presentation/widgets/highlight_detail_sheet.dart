@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -147,7 +148,7 @@ class _HighlightDetailContent extends StatelessWidget {
           Expanded(
             child: SelectableText(
               highlight.originalText,
-              style: AppTheme.transcriptBody(scheme.onSurface),
+              style: AppTextStyles.transcriptBody(scheme.onSurface),
             ),
           ),
         ],

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_durations.dart';
@@ -668,7 +669,7 @@ class TranscriptDisplayWidgetState
                 ],
               );
             },
-            style: AppTheme.transcriptBody(scheme.onSurface),
+            style: AppTextStyles.transcriptBody(scheme.onSurface),
           ),
         ],
       ),
@@ -804,7 +805,7 @@ class TranscriptDisplayWidgetState
     if (query.isEmpty) {
       return TextSpan(
         text: text,
-        style: AppTheme.transcriptBody(scheme.onSurface),
+        style: AppTextStyles.transcriptBody(scheme.onSurface),
       );
     }
 
@@ -822,7 +823,7 @@ class TranscriptDisplayWidgetState
         spans.add(
           TextSpan(
             text: text.substring(start, index),
-            style: AppTheme.transcriptBody(scheme.onSurface),
+            style: AppTextStyles.transcriptBody(scheme.onSurface),
           ),
         );
       }
@@ -831,7 +832,7 @@ class TranscriptDisplayWidgetState
       spans.add(
         TextSpan(
           text: text.substring(index, index + query.length),
-          style: AppTheme.transcriptBody(scheme.primary).copyWith(
+          style: AppTextStyles.transcriptBody(scheme.primary).copyWith(
             fontWeight: FontWeight.w700,
             backgroundColor: scheme.primary.withValues(alpha: 0.2),
           ),
@@ -846,7 +847,7 @@ class TranscriptDisplayWidgetState
       spans.add(
         TextSpan(
           text: text.substring(start),
-          style: AppTheme.transcriptBody(scheme.onSurface),
+          style: AppTextStyles.transcriptBody(scheme.onSurface),
         ),
       );
     }
@@ -1031,7 +1032,7 @@ class _FormattedTranscriptWidgetState
           // Text content
           SelectableText(
             segment.text,
-            style: AppTheme.transcriptBody(scheme.onSurface),
+            style: AppTextStyles.transcriptBody(scheme.onSurface),
           ),
         ],
       ),

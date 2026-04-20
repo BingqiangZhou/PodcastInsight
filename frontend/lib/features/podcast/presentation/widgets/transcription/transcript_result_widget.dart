@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
@@ -279,7 +280,7 @@ class FailedStateWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       suggestion,
-                      style: AppTheme.caption(scheme.tertiary),
+                      style: AppTextStyles.caption(scheme.tertiary),
                     ),
                   ),
                 ],
@@ -306,7 +307,7 @@ class FailedStateWidget extends StatelessWidget {
                     ),
                     child: Text(
                       errorMessage,
-                      style: AppTheme.monoStyle(
+                      style: AppTextStyles.monoStyle(
                         fontSize: 11,
                         color: scheme.onSurfaceVariant,
                       ),

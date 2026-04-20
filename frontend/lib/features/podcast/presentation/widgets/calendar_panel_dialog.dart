@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
@@ -210,19 +211,19 @@ class CalendarPanelContent extends StatelessWidget {
                   theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ) ??
-                  AppTheme.metaSmall().copyWith(fontWeight: FontWeight.w700),
+                  AppTextStyles.metaSmall().copyWith(fontWeight: FontWeight.w700),
             ),
             daysOfWeekStyle: DaysOfWeekStyle(
               weekdayStyle:
                   theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ) ??
-                  AppTheme.metaSmall(theme.colorScheme.onSurfaceVariant),
+                  AppTextStyles.metaSmall(theme.colorScheme.onSurfaceVariant),
               weekendStyle:
                   theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ) ??
-                  AppTheme.metaSmall(theme.colorScheme.onSurfaceVariant),
+                  AppTextStyles.metaSmall(theme.colorScheme.onSurfaceVariant),
             ),
             selectedDayPredicate: (day) =>
                 CalendarPanelHelper.isSameDate(day, selectedDate),

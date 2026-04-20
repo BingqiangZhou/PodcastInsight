@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -401,7 +402,7 @@ class _AISummaryControlWidgetState
                       ),
                       child: Text(
                         l10n.podcast_default_model,
-                        style: AppTheme.navLabel(
+                        style: AppTextStyles.navLabel(
                           scheme.primary,
                           weight: FontWeight.w600,
                         ),
@@ -456,7 +457,7 @@ class _AISummaryControlWidgetState
           Expanded(
             child: Text(
               message,
-              style: AppTheme.caption(scheme.error),
+              style: AppTextStyles.caption(scheme.error),
             ),
           ),
           IconButton(

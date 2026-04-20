@@ -283,7 +283,7 @@ extension _PodcastEpisodesPageView on _PodcastEpisodesPageState {
         ),
         child: Text(
           label,
-          style: AppTheme.caption(
+          style: AppTextStyles.caption(
             isSelected ? scheme.onPrimary : scheme.onSurface,
           ),
         ),

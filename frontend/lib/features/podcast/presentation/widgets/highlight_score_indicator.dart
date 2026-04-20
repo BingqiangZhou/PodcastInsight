@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
@@ -116,7 +117,7 @@ class _ScoreRow extends StatelessWidget {
           width: labelWidth,
           child: Text(
             label,
-            style: AppTheme.metaSmall(
+            style: AppTextStyles.metaSmall(
               theme.colorScheme.onSurfaceVariant,
             ).copyWith(fontWeight: FontWeight.w400),
           ),
@@ -139,7 +140,7 @@ class _ScoreRow extends StatelessWidget {
           child: Text(
             scoreText,
             textAlign: TextAlign.right,
-            style: AppTheme.metaSmall(color).copyWith(
+            style: AppTextStyles.metaSmall(color).copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),

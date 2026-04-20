@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -191,7 +192,7 @@ class ProcessingStateWidget extends StatelessWidget {
                               ),
                               Text(
                                 l10n.transcription_progress_complete,
-                                style: AppTheme.monoStyle(
+                                style: AppTextStyles.monoStyle(
                                   fontSize: labelFontSize,
                                   color: scheme.primary.withValues(alpha: 0.8),
                                 ),
@@ -299,7 +300,7 @@ class ProcessingStateWidget extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 debugMsg,
-                                style: AppTheme.monoStyle(
+                                style: AppTextStyles.monoStyle(
                                   fontSize: isSmallScreen ? 10.0 : 11.0,
                                   color: scheme.secondary,
                                 ),

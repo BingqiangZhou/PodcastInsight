@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
@@ -564,7 +565,7 @@ class BaseEpisodeCard extends StatelessWidget {
           config.subscriptionBadgeText ?? '',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: badgeTextStyle ?? AppTheme.metaSmall(badgeTextColor),
+          style: badgeTextStyle ?? AppTextStyles.metaSmall(badgeTextColor),
         ),
       ),
     );

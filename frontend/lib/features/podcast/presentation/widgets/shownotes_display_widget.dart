@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -513,7 +514,7 @@ class ShownotesDisplayWidgetState
   Widget _buildHtmlBody(BuildContext context, String html) {
     return HtmlWidget(
       html,
-      textStyle: AppTheme.transcriptBody(Theme.of(context).colorScheme.onSurface),
+      textStyle: AppTextStyles.transcriptBody(Theme.of(context).colorScheme.onSurface),
       onTapUrl: (url) async {
         try {
           final uri = Uri.parse(url);

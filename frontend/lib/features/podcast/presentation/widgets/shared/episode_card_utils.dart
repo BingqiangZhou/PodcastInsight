@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
@@ -60,7 +61,7 @@ class EpisodeCardUtils {
           formatDate(date),
           style:
               textStyle ??
-              AppTheme.metaSmall(
+              AppTextStyles.metaSmall(
                 theme.colorScheme.onSurfaceVariant,
               ).copyWith(fontWeight: FontWeight.w400),
         ),
@@ -91,7 +92,7 @@ class EpisodeCardUtils {
           formattedDuration,
           style:
               textStyle ??
-              AppTheme.metaSmall(
+              AppTextStyles.metaSmall(
                 theme.colorScheme.onSurfaceVariant,
               ).copyWith(fontWeight: FontWeight.w400),
         ),
