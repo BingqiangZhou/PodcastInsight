@@ -62,15 +62,15 @@ class _FakePodcastRedis:
         self.client.ttl_map[key] = expire
         return True
 
-    async def cache_get(self, key: str) -> str | None:
+    async def get(self, key: str) -> str | None:
         return await self.client.get(key)
 
-    async def cache_set(self, key: str, value: str, ttl: int = 3600) -> bool:
+    async def set(self, key: str, value: str, ttl: int = 3600) -> bool:
         self.client.store[key] = value
         self.client.ttl_map[key] = ttl
         return True
 
-    async def cache_delete(self, key: str) -> bool:
+    async def delete(self, key: str) -> bool:
         return bool(await self.client.delete(key))
 
     async def delete_keys(self, *keys: str) -> int:

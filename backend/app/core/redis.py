@@ -228,15 +228,48 @@ class RedisCache:
 
     # ── Simple locks ───────────────────────────────────────────────────────
 
-    async def acquire_lock(self, lock_name: str, expire: int = CacheTTL.LOCK_TIMEOUT) -> bool:
+    async def acquire_lock(self, lock_name: str, expire: int = CacheTTL.LOCK_TIMEOUT, value: str = "1") -> bool:
+        """Acquire a lock with optional custom value."""
         client = await self._get_client()
         return bool(
-            await client.set(f"lock:{lock_name}", "1", ex=expire, nx=True)
+            await client.set(f"lock:{lock_name}", value, ex=expire, nx=True)
         )
 
     async def release_lock(self, lock_name: str) -> None:
         client = await self._get_client()
         await client.delete(f"lock:{lock_name}")
+
+    async def delete_keys(self, *keys: str) -> int:
+        """Delete multiple keys at once."""
+        if not keys:
+            return 0
+        client = await self._get_client()
+        try:
+            return int(await client.unlink(*keys))
+        except Exception:
+            return int(await client.delete(*keys))
+
+    async def sorted_set_add(self, key: str, member: str, score: float) -> int:
+        client = await self._get_client()
+        return await client.zadd(key, {member: score})
+
+    async def sorted_set_remove(self, key: str, *members: str) -> int:
+        if not members:
+            return 0
+        client = await self._get_client()
+        return await client.zrem(key, *members)
+
+    async def sorted_set_cardinality(self, key: str) -> int:
+        client = await self._get_client()
+        return await client.zcard(key)
+
+    async def sorted_set_range_by_score(self, key: str, min_score: float | str, max_score: float | str) -> list[str]:
+        client = await self._get_client()
+        return await client.zrangebyscore(key, min_score, max_score)
+
+    async def sorted_set_remove_by_score(self, key: str, min_score: float | str, max_score: float | str) -> int:
+        client = await self._get_client()
+        return await client.zremrangebyscore(key, min_score, max_score)
 
 
 # Backward-compatible aliases
