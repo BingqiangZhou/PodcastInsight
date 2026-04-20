@@ -14,7 +14,7 @@ from app.domains.podcast.schemas import (
     HighlightListResponse,
     HighlightStatsResponse,
 )
-from app.domains.podcast.services.highlight_service import HighlightService
+from app.domains.podcast.services.content_service import HighlightService
 
 
 router = APIRouter(prefix="")

@@ -10,7 +10,7 @@ from app.domains.podcast.models import Subscription
 from app.domains.podcast.repositories.subscription_repository import (
     SubscriptionRepository,
 )
-from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
+from app.domains.podcast.services.episode_service import PodcastSubscriptionService
 
 
 @pytest.fixture

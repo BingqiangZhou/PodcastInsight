@@ -12,7 +12,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.podcast.models import Subscription, UserSubscription
-from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
+from app.domains.podcast.services.episode_service import PodcastSubscriptionService
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )

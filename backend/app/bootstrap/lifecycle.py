@@ -16,7 +16,7 @@ from app.core.database import (
 from app.core.http_client import close_shared_http_session
 from app.core.logging_config import setup_logging_from_env
 from app.core.redis import close_shared_redis, get_shared_redis
-from app.domains.podcast.services.transcription_workflow_service import (
+from app.domains.podcast.services.transcription_service import (
     TranscriptionWorkflowService,
 )
 

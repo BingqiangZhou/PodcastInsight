@@ -8,7 +8,7 @@ import pytest
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )
-from app.domains.podcast.services.transcription_workflow_service import (
+from app.domains.podcast.services.transcription_service import (
     TranscriptionWorkflowService,
 )
 from app.domains.podcast.tasks import tasks_transcription as transcription

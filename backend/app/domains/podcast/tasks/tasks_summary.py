@@ -3,7 +3,7 @@
 from celery.exceptions import SoftTimeLimitExceeded
 
 from app.core.celery_app import celery_app
-from app.domains.podcast.services.summary_service import SummaryWorkflowService
+from app.domains.podcast.services.content_service import SummaryWorkflowService
 from app.domains.podcast.tasks.runtime import (
     run_async,
     worker_session,

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.core.exceptions import EpisodeNotFoundError
-from app.domains.podcast.services.queue_service import PodcastQueueService
+from app.domains.podcast.services.playback_service import PodcastQueueService
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def mock_db():
 @pytest.fixture
 def mock_repo():
     with patch(
-        "app.domains.podcast.services.queue_service.PodcastQueueRepository"
+        "app.domains.podcast.services.playback_service.PodcastQueueRepository"
     ) as mock:
         repo_instance = AsyncMock()
         mock.return_value = repo_instance

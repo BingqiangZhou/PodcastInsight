@@ -52,10 +52,10 @@ def test_repository_contract() -> None:
 def test_specialized_service_contracts() -> None:
     from app.domains.podcast.services.episode_service import PodcastEpisodeService
     from app.domains.podcast.services.playback_service import PodcastPlaybackService
-    from app.domains.podcast.services.subscription_service import (
+    from app.domains.podcast.services.episode_service import (
         PodcastSubscriptionService,
     )
-    from app.domains.podcast.services.summary_service import (
+    from app.domains.podcast.services.content_service import (
         PodcastSummaryGenerationService,
     )
 

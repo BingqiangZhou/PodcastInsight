@@ -12,7 +12,7 @@ from app.domains.podcast.schemas import (
     PodcastDailyReportDatesResponse,
     PodcastDailyReportResponse,
 )
-from app.domains.podcast.services.daily_report_service import DailyReportService
+from app.domains.podcast.services.content_service import DailyReportService
 
 
 router = APIRouter(prefix="")

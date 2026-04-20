@@ -40,8 +40,8 @@ from app.domains.podcast.models import (
     UserSubscription,
 )
 from app.domains.podcast.repositories import PodcastSubscriptionRepository  # noqa: F401
-from app.domains.podcast.services.daily_report_service import DailyReportService
-from app.domains.podcast.services.transcription_workflow_service import (  # noqa: F401
+from app.domains.podcast.services.content_service import DailyReportService
+from app.domains.podcast.services.transcription_service import (  # noqa: F401
     TranscriptionWorkflowService,
 )
 from app.domains.podcast.transcription_state import get_transcription_state_manager

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from app.domains.podcast.integration.platform_detector import PodcastPlatform
-from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
+from app.domains.podcast.services.episode_service import PodcastSubscriptionService
 
 
 class TestPodcastSubscriptionPlatform:
@@ -21,7 +21,7 @@ class TestPodcastSubscriptionPlatform:
     def mock_repo(self):
         """Mock repository"""
         with patch(
-            "app.domains.podcast.services.subscription_service.PodcastSubscriptionRepository",
+            "app.domains.podcast.services.episode_service.PodcastSubscriptionRepository",
         ) as mock:
             repo_instance = AsyncMock()
             mock.return_value = repo_instance

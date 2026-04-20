@@ -1381,7 +1381,7 @@ class PodcastTranscriptionService:
                 task_id,
             )
 
-            from app.domains.podcast.services.summary_service import (
+            from app.domains.podcast.services.content_service import (
                 PodcastSummaryGenerationService,
             )
 
@@ -1487,7 +1487,7 @@ class PodcastTranscriptionService:
                 )
                 return
 
-            from app.domains.podcast.services.highlight_service import (
+            from app.domains.podcast.services.content_service import (
                 HighlightExtractionService,
             )
 

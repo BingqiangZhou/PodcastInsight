@@ -18,7 +18,7 @@ from sqlalchemy import delete, select
 
 from app.core.database import async_session_factory
 from app.domains.podcast.models import PodcastDailyReport, PodcastDailyReportItem
-from app.domains.podcast.services.daily_report_service import DailyReportService
+from app.domains.podcast.services.content_service import DailyReportService
 
 
 @dataclass(slots=True)

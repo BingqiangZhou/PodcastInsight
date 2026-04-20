@@ -35,8 +35,8 @@ from app.domains.podcast.schemas import (
     PodcastTranscriptionStatusResponse,
 )
 from app.domains.podcast.services.episode_service import PodcastEpisodeService
-from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
-from app.domains.podcast.services.transcription_workflow_service import (
+from app.domains.podcast.services.episode_service import PodcastSubscriptionService
+from app.domains.podcast.services.transcription_service import (
     TranscriptionWorkflowService,
 )
 from app.domains.podcast.transcription_types import ScheduleFrequency

@@ -51,7 +51,7 @@ class TestPodcastSubscriptionService:
     @pytest.fixture
     def mock_repo(self):
         with patch(
-            "app.domains.podcast.services.subscription_service.PodcastSubscriptionRepository",
+            "app.domains.podcast.services.episode_service.PodcastSubscriptionRepository",
         ) as mock:
             repo_instance = AsyncMock()
             mock.return_value = repo_instance
@@ -60,7 +60,7 @@ class TestPodcastSubscriptionService:
     @pytest.fixture
     def mock_redis(self):
         with patch(
-            "app.domains.podcast.services.subscription_service.get_shared_redis",
+            "app.domains.podcast.services.episode_service.get_shared_redis",
         ) as mock:
             redis_instance = AsyncMock()
             mock.return_value = redis_instance
@@ -69,7 +69,7 @@ class TestPodcastSubscriptionService:
     @pytest.fixture
     def mock_parser(self):
         with patch(
-            "app.domains.podcast.services.subscription_service.SecureRSSParser",
+            "app.domains.podcast.services.episode_service.SecureRSSParser",
         ) as mock:
             parser_instance = AsyncMock()
             mock.return_value = parser_instance
@@ -387,7 +387,7 @@ class TestPodcastQueueService:
     @pytest.fixture
     def mock_repo(self):
         with patch(
-            "app.domains.podcast.services.queue_service.PodcastQueueRepository",
+            "app.domains.podcast.services.playback_service.PodcastQueueRepository",
         ) as mock:
             repo_instance = AsyncMock()
             mock.return_value = repo_instance

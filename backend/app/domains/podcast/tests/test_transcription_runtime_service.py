@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.domains.podcast.services import transcription_runtime_service as service_module
-from app.domains.podcast.services.transcription_runtime_service import (
+from app.domains.podcast.services.transcription_service import (
     PodcastTranscriptionRuntimeService,
 )
 
@@ -55,7 +55,7 @@ async def test_start_transcription_dispatches_via_task_orchestration_service():
     )
 
     with patch(
-        "app.domains.podcast.services.transcription_runtime_service.get_transcription_state_manager",
+        "app.domains.podcast.services.transcription_service.get_transcription_state_manager",
         new=AsyncMock(return_value=AsyncMock()),
     ):
         result = await service.start_transcription(episode_id=77)

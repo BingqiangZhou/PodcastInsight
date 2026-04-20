@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from app.domains.podcast.services.daily_report_service import (
+from app.domains.podcast.services.content_service import (
     DailyReportService,
     extract_one_line_summary,
 )

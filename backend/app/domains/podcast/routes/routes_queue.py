@@ -18,7 +18,7 @@ from app.domains.podcast.schemas import (
     PodcastQueueResponse,
     PodcastQueueSetCurrentRequest,
 )
-from app.domains.podcast.services.queue_service import PodcastQueueService
+from app.domains.podcast.services.playback_service import PodcastQueueService
 
 
 router = APIRouter(prefix="")
