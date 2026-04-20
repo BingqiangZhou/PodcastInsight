@@ -11,7 +11,7 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, func, select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, lazyload
 
 from app.core.exceptions import (
     EpisodeNotInQueueError,
@@ -249,9 +249,12 @@ class PodcastPlaybackQueueRepositoryMixin:
 
     async def get_or_create_queue(self, user_id: int) -> PodcastQueue:
         # Use FOR UPDATE to prevent concurrent queue creation for the same user.
-        stmt = select(PodcastQueue).where(
-            PodcastQueue.user_id == user_id,
-        ).with_for_update()
+        stmt = (
+            select(PodcastQueue)
+            .options(lazyload(PodcastQueue.current_episode))
+            .where(PodcastQueue.user_id == user_id)
+            .with_for_update()
+        )
         result = await self.db.execute(stmt)
         queue = result.scalar_one_or_none()
         if queue is not None:
