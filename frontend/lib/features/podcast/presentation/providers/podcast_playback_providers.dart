@@ -21,6 +21,12 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 import 'package:personal_ai_assistant/shared/constants/storage_keys.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/src/providers/provider.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
+import 'package:personal_ai_assistant/core/providers/route_provider.dart';
+import 'package:personal_ai_assistant/core/theme/app_colors.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
 
 part 'audio_handler.dart';
 part 'audio_playback_selectors.dart';
@@ -30,6 +36,8 @@ part 'audio_server_sync_notifier.dart';
 part 'audio_sleep_timer_notifier.dart';
 part 'podcast_playback_helpers.dart';
 part 'podcast_playback_queue_controller.dart';
+part 'podcast_player_ui_state.dart';
+part 'podcast_player_host_layout_provider.dart';
 
 final audioPlayerProvider =
     NotifierProvider<AudioPlayerNotifier, AudioPlayerState>(
