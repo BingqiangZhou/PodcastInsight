@@ -6,6 +6,15 @@ import 'package:personal_ai_assistant/core/utils/url_normalizer.dart';
 import 'package:personal_ai_assistant/core/network/server_health_service.dart';
 import 'package:personal_ai_assistant/core/services/app_cache_service.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
+import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_daily_report_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_episodes_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_feed_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_highlights_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_stats_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_subscription_providers.dart';
 
 // Dio Client Provider
 final dioClientProvider = Provider<DioClient>((ref) {
@@ -65,11 +74,6 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
   }
 
   /// Clear all server-related data when switching servers.
-  ///
-  /// Feature-layer providers listen to [serverConfigVersionProvider] and
-  /// perform their own cleanup (e.g. auth clears tokens, podcast clears
-  /// caches).  This method does NOT import any feature modules directly,
-  /// preserving the core -> feature dependency boundary.
   Future<void> _clearAllServerData() async {
     final dioClient = ref.read(dioClientProvider);
 
@@ -83,9 +87,26 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
     // 3. Clear media cache
     await ref.read(appCacheServiceProvider).clearAll();
 
-    // 4. Bump the server-config version so that feature-layer listeners
-    //    invalidate their own caches and state.
-    ref.read(serverConfigVersionProvider.notifier).bump();
+    // 4. Clear auth state (was authServerConfigListenerProvider)
+    ref.read(authProvider.notifier).clearLocalAuthState();
+
+    // 5. Clear podcast caches (was podcastServerConfigListenerProvider)
+    ref.read(podcastDiscoverProvider.notifier).clearRuntimeCache();
+    ref.read(search.iTunesSearchServiceProvider).clearCache();
+    ref.read(profileStatsProvider.notifier).reset();
+    ref.read(playbackHistoryLiteProvider.notifier).reset();
+    ref.invalidate(podcastFeedProvider);
+    ref.invalidate(podcastDiscoverProvider);
+    ref.invalidate(podcastSubscriptionProvider);
+    ref.invalidate(podcastEpisodesProvider);
+    ref.invalidate(profileStatsProvider);
+    ref.invalidate(playbackHistoryLiteProvider);
+    ref.invalidate(podcastStatsProvider);
+    ref.invalidate(dailyReportProvider);
+    ref.invalidate(dailyReportDatesProvider);
+    ref.invalidate(highlightsProvider);
+    ref.invalidate(highlightDatesProvider);
+    ref.invalidate(search.podcastSearchProvider);
   }
 
   /// Update server base URL and apply to DioClient

@@ -17,7 +17,6 @@ import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/core/services/notification_service.dart';
 import 'package:personal_ai_assistant/features/auth/data/events/auth_event.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
-import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_server_config_listener.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_playback_providers.dart';
 import 'package:personal_ai_assistant/features/settings/presentation/providers/app_update_provider.dart';
@@ -372,14 +371,6 @@ class _PersonalAIAssistantAppState
 
   @override
   Widget build(BuildContext context) {
-    // Keep the podcast server-config listener active so it can react to
-    // server switches even when no podcast page is currently mounted.
-    ref.watch(podcastServerConfigListenerProvider);
-
-    // Keep the auth server-config listener active so auth state is cleared
-    // when the user switches backend servers.
-    ref.watch(authServerConfigListenerProvider);
-
     // Show splash screen while initializing
     if (!_isInitialized) {
       return MaterialApp(

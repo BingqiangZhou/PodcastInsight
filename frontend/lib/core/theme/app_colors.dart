@@ -393,6 +393,12 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     itemRadius: 8,
     sheetRadius: 20,
     pillRadius: 999,
+    dialogRadius: 24,
+    inputFillAlpha: 0.6,
+    listTileHorizontalPadding: AppSpacing.md,
+    listTileVerticalPadding: 0,
+    listTileRadius: 14,
+    centerTitle: false,
     warmAccent: AppColors.accentWarmDark,
     coralAccent: AppColors.accentCoralLight,
     shadowXs: BoxShadow(
