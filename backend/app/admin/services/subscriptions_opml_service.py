@@ -36,8 +36,8 @@ class AdminSubscriptionsOpmlService:
     def _task_orchestration_service(self) -> PodcastTaskOrchestrationService:
         return self._task_orchestration_service_factory(self.db)
 
-    async def export_subscriptions_opml(self, *, request, user) -> tuple[str, str]:
-        service = SubscriptionService(self.db, user_id=user.id)
+    async def export_subscriptions_opml(self, *, request, user_id) -> tuple[str, str]:
+        service = SubscriptionService(self.db, user_id=user_id)
         opml_content = await service.generate_opml_content(user_id=None)
         return opml_content, "stella.opml"
 
@@ -45,7 +45,7 @@ class AdminSubscriptionsOpmlService:
         self,
         *,
         request,
-        user,
+        user_id,
         opml_content: str,
     ) -> tuple[dict, int]:
         subscriptions_data = await self._parse_opml(opml_content)
@@ -57,7 +57,7 @@ class AdminSubscriptionsOpmlService:
                 "message": "No valid RSS subscriptions found in OPML file",
             }, 400
 
-        podcast_service = PodcastSubscriptionService(self.db, user_id=user.id)
+        podcast_service = PodcastSubscriptionService(self.db, user_id=user_id)
         import_started_at = datetime.now(UTC).isoformat()
 
         # Pre-fetch all existing URLs in two queries to avoid N+1 in the loop
@@ -68,7 +68,7 @@ class AdminSubscriptionsOpmlService:
             .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
             .where(
                 and_(
-                    UserSubscription.user_id == user.id,
+                    UserSubscription.user_id == user_id,
                     UserSubscription.is_archived.is_(False),
                     Subscription.source_url.in_(import_urls),
                     Subscription.source_type == "podcast-rss",
@@ -116,7 +116,7 @@ class AdminSubscriptionsOpmlService:
                 existed_globally = sub_data.source_url in global_existing_urls
 
                 subscription = await podcast_service.repo.create_or_update_subscription(
-                    user_id=user.id,
+                    user_id=user_id,
                     feed_url=sub_data.source_url,
                     title=sub_data.title,
                     description=sub_data.description,
@@ -129,7 +129,7 @@ class AdminSubscriptionsOpmlService:
 
                 task = self._task_orchestration_service().enqueue_opml_subscription_episodes(
                     subscription_id=subscription.id,
-                    user_id=user.id,
+                    user_id=user_id,
                     source_url=sub_data.source_url,
                 )
                 queued_episode_tasks += 1

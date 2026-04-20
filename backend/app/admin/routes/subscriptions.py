@@ -16,7 +16,6 @@ from app.admin.routes._shared import (
     xml_download_response,
 )
 from app.admin.services import AdminSubscriptionsService
-from app.domains.user.models import User
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +27,7 @@ templates = get_templates()
 @router.get("/subscriptions", response_class=HTMLResponse)
 async def subscriptions_page(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
     page: int = 1,
     per_page: int = 10,
@@ -49,7 +48,7 @@ async def subscriptions_page(
             templates=templates,
             template_name="subscriptions.html",
             request=request,
-            user=user,
+            user_id=user_id,
             messages=[],
             **context,
         )
@@ -66,14 +65,14 @@ async def update_subscription_frequency(
     update_frequency: str = Body(...),
     update_time: str | None = Body(None),
     update_day: int | None = Body(None),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Update update frequency settings for all RSS subscriptions."""
     try:
         payload = await service.update_frequency(
             request=request,
-            user=user,
+            user_id=user_id,
             update_frequency=update_frequency,
             update_time=update_time,
             update_day=update_day,
@@ -94,14 +93,14 @@ async def edit_subscription(
     request: Request,
     title: str | None = Body(None),
     source_url: str | None = Body(None),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Edit a subscription and re-test connection."""
     try:
         payload = await service.edit_subscription(
             request=request,
-            user=user,
+            user_id=user_id,
             sub_id=sub_id,
             title=title,
             source_url=source_url,
@@ -122,7 +121,7 @@ async def edit_subscription(
 async def test_subscription_url(
     request: Request,
     source_url: str = Body(..., embed=True),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Test RSS feed URL before saving."""
@@ -130,7 +129,7 @@ async def test_subscription_url(
     try:
         payload, status_code = await service.test_subscription_url(
             source_url=source_url,
-            username=user.username,
+            username="admin",
         )
         return json_payload(payload, status_code=status_code)
     except Exception as exc:
@@ -144,12 +143,12 @@ async def test_subscription_url(
 @router.post("/subscriptions/test-all")
 async def test_all_subscriptions(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Test all RSS subscriptions and disable failed ones."""
     try:
-        payload = await service.test_all_subscriptions(request=request, user=user)
+        payload = await service.test_all_subscriptions(request=request, user_id=user_id)
         return json_payload(payload)
     except Exception as exc:
         logger.error("Test all subscriptions error: %s", exc)
@@ -162,13 +161,13 @@ async def test_all_subscriptions(
 async def delete_subscription(
     sub_id: int,
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Delete a subscription (with proper handling of podcast-related data)."""
     try:
         payload = await service.delete_subscription(
-            request=request, user=user, sub_id=sub_id
+            request=request, user_id=user_id, sub_id=sub_id
         )
         return json_payload(
             require_payload(payload, detail="Subscription not found"),
@@ -186,13 +185,13 @@ async def delete_subscription(
 async def refresh_subscription(
     sub_id: int,
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Manually refresh a subscription."""
     try:
         payload = await service.refresh_subscription(
-            request=request, user=user, sub_id=sub_id
+            request=request, user_id=user_id, sub_id=sub_id
         )
         return json_payload(
             require_payload(payload, detail="Subscription not found"),
@@ -209,12 +208,12 @@ async def refresh_subscription(
 @router.post("/subscriptions/batch/refresh")
 async def batch_refresh_subscriptions(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Batch refresh subscriptions."""
     try:
-        await service.batch_refresh_subscriptions(request=request, user=user)
+        await service.batch_refresh_subscriptions(request=request, user_id=user_id)
         return empty_response()
     except Exception as exc:
         logger.error("Batch refresh error: %s", exc)
@@ -226,12 +225,12 @@ async def batch_refresh_subscriptions(
 @router.post("/subscriptions/batch/toggle")
 async def batch_toggle_subscriptions(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Batch toggle subscription status."""
     try:
-        await service.batch_toggle_subscriptions(request=request, user=user)
+        await service.batch_toggle_subscriptions(request=request, user_id=user_id)
         return empty_response()
     except Exception as exc:
         logger.error("Batch toggle error: %s", exc)
@@ -243,12 +242,12 @@ async def batch_toggle_subscriptions(
 @router.post("/subscriptions/batch/delete")
 async def batch_delete_subscriptions(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Batch delete subscriptions."""
     try:
-        await service.batch_delete_subscriptions(request=request, user=user)
+        await service.batch_delete_subscriptions(request=request, user_id=user_id)
         return empty_response()
     except HTTPException:
         raise
@@ -266,14 +265,14 @@ async def batch_delete_subscriptions(
 @router.get("/api/subscriptions/export/opml")
 async def export_subscriptions_opml(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Export all RSS subscriptions to OPML format."""
     try:
         opml_content, filename = await service.export_subscriptions_opml(
             request=request,
-            user=user,
+            user_id=user_id,
         )
         return xml_download_response(content=opml_content, filename=filename)
     except Exception as exc:
@@ -287,14 +286,14 @@ async def export_subscriptions_opml(
 async def import_subscriptions_opml(
     request: Request,
     opml_content: str = Body(..., embed=True, description="OPML file content"),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSubscriptionsService = Depends(get_admin_subscriptions_service),
 ):
     """Import RSS subscriptions from OPML."""
     try:
         payload, status_code = await service.import_subscriptions_opml(
             request=request,
-            user=user,
+            user_id=user_id,
             opml_content=opml_content,
         )
         return json_payload(payload, status_code=status_code)

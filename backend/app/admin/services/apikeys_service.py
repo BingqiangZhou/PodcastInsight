@@ -9,10 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import (
     decrypt_data,
-    decrypt_data_with_password,
     encrypt_data,
-    encrypt_data_with_password,
-    validate_export_password,
 )
 from app.domains.ai.models import AIModelConfig, ModelType
 
@@ -201,7 +198,7 @@ class AdminApiKeysService:
         self,
         *,
         request,
-        user,
+        user_id,
         name: str,
         display_name: str,
         model_type: str,
@@ -239,7 +236,7 @@ class AdminApiKeysService:
             "message": f"模型配置 '{display_name}' 已成功创建",
         }
 
-    async def toggle_apikey(self, *, request, user, key_id: int) -> dict | None:
+    async def toggle_apikey(self, *, request, user_id, key_id: int) -> dict | None:
         result = await self.db.execute(
             select(AIModelConfig).where(AIModelConfig.id == key_id),
         )
@@ -256,7 +253,7 @@ class AdminApiKeysService:
         self,
         *,
         request,
-        user,
+        user_id,
         key_id: int,
         name: str | None,
         display_name: str | None,
@@ -302,7 +299,7 @@ class AdminApiKeysService:
         # No refresh needed - model_config is already in session with updated values
         return {"success": True}
 
-    async def delete_apikey(self, *, request, user, key_id: int) -> dict | None:
+    async def delete_apikey(self, *, request, user_id, key_id: int) -> dict | None:
         result = await self.db.execute(
             select(AIModelConfig).where(AIModelConfig.id == key_id),
         )
@@ -310,26 +307,15 @@ class AdminApiKeysService:
         if not model_config:
             return None
 
-        resource_name = model_config.display_name
         await self.db.delete(model_config)
         await self.db.commit()
         return {"success": True}
 
     async def export_json(
-        self, *, request, user, mode: str, export_password: str | None
+        self, *, request, user_id, mode: str, export_password: str | None
     ):
-        if mode not in ["plaintext", "encrypted"]:
-            return {"success": False, "message": f"Invalid mode: {mode}"}, 400
-
-        if mode == "encrypted":
-            if not export_password:
-                return {
-                    "success": False,
-                    "message": "export_password is required for encrypted mode",
-                }, 400
-            is_valid, error_msg = validate_export_password(export_password)
-            if not is_valid:
-                return {"success": False, "message": f"Weak password: {error_msg}"}, 400
+        if mode != "plaintext":
+            return {"success": False, "message": "Only plaintext export is supported"}, 400
 
         result = await self.db.execute(
             select(AIModelConfig).order_by(
@@ -343,7 +329,7 @@ class AdminApiKeysService:
             "version": "2.0",
             "export_mode": mode,
             "exported_at": datetime.now(UTC).isoformat(),
-            "exported_by": user.username,
+            "exported_by": "admin",
             "total_count": len(apikeys),
             "apikeys": [],
         }
@@ -359,46 +345,26 @@ class AdminApiKeysService:
                 "is_active": key.is_active,
                 "created_at": key.created_at.isoformat() if key.created_at else None,
             }
-            if mode == "plaintext":
-                try:
-                    if key.api_key_encrypted:
-                        key_data["api_key"] = decrypt_data(key.api_key)
-                        key_data["api_key_encrypted"] = False
-                    else:
-                        key_data["api_key"] = key.api_key
-                        key_data["api_key_encrypted"] = False
-                except Exception:  # noqa: BLE001
-                    key_data["api_key"] = ""
-                    key_data["api_key_error"] = "Decryption failed"
-            else:
-                try:
-                    if key.api_key_encrypted:
-                        decrypted_key = decrypt_data(key.api_key)
-                        key_data["api_key_encrypted_export"] = (
-                            encrypt_data_with_password(decrypted_key, export_password)
-                        )
-                    else:
-                        key_data["api_key_encrypted_export"] = (
-                            encrypt_data_with_password(
-                                key.api_key,
-                                export_password,
-                            )
-                        )
-                    key_data["api_key_encrypted_flag"] = True
-                except Exception:  # noqa: BLE001
-                    key_data["api_key_encrypted_export"] = None
-                    key_data["api_key_error"] = "Encryption failed"
+            try:
+                if key.api_key_encrypted:
+                    key_data["api_key"] = decrypt_data(key.api_key)
+                    key_data["api_key_encrypted"] = False
+                else:
+                    key_data["api_key"] = key.api_key
+                    key_data["api_key_encrypted"] = False
+            except Exception:  # noqa: BLE001
+                key_data["api_key"] = ""
+                key_data["api_key_error"] = "Decryption failed"
 
             export_data["apikeys"].append(key_data)
 
-        mode_suffix = "_PLAINTEXT" if mode == "plaintext" else ""
-        filename = f"apikeys_export{mode_suffix}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+        filename = f"apikeys_export_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
         return (
             json.dumps(export_data, indent=2, ensure_ascii=False),
             filename,
         )
 
-    async def import_json(self, *, request, user, raw_body: bytes) -> tuple[dict, int]:
+    async def import_json(self, *, request, user_id, raw_body: bytes) -> tuple[dict, int]:
         if not raw_body:
             return {"success": False, "message": "Empty request body"}, 400
 
@@ -412,7 +378,6 @@ class AdminApiKeysService:
 
         file_content = body.get("file")
         mode = body.get("mode", "skip")
-        import_password = body.get("import_password")
         if not file_content:
             return {
                 "success": False,
@@ -437,21 +402,16 @@ class AdminApiKeysService:
             }, 400
 
         export_version = import_data.get("version")
-        export_mode = import_data.get("export_mode", "encrypted")
+        export_mode = import_data.get("export_mode", "plaintext")
         if export_version != "2.0":
             return {
                 "success": False,
                 "message": "Unsupported export version. Please import version 2.0 data.",
             }, 400
-        if export_mode not in {"plaintext", "encrypted"}:
+        if export_mode != "plaintext":
             return {
                 "success": False,
-                "message": f"Invalid export_mode: {export_mode}",
-            }, 400
-        if export_mode == "encrypted" and not import_password:
-            return {
-                "success": False,
-                "message": "import_password is required for encrypted exports",
+                "message": "Only plaintext export mode is supported",
             }, 400
 
         success_count = 0
@@ -481,34 +441,13 @@ class AdminApiKeysService:
                     continue
 
                 name = key_data["name"]
-                api_key_plaintext = None
-                if export_mode == "plaintext":
-                    api_key_plaintext = key_data.get("api_key")
-                    if not api_key_plaintext:
-                        errors.append(
-                            f"Row {idx + 1}: Missing api_key in plaintext export",
-                        )
-                        error_count += 1
-                        continue
-                else:
-                    encrypted_dict = key_data.get("api_key_encrypted_export")
-                    if not encrypted_dict:
-                        errors.append(
-                            f"Row {idx + 1}: Missing api_key_encrypted_export",
-                        )
-                        error_count += 1
-                        continue
-                    try:
-                        api_key_plaintext = decrypt_data_with_password(
-                            encrypted_dict,
-                            import_password,
-                        )
-                    except ValueError as exc:
-                        errors.append(
-                            f"Row {idx + 1}: Failed to decrypt API key: {exc}",
-                        )
-                        error_count += 1
-                        continue
+                api_key_plaintext = key_data.get("api_key")
+                if not api_key_plaintext:
+                    errors.append(
+                        f"Row {idx + 1}: Missing api_key in export",
+                    )
+                    error_count += 1
+                    continue
 
                 existing_key = existing_keys.get(name)
                 if existing_key:

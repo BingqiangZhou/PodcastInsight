@@ -5,9 +5,8 @@ Checks X-API-Key header or admin_session cookie against settings.API_KEY.
 
 import logging
 
-from fastapi import Cookie, Depends, HTTPException, Request, status
+from fastapi import Cookie, HTTPException, Request, status
 
-from app.core.auth import get_db_session_dependency, require_api_key
 from app.core.config import get_settings
 
 

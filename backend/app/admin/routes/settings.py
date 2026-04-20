@@ -7,7 +7,6 @@ from app.admin.auth import admin_required
 from app.admin.dependencies import get_admin_settings_service
 from app.admin.routes._shared import get_templates, json_payload, render_admin_template
 from app.admin.services import AdminSettingsService
-from app.domains.user.models import User
 from app.http.decorators import handle_admin_errors
 
 
@@ -19,14 +18,14 @@ templates = get_templates()
 @handle_admin_errors("load settings page")
 async def settings_page(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
 ):
     """Display system settings page."""
     return render_admin_template(
         templates=templates,
         template_name="settings.html",
         request=request,
-        user=user,
+        user_id=user_id,
         messages=[],
     )
 
@@ -34,7 +33,7 @@ async def settings_page(
 @router.get("/settings/api/audio")
 @handle_admin_errors("get audio settings")
 async def get_audio_settings(
-    _: User = Depends(admin_required),
+    _: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
 ):
     """Get audio processing settings as JSON."""
@@ -47,14 +46,14 @@ async def update_audio_settings(
     request: Request,
     chunk_size_mb: int = Body(..., embed=True),
     max_concurrent_threads: int = Body(..., embed=True),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
 ):
     """Update audio processing settings."""
     return json_payload(
         await service.save_audio_settings(
             request=request,
-            user=user,
+            user_id=user_id,
             chunk_size_mb=chunk_size_mb,
             max_concurrent_threads=max_concurrent_threads,
         ),
@@ -65,7 +64,7 @@ async def update_audio_settings(
 @handle_admin_errors("get frequency settings")
 async def get_frequency_settings(
     _: Request,
-    __: User = Depends(admin_required),
+    ___: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
 ):
     """Get RSS subscription update frequency settings."""
@@ -79,14 +78,14 @@ async def update_frequency_settings(
     update_frequency: str = Body(..., embed=True),
     update_time: str | None = Body(None, embed=True),
     update_day: int | None = Body(None, embed=True),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
 ):
     """Update RSS subscription update frequency settings."""
     return json_payload(
         await service.save_frequency_settings(
             request=request,
-            user=user,
+            user_id=user_id,
             update_frequency=update_frequency,
             update_time=update_time,
             update_day=update_day,
@@ -97,7 +96,7 @@ async def update_frequency_settings(
 @router.get("/settings/api/storage/info")
 @handle_admin_errors("get storage information")
 async def get_storage_info(
-    _: User = Depends(admin_required),
+    _: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
 ):
     """Get storage information as JSON."""
@@ -107,7 +106,7 @@ async def get_storage_info(
 @router.get("/settings/api/storage/cleanup/config")
 @handle_admin_errors("get cleanup configuration")
 async def get_cleanup_config(
-    _: User = Depends(admin_required),
+    _: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
 ):
     """Get auto cleanup configuration as JSON."""
@@ -119,14 +118,14 @@ async def get_cleanup_config(
 async def update_cleanup_config(
     request: Request,
     enabled: bool = Body(..., embed=True),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
 ):
     """Update auto cleanup configuration."""
     return json_payload(
         await service.save_cleanup_config(
             request=request,
-            user=user,
+            user_id=user_id,
             enabled=enabled,
         ),
     )
@@ -137,14 +136,14 @@ async def update_cleanup_config(
 async def execute_cleanup(
     request: Request,
     keep_days: int = Body(1, embed=True),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
 ):
     """Execute manual cleanup."""
     return json_payload(
         await service.run_cleanup(
             request=request,
-            user=user,
+            user_id=user_id,
             keep_days=keep_days,
         ),
     )

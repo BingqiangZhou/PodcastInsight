@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.admin.auth import admin_required
 from app.admin.routes._shared import get_templates
 from app.core.database import get_db_session
-from app.domains.user.models import User
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ templates = get_templates()
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     db: AsyncSession = Depends(get_db_session),
 ):
     """Display admin dashboard."""
@@ -35,7 +34,6 @@ async def dashboard(
             "dashboard.html",
             {
                 "request": request,
-                "user": user,
                 **context,
                 "messages": [],
             },

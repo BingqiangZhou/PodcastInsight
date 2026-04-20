@@ -15,7 +15,6 @@ from app.admin.routes._shared import (
     require_payload,
 )
 from app.admin.services import AdminApiKeysService
-from app.domains.user.models import User
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,7 @@ class ExportRequest(BaseModel):
 @router.get("/apikeys", response_class=HTMLResponse)
 async def apikeys_page(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminApiKeysService = Depends(get_admin_apikeys_service),
     model_type_filter: str | None = None,
     page: int = 1,
@@ -51,7 +50,7 @@ async def apikeys_page(
             templates=templates,
             template_name="apikeys.html",
             request=request,
-            user=user,
+            user_id=user_id,
             messages=[],
             **context,
         )
@@ -71,7 +70,7 @@ async def test_apikey(
     model_type: str = Body(...),
     name: str | None = Body(None),
     key_id: int | None = Body(None),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminApiKeysService = Depends(get_admin_apikeys_service),
 ):
     """Test API key connection before creating a new model config."""
@@ -82,7 +81,7 @@ async def test_apikey(
             model_type=model_type,
             name=name,
             key_id=key_id,
-            username=user.username,
+            username="admin",
         )
         return json_payload(payload, status_code=status_code)
     except Exception as exc:
@@ -104,14 +103,14 @@ async def create_apikey(
     provider: str = Form(default="custom"),
     description: str | None = Form(None),
     priority: int = Form(default=1),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminApiKeysService = Depends(get_admin_apikeys_service),
 ):
     """Create a new AI Model Config with API key."""
     try:
         payload = await service.create_apikey(
             request=request,
-            user=user,
+            user_id=user_id,
             name=name,
             display_name=display_name,
             model_type=model_type,
@@ -139,14 +138,14 @@ async def create_apikey(
 async def toggle_apikey(
     key_id: int,
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminApiKeysService = Depends(get_admin_apikeys_service),
 ):
     """Toggle AI Model Config active status."""
     try:
         payload = await service.toggle_apikey(
             request=request,
-            user=user,
+            user_id=user_id,
             key_id=key_id,
         )
         return json_payload(
@@ -174,14 +173,14 @@ async def edit_apikey(
     provider: str | None = Body(None),
     description: str | None = Body(None),
     priority: int | None = Body(None),
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminApiKeysService = Depends(get_admin_apikeys_service),
 ):
     """Edit an AI Model Config."""
     try:
         payload = await service.edit_apikey(
             request=request,
-            user=user,
+            user_id=user_id,
             key_id=key_id,
             name=name,
             display_name=display_name,
@@ -214,14 +213,14 @@ async def edit_apikey(
 async def delete_apikey(
     key_id: int,
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminApiKeysService = Depends(get_admin_apikeys_service),
 ):
     """Delete an AI Model Config."""
     try:
         payload = await service.delete_apikey(
             request=request,
-            user=user,
+            user_id=user_id,
             key_id=key_id,
         )
         return json_payload(
@@ -240,7 +239,7 @@ async def delete_apikey(
 @router.post("/api/apikeys/export/json")
 async def export_apikeys_json(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminApiKeysService = Depends(get_admin_apikeys_service),
     export_req: ExportRequest = Body(default=ExportRequest()),
 ):
@@ -248,7 +247,7 @@ async def export_apikeys_json(
     try:
         result = await service.export_json(
             request=request,
-            user=user,
+            user_id=user_id,
             mode=export_req.mode,
             export_password=export_req.export_password,
         )
@@ -273,7 +272,7 @@ async def export_apikeys_json(
 @router.post("/api/apikeys/import/json")
 async def import_apikeys_json(
     request: Request,
-    user: User = Depends(admin_required),
+    user_id: int = Depends(admin_required),
     service: AdminApiKeysService = Depends(get_admin_apikeys_service),
 ):
     """Import API keys from JSON format."""
@@ -281,7 +280,7 @@ async def import_apikeys_json(
         raw_body = await request.body()
         payload, status_code = await service.import_json(
             request=request,
-            user=user,
+            user_id=user_id,
             raw_body=raw_body,
         )
         return json_payload(payload, status_code=status_code)

@@ -22,7 +22,6 @@ from app.domains.subscription.models import (
     UpdateFrequency,
     UserSubscription,
 )
-from app.domains.user.models import User
 from app.shared.settings_helpers import persist_setting
 
 
@@ -88,16 +87,9 @@ class AdminSubscriptionsService:
             query = query.where(Subscription.title.ilike(f"%{search_query.strip()}%"))
 
         if user_filter and user_filter.strip():
-            user_query = select(User.id).where(
-                User.username.ilike(f"%{user_filter.strip()}%"),
-            )
-            user_result = await self.db.execute(user_query)
-            user_ids = [row[0] for row in user_result.fetchall()]
-            if user_ids:
-                query = query.where(UserSubscription.user_id.in_(user_ids))
-            else:
-                return self._empty_context(
-                    page=page,
+            # In single-user mode, no user filtering is available
+            return self._empty_context(
+                page=page,
                     per_page=per_page,
                     status_filter=status_filter,
                     search_query=search_query,
@@ -231,7 +223,7 @@ class AdminSubscriptionsService:
         self,
         *,
         request,
-        user,
+        user_id,
         update_frequency: str,
         update_time: str | None,
         update_day: int | None,
@@ -293,7 +285,7 @@ class AdminSubscriptionsService:
         self,
         *,
         request,
-        user,
+        user_id,
         sub_id: int,
         title: str | None,
         source_url: str | None,
@@ -401,7 +393,7 @@ class AdminSubscriptionsService:
         finally:
             await parser.close()
 
-    async def test_all_subscriptions(self, *, request, user) -> dict:
+    async def test_all_subscriptions(self, *, request, user_id) -> dict:
         from app.domains.subscription.parsers.feed_parser import (
             FeedParserConfig,
             parse_feed_url,
@@ -552,7 +544,7 @@ class AdminSubscriptionsService:
             "failed_items": failed_items,
         }
 
-    async def delete_subscription(self, *, request, user, sub_id: int) -> dict | None:
+    async def delete_subscription(self, *, request, user_id, sub_id: int) -> dict | None:
         result = await self.db.execute(
             select(Subscription).where(Subscription.id == sub_id),
         )
@@ -563,7 +555,7 @@ class AdminSubscriptionsService:
         await self._delete_subscription_records([subscription])
         return {"success": True}
 
-    async def refresh_subscription(self, *, request, user, sub_id: int) -> dict | None:
+    async def refresh_subscription(self, *, request, user_id, sub_id: int) -> dict | None:
         result = await self.db.execute(
             select(Subscription).where(Subscription.id == sub_id),
         )
@@ -575,7 +567,7 @@ class AdminSubscriptionsService:
         await self.db.commit()
         return {"success": True}
 
-    async def batch_refresh_subscriptions(self, *, request, user) -> None:
+    async def batch_refresh_subscriptions(self, *, request, user_id) -> None:
         ids = await self._load_request_ids(request)
         result = await self.db.execute(
             select(Subscription).where(Subscription.id.in_(ids)),
@@ -586,7 +578,7 @@ class AdminSubscriptionsService:
 
         await self.db.commit()
 
-    async def batch_toggle_subscriptions(self, *, request, user) -> None:
+    async def batch_toggle_subscriptions(self, *, request, user_id) -> None:
         ids = await self._load_request_ids(request)
         result = await self.db.execute(
             select(Subscription).where(Subscription.id.in_(ids)),
@@ -597,7 +589,7 @@ class AdminSubscriptionsService:
 
         await self.db.commit()
 
-    async def batch_delete_subscriptions(self, *, request, user) -> None:
+    async def batch_delete_subscriptions(self, *, request, user_id) -> None:
         ids = await self._load_request_ids(request)
         result = await self.db.execute(
             select(Subscription).where(Subscription.id.in_(ids)),

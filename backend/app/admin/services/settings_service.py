@@ -126,7 +126,7 @@ class AdminSettingsService:
         self,
         *,
         request,
-        user,
+        user_id,
         chunk_size_mb: int,
         max_concurrent_threads: int,
     ) -> dict[str, object]:
@@ -240,7 +240,7 @@ class AdminSettingsService:
         self,
         *,
         request,
-        user,
+        user_id,
         update_frequency: str,
         update_time: str | None,
         update_day: int | None,
@@ -277,7 +277,7 @@ class AdminSettingsService:
         self,
         *,
         request,
-        user,
+        user_id,
         enabled: bool,
     ) -> dict:
         """Persist and audit automatic cleanup configuration."""
@@ -293,7 +293,7 @@ class AdminSettingsService:
         self,
         *,
         request,
-        user,
+        user_id,
         keep_days: int,
     ) -> dict:
         """Execute cleanup and record the admin audit event."""
