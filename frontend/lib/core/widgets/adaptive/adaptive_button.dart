@@ -68,7 +68,7 @@ class AdaptiveButton extends StatelessWidget {
         return CupertinoButton(
           onPressed: isLoading ? null : onPressed,
           color: theme.colorScheme.primary,
-          borderRadius: BorderRadius.circular(context.buttonRadius),
+          borderRadius: BorderRadius.circular(appThemeOf(context).buttonRadius),
           padding: padding ??
               EdgeInsets.symmetric(horizontal: context.spacing.md, vertical: context.spacing.smMd),
           child: DefaultTextStyle(
@@ -79,7 +79,7 @@ class AdaptiveButton extends StatelessWidget {
       case AdaptiveButtonStyle.text:
         return CupertinoButton(
           onPressed: isLoading ? null : onPressed,
-          borderRadius: BorderRadius.circular(context.buttonRadius),
+          borderRadius: BorderRadius.circular(appThemeOf(context).buttonRadius),
           padding: padding ??
               EdgeInsets.symmetric(horizontal: context.spacing.smMd, vertical: context.spacing.xs),
           child: effectiveChild,
@@ -129,7 +129,7 @@ class AdaptiveButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             padding: padding,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.buttonRadius),
+              borderRadius: BorderRadius.circular(appThemeOf(context).buttonRadius),
             ),
           ),
           child: effectiveChild,
@@ -140,7 +140,7 @@ class AdaptiveButton extends StatelessWidget {
           style: TextButton.styleFrom(
             padding: padding,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.buttonRadius),
+              borderRadius: BorderRadius.circular(appThemeOf(context).buttonRadius),
             ),
           ),
           child: effectiveChild,
@@ -151,7 +151,7 @@ class AdaptiveButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             padding: padding,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.buttonRadius),
+              borderRadius: BorderRadius.circular(appThemeOf(context).buttonRadius),
             ),
           ),
           child: effectiveChild,

@@ -445,7 +445,7 @@ class QueueItemCover extends StatelessWidget {
         children: [
           Positioned.fill(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(context.itemRadius),
+              borderRadius: BorderRadius.circular(appThemeOf(context).itemRadius),
               child: imageUrl != null && imageUrl.isNotEmpty
                   ? PodcastImageWidget(
                       imageUrl: imageUrl,

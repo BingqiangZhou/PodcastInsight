@@ -40,7 +40,7 @@ class PodcastEpisodeSearchResultCard extends StatelessWidget {
           horizontal: cardHorizontalPadding,
           vertical: cardVerticalPadding,
         ),
-        cornerRadius: context.itemRadius,
+        cornerRadius: appThemeOf(context).itemRadius,
         titleMaxLines: 1,
         showPlayButton: onPlay != null,
       ),

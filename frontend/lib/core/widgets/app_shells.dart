@@ -196,7 +196,7 @@ class HeaderCapsuleActionButton extends StatelessWidget {
     // Border radius: pill shape for surfaceNeutral, fixed for primaryTinted
     final borderRadius = isSurfaceNeutral
         ? (iconOnlyCircular ? iconOnlySize / 2 : AppRadius.chip)
-        : context.buttonRadius;
+        : appThemeOf(context).buttonRadius;
 
     final button = Material(
       color: isSurfaceNeutral
