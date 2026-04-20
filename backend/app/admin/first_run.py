@@ -1,6 +1,7 @@
 """First-run setup middleware for admin panel."""
 
 import logging
+import time
 
 from fastapi import Request
 from fastapi.responses import RedirectResponse
@@ -12,6 +13,11 @@ from app.domains.user.models import User
 
 logger = logging.getLogger(__name__)
 
+# Cache for admin existence check (TTL-based)
+_admin_exists_cache: bool | None = None
+_admin_exists_cache_time: float = 0
+_ADMIN_EXISTS_CACHE_TTL = 60.0  # seconds
+
 
 async def check_admin_exists() -> bool:
     """Check if any superuser exists in the database.
@@ -20,6 +26,12 @@ async def check_admin_exists() -> bool:
         True if at least one superuser exists, False otherwise
 
     """
+    global _admin_exists_cache, _admin_exists_cache_time
+
+    now = time.monotonic()
+    if _admin_exists_cache is not None and (now - _admin_exists_cache_time) < _ADMIN_EXISTS_CACHE_TTL:
+        return _admin_exists_cache
+
     try:
         session_factory = get_async_session_factory()
         async with session_factory() as db:
@@ -27,7 +39,10 @@ async def check_admin_exists() -> bool:
                 select(User).where(User.is_superuser).limit(1),
             )
             admin_user = result.scalar_one_or_none()
-            return admin_user is not None
+            exists = admin_user is not None
+            _admin_exists_cache = exists
+            _admin_exists_cache_time = now
+            return exists
     except Exception as e:
         logger.error(f"Error checking admin existence: {e}")
         # If there's an error, assume admin exists to avoid blocking access

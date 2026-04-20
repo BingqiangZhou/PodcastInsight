@@ -151,8 +151,13 @@ try:
         """Dispose DB engines when a Celery worker child process shuts down."""
         try:
             from app.core.database import close_worker_db_runtimes
+            from app.domains.podcast.tasks._runlog import dispose_runlog_engine
 
-            asyncio.run(close_worker_db_runtimes())
+            async def _shutdown():
+                await dispose_runlog_engine()
+                await close_worker_db_runtimes()
+
+            asyncio.run(_shutdown())
         except Exception:
             _logger.warning(
                 "Failed to dispose worker DB engines during shutdown", exc_info=True

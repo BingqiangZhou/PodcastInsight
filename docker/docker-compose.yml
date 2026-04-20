@@ -32,7 +32,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-personal_ai}
       - POSTGRES_USER=${POSTGRES_USER:-admin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    command: postgres -c max_connections=50 -c shared_buffers=128MB -c effective_cache_size=256MB
+    command: postgres -c max_connections=100 -c shared_buffers=128MB -c effective_cache_size=256MB
     ports:
       - "${DB_PORT:-127.0.0.1:5432}:5432"
     volumes:
@@ -50,10 +50,10 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 384M
+          memory: 512M
         reservations:
           cpus: '0.25'
-          memory: 128M
+          memory: 256M
 
   # =============================================================================
   # Redis Cache

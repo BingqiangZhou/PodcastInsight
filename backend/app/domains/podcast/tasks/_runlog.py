@@ -52,5 +52,22 @@ async def _insert_run_async(
     except Exception:
         _logger.exception("Failed to insert runlog for %s", task_name)
         # Reset cached factory on error so next call creates a fresh one
+        if _runlog_engine is not None:
+            try:
+                await _runlog_engine.dispose()
+            except Exception:
+                _logger.warning("Failed to dispose runlog engine", exc_info=True)
         _runlog_session_factory = None
         _runlog_engine = None
+
+
+async def dispose_runlog_engine() -> None:
+    """Dispose the cached runlog engine (called during worker shutdown)."""
+    global _runlog_session_factory, _runlog_engine
+    if _runlog_engine is not None:
+        try:
+            await _runlog_engine.dispose()
+        except Exception:
+            _logger.warning("Failed to dispose runlog engine on shutdown", exc_info=True)
+    _runlog_session_factory = None
+    _runlog_engine = None
