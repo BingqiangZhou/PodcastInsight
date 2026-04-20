@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/app/config/app_config.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
@@ -299,7 +300,7 @@ class AuthVerifyPage extends ConsumerWidget {
                       padding: EdgeInsets.all(context.spacing.md),
                       child: Text(
                         status.message,
-                        style: AppTheme.monoStyle(
+                        style: AppTextStyles.monoStyle(
                           fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14,
                           fontWeight: FontWeight.w500,
                           color: status.color,
@@ -422,7 +423,7 @@ class _TestButton extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: context.spacing.mdLg, horizontal: context.spacing.mdLg),
             child: Text(
               text,
-              style: AppTheme.monoStyle(
+              style: AppTextStyles.monoStyle(
                 fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16,
                 fontWeight: FontWeight.w600,
               ),

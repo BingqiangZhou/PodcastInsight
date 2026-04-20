@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 
 /// A Linear-style section header with title and optional trailing widget.
 ///
@@ -71,7 +71,7 @@ class LinearSectionHeader extends StatelessWidget {
           Expanded(
             child: Text(
               title.toUpperCase(),
-              style: AppTheme.metaSmall(mutedColor).copyWith(
+              style: AppTextStyles.metaSmall(mutedColor).copyWith(
                 fontWeight: FontWeight.w600,
                 letterSpacing: 1,
               ),

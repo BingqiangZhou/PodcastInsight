@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
-import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 
 /// Adaptive dismissible with platform-specific swipe actions.
 ///
@@ -83,7 +83,7 @@ class AdaptiveDismissible extends StatelessWidget {
           const SizedBox(height: AppSpacing.xxs),
           Text(
             l10n.delete,
-            style: AppTheme.metaSmall(scheme.onError),
+            style: AppTextStyles.metaSmall(scheme.onError),
           ),
         ],
       ),
@@ -109,7 +109,7 @@ class AdaptiveDismissible extends StatelessWidget {
           const SizedBox(height: AppSpacing.xxs),
           Text(
             label,
-            style: AppTheme.metaSmall(onActionColor),
+            style: AppTextStyles.metaSmall(onActionColor),
           ),
         ],
       ),

@@ -6,8 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // Import AppConfig and ApiConstants from the canonical config file
 import 'package:personal_ai_assistant/core/app/config/app_config.dart' as config;
-// Import ETag interceptor (now with integrated cache)
-import 'package:personal_ai_assistant/core/network/etag_interceptor.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
 import 'package:personal_ai_assistant/core/network/retry_interceptor.dart';
 import 'package:personal_ai_assistant/core/network/token_refresh_service.dart';
@@ -91,9 +90,6 @@ class DioClient {
   DioClient({DioClientInitOptions initOptions = const DioClientInitOptions()})
     : _initOptions = initOptions,
       _retryOptions = initOptions.retryOptions {
-    // Initialize ETag interceptor
-    _etagInterceptor = ETagInterceptor();
-
     // Initialize with default/empty baseUrl first.
     // The actual baseUrl is set by _initializeBaseUrl().
     _dio = Dio(
@@ -108,8 +104,14 @@ class DioClient {
     // Initialize token refresh service
     _tokenRefreshService = TokenRefreshService(dio: _dio);
 
-    // Add ETag interceptor FIRST
-    _dio.interceptors.add(_etagInterceptor);
+    // Initialize cache interceptor
+    _cacheOptions = CacheOptions(
+      store: MemCacheStore(),
+      policy: CachePolicy.refreshForceCache,
+      maxStale: const Duration(hours: 1),
+      hitCacheOnErrorCodes: [500],
+    );
+    _dio.interceptors.add(DioCacheInterceptor(options: _cacheOptions));
 
     // Add main interceptors
     _dio.interceptors.add(
@@ -134,9 +136,7 @@ class DioClient {
   late final Dio _dio;
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   late final TokenRefreshService _tokenRefreshService;
-
-  // ETag interceptor
-  late final ETagInterceptor _etagInterceptor;
+  late final CacheOptions _cacheOptions;
 
   // Request cancellation support
   final Map<String, CancelToken> _cancelTokens = {};
@@ -152,8 +152,6 @@ class DioClient {
 
   // Storage key for custom backend server base URL
   static const String _serverBaseUrlKey = 'server_base_url';
-  static const String _etagInvalidateAfterWriteKey =
-      'etag_invalidate_after_write';
 
   /// Initialize baseUrl from saved storage or default config
   void _initializeBaseUrl({String? initialServerBaseUrl}) {
@@ -302,18 +300,6 @@ class DioClient {
   }
 
   void _onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (_shouldInvalidateETagAfterWrite(
-      response.requestOptions,
-      response.statusCode,
-    )) {
-      _etagInterceptor.clearCache();
-      if (kDebugMode) {
-        logger.AppLogger.debug(
-          ' [DioClient] Cleared ETag cache after ${response.requestOptions.method} ${response.requestOptions.path}',
-        );
-      }
-    }
-
     // Debug subscriptions list response shape
     if (kDebugMode) {
       if (response.requestOptions.path == '/podcasts/subscriptions') {
@@ -341,32 +327,6 @@ class DioClient {
       }
     }
     handler.next(response);
-  }
-
-  bool _shouldInvalidateETagAfterWrite(
-    RequestOptions options,
-    int? statusCode,
-  ) {
-    if (options.extra[_etagInvalidateAfterWriteKey] != true) {
-      return false;
-    }
-
-    if (statusCode == null) {
-      return false;
-    }
-
-    final method = options.method.toUpperCase();
-    final isMutation =
-        method == 'POST' ||
-        method == 'PUT' ||
-        method == 'PATCH' ||
-        method == 'DELETE';
-    final isSuccess = statusCode >= 200 && statusCode < 300;
-    return isMutation && isSuccess;
-  }
-
-  Map<String, dynamic> _mutationCacheInvalidateExtra() {
-    return {_etagInvalidateAfterWriteKey: true};
   }
 
   Future<void> _onError(DioException error, ErrorInterceptorHandler handler) async {
@@ -623,14 +583,12 @@ class DioClient {
     bool invalidateCache = false,
   }) async {
     final options = Options();
-
     if (invalidateCache) {
       options.extra = {
         ...(options.extra ?? const <String, dynamic>{}),
-        ..._mutationCacheInvalidateExtra(),
+        'cacheOptions': _cacheOptions.copyWith(policy: CachePolicy.refresh),
       };
     }
-
     return _dio.post(path, data: data, options: options);
   }
 
@@ -640,53 +598,39 @@ class DioClient {
     bool invalidateCache = true,
   }) async {
     final options = Options();
-
     if (invalidateCache) {
       options.extra = {
         ...(options.extra ?? const <String, dynamic>{}),
-        ..._mutationCacheInvalidateExtra(),
+        'cacheOptions': _cacheOptions.copyWith(policy: CachePolicy.refresh),
       };
     }
-
     return _dio.put(path, data: data, options: options);
   }
 
   Future<Response> delete(String path, {bool invalidateCache = true}) async {
     final options = Options();
-
     if (invalidateCache) {
       options.extra = {
         ...(options.extra ?? const <String, dynamic>{}),
-        ..._mutationCacheInvalidateExtra(),
+        'cacheOptions': _cacheOptions.copyWith(policy: CachePolicy.refresh),
       };
     }
-
     return _dio.delete(path, options: options);
   }
 
   // Cache management
 
-  /// Clear all caches (ETag)
+  /// Clear all caches
   Future<void> clearCache() async {
-    _etagInterceptor.clearCache();
+    await _cacheOptions.store!.clean();
     if (kDebugMode) {
       logger.AppLogger.debug('[DioClient] All caches cleared');
     }
   }
 
-  /// Clear ETag cache
+  /// Clear ETag cache (same as clearCache for simplicity)
   void clearETagCache() {
-    _etagInterceptor.clearCache();
-  }
-
-  /// Clear ETag cache for specific key pattern
-  void clearETagPattern(String pattern) {
-    _etagInterceptor.clearPattern(pattern);
-  }
-
-  /// Get ETag cache statistics
-  Map<String, dynamic> getETagStats() {
-    return _etagInterceptor.getStats();
+    clearCache();
   }
 
   // Token management (delegates to TokenRefreshService)
@@ -775,7 +719,6 @@ class DioClient {
   /// callback so that provider disposal does not leak resources.
   void dispose() {
     cancelAllRequests('DioClient disposed');
-    clearETagCache();
     clearTokenCache();
     for (final completer in _inFlightRequests.values) {
       if (!completer.isCompleted) {

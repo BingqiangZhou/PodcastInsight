@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
+import 'package:personal_ai_assistant/core/constants/app_text_styles.dart';
 import 'package:personal_ai_assistant/core/constants/breakpoints.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/platform/adaptive_haptic.dart';
@@ -957,7 +958,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                     SizedBox(height: context.spacing.xxs),
                     Text(
                       destination.label,
-                      style: AppTheme.navLabel(
+                      style: AppTextStyles.navLabel(
                         isSelected
                             ? theme.colorScheme.primary
                             : theme.colorScheme.onSurfaceVariant,
@@ -1033,7 +1034,7 @@ class _CustomAdaptiveNavigationState extends ConsumerState<CustomAdaptiveNavigat
                 SizedBox(height: context.spacing.xxs),
                 Text(
                   destination.label,
-                  style: AppTheme.navLabel(
+                  style: AppTextStyles.navLabel(
                     isSelected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant,
                     weight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),

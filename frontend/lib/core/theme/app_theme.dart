@@ -19,68 +19,6 @@ import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  /// Returns a monospace TextStyle suitable for code, timestamps, and data.
-  static TextStyle monoStyle({
-    double fontSize = 13,
-    FontWeight fontWeight = FontWeight.w400,
-    double height = 1.5,
-    Color? color,
-  }) {
-    return TextStyle(
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      height: height,
-      letterSpacing: 0,
-      fontFamily: 'monospace',
-      color: color,
-    );
-  }
-
-  // ============================================================
-  // NAMED STYLE HELPERS / 命名样式助手
-  // For sizes not covered by standard TextTheme slots.
-  // ============================================================
-
-  /// Transcript body text (fontSize: 15, height: 1.6).
-  /// Used across podcast transcript and show notes displays.
-  static TextStyle transcriptBody([Color? color]) => TextStyle(
-    fontSize: 15,
-    fontWeight: FontWeight.w400,
-    height: 1.6,
-    letterSpacing: 0,
-    color: color,
-  );
-
-  /// Caption text (fontSize: 13, height: 1.4).
-  /// Fills the gap between bodySmall (12) and bodyMedium (14).
-  static TextStyle caption([Color? color]) => TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.w400,
-    height: 1.4,
-    letterSpacing: 0.1,
-    color: color,
-  );
-
-  /// Compact metadata text (fontSize: 11, height: 1.3).
-  /// For scores, tags, micro-labels.
-  static TextStyle metaSmall([Color? color]) => TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.w500,
-    height: 1.3,
-    letterSpacing: 0.1,
-    color: color,
-  );
-
-  /// Navigation rail label (fontSize: 10, height: 1.0).
-  /// For extremely compact navigation labels.
-  static TextStyle navLabel(Color? color, {FontWeight weight = FontWeight.w500}) =>
-    TextStyle(
-      fontSize: 10,
-      fontWeight: weight,
-      height: 1,
-      letterSpacing: 0.2,
-      color: color,
-    );
 
   // ============================================================
   // THEME ACCESSORS / 主题访问器
