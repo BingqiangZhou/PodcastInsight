@@ -10,7 +10,6 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state
 import 'package:personal_ai_assistant/features/podcast/data/services/apple_podcast_rss_service.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/itunes_search_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_playback_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart'
@@ -214,21 +213,23 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             EmptyPodcastSubscriptionNotifier.new,
           ),
-          search.podcastSearchProvider.overrideWithValue(
-            const search.PodcastSearchState(
-              hasSearched: true,
-              searchMode: search.PodcastSearchMode.podcasts,
-              podcastResults: [
-                PodcastSearchResult(
-                  collectionId: 100,
-                  collectionName: 'Test Podcast',
-                  artistName: 'Tester',
-                  feedUrl: 'https://example.com/feed.xml',
-                  artworkUrl100: 'https://example.com/podcast.png',
-                  trackCount: 10,
-                  primaryGenreName: 'Tech',
-                ),
-              ],
+          search.podcastSearchProvider.overrideWith(
+            () => PassthroughPodcastSearchNotifier(
+              const search.PodcastSearchState(
+                hasSearched: true,
+                searchMode: search.PodcastSearchMode.podcasts,
+                podcastResults: [
+                  PodcastSearchResult(
+                    collectionId: 100,
+                    collectionName: 'Test Podcast',
+                    artistName: 'Tester',
+                    feedUrl: 'https://example.com/feed.xml',
+                    artworkUrl100: 'https://example.com/podcast.png',
+                    trackCount: 10,
+                    primaryGenreName: 'Tech',
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -272,22 +273,24 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             EmptyPodcastSubscriptionNotifier.new,
           ),
-          search.podcastSearchProvider.overrideWithValue(
-            search.PodcastSearchState(
-              hasSearched: true,
-              episodeResults: [
-                ITunesPodcastEpisodeResult(
-                  trackId: 200,
-                  collectionId: 100,
-                  trackName: 'Episode 1',
-                  collectionName: 'Test Podcast',
-                  feedUrl: 'https://example.com/feed.xml',
-                  previewUrl: 'https://example.com/ep.mp3',
-                  releaseDate: DateTime(2026, 2, 14),
-                  trackTimeMillis: 1200000,
-                  artworkUrl100: 'https://example.com/ep.png',
-                ),
-              ],
+          search.podcastSearchProvider.overrideWith(
+            () => PassthroughPodcastSearchNotifier(
+              search.PodcastSearchState(
+                hasSearched: true,
+                episodeResults: [
+                  ITunesPodcastEpisodeResult(
+                    trackId: 200,
+                    collectionId: 100,
+                    trackName: 'Episode 1',
+                    collectionName: 'Test Podcast',
+                    feedUrl: 'https://example.com/feed.xml',
+                    previewUrl: 'https://example.com/ep.mp3',
+                    releaseDate: DateTime(2026, 2, 14),
+                    trackTimeMillis: 1200000,
+                    artworkUrl100: 'https://example.com/ep.png',
+                  ),
+                ],
+              ),
             ),
           ),
         ],

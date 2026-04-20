@@ -10,7 +10,6 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_searc
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/apple_podcast_rss_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart'
     as search;
@@ -301,8 +300,9 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             EmptyPodcastSubscriptionNotifier.new,
           ),
-          search.podcastSearchProvider.overrideWithValue(
-            const search.PodcastSearchState(),
+          search.podcastSearchProvider.overrideWith(
+            () => PassthroughPodcastSearchNotifier(
+                const search.PodcastSearchState()),
           ),
         ],
       );
@@ -365,8 +365,9 @@ void main() {
             podcastSubscriptionProvider.overrideWith(
               EmptyPodcastSubscriptionNotifier.new,
             ),
-            search.podcastSearchProvider.overrideWithValue(
-              const search.PodcastSearchState(),
+            search.podcastSearchProvider.overrideWith(
+              () => PassthroughPodcastSearchNotifier(
+                  const search.PodcastSearchState()),
             ),
           ],
         );
@@ -460,8 +461,9 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             DelayedSubscriptionNotifier.new,
           ),
-          search.podcastSearchProvider.overrideWithValue(
-            const search.PodcastSearchState(),
+          search.podcastSearchProvider.overrideWith(
+            () => PassthroughPodcastSearchNotifier(
+                const search.PodcastSearchState()),
           ),
         ],
       );
@@ -513,8 +515,9 @@ void main() {
           podcastSubscriptionProvider.overrideWith(
             DelayedSubscriptionNotifier.new,
           ),
-          search.podcastSearchProvider.overrideWithValue(
-            const search.PodcastSearchState(),
+          search.podcastSearchProvider.overrideWith(
+            () => PassthroughPodcastSearchNotifier(
+                const search.PodcastSearchState()),
           ),
         ],
       );
@@ -564,8 +567,9 @@ void main() {
             podcastSubscriptionProvider.overrideWith(
               DelayedSubscriptionNotifier.new,
             ),
-            search.podcastSearchProvider.overrideWithValue(
-              const search.PodcastSearchState(),
+            search.podcastSearchProvider.overrideWith(
+              () => PassthroughPodcastSearchNotifier(
+                  const search.PodcastSearchState()),
             ),
           ],
         );
@@ -614,8 +618,9 @@ void main() {
           applePodcastRssServiceProvider.overrideWithValue(
             FakeApplePodcastRssService(),
           ),
-          search.podcastSearchProvider.overrideWithValue(
-            const search.PodcastSearchState(),
+          search.podcastSearchProvider.overrideWith(
+            () => PassthroughPodcastSearchNotifier(
+                const search.PodcastSearchState()),
           ),
         ],
       );
