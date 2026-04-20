@@ -68,10 +68,8 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_HOSTS: list[str] = []
 
-    # JWT
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    ALGORITHM: str = "HS256"
+    # Authentication
+    API_KEY: str = ""
 
     # Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/1"
@@ -87,7 +85,6 @@ class Settings(BaseSettings):
     # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"
 
-    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 24
     ALLOWED_AUDIO_SCHEMES: list[str] = ["http", "https"]
 
     # External APIs
@@ -133,27 +130,11 @@ class Settings(BaseSettings):
     PODCAST_RECENT_EPISODES_LIMIT: int = 3
     PODCAST_FEED_LIGHTWEIGHT_ENABLED: bool = True
     RSS_REFRESH_CONCURRENCY: int = 5
-    TASK_ORCHESTRATION_USER_BATCH_SIZE: int = 500
 
     # AI Client Configuration
     AI_CLIENT_MAX_RETRIES: int = 3
     AI_CLIENT_BASE_DELAY: int = 2
     AI_CLIENT_MAX_PROMPT_LENGTH: int = 1000000
-
-    _WEAK_PASSWORDS: frozenset[str] = frozenset(
-        {
-            "mysecurepass2024",
-            "password",
-            "admin",
-            "root",
-            "postgres",
-            "123456",
-            "changeme",
-            "default",
-            "secret",
-            "test",
-        }
-    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -197,19 +178,31 @@ class Settings(BaseSettings):
             )
         return v
 
-    @field_validator("TASK_ORCHESTRATION_USER_BATCH_SIZE")
-    @classmethod
-    def validate_task_orchestration_user_batch_size(cls, v: int) -> int:
-        if v < 1:
-            raise ValueError("TASK_ORCHESTRATION_USER_BATCH_SIZE must be >= 1")
-        return v
-
     @field_validator("TRANSCRIPTION_STARTUP_RESET_TIMEOUT_SECONDS")
     @classmethod
     def validate_transcription_startup_reset_timeout_seconds(cls, v: float) -> float:
         if v <= 0:
             raise ValueError("TRANSCRIPTION_STARTUP_RESET_TIMEOUT_SECONDS must be > 0")
         return v
+
+    def validate_production_config(self) -> list[str]:
+        """Validate configuration for production environment."""
+        issues = []
+        if self.ENVIRONMENT == "production":
+            if not self.SECRET_KEY:
+                issues.append(
+                    "SECRET_KEY should be explicitly set via environment variable in production"
+                )
+            if "*" in self.ALLOWED_HOSTS:
+                issues.append(
+                    "ALLOWED_HOSTS contains '*' which allows all origins. "
+                    "Specify exact domains in production."
+                )
+            if not self.API_KEY:
+                issues.append(
+                    "API_KEY must be set in production for authentication"
+                )
+        return issues
 
     def require_database_url(self) -> str:
         """Return DATABASE_URL or raise a runtime error when not configured."""
@@ -226,39 +219,6 @@ class Settings(BaseSettings):
             return self.SECRET_KEY
         self.SECRET_KEY = get_or_generate_secret_key()
         return self.SECRET_KEY
-
-    @staticmethod
-    def _extract_db_password(url: str) -> str | None:
-        """Extract password from a database URL like postgresql://user:password@host/db."""
-        try:
-            from urllib.parse import urlparse
-
-            parsed = urlparse(url)
-            return parsed.password
-        except ValueError:
-            return None
-
-    def validate_production_config(self) -> list[str]:
-        """Validate configuration for production environment."""
-        issues = []
-        if self.ENVIRONMENT == "production":
-            if not self.SECRET_KEY:
-                issues.append(
-                    "SECRET_KEY should be explicitly set via environment variable in production"
-                )
-            if "*" in self.ALLOWED_HOSTS:
-                issues.append(
-                    "ALLOWED_HOSTS contains '*' which allows all origins. "
-                    "Specify exact domains in production."
-                )
-            if self.DATABASE_URL:
-                password = self._extract_db_password(self.DATABASE_URL)
-                if password and password.lower() in self._WEAK_PASSWORDS:
-                    issues.append(
-                        "Database password appears to be a weak/default value. "
-                        "Change POSTGRES_PASSWORD in production."
-                    )
-        return issues
 
 
 @lru_cache
