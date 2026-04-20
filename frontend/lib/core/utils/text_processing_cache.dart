@@ -1,5 +1,5 @@
-import 'package:html/parser.dart' show parse;
-import 'package:html/dom.dart' show Node, Element, TextNode;
+import 'package:html/dom.dart';
+import 'package:html/parser.dart' as html_parser;
 
 /// Cache entry with timestamp for expiry.
 class _Entry<T> {
@@ -60,7 +60,7 @@ class TextProcessingCache {
 
   /// Converts HTML to plain text using the `html` package.
   static String _htmlToPlainText(String html) {
-    final document = parse(html);
+    final document = html_parser.parse(html);
     // Extract text content from the body. parse() wraps fragments in <html><body>.
     final body = document.body;
     if (body == null) return '';
@@ -72,10 +72,10 @@ class TextProcessingCache {
 
   /// Recursively extracts text from DOM nodes, inserting newlines for block elements.
   static void _extractText(Node node, StringBuffer buffer) {
-    if (node is TextNode) {
+    if (node is Text) {
       buffer.write(node.text);
     } else if (node is Element) {
-      final tag = node.localName.toLowerCase();
+      final tag = node.localName?.toLowerCase() ?? '';
       final isBlock = const {
         'p', 'div', 'br', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'tr', 'blockquote', 'hr',

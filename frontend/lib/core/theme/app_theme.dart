@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/core/theme/responsive_helpers.dart';
 
 /// ============================================================
 /// Refined Minimal Design System - 简约现代设计系统
@@ -82,27 +81,6 @@ class AppTheme {
       letterSpacing: 0.2,
       color: color,
     );
-
-  // ============================================================
-  // RESPONSIVE HELPERS (re-exported from ResponsiveHelpers)
-  // 响应式助手（从 ResponsiveHelpers 重新导出）
-  // ============================================================
-
-  /// 响应式边距助手
-  static EdgeInsetsGeometry getResponsivePadding(BuildContext context) =>
-      ResponsiveHelpers.getResponsivePadding(context);
-
-  /// 响应式水平边距助手
-  static EdgeInsetsGeometry getResponsiveHorizontalPadding(BuildContext context) =>
-      ResponsiveHelpers.getResponsiveHorizontalPadding(context);
-
-  /// 响应式垂直边距助手
-  static EdgeInsetsGeometry getResponsiveVerticalPadding(BuildContext context) =>
-      ResponsiveHelpers.getResponsiveVerticalPadding(context);
-
-  /// 获取响应式最大宽度
-  static double getResponsiveMaxWidth(BuildContext context) =>
-      ResponsiveHelpers.getResponsiveMaxWidth(context);
 
   // ============================================================
   // THEME ACCESSORS / 主题访问器

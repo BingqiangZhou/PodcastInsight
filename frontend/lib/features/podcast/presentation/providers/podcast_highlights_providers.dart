@@ -131,7 +131,7 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
         return data;
       } catch (error, stackTrace) {
         logger.AppLogger.debug('Failed to load highlights: $error');
-        if (error is AuthenticationException) {
+        if (error is AuthException) {
           ref.read(authProvider.notifier).checkAuthStatus();
         }
         if (previousData == null) {
@@ -268,7 +268,7 @@ class HighlightDatesNotifier
       fetcher: () => _repository.getHighlightDates(),
       onError: (error, _) {
         logger.AppLogger.debug('Failed to load highlight dates: $error');
-        if (error is AuthenticationException) {
+        if (error is AuthException) {
           ref.read(authProvider.notifier).checkAuthStatus();
         }
       },
@@ -315,7 +315,7 @@ class HighlightStatsNotifier
       fetcher: () => _repository.getHighlightStats(),
       onError: (error, _) {
         logger.AppLogger.debug('Failed to load highlight stats: $error');
-        if (error is AuthenticationException) {
+        if (error is AuthException) {
           ref.read(authProvider.notifier).checkAuthStatus();
         }
       },
