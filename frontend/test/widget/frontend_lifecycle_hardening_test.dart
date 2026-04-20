@@ -12,7 +12,7 @@ import 'package:personal_ai_assistant/features/auth/presentation/pages/login_pag
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conversation_chat_widget.dart';
 import 'package:personal_ai_assistant/shared/widgets/server_config_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
