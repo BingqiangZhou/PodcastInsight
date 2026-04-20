@@ -120,7 +120,7 @@ services:
       - OBS_ALERT_REDIS_CACHE_HIT_RATE_MIN=${OBS_ALERT_REDIS_CACHE_HIT_RATE_MIN:-0.5}
       - OBS_ALERT_REDIS_CACHE_LOOKUPS_MIN=${OBS_ALERT_REDIS_CACHE_LOOKUPS_MIN:-20}
     ports:
-      - "${BACKEND_PUBLISH_PORT:-8000}:8000"
+      - "${BACKEND_PUBLISH_PORT:-127.0.0.1:8000}:8000"
     volumes:
       - backend_uploads:/app/uploads
       - backend_data:/app/data
@@ -151,7 +151,7 @@ services:
       retries: 3
       start_period: 40s
     # Unified: uvicorn for both local and cloud (local can add --reload via BACKEND_CMD)
-    command: ${BACKEND_CMD:-uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 60}
+    command: ${BACKEND_CMD:-uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 60 --proxy-headers --forwarded-allow-ips=*}
     logging: *default-logging
 
   # =============================================================================
