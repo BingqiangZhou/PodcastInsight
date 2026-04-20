@@ -7,9 +7,7 @@ engine with dialect-specific settings.
 
 import asyncio
 import logging
-import threading
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 from importlib import import_module
 from typing import Any
 
@@ -22,7 +20,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.pool import NullPool
 
 from app.core.config import get_settings
 
@@ -38,12 +35,6 @@ _orm_models_registered = False
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
 _engine_url: str | None = None
-_engine_lock = threading.Lock()  # Protect global engine state for concurrent access
-_worker_runtime_lock = asyncio.Lock()
-_worker_runtimes: dict[
-    str,
-    tuple[int | None, async_sessionmaker[AsyncSession], AsyncEngine],
-] = {}
 
 
 def _build_engine_kwargs(database_url: str) -> dict[str, Any]:
@@ -88,26 +79,19 @@ def is_database_configured() -> bool:
 
 
 def get_engine() -> AsyncEngine:
-    """Get or create the async SQLAlchemy engine lazily with thread-safe protection."""
+    """Get or create the async SQLAlchemy engine lazily."""
     global _engine, _engine_url
 
     database_url = get_settings().require_database_url()
 
-    # Fast path: check without lock
     if _engine is not None and _engine_url == database_url:
         return _engine
 
-    # Slow path: acquire lock and create engine
-    with _engine_lock:
-        # Double-check after acquiring lock
-        if _engine is not None and _engine_url == database_url:
-            return _engine
-
-        _engine = create_async_engine(
-            database_url, **_build_engine_kwargs(database_url)
-        )
-        _engine_url = database_url
-        return _engine
+    _engine = create_async_engine(
+        database_url, **_build_engine_kwargs(database_url)
+    )
+    _engine_url = database_url
+    return _engine
 
 
 def get_async_session_factory() -> async_sessionmaker[AsyncSession]:
@@ -124,87 +108,6 @@ def get_async_session_factory() -> async_sessionmaker[AsyncSession]:
     return _session_factory
 
 
-def create_isolated_session_factory(
-    application_name: str,
-) -> tuple[async_sessionmaker[AsyncSession], AsyncEngine]:
-    """Create a worker-oriented session factory with its own engine."""
-    settings = get_settings()
-    database_url = settings.require_database_url()
-    engine_kwargs = _build_engine_kwargs(database_url)
-    engine_kwargs["poolclass"] = NullPool
-    engine_kwargs["pool_pre_ping"] = False
-    # NullPool does not accept pool sizing arguments
-    for key in ("pool_size", "max_overflow", "pool_timeout", "pool_recycle"):
-        engine_kwargs.pop(key, None)
-
-    connect_args = dict(engine_kwargs.get("connect_args") or {})
-    if database_url.startswith("postgresql+asyncpg://"):
-        connect_args["server_settings"] = {
-            "application_name": application_name,
-            "client_encoding": "utf8",
-        }
-        connect_args["timeout"] = settings.DATABASE_CONNECT_TIMEOUT
-    elif database_url.startswith("sqlite+aiosqlite://"):
-        connect_args["timeout"] = settings.DATABASE_CONNECT_TIMEOUT
-    if connect_args:
-        engine_kwargs["connect_args"] = connect_args
-
-    engine = create_async_engine(database_url, **engine_kwargs)
-    session_factory = async_sessionmaker(
-        engine,
-        class_=AsyncSession,
-        expire_on_commit=False,
-    )
-    return session_factory, engine
-
-
-async def _get_worker_runtime(
-    application_name: str,
-) -> tuple[async_sessionmaker[AsyncSession], AsyncEngine]:
-    """Reuse one worker runtime per application name within the current event loop."""
-    try:
-        current_loop_token: int | None = id(asyncio.get_running_loop())
-    except RuntimeError:
-        current_loop_token = None
-
-    async with _worker_runtime_lock:
-        runtime = _worker_runtimes.get(application_name)
-        if runtime is not None:
-            loop_token, session_factory, engine = runtime
-            if loop_token == current_loop_token:
-                return session_factory, engine
-            await engine.dispose()
-
-        session_factory, engine = create_isolated_session_factory(application_name)
-        _worker_runtimes[application_name] = (
-            current_loop_token,
-            session_factory,
-            engine,
-        )
-        return session_factory, engine
-
-
-@asynccontextmanager
-async def worker_db_session(application_name: str):
-    """Yield a worker DB session while reusing the runtime engine in the same loop."""
-    session_factory, _engine = await _get_worker_runtime(application_name)
-    async with session_factory() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
-
-
-async def close_worker_db_runtimes() -> None:
-    """Dispose cached worker runtimes."""
-    async with _worker_runtime_lock:
-        runtimes = list(_worker_runtimes.values())
-        _worker_runtimes.clear()
-
-    for _, _, engine in runtimes:
-        await engine.dispose()
-
-
 def register_orm_models() -> None:
     """Import all ORM model modules exactly once to populate Base metadata."""
     global _orm_models_registered
@@ -216,7 +119,6 @@ def register_orm_models() -> None:
         "app.domains.ai.models",
         "app.domains.podcast.models",
         "app.domains.subscription.models",
-        "app.domains.user.models",
     ):
         import_module(module)
 
@@ -257,7 +159,7 @@ async def init_db(run_metadata_sync: bool = False) -> None:
                 try:
                     result = await conn.execute(
                         text(
-                            "SELECT 1 FROM information_schema.tables WHERE table_name = 'users'",
+                            "SELECT 1 FROM information_schema.tables WHERE table_name = 'subscriptions'",
                         ),
                     )
                     if result.first():
@@ -280,10 +182,8 @@ async def init_db(run_metadata_sync: bool = False) -> None:
 
 
 async def close_db() -> None:
-    """Dispose the lazily-created engines if they exist."""
+    """Dispose the lazily-created engine if it exists."""
     global _engine, _session_factory, _engine_url
-
-    await close_worker_db_runtimes()
 
     if _engine is None:
         return
