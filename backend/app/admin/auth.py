@@ -1,104 +1,62 @@
-"""Admin authentication helpers and dependencies."""
+"""Admin authentication — API key based.
+
+Checks X-API-Key header or admin_session cookie against settings.API_KEY.
+"""
 
 import logging
-from datetime import UTC, datetime
 
 from fastapi import Cookie, Depends, HTTPException, Request, status
-from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import get_db_session_dependency
+from app.core.auth import get_db_session_dependency, require_api_key
 from app.core.config import get_settings
-from app.domains.user.models import User
-from app.domains.user.repositories import UserRepository
 
 
 logger = logging.getLogger(__name__)
 
-SESSION_TIMEOUT = 30 * 60
-
-
-def _get_serializer() -> URLSafeTimedSerializer:
-    """Build the admin session serializer lazily."""
-    return URLSafeTimedSerializer(get_settings().get_secret_key())
-
 
 class AdminAuthRequired:
-    """Dependency to require admin authentication."""
+    """Dependency to require admin authentication via API key."""
 
     async def __call__(
         self,
         request: Request,
         admin_session: str | None = Cookie(None),
-        db: AsyncSession = Depends(get_db_session_dependency),
-    ) -> User:
-        if not admin_session:
+    ) -> int:
+        settings = get_settings()
+
+        # Check X-API-Key header or Authorization header first
+        auth_header = request.headers.get("Authorization")
+        x_api_key = request.headers.get("X-API-Key")
+
+        api_key = None
+        if auth_header:
+            if auth_header.startswith("Bearer "):
+                api_key = auth_header[7:]
+            else:
+                api_key = auth_header
+        elif x_api_key:
+            api_key = x_api_key
+        elif admin_session:
+            # Cookie-based: admin_session cookie contains the API key directly
+            api_key = admin_session
+
+        if not settings.API_KEY:
+            # No API key configured — allow all (development mode)
+            return 1
+
+        if api_key is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Not authenticated",
             )
 
-        try:
-            data = _get_serializer().loads(admin_session, max_age=SESSION_TIMEOUT)
-            user_id = data.get("user_id")
-            if not user_id:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid session",
-                )
-
-            # Validate client IP matches session IP
-            session_ip = data.get("client_ip")
-            current_ip = request.client.host if request.client else None
-            if session_ip and current_ip and session_ip != current_ip:
-                logger.warning(
-                    "Admin session IP mismatch: session=%s current=%s user_id=%s",
-                    session_ip,
-                    current_ip,
-                    user_id,
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Session IP mismatch",
-                )
-
-            user_repo = UserRepository(db)
-            user = await user_repo.get_by_id(user_id)
-            if not user or not user.is_active:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="User not found or inactive",
-                )
-
-            return user
-        except SignatureExpired as err:
+        if api_key != settings.API_KEY:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Session expired",
-            ) from err
-        except BadSignature as err:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid session",
-            ) from err
-        except HTTPException:
-            raise
-        except Exception as err:
-            logger.error("Admin auth error: %s", err)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Authentication failed",
-            ) from err
+                detail="Invalid API key",
+            )
 
-
-def create_admin_session(user_id: int, client_ip: str) -> str:
-    """Create a secure session token for admin user bound to client IP."""
-    data = {
-        "user_id": user_id,
-        "client_ip": client_ip,
-        "created_at": datetime.now(UTC).isoformat(),
-    }
-    return _get_serializer().dumps(data)
+        return 1
 
 
 admin_required = AdminAuthRequired()
