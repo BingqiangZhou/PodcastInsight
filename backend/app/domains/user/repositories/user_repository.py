@@ -364,43 +364,6 @@ class UserRepository:
         await self.db.commit()
         return user
 
-    async def enable_2fa(self, user_id: int, totp_secret: str) -> User | None:
-        """Enable two-factor authentication for a user.
-
-        Args:
-            user_id: Primary key of the user.
-            totp_secret: Base32-encoded TOTP secret.
-
-        Returns:
-            Updated User, or None if user not found.
-        """
-        user = await self.get_by_id(user_id)
-        if not user:
-            return None
-
-        user.totp_secret = totp_secret
-        user.is_2fa_enabled = True
-        await self.db.commit()
-        return user
-
-    async def disable_2fa(self, user_id: int) -> User | None:
-        """Disable two-factor authentication for a user.
-
-        Args:
-            user_id: Primary key of the user.
-
-        Returns:
-            Updated User, or None if user not found.
-        """
-        user = await self.get_by_id(user_id)
-        if not user:
-            return None
-
-        user.totp_secret = None
-        user.is_2fa_enabled = False
-        await self.db.commit()
-        return user
-
     # -- Password reset helpers -----------------------------------------------
 
     async def create_password_reset(
@@ -651,8 +614,10 @@ class UserRepository:
         """
         from datetime import timedelta
 
+        from sqlalchemy import delete as sa_delete
+
         result = await self.db.execute(
-            select(UserSession).where(
+            sa_delete(UserSession).where(
                 or_(
                     UserSession.expires_at < datetime.now(UTC),
                     and_(
@@ -661,14 +626,8 @@ class UserRepository:
                         UserSession.is_active.is_(False),
                     ),
                 ),
-            ),
+            )
         )
-        sessions = result.scalars().all()
-
-        count = 0
-        for session in sessions:
-            await self.db.delete(session)
-            count += 1
-
+        count = result.rowcount or 0
         await self.db.commit()
         return count

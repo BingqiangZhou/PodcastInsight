@@ -11,8 +11,9 @@ import logging
 import logging.handlers
 import os
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 
 # 默认配置
@@ -26,64 +27,32 @@ SHANGHAI_OFFSET = 8
 
 
 class TimezoneFormatter(logging.Formatter):
-    """支持时区的日志格式化器（不依赖外部库）"""
+    """支持时区的日志格式化器（使用 zoneinfo 处理 DST）"""
 
     def __init__(self, fmt=None, datefmt=None, timezone_str=None):
         super().__init__(fmt=fmt, datefmt=datefmt)
-        self.timezone_str = timezone_str
+        self._tz: timezone | ZoneInfo | None = None
+        if timezone_str:
+            try:
+                self._tz = ZoneInfo(timezone_str)
+            except Exception:
+                # Fallback: try parsing UTC+X format
+                if timezone_str.startswith("UTC"):
+                    try:
+                        offset = int(timezone_str.replace("UTC", "").replace("+", ""))
+                        self._tz = timezone(timedelta(hours=offset))
+                    except ValueError:
+                        self._tz = ZoneInfo("Asia/Shanghai")
+                else:
+                    self._tz = ZoneInfo("Asia/Shanghai")
 
     def formatTime(self, record, datefmt=None):  # noqa: N802
         """格式化时间为指定时区"""
-        # 获取 UTC 时间
         ct = datetime.fromtimestamp(record.created, tz=UTC)
-
-        # 应用时区偏移
-        if self.timezone_str:
-            # 简单的时区处理 - 支持常见的时区字符串
-            offset = self._get_timezone_offset(self.timezone_str)
-            ct = ct + timedelta(hours=offset)
-
-        # 默认时间格式: 2025-12-26 14:30:45
+        if self._tz:
+            ct = ct.astimezone(self._tz)
         s = ct.strftime(datefmt) if datefmt else ct.strftime("%Y-%m-%d %H:%M:%S")
         return s
-
-    def _get_timezone_offset(self, tz_str: str) -> float:
-        """获取时区偏移量（小时）"""
-        # 常见时区偏移映射
-        timezone_offsets = {
-            "Asia/Shanghai": 8,
-            "Asia/Hong_Kong": 8,
-            "Asia/Taipei": 8,
-            "Asia/Tokyo": 9,
-            "Asia/Seoul": 9,
-            "Asia/Singapore": 8,
-            "Asia/Dubai": 4,
-            "Europe/London": 0,
-            "Europe/Paris": 1,
-            "Europe/Berlin": 1,
-            "Europe/Moscow": 3,
-            "America/New_York": -5,
-            "America/Chicago": -6,
-            "America/Denver": -7,
-            "America/Los_Angeles": -8,
-            "Australia/Sydney": 10,
-            "UTC": 0,
-        }
-
-        # 直接查找
-        if tz_str in timezone_offsets:
-            return timezone_offsets[tz_str]
-
-        # 尝试解析如 UTC+8, UTC-5 格式
-        if tz_str.startswith("UTC"):
-            try:
-                offset = int(tz_str.replace("UTC", "").replace("+", ""))
-                return offset
-            except ValueError:
-                pass
-
-        # 默认使用上海时区
-        return SHANGHAI_OFFSET
 
 
 def setup_logging(

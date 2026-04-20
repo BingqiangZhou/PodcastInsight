@@ -84,20 +84,9 @@ class Settings(BaseSettings):
     MAX_PODCAST_EPISODE_DOWNLOAD_SIZE: int = 500 * 1024 * 1024
     RSS_POLL_INTERVAL_MINUTES: int = 60
 
-    # Privacy & Security
-    LLM_CONTENT_SANITIZE_MODE: str = "standard"
-
     # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"
 
-    # Email Configuration
-    SMTP_SERVER: str | None = None
-    SMTP_PORT: int = 587
-    SMTP_USERNAME: str | None = None
-    SMTP_PASSWORD: str | None = None
-    SMTP_USE_TLS: bool = True
-    FROM_EMAIL: str = "noreply@personalai.com"
-    FROM_NAME: str = "Personal AI Assistant"
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 24
     ALLOWED_AUDIO_SCHEMES: list[str] = ["http", "https"]
 
@@ -130,9 +119,6 @@ class Settings(BaseSettings):
     TRANSCRIPTION_BACKLOG_SCHEDULE_MINUTE: int = 5
     TRANSCRIPTION_STARTUP_RESET_TIMEOUT_SECONDS: float = 15.0
 
-    # Admin Panel 2FA Configuration
-    ADMIN_2FA_ENABLED: bool = True
-
     # Logging Configuration
     LOG_LEVEL: str = "INFO"
     LOG_DIR: str = "logs"
@@ -148,10 +134,6 @@ class Settings(BaseSettings):
     PODCAST_FEED_LIGHTWEIGHT_ENABLED: bool = True
     RSS_REFRESH_CONCURRENCY: int = 5
     TASK_ORCHESTRATION_USER_BATCH_SIZE: int = 500
-
-    # ETag Configuration
-    ETAG_ENABLED: bool = True
-    ETAG_DEFAULT_TTL: int = 300
 
     # AI Client Configuration
     AI_CLIENT_MAX_RETRIES: int = 3
@@ -198,15 +180,6 @@ class Settings(BaseSettings):
             except json.JSONDecodeError:
                 pass
         raise ValueError(f"Invalid ALLOWED_HOSTS format: {v}")
-
-    @field_validator("ADMIN_2FA_ENABLED", mode="before")
-    @classmethod
-    def parse_admin_2fa_enabled(cls, v):
-        if isinstance(v, bool):
-            return v
-        if isinstance(v, str):
-            return v.lower() in ("true", "1", "yes", "on")
-        return bool(v)
 
     @field_validator("TRANSCRIPTION_BACKLOG_BATCH_SIZE")
     @classmethod

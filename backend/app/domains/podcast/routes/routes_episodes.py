@@ -23,8 +23,6 @@ from app.domains.podcast.routes.episode_route_common import (
     encode_keyset_cursor,
 )
 from app.domains.podcast.routes.response_assemblers import (
-    build_effective_playback_rate_response,
-    build_episode_detail_response,
     build_episode_list_response,
     build_existing_playback_state_response,
     build_feed_response,
@@ -259,7 +257,7 @@ async def get_episode(
             status_code=404, detail="Episode not found or no permission"
         )
 
-    return build_episode_detail_response(episode)
+    return PodcastEpisodeDetailResponse(**episode)
 
 
 # ── Summary & playback actions ─────────────────────────────────────────────
@@ -394,7 +392,7 @@ async def get_effective_playback_rate(
     service: PodcastPlaybackService = Depends(get_podcast_playback_service),
 ):
     result = await service.get_effective_playback_rate(subscription_id=subscription_id)
-    return build_effective_playback_rate_response(result)
+    return PlaybackRateEffectiveResponse(**result)
 
 
 @router.put(
@@ -412,7 +410,7 @@ async def apply_playback_rate_preference(
             apply_to_subscription=request.apply_to_subscription,
             subscription_id=request.subscription_id,
         )
-        return build_effective_playback_rate_response(result)
+        return PlaybackRateEffectiveResponse(**result)
     except SubscriptionNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

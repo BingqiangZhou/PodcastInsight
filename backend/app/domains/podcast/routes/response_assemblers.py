@@ -8,39 +8,25 @@ from app.domains.podcast.schemas import (
     ConversationSessionListResponse,
     ConversationSessionResponse,
     DailyReportDateItem,
-    HighlightDatesResponse,
     HighlightListResponse,
     HighlightResponse,
-    HighlightStatsResponse,
-    PlaybackRateEffectiveResponse,
-    PodcastBatchTranscriptionResponse,
-    PodcastCheckNewEpisodesResponse,
     PodcastConversationClearResponse,
     PodcastConversationHistoryResponse,
     PodcastConversationMessage,
-    PodcastConversationSendResponse,
     PodcastDailyReportDatesResponse,
-    PodcastDailyReportResponse,
-    PodcastEpisodeDetailResponse,
     PodcastEpisodeListResponse,
     PodcastEpisodeResponse,
-    PodcastEpisodeTranscriptResponse,
     PodcastFeedResponse,
     PodcastPendingTranscriptionsResponse,
     PodcastPendingTranscriptionTaskResponse,
     PodcastPlaybackHistoryItemResponse,
     PodcastPlaybackHistoryListResponse,
     PodcastPlaybackStateResponse,
-    PodcastProfileStatsResponse,
     PodcastQueueItemResponse,
     PodcastQueueResponse,
-    PodcastStatsResponse,
     PodcastSummaryPendingResponse,
     PodcastSummaryResponse,
     PodcastSummaryStartResponse,
-    PodcastTranscriptionCancelResponse,
-    PodcastTranscriptionScheduleResponse,
-    PodcastTranscriptionScheduleStatusResponse,
     ScheduleConfigResponse,
     SummaryModelInfo,
     SummaryModelsResponse,
@@ -105,26 +91,12 @@ def build_playback_history_list_response(
     )
 
 
-def build_episode_detail_response(
-    episode: dict[str, Any],
-) -> PodcastEpisodeDetailResponse:
-    """Build the detailed episode response."""
-    return PodcastEpisodeDetailResponse(**episode)
-
-
-def build_conversation_session_response(
-    session: dict[str, Any],
-) -> ConversationSessionResponse:
-    """Build one conversation session response."""
-    return ConversationSessionResponse(**session)
-
-
 def build_conversation_session_list_response(
     sessions: list[dict[str, Any]],
 ) -> ConversationSessionListResponse:
     """Build the conversation session list response."""
     return ConversationSessionListResponse(
-        items=[build_conversation_session_response(session) for session in sessions],
+        items=[ConversationSessionResponse(**session) for session in sessions],
         total=len(sessions),
     )
 
@@ -145,13 +117,6 @@ def build_conversation_history_response(
     )
 
 
-def build_conversation_send_response(
-    payload: dict[str, Any],
-) -> PodcastConversationSendResponse:
-    """Build the conversation send response."""
-    return PodcastConversationSendResponse(**payload)
-
-
 def build_conversation_clear_response(
     *,
     episode_id: int,
@@ -164,23 +129,6 @@ def build_conversation_clear_response(
         session_id=session_id,
         deleted_count=deleted_count,
     )
-
-
-def build_podcast_stats_response(payload: dict[str, Any]) -> PodcastStatsResponse:
-    """Build the podcast stats response."""
-    return PodcastStatsResponse(**payload)
-
-
-def build_podcast_profile_stats_response(
-    payload: dict[str, Any],
-) -> PodcastProfileStatsResponse:
-    """Build the podcast profile stats response."""
-    return PodcastProfileStatsResponse(**payload)
-
-
-def build_daily_report_response(payload: dict[str, Any]) -> PodcastDailyReportResponse:
-    """Build the daily report response."""
-    return PodcastDailyReportResponse(**payload)
 
 
 def build_daily_report_dates_response(
@@ -275,67 +223,11 @@ def build_queue_response(payload: dict[str, Any]) -> PodcastQueueResponse:
     )
 
 
-def build_effective_playback_rate_response(
-    payload: dict[str, Any],
-) -> PlaybackRateEffectiveResponse:
-    """Build the effective playback-rate response."""
-    return PlaybackRateEffectiveResponse(**payload)
-
-
-def build_schedule_config_response(
-    payload: dict[str, Any],
-) -> ScheduleConfigResponse:
-    """Build one subscription schedule response."""
-    return ScheduleConfigResponse(**payload)
-
-
 def build_schedule_config_list_response(
     payloads: list[dict[str, Any]],
 ) -> list[ScheduleConfigResponse]:
     """Build a list of subscription schedule responses."""
-    return [build_schedule_config_response(payload) for payload in payloads]
-
-
-def build_transcription_schedule_response(
-    payload: dict[str, Any],
-) -> PodcastTranscriptionScheduleResponse:
-    """Build the episode transcription scheduling response."""
-    return PodcastTranscriptionScheduleResponse(**payload)
-
-
-def build_episode_transcript_response(
-    payload: dict[str, Any],
-) -> PodcastEpisodeTranscriptResponse:
-    """Build the episode transcript response."""
-    return PodcastEpisodeTranscriptResponse(**payload)
-
-
-def build_batch_transcription_response(
-    payload: dict[str, Any],
-) -> PodcastBatchTranscriptionResponse:
-    """Build the batch transcription response."""
-    return PodcastBatchTranscriptionResponse(**payload)
-
-
-def build_transcription_schedule_status_response(
-    payload: dict[str, Any],
-) -> PodcastTranscriptionScheduleStatusResponse:
-    """Build the transcription schedule-status response."""
-    return PodcastTranscriptionScheduleStatusResponse(**payload)
-
-
-def build_transcription_cancel_response(
-    payload: dict[str, Any],
-) -> PodcastTranscriptionCancelResponse:
-    """Build the transcription cancellation response."""
-    return PodcastTranscriptionCancelResponse(**payload)
-
-
-def build_check_new_episodes_response(
-    payload: dict[str, Any],
-) -> PodcastCheckNewEpisodesResponse:
-    """Build the recently-published episode scheduling response."""
-    return PodcastCheckNewEpisodesResponse(**payload)
+    return [ScheduleConfigResponse(**payload) for payload in payloads]
 
 
 def build_pending_transcriptions_response(
@@ -392,11 +284,3 @@ def build_highlight_list_response(payload: dict[str, Any]) -> HighlightListRespo
     )
 
 
-def build_highlight_dates_response(payload: dict[str, Any]) -> HighlightDatesResponse:
-    """Build the highlight dates response."""
-    return HighlightDatesResponse(dates=payload.get("dates", []))
-
-
-def build_highlight_stats_response(payload: dict[str, Any]) -> HighlightStatsResponse:
-    """Build the highlight stats response."""
-    return HighlightStatsResponse(**payload)

@@ -14,15 +14,10 @@
 # continues to work unchanged after the module split.
 
 from app.core.security.encryption import (  # noqa: F401
-    _derive_rsa_key_password,
     decrypt_data,
     decrypt_data_with_password,
-    decrypt_rsa_data,
-    enable_ec256_optimized,
     encrypt_data,
     encrypt_data_with_password,
-    get_or_generate_rsa_keys,
-    get_rsa_public_key_pem,
     validate_export_password,
 )
 from app.core.security.jwt import (  # noqa: F401
@@ -32,7 +27,6 @@ from app.core.security.jwt import (  # noqa: F401
     get_token_from_request,
     get_user_id_from_token,
     require_user_id,
-    token_optimizer,
     verify_token,
     verify_token_optional,
 )

@@ -6,11 +6,10 @@ import asyncio
 import json
 import logging
 import time
-
-import aiohttp
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
+import aiohttp
 from sqlalchemy import and_, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -18,7 +17,7 @@ from sqlalchemy.orm import selectinload
 from app.core.ai_client import call_ai_api_with_retry
 from app.core.database import worker_db_session
 from app.core.exceptions import ValidationError
-from app.core.redis import PodcastRedis, get_shared_redis
+from app.core.redis import get_shared_redis
 from app.domains.ai.models import ModelType
 from app.domains.ai.services.base_model_manager import BaseModelManager
 from app.domains.podcast.models import (

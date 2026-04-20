@@ -7,7 +7,6 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.audit import log_admin_action
 from app.core.security import (
     decrypt_data,
     decrypt_data_with_password,
@@ -235,22 +234,6 @@ class AdminApiKeysService:
         await self.db.commit()
         # No refresh needed - new_config.id is auto-populated by SQLAlchemy after flush/commit
 
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="create",
-            resource_type="apikey",
-            resource_id=new_config.id,
-            resource_name=display_name,
-            details={
-                "name": name,
-                "model_type": model_type,
-                "provider": provider,
-                "priority": priority,
-            },
-            request=request,
-        )
         return {
             "success": True,
             "message": f"模型配置 '{display_name}' 已成功创建",
@@ -267,17 +250,6 @@ class AdminApiKeysService:
         model_config.is_active = not model_config.is_active
         await self.db.commit()
         # No refresh needed - model_config is already in session with updated values
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="toggle",
-            resource_type="apikey",
-            resource_id=key_id,
-            resource_name=model_config.display_name,
-            details={"is_active": model_config.is_active},
-            request=request,
-        )
         return {"success": True}
 
     async def edit_apikey(
@@ -301,16 +273,6 @@ class AdminApiKeysService:
         model_config = result.scalar_one_or_none()
         if not model_config:
             return None
-
-        old_values = {
-            "name": model_config.name,
-            "display_name": model_config.display_name,
-            "model_type": model_config.model_type,
-            "api_url": model_config.api_url,
-            "provider": model_config.provider,
-            "description": model_config.description,
-            "priority": model_config.priority,
-        }
 
         if name is not None:
             model_config.name = name
@@ -338,25 +300,6 @@ class AdminApiKeysService:
 
         await self.db.commit()
         # No refresh needed - model_config is already in session with updated values
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="update",
-            resource_type="apikey",
-            resource_id=key_id,
-            resource_name=model_config.display_name,
-            details={
-                "old_values": old_values,
-                "new_values": {
-                    "name": model_config.name,
-                    "display_name": model_config.display_name,
-                    "model_type": model_config.model_type,
-                    "priority": model_config.priority,
-                },
-            },
-            request=request,
-        )
         return {"success": True}
 
     async def delete_apikey(self, *, request, user, key_id: int) -> dict | None:
@@ -370,16 +313,6 @@ class AdminApiKeysService:
         resource_name = model_config.display_name
         await self.db.delete(model_config)
         await self.db.commit()
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="delete",
-            resource_type="apikey",
-            resource_id=key_id,
-            resource_name=resource_name,
-            request=request,
-        )
         return {"success": True}
 
     async def export_json(
@@ -457,20 +390,6 @@ class AdminApiKeysService:
                     key_data["api_key_error"] = "Encryption failed"
 
             export_data["apikeys"].append(key_data)
-
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="export_json",
-            resource_type="apikey",
-            details={
-                "count": len(apikeys),
-                "mode": mode,
-                "plaintext_warning": mode == "plaintext",
-            },
-            request=request,
-        )
 
         mode_suffix = "_PLAINTEXT" if mode == "plaintext" else ""
         filename = f"apikeys_export{mode_suffix}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
@@ -655,23 +574,6 @@ class AdminApiKeysService:
                 error_count += 1
 
         await self.db.commit()
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="import_json",
-            resource_type="apikey",
-            details={
-                "mode": mode,
-                "export_version": export_version,
-                "export_mode": export_mode,
-                "success_count": success_count,
-                "updated_count": updated_count,
-                "skipped_count": skipped_count,
-                "error_count": error_count,
-            },
-            request=request,
-        )
         return {
             "success": True,
             "message": (

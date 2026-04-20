@@ -18,6 +18,7 @@ from app.core.exceptions import (
     ConflictError,
     CustomValidationError,
     ForbiddenError,
+    InternalServerError,
     NotFoundError,
     UnauthorizedError,
 )
@@ -62,7 +63,7 @@ def raise_internal_error(
     exc: Exception | None = None,
 ) -> None:
     """Raise standardized 500 Internal Server Error."""
-    raise RuntimeError(
+    raise InternalServerError(
         f"Internal error during {operation}"
     ) from exc
 

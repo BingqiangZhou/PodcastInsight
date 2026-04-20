@@ -45,27 +45,6 @@ class TestPodcastAPI:
         assert is_valid is False, "OOB XXE should be blocked"
         print("[PASS] OOB XXE blocked")
 
-    def test_privacy_sanitization(self):
-        """Security Test: PII must be filtered"""
-        from app.domains.ai.llm_privacy import ContentSanitizer
-
-        sanitizer = ContentSanitizer("standard")
-        test_cases = [
-            (
-                "联系张三 zhangsan@email.com 13800138000",
-                ["[EMAIL_REDACTED]", "[PHONE_REDACTED]"],
-            ),
-            # Short local numbers may not match strict phone redaction rules.
-            ("User: john.doe@company.com, phone: 555-1234", ["[EMAIL_REDACTED]"]),
-            ("No sensitive data", []),  # Should not modify
-        ]
-
-        for text, expected_redactions in test_cases:
-            result = sanitizer.sanitize(text, user_id=1, context="test")
-            for expected in expected_redactions:
-                assert expected in result, f"Expected {expected} in sanitized result"
-            print(f"[PASS] Privacy: '{text}' -> '{result}'")
-
     def test_rss_security_validations(self):
         """Security Test: RSS URL and content validation"""
         from app.domains.podcast.integration.security import PodcastSecurityValidator
@@ -179,27 +158,6 @@ class TestPodcastAPI:
         assert progress == 0.5
         print("[PASS] Redis workflow logic verified (mocked)")
 
-    # Test 7: Content sanitizer edge cases
-    def test_sanitizer_edge_cases(self):
-        """Security Test: Edge cases for privacy filter"""
-        from app.domains.ai.llm_privacy import ContentSanitizer
-
-        sanitizer = ContentSanitizer("standard")
-
-        edge_cases = [
-            ("email@domain.com", "[EMAIL_REDACTED]"),
-            ("13800138000", "[PHONE_REDACTED]"),
-            ("张三 13800138000", "张三 [PHONE_REDACTED]"),  # Keep name
-            ("", ""),  # Empty input
-            ("Only normal text", "Only normal text"),  # No PII
-        ]
-
-        for input_text, expected_pattern in edge_cases:
-            result = sanitizer.sanitize(input_text, 1, "test")
-            if expected_pattern:
-                assert expected_pattern in result or expected_pattern == result
-            print(f"[PASS] Edge case: '{input_text}' -> '{result}'")
-
 
 if __name__ == "__main__":
     # Run tests programmatically
@@ -210,10 +168,8 @@ if __name__ == "__main__":
     tests = [
         ("XXE Protection", test_instance.test_xxe_protection),
         ("RSS Security", test_instance.test_rss_security_validations),
-        ("Privacy Sanitization", test_instance.test_privacy_sanitization),
         ("Model Structure", test_instance.test_model_definitions),
         ("Service Logic", test_instance.test_service_workflow_logic),
-        ("Edge Cases", test_instance.test_sanitizer_edge_cases),
     ]
 
     # Async test for Redis

@@ -73,6 +73,11 @@ class CustomValidationError(BaseCustomError):
         super().__init__(message, 400, "VALIDATION_ERROR", **kwargs)
 
 
+class InternalServerError(BaseCustomError):
+    def __init__(self, message: str = "Internal server error", **kwargs):
+        super().__init__(message, 500, "INTERNAL_ERROR", **kwargs)
+
+
 # Backward compatibility alias
 ValidationError = CustomValidationError
 

@@ -29,8 +29,6 @@ from .schemas import (
     TokenData,
     UserBase,
     UserCreate,
-    UserInDB,
-    UserLogin,
     UserResponse,
     UserUpdate,
 )
@@ -61,8 +59,6 @@ __all__ = [
     "TokenData",
     "UserBase",
     "UserCreate",
-    "UserInDB",
-    "UserLogin",
     "UserResponse",
     "UserUpdate",
 ]

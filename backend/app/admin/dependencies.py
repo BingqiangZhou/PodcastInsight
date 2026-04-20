@@ -54,20 +54,10 @@ def get_admin_setup_auth_service(
     return AdminSetupAuthService(db)
 
 
-def get_admin_users_audit_service(
-    db: AsyncSession = Depends(get_db_session_dependency),
-):
-    """Provide request-scoped admin users/audit service."""
-    from app.admin.services.users_audit_service import AdminUsersAuditService
-
-    return AdminUsersAuditService(db)
-
-
 __all__ = [
     "get_admin_apikeys_service",
     "get_admin_dashboard_context",
     "get_admin_settings_service",
     "get_admin_setup_auth_service",
     "get_admin_subscriptions_service",
-    "get_admin_users_audit_service",
 ]

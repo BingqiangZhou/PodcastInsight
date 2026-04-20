@@ -15,9 +15,7 @@ from app.domains.podcast.routes.dependencies import (
 from app.domains.podcast.routes.response_assemblers import (
     build_conversation_clear_response,
     build_conversation_history_response,
-    build_conversation_send_response,
     build_conversation_session_list_response,
-    build_conversation_session_response,
 )
 from app.domains.podcast.conversation_service import ConversationService
 from app.domains.podcast.schemas import (
@@ -103,7 +101,7 @@ async def create_conversation_session(
             title=request.title,
         )
 
-        return build_conversation_session_response(session)
+        return ConversationSessionResponse(**session)
     except HTTPException:
         raise
     except Exception as exc:
@@ -228,7 +226,7 @@ async def send_conversation_message(
             session_id=request.session_id,
         )
 
-        return build_conversation_send_response(response)
+        return PodcastConversationSendResponse(**response)
     except EpisodeNotFoundError:
         raise HTTPException(status_code=404, detail="Episode not found")
     except HTTPException:

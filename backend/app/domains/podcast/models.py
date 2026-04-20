@@ -8,6 +8,7 @@ but are re-exported here for backward compatibility.
 from datetime import UTC, datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     CheckConstraint,
     Column,
@@ -16,7 +17,6 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
-    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -295,12 +295,6 @@ def is_podcast_subscription(subscription) -> bool:
 # These allow existing code that imports from app.domains.podcast.models
 # to continue working without changes.
 
-from app.domains.media.models.transcript import PodcastEpisodeTranscript  # noqa: E402
-from app.domains.media.models.transcription_task import (  # noqa: E402
-    TranscriptionStatus,
-    TranscriptionStep,
-    TranscriptionTask,
-)
 from app.domains.content.models.conversation import (  # noqa: E402
     ConversationSession,
     PodcastConversation,
@@ -313,6 +307,13 @@ from app.domains.content.models.highlight import (  # noqa: E402
     EpisodeHighlight,
     HighlightExtractionTask,
 )
+from app.domains.media.models.transcript import PodcastEpisodeTranscript  # noqa: E402
+from app.domains.media.models.transcription_task import (  # noqa: E402
+    TranscriptionStatus,
+    TranscriptionStep,
+    TranscriptionTask,
+)
+
 
 __all__ = [
     # Podcast domain

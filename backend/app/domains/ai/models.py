@@ -4,7 +4,17 @@
 
 from enum import StrEnum
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Index, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.sql import func
 
 from app.core.database import Base

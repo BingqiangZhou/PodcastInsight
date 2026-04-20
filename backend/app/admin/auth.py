@@ -26,9 +26,6 @@ def _get_serializer() -> URLSafeTimedSerializer:
 class AdminAuthRequired:
     """Dependency to require admin authentication."""
 
-    def __init__(self, require_2fa: bool = True):
-        self.require_2fa = require_2fa
-
     async def __call__(
         self,
         request: Request,
@@ -73,16 +70,6 @@ class AdminAuthRequired:
                     detail="User not found or inactive",
                 )
 
-            from app.admin.security_settings import get_admin_2fa_enabled
-
-            admin_2fa_enabled, _ = await get_admin_2fa_enabled(db)
-            if self.require_2fa and admin_2fa_enabled and not user.is_2fa_enabled:
-                raise HTTPException(
-                    status_code=status.HTTP_307_TEMPORARY_REDIRECT,
-                    detail="2FA setup required",
-                    headers={"Location": "/api/v1/admin/2fa/setup"},
-                )
-
             return user
         except SignatureExpired as err:
             raise HTTPException(
@@ -114,5 +101,4 @@ def create_admin_session(user_id: int, client_ip: str) -> str:
     return _get_serializer().dumps(data)
 
 
-admin_required = AdminAuthRequired(require_2fa=True)
-admin_required_no_2fa = AdminAuthRequired(require_2fa=False)
+admin_required = AdminAuthRequired()

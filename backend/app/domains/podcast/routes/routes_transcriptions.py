@@ -15,13 +15,7 @@ from app.domains.podcast.routes.dependencies import (
     get_transcription_workflow_service,
 )
 from app.domains.podcast.routes.response_assemblers import (
-    build_batch_transcription_response,
-    build_check_new_episodes_response,
-    build_episode_transcript_response,
     build_pending_transcriptions_response,
-    build_transcription_cancel_response,
-    build_transcription_schedule_response,
-    build_transcription_schedule_status_response,
 )
 from app.domains.podcast.routes.transcription_route_common import (
     build_transcription_response,
@@ -304,7 +298,7 @@ async def schedule_episode_transcription_endpoint(
             force=force,
             episode_lookup=episode_service.get_episode_by_id,
         )
-        return build_transcription_schedule_response(result)
+        return PodcastTranscriptionScheduleResponse(**result)
     except EpisodeNotFoundError:
         raise HTTPException(status_code=404, detail="Episode not found") from None
     except ValueError as exc:
@@ -339,7 +333,7 @@ async def get_episode_transcript_endpoint(
             episode_id=episode_id,
             episode_lookup=episode_service.get_episode_by_id,
         )
-        return build_episode_transcript_response(result)
+        return PodcastEpisodeTranscriptResponse(**result)
     except EpisodeNotFoundError:
         raise HTTPException(status_code=404, detail="Episode not found") from None
     except LookupError as exc:
@@ -378,7 +372,7 @@ async def batch_transcribe_subscription_endpoint(
             max_episodes=max_episodes,
             subscription_lookup=subscription_service.get_subscription_details,
         )
-        return build_batch_transcription_response(result)
+        return PodcastBatchTranscriptionResponse(**result)
     except SubscriptionNotFoundError:
         raise HTTPException(status_code=404, detail="Subscription not found") from None
     except Exception as exc:
@@ -408,7 +402,7 @@ async def get_transcription_schedule_status(
             episode_id=episode_id,
             episode_lookup=episode_service.get_episode_by_id,
         )
-        return build_transcription_schedule_status_response(result)
+        return PodcastTranscriptionScheduleStatusResponse(**result)
     except EpisodeNotFoundError:
         raise HTTPException(status_code=404, detail="Episode not found") from None
     except Exception as exc:
@@ -441,7 +435,7 @@ async def cancel_transcription_endpoint(
             episode_id=episode_id,
             episode_lookup=episode_service.get_episode_by_id,
         )
-        return build_transcription_cancel_response(result)
+        return PodcastTranscriptionCancelResponse(**result)
     except EpisodeNotFoundError:
         raise HTTPException(status_code=404, detail="Episode not found") from None
     except Exception as exc:
@@ -475,7 +469,7 @@ async def check_and_transcribe_new_episodes(
             hours_since_published=hours_since_published,
             subscription_lookup=subscription_service.get_subscription_details,
         )
-        return build_check_new_episodes_response(result)
+        return PodcastCheckNewEpisodesResponse(**result)
     except SubscriptionNotFoundError:
         raise HTTPException(status_code=404, detail="Subscription not found") from None
     except Exception as exc:

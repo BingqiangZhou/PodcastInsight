@@ -38,12 +38,8 @@ def configure_middlewares(app: FastAPI) -> None:
 
 def configure_exception_handlers(app: FastAPI) -> None:
     """Register shared and admin-specific exception handlers."""
-    from app.admin.csrf import CSRFException
-    from app.admin.exception_handlers import csrf_exception_handler
-
     setup_exception_handlers(app)
     register_admin_http_exception_handler(app)
-    app.add_exception_handler(CSRFException, csrf_exception_handler)
 
 
 def register_internal_routes(app: FastAPI) -> None:

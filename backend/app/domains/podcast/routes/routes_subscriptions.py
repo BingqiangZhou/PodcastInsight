@@ -14,7 +14,6 @@ from app.domains.podcast.routes.dependencies import (
 )
 from app.domains.podcast.routes.response_assemblers import (
     build_schedule_config_list_response,
-    build_schedule_config_response,
 )
 from app.domains.podcast.schemas import (
     PodcastSearchFilter,
@@ -236,7 +235,7 @@ async def get_subscription_schedule(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found"
         )
-    return build_schedule_config_response(schedule)
+    return ScheduleConfigResponse(**schedule)
 
 
 @router.patch(
@@ -260,7 +259,7 @@ async def update_subscription_schedule(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found"
         )
-    return build_schedule_config_response(schedule)
+    return ScheduleConfigResponse(**schedule)
 
 
 @router.get(

@@ -23,10 +23,6 @@ from app.core.security import (
     verify_password,
     verify_token,
 )
-from app.core.security.token_blacklist import (
-    revoke_all_user_tokens,
-    revoke_token,
-)
 from app.domains.user.models import PasswordReset, User, UserSession
 
 
@@ -370,15 +366,6 @@ class AuthenticationService:
         session.last_activity_at = datetime.now(UTC)
         await self.db.commit()
 
-        # Revoke the refresh token on the blacklist so it cannot be reused
-        try:
-            payload = await verify_token(refresh_token, token_type="refresh")
-            jti = payload.get("jti")
-            if jti:
-                await revoke_token(jti)
-        except Exception:
-            logger.debug("Token blacklist revocation skipped during logout")
-
         return True
 
     async def logout_all_sessions(self, user_id: int) -> bool:
@@ -406,12 +393,6 @@ class AuthenticationService:
             session.last_activity_at = datetime.now(UTC)
 
         await self.db.commit()
-
-        # Revoke all tokens for this user on the blacklist
-        try:
-            await revoke_all_user_tokens(user_id)
-        except Exception:
-            logger.debug("Bulk token revocation skipped during logout-all")
 
         return True
 

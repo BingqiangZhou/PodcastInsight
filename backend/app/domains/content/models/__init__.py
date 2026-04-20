@@ -13,6 +13,7 @@ from app.domains.content.models.highlight import (
     HighlightExtractionTask,
 )
 
+
 __all__ = [
     "ConversationSession",
     "EpisodeHighlight",

@@ -72,15 +72,7 @@ class MockConfig:
     MAX_PODCAST_SUBSCRIPTIONS = 50
     MAX_PODCAST_EPISODE_DOWNLOAD_SIZE = 500 * 1024 * 1024
     RSS_POLL_INTERVAL_MINUTES = 60
-    LLM_CONTENT_SANITIZE_MODE = "standard"
     FRONTEND_URL = "http://localhost:3000"
-    SMTP_SERVER = None
-    SMTP_PORT = 587
-    SMTP_USERNAME = None
-    SMTP_PASSWORD = None
-    SMTP_USE_TLS = True
-    FROM_EMAIL = "noreply@personalai.com"
-    FROM_NAME = "Personal AI Assistant"
     ALLOWED_AUDIO_SCHEMES = ["http", "https"]
     OPENAI_API_KEY = None
     OPENAI_API_BASE_URL = "https://api.openai.com/v1"
@@ -167,10 +159,6 @@ class MockSecurity:
     def generate_random_string(length: int = 32):
         return "mock_random_string"
 
-    @staticmethod
-    def enable_ec256_optimized():
-        return {"public_key": "mock_public_key", "private_key": "mock_private_key"}
-
 
 mock_security_module = types.ModuleType("app.core.security")
 mock_security_module.settings = MockConfig()
@@ -195,7 +183,6 @@ mock_security_module.verify_password_reset_token = (
 )
 mock_security_module.generate_api_key = MockSecurity.generate_api_key
 mock_security_module.generate_random_string = MockSecurity.generate_random_string
-mock_security_module.enable_ec256_optimized = MockSecurity.enable_ec256_optimized
 mock_security_module.OAuth2PasswordBearer = lambda token_url: None
 # Make mock behave like a package so sub-module imports still work
 mock_security_module.__path__ = ["app/core/security"]
@@ -203,13 +190,6 @@ mock_security_module.__package__ = "app.core.security"
 sys.modules["app.core.security"] = mock_security_module
 
 # Mock sub-modules that auth_service imports from
-_mock_token_blacklist = types.ModuleType("app.core.security.token_blacklist")
-_mock_token_blacklist.revoke_token = AsyncMock()
-_mock_token_blacklist.is_token_revoked = AsyncMock(return_value=False)
-_mock_token_blacklist.revoke_all_user_tokens = AsyncMock()
-_mock_token_blacklist.register_user_token = AsyncMock()
-sys.modules["app.core.security.token_blacklist"] = _mock_token_blacklist
-
 _mock_jwt = types.ModuleType("app.core.security.jwt")
 _mock_jwt.verify_token = AsyncMock(return_value={"sub": "1"})
 _mock_jwt.create_access_token = AsyncMock(return_value="mock_token")

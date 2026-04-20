@@ -4,9 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.audit import log_admin_action
 from app.admin.models import SystemSettings
-from app.admin.security_settings import get_admin_2fa_enabled, set_admin_2fa_enabled
 from app.admin.storage_service import StorageCleanupService
 from app.domains.subscription.models import (
     Subscription,
@@ -141,19 +139,6 @@ class AdminSettingsService:
             chunk_size_mb=chunk_size_mb,
             max_concurrent_threads=max_concurrent_threads,
         )
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="update",
-            resource_type="system_settings",
-            resource_name="Audio processing settings",
-            details={
-                "chunk_size_mb": chunk_size_mb,
-                "max_concurrent_threads": max_concurrent_threads,
-            },
-            request=request,
-        )
         return {"success": True, "message": "Settings saved"}
 
     async def get_frequency_settings(self) -> dict[str, object]:
@@ -271,53 +256,10 @@ class AdminSettingsService:
             update_time=update_time,
             update_day=update_day,
         )
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="update",
-            resource_type="subscription_frequency",
-            resource_name=f"All user subscriptions (affected {total_count})",
-            details=settings_data,
-            request=request,
-        )
         return {
             "success": True,
             "message": f"RSS settings saved (updated {total_count} user-subscription mappings)",
         }
-
-    async def get_security_settings(self) -> dict[str, object]:
-        """Return current admin 2FA setting and source."""
-        admin_2fa_enabled, source = await get_admin_2fa_enabled(self.db)
-        return {
-            "admin_2fa_enabled": admin_2fa_enabled,
-            "source": source,
-        }
-
-    async def update_security_settings(self, *, admin_2fa_enabled: bool) -> None:
-        """Persist admin 2FA setting."""
-        await set_admin_2fa_enabled(self.db, admin_2fa_enabled)
-
-    async def save_security_settings(
-        self,
-        *,
-        request,
-        user,
-        admin_2fa_enabled: bool,
-    ) -> dict[str, object]:
-        """Persist and audit admin security settings."""
-        await self.update_security_settings(admin_2fa_enabled=admin_2fa_enabled)
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="update",
-            resource_type="security_settings",
-            resource_name="Admin 2FA Settings",
-            details={"admin_2fa_enabled": admin_2fa_enabled},
-            request=request,
-        )
-        return {"success": True, "message": "Security settings saved"}
 
     async def get_storage_info(self) -> dict:
         """Return storage usage information."""
@@ -341,17 +283,7 @@ class AdminSettingsService:
         """Persist and audit automatic cleanup configuration."""
         result = await self.update_cleanup_config(enabled)
         if result.get("success"):
-            await log_admin_action(
-                db=self.db,
-                user_id=user.id,
-                username=user.username,
-                action="update",
-                resource_type="storage_settings",
-                resource_name="Auto Cleanup Settings",
-                details={"enabled": enabled},
-                request=request,
-            )
-        return result
+            return result
 
     async def execute_cleanup(self, keep_days: int) -> dict:
         """Execute storage cleanup immediately."""
@@ -366,20 +298,6 @@ class AdminSettingsService:
     ) -> dict:
         """Execute cleanup and record the admin audit event."""
         result = await self.execute_cleanup(keep_days)
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="execute",
-            resource_type="storage_cleanup",
-            resource_name="Manual Cache Cleanup",
-            details={
-                "keep_days": keep_days,
-                "deleted_count": result.get("total", {}).get("deleted_count", 0),
-                "freed_space": result.get("total", {}).get("freed_space_human", "0 B"),
-            },
-            request=request,
-        )
         return result
 
     async def _get_setting(self, key: str) -> SystemSettings | None:

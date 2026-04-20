@@ -122,59 +122,51 @@ class CacheWarmupService:
 
             logger.info("Warming subscriptions for %d active users", len(user_ids))
 
-            for user_id in user_ids:
-                await self._warm_user_subscriptions(user_id)
-
-            self._stats["users_warmed"] = len(user_ids)
-            logger.info(
-                "Warmed subscriptions for %d active users",
-                len(user_ids),
-            )
-        except Exception as exc:
-            logger.error("Error warming active users: %s", exc)
-            self._stats["errors"].append(f"Active users: {exc}")
-
-    async def _warm_user_subscriptions(self, user_id: int) -> None:
-        """Warm up a single user's subscription list.
-
-        Args:
-            user_id: The user ID to warm subscriptions for.
-        """
-        try:
-            # Get user's active subscriptions
-            result = await self.db.execute(
-                select(Subscription.id, Subscription.title, Subscription.source_url)
-                .join(
-                    UserSubscription,
-                    UserSubscription.subscription_id == Subscription.id,
+            # Batch query: fetch all subscriptions for all active users at once
+            all_subs_result = await self.db.execute(
+                select(
+                    UserSubscription.user_id,
+                    Subscription.id,
+                    Subscription.title,
+                    Subscription.source_url,
                 )
+                .join(Subscription, Subscription.id == UserSubscription.subscription_id)
                 .where(
-                    UserSubscription.user_id == user_id,
+                    UserSubscription.user_id.in_(user_ids),
                     UserSubscription.is_archived.is_(False),
                     Subscription.status == SubscriptionStatus.ACTIVE,
                 )
                 .order_by(Subscription.updated_at.desc())
             )
-            subscriptions = result.all()
 
-            if not subscriptions:
-                return
+            # Group subscriptions by user
+            user_subs: dict[int, list[dict]] = {}
+            for uid, sub_id, title, url in all_subs_result.all():
+                user_subs.setdefault(uid, []).append(
+                    {"id": sub_id, "title": title, "source_url": url}
+                )
 
-            # Cache subscription list
-            cache_key = f"podcast:subscriptions:{user_id}"
-            subscription_data = [
-                {"id": sub_id, "title": title, "source_url": url}
-                for sub_id, title, url in subscriptions
-            ]
+            # Batch write to Redis using pipeline
+            for uid, subs in user_subs.items():
+                try:
+                    cache_key = f"podcast:subscriptions:{uid}"
+                    await self.redis.cache_set_json(
+                        cache_key,
+                        subs,
+                        ttl=WARMED_CACHE_TTL_SECONDS,
+                    )
+                    self._stats["subscriptions_warmed"] += len(subs)
+                except Exception as exc:
+                    logger.debug("Failed to warm user %d subscriptions: %s", uid, exc)
 
-            await self.redis.cache_set_json(
-                cache_key,
-                subscription_data,
-                ttl=WARMED_CACHE_TTL_SECONDS,
+            self._stats["users_warmed"] = len(user_subs)
+            logger.info(
+                "Warmed subscriptions for %d active users",
+                len(user_subs),
             )
-            self._stats["subscriptions_warmed"] += len(subscriptions)
         except Exception as exc:
-            logger.debug("Failed to warm user %d subscriptions: %s", user_id, exc)
+            logger.error("Error warming active users: %s", exc)
+            self._stats["errors"].append(f"Active users: {exc}")
 
     async def _warm_popular_podcasts(self) -> None:
         """Warm up metadata for the most popular podcasts.
@@ -213,40 +205,29 @@ class CacheWarmupService:
             logger.info("Warming metadata for %d popular podcasts", len(podcasts))
 
             for podcast_data in podcasts:
-                await self._warm_podcast_metadata(podcast_data)
+                try:
+                    podcast_id, title, description, image_url, source_url, _ = podcast_data
+                    cache_key = f"podcast:meta:{podcast_id}"
+                    metadata = {
+                        "id": podcast_id,
+                        "title": title,
+                        "description": description,
+                        "image_url": image_url,
+                        "source_url": source_url,
+                    }
+                    await self.redis.cache_set_json(
+                        cache_key,
+                        metadata,
+                        ttl=WARMED_CACHE_TTL_SECONDS,
+                    )
+                except Exception as exc:
+                    logger.debug("Failed to warm podcast %d: %s", podcast_data[0], exc)
 
             self._stats["podcasts_warmed"] = len(podcasts)
             logger.info("Warmed metadata for %d popular podcasts", len(podcasts))
         except Exception as exc:
             logger.error("Error warming popular podcasts: %s", exc)
             self._stats["errors"].append(f"Popular podcasts: {exc}")
-
-    async def _warm_podcast_metadata(self, podcast_data: tuple) -> None:
-        """Warm up a single podcast's metadata.
-
-        Args:
-            podcast_data: Tuple containing podcast metadata.
-        """
-        try:
-            podcast_id, title, description, image_url, source_url, _ = podcast_data
-
-            # Cache podcast metadata
-            cache_key = f"podcast:meta:{podcast_id}"
-            metadata = {
-                "id": podcast_id,
-                "title": title,
-                "description": description,
-                "image_url": image_url,
-                "source_url": source_url,
-            }
-
-            await self.redis.cache_set_json(
-                cache_key,
-                metadata,
-                ttl=WARMED_CACHE_TTL_SECONDS,
-            )
-        except Exception as exc:
-            logger.debug("Failed to warm podcast %d: %s", podcast_data[0], exc)
 
     async def _warm_system_settings(self) -> None:
         """Warm up frequently accessed system settings.

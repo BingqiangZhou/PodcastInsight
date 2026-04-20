@@ -3,10 +3,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.admin.services import subscriptions_command_service as service_module
-from app.admin.services.subscriptions_command_service import (
+from app.admin.services.subscriptions_service import (
     SUBSCRIPTION_TEST_PREVIEW_LIMIT,
-    AdminSubscriptionsCommandService,
+    AdminSubscriptionsService,
 )
 from app.domains.subscription.parsers.feed_schemas import (
     FeedEntry,
@@ -38,9 +37,8 @@ async def test_update_frequency_uses_bulk_update(monkeypatch):
             _ExecuteResult(rowcount=7),
         ],
     )
-    monkeypatch.setattr(service_module, "log_admin_action", AsyncMock())
 
-    service = AdminSubscriptionsCommandService(db)
+    service = AdminSubscriptionsService(db)
     result = await service.update_frequency(
         request=SimpleNamespace(),
         user=SimpleNamespace(id=1, username="admin"),
@@ -74,7 +72,7 @@ async def test_test_subscription_url_returns_preview_and_total_counts(monkeypatc
         lambda config: fake_parser,
     )
 
-    service = AdminSubscriptionsCommandService(AsyncMock())
+    service = AdminSubscriptionsService(AsyncMock())
     payload, status_code = await service.test_subscription_url(
         source_url="https://example.com/feed.xml",
         username="admin",

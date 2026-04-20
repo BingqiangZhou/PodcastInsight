@@ -11,12 +11,11 @@ from urllib.parse import urlparse
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.audit import log_admin_action
 from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )
-from app.domains.subscription.models import Subscription
+from app.domains.subscription.models import Subscription, UserSubscription
 from app.domains.subscription.services import SubscriptionService
 from app.shared.schemas import SubscriptionCreate
 
@@ -40,15 +39,6 @@ class AdminSubscriptionsOpmlService:
     async def export_subscriptions_opml(self, *, request, user) -> tuple[str, str]:
         service = SubscriptionService(self.db, user_id=user.id)
         opml_content = await service.generate_opml_content(user_id=None)
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="export_opml",
-            resource_type="subscription",
-            details={"format": "opml", "filename": "stella.opml"},
-            request=request,
-        )
         return opml_content, "stella.opml"
 
     async def import_subscriptions_opml(
@@ -70,6 +60,36 @@ class AdminSubscriptionsOpmlService:
         podcast_service = PodcastSubscriptionService(self.db, user_id=user.id)
         import_started_at = datetime.now(UTC).isoformat()
 
+        # Pre-fetch all existing URLs in two queries to avoid N+1 in the loop
+        import_urls = {sub.source_url for sub in subscriptions_data}
+
+        user_existing_result = await self.db.execute(
+            select(Subscription.id, Subscription.source_url, Subscription.title)
+            .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
+            .where(
+                and_(
+                    UserSubscription.user_id == user.id,
+                    UserSubscription.is_archived.is_(False),
+                    Subscription.source_url.in_(import_urls),
+                    Subscription.source_type == "podcast-rss",
+                ),
+            )
+        )
+        user_existing_by_url = {
+            row.source_url: {"id": row.id, "title": row.title}
+            for row in user_existing_result.all()
+        }
+
+        global_existing_result = await self.db.execute(
+            select(Subscription.source_url).where(
+                and_(
+                    Subscription.source_url.in_(import_urls),
+                    Subscription.source_type == "podcast-rss",
+                ),
+            )
+        )
+        global_existing_urls = {row.source_url for row in global_existing_result.all()}
+
         results = []
         success_count = 0
         updated_count = 0
@@ -79,10 +99,7 @@ class AdminSubscriptionsOpmlService:
 
         for sub_data in subscriptions_data:
             try:
-                existing = await podcast_service.repo.get_subscription_by_url(
-                    user.id,
-                    sub_data.source_url,
-                )
+                existing = user_existing_by_url.get(sub_data.source_url)
                 if existing:
                     skipped_count += 1
                     results.append(
@@ -90,22 +107,13 @@ class AdminSubscriptionsOpmlService:
                             "source_url": sub_data.source_url,
                             "title": sub_data.title,
                             "status": "skipped",
-                            "id": existing.id,
-                            "message": f"Subscription already exists: {existing.title}",
+                            "id": existing["id"],
+                            "message": f"Subscription already exists: {existing['title']}",
                         },
                     )
                     continue
 
-                global_existing_stmt = select(Subscription.id).where(
-                    and_(
-                        Subscription.source_url == sub_data.source_url,
-                        Subscription.source_type == "podcast-rss",
-                    ),
-                )
-                global_existing_result = await self.db.execute(global_existing_stmt)
-                existed_globally = (
-                    global_existing_result.scalar_one_or_none() is not None
-                )
+                existed_globally = sub_data.source_url in global_existing_urls
 
                 subscription = await podcast_service.repo.create_or_update_subscription(
                     user_id=user.id,
@@ -153,23 +161,6 @@ class AdminSubscriptionsOpmlService:
                     },
                 )
 
-        await log_admin_action(
-            db=self.db,
-            user_id=user.id,
-            username=user.username,
-            action="import_opml",
-            resource_type="subscription",
-            details={
-                "total": len(subscriptions_data),
-                "success": success_count,
-                "updated": updated_count,
-                "skipped": skipped_count,
-                "errors": error_count,
-                "total_episodes_created": 0,
-                "queued_episode_tasks": queued_episode_tasks,
-            },
-            request=request,
-        )
 
         return {
             "success": True,

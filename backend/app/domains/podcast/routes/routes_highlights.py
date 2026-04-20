@@ -6,9 +6,7 @@ from fastapi import APIRouter, Depends, Query
 
 from app.domains.podcast.routes.dependencies import get_highlight_service
 from app.domains.podcast.routes.response_assemblers import (
-    build_highlight_dates_response,
     build_highlight_list_response,
-    build_highlight_stats_response,
 )
 from app.domains.podcast.schemas import (
     HighlightDatesResponse,
@@ -62,7 +60,7 @@ async def get_highlight_dates(
 ):
     """Get list of dates that have highlights (for calendar component)."""
     result = await service.get_highlight_dates()
-    return build_highlight_dates_response(result)
+    return HighlightDatesResponse(dates=result.get("dates", []))
 
 
 @router.get(
@@ -75,7 +73,7 @@ async def get_highlight_stats(
 ):
     """Get highlight statistics (for Profile card)."""
     result = await service.get_stats()
-    return build_highlight_stats_response(result)
+    return HighlightStatsResponse(**result)
 
 
 @router.post(

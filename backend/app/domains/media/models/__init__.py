@@ -7,6 +7,7 @@ from app.domains.media.models.transcription_task import (
     TranscriptionTask,
 )
 
+
 __all__ = [
     "PodcastEpisodeTranscript",
     "TranscriptionStatus",

@@ -13,10 +13,8 @@ from datetime import UTC, datetime
 import aiohttp
 from defusedxml.ElementTree import fromstring
 
-from app.core.config import settings
 from app.core.datetime_utils import ensure_timezone_aware_fetch_time
 from app.core.http_client import get_shared_http_session
-from app.domains.ai.llm_privacy import ContentSanitizer
 from app.domains.podcast.integration.platform_detector import PlatformDetector
 from app.domains.podcast.integration.security import (
     PodcastContentValidator,
@@ -71,7 +69,6 @@ class SecureRSSParser:
     ):
         self.user_id = user_id
         self.security = PodcastSecurityValidator()
-        self.privacy = ContentSanitizer(mode=settings.LLM_CONTENT_SANITIZE_MODE)
         # Use provided session or get shared session
         self._shared_session = shared_session
 

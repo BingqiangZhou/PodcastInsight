@@ -4,10 +4,9 @@ import logging
 import time
 import uuid
 from datetime import timedelta
-from typing import Any
 
-from fastapi import Depends, Header, HTTPException, Query, status
 import jwt as pyjwt
+from fastapi import Depends, Header, HTTPException, Query, status
 from jwt.exceptions import InvalidTokenError as JWTError
 
 from app.core.config import settings
@@ -16,55 +15,23 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
-# Token operation cache (micro-optimization)
-class TokenOptimizer:
-    """Pre-compute token claims to reduce CPU cycles per request."""
-
-    @staticmethod
-    def build_standard_claims(
-        extra_claims: dict[str, Any] = None,
-        expire_minutes: int = None,
-        is_refresh: bool = False,
-    ) -> dict[str, Any]:
-        """Fast claim builder optimized for 500+ req/s throughput."""
-        # Use time.time() directly to avoid timezone issues with datetime.now(timezone.utc).timestamp()
-        now_timestamp = int(time.time())
-        expire_seconds = (expire_minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES) * 60
-        exp_timestamp = now_timestamp + expire_seconds
-
-        claims = {
-            "exp": exp_timestamp,
-            "iat": now_timestamp,
-        }
-
-        if is_refresh:
-            claims["type"] = "refresh"
-
-        if extra_claims:
-            claims.update(extra_claims)
-
-        return claims
-
-
-token_optimizer = TokenOptimizer()
-
-
 async def create_access_token(
     data: dict,
     expires_delta: timedelta | None = None,
 ) -> str:
-    """Create JWT access token - optimized performance version."""
-    # Fast path - using optimized claim builder
+    """Create JWT access token."""
     custom_minutes = expires_delta.total_seconds() / 60 if expires_delta else None
 
-    # Assign a unique token ID for revocation support
+    # Assign a unique token ID for logging
     jti = str(uuid.uuid4())
 
-    claims = token_optimizer.build_standard_claims(
-        extra_claims=data,
-        expire_minutes=custom_minutes,
-        is_refresh=False,
-    )
+    expire_minutes_val = custom_minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    now_ts = int(time.time())
+    claims = {
+        "exp": now_ts + int(expire_minutes_val * 60),
+        "iat": now_ts,
+    }
+    claims.update(data or {})
     claims["jti"] = jti
 
     # HS256 is already highly optimized in python-jose (uses pyca/cryptography)
@@ -75,16 +42,6 @@ async def create_access_token(
         algorithm=settings.ALGORITHM,
     )
 
-    # Register token for bulk-revocation on logout/password-change
-    sub = data.get("sub")
-    if sub is not None:
-        try:
-            from app.core.security.token_blacklist import register_user_token
-
-            await register_user_token(int(sub), jti)
-        except (ImportError, ConnectionError, OSError) as exc:
-            logger.warning("Token registration skipped: %s", exc)
-
     return encoded_jwt
 
 
@@ -92,21 +49,24 @@ async def create_refresh_token(
     data: dict,
     expires_delta: timedelta | None = None,
 ) -> str:
-    """Create JWT refresh token - optimized performance version."""
+    """Create JWT refresh token."""
     # Use REFRESH_TOKEN_EXPIRE_DAYS as default if no expires_delta provided
     if expires_delta is None:
         expires_delta = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
     custom_days = expires_delta.total_seconds() / (24 * 60 * 60)
 
-    # Assign a unique token ID for revocation support
+    # Assign a unique token ID for logging
     jti = str(uuid.uuid4())
 
-    claims = token_optimizer.build_standard_claims(
-        extra_claims=data,
-        expire_minutes=custom_days * 24 * 60,
-        is_refresh=True,
-    )
+    expire_minutes_val = custom_days * 24 * 60
+    now_ts = int(time.time())
+    claims = {
+        "exp": now_ts + int(expire_minutes_val * 60),
+        "iat": now_ts,
+        "type": "refresh",
+    }
+    claims.update(data or {})
     claims["jti"] = jti
 
     encoded_jwt = pyjwt.encode(
@@ -114,16 +74,6 @@ async def create_refresh_token(
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
-
-    # Register token for bulk-revocation on logout/password-change
-    sub = data.get("sub")
-    if sub is not None:
-        try:
-            from app.core.security.token_blacklist import register_user_token
-
-            await register_user_token(int(sub), jti)
-        except (ImportError, ConnectionError, OSError) as exc:
-            logger.warning("Token registration skipped: %s", exc)
 
     return encoded_jwt
 
@@ -155,24 +105,6 @@ async def verify_token(token: str, token_type: str = "access") -> dict:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired",
             )
-
-        # Check token blacklist (revocation)
-        jti = payload.get("jti")
-        if jti:
-            try:
-                from app.core.security.token_blacklist import is_token_revoked
-
-                if await is_token_revoked(jti):
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Token has been revoked",
-                    )
-            except HTTPException:
-                raise
-            except (ImportError, ConnectionError, OSError) as exc:
-                # Redis unavailable -- allow the token through rather than
-                # blocking all authenticated requests.
-                logger.warning("Token blacklist check skipped: %s", exc)
 
         return payload
 

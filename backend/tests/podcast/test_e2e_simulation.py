@@ -6,25 +6,6 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_security_and_service_layers_mocked() -> None:
-    from app.domains.ai.llm_privacy import ContentSanitizer
-    from app.domains.podcast.integration.security import PodcastSecurityValidator
-
-    validator = PodcastSecurityValidator()
-    sanitizer = ContentSanitizer("standard")
-
-    malicious = (
-        "<!DOCTYPE data [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]><data>&xxe;</data>"
-    )
-    is_valid, _ = validator.validate_rss_xml(malicious)
-    assert is_valid is False
-
-    sanitized = sanitizer.sanitize("foo@test.com 13800138000", 1, "test")
-    assert "[EMAIL_REDACTED]" in sanitized
-    assert "[PHONE_REDACTED]" in sanitized
-
-
-@pytest.mark.asyncio
 async def test_routes_aggregator_exports_endpoints() -> None:
     from app.domains.podcast.routes.routes import router
 

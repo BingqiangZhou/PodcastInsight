@@ -77,23 +77,12 @@ class UserUpdate(BaseSchema):
     settings: dict[str, Any] | None = None
 
 
-class UserInDB(UserBase, TimestampedSchema):
-    id: int
-    is_verified: bool
-    last_login_at: datetime | None = None
-
-
 class UserResponse(UserBase):
     id: int
     is_verified: bool
     avatar_url: str | None = None
     account_name: str | None = None
     created_at: datetime
-
-
-class UserLogin(BaseSchema):
-    username: str
-    password: str
 
 
 # Token schemas

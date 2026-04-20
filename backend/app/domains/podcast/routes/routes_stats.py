@@ -3,10 +3,6 @@
 from fastapi import APIRouter, Depends
 
 from app.domains.podcast.routes.dependencies import get_podcast_stats_service
-from app.domains.podcast.routes.response_assemblers import (
-    build_podcast_profile_stats_response,
-    build_podcast_stats_response,
-)
 from app.domains.podcast.schemas import (
     PodcastProfileStatsResponse,
     PodcastStatsResponse,
@@ -27,7 +23,7 @@ async def get_podcast_stats(
 ):
     """Get podcast listening statistics for the user."""
     stats = await service.get_user_stats()
-    return build_podcast_stats_response(stats)
+    return PodcastStatsResponse(**stats)
 
 
 @router.get(
@@ -40,4 +36,4 @@ async def get_profile_stats(
 ):
     """Get lightweight profile statistics for profile cards."""
     stats = await service.get_profile_stats()
-    return build_podcast_profile_stats_response(stats)
+    return PodcastProfileStatsResponse(**stats)

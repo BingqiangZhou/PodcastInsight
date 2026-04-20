@@ -144,7 +144,7 @@ class _EpisodeDetailFakeRedisClient:
 
     async def get(self, key: str) -> str | None:
         self.get_calls.append(key)
-        if self._cached_json is not None and key == f"podcast:episode:detail:42":
+        if self._cached_json is not None and key == "podcast:episode:detail:42":
             import orjson
 
             return orjson.dumps(self._cached_json).decode("utf-8")

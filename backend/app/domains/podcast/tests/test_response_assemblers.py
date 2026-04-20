@@ -3,23 +3,15 @@ from datetime import UTC, datetime
 from app.domains.podcast.routes.response_assemblers import (
     build_conversation_clear_response,
     build_conversation_history_response,
-    build_conversation_send_response,
     build_conversation_session_list_response,
     build_daily_report_dates_response,
-    build_daily_report_response,
-    build_effective_playback_rate_response,
-    build_episode_detail_response,
     build_episode_list_response,
-    build_existing_playback_state_response,
     build_feed_response,
     build_pending_summaries_response,
     build_playback_history_list_response,
     build_playback_state_response,
-    build_podcast_profile_stats_response,
-    build_podcast_stats_response,
     build_queue_response,
     build_schedule_config_list_response,
-    build_schedule_config_response,
     build_summary_models_response,
     build_summary_response,
 )
@@ -120,18 +112,6 @@ def test_build_playback_history_list_response_uses_lightweight_items():
     assert response.episodes[0].playback_position == 45
 
 
-def test_build_episode_detail_response_preserves_detail_fields():
-    now = datetime.now(UTC)
-    payload = _episode_payload(now)
-    payload["subscription"] = {"id": 2, "title": "Podcast"}
-    payload["related_episodes"] = [{"id": 9}]
-
-    response = build_episode_detail_response(payload)
-
-    assert response.subscription == {"id": 2, "title": "Podcast"}
-    assert response.related_episodes == [{"id": 9}]
-
-
 def test_build_conversation_responses_wrap_payloads():
     now = datetime.now(UTC)
 
@@ -160,16 +140,6 @@ def test_build_conversation_responses_wrap_payloads():
             },
         ],
     )
-    send = build_conversation_send_response(
-        {
-            "id": 2,
-            "role": "assistant",
-            "content": "Hi",
-            "conversation_turn": 1,
-            "processing_time": 0.2,
-            "created_at": now.isoformat(),
-        },
-    )
     clear = build_conversation_clear_response(
         episode_id=9,
         session_id=3,
@@ -180,56 +150,12 @@ def test_build_conversation_responses_wrap_payloads():
     assert session_list.sessions[0].message_count == 2
     assert history.total == 1
     assert history.messages[0].content == "Hello"
-    assert send.role == "assistant"
     assert clear.deleted_count == 4
 
 
-def test_build_stats_and_report_responses():
+def test_build_report_dates_response():
     now = datetime.now(UTC)
 
-    stats = build_podcast_stats_response(
-        {
-            "total_subscriptions": 3,
-            "total_episodes": 8,
-            "total_playtime": 900,
-            "summaries_generated": 4,
-            "pending_summaries": 2,
-            "recently_played": [],
-            "top_categories": [],
-            "listening_streak": 5,
-        },
-    )
-    profile_stats = build_podcast_profile_stats_response(
-        {
-            "total_subscriptions": 3,
-            "total_episodes": 8,
-            "summaries_generated": 4,
-            "pending_summaries": 2,
-            "played_episodes": 6,
-        },
-    )
-    report = build_daily_report_response(
-        {
-            "available": True,
-            "report_date": now.date(),
-            "timezone": "UTC",
-            "schedule_time_local": "09:00",
-            "generated_at": now,
-            "total_items": 1,
-            "items": [
-                {
-                    "episode_id": 1,
-                    "subscription_id": 2,
-                    "episode_title": "Episode",
-                    "subscription_title": "Podcast",
-                    "one_line_summary": "summary",
-                    "is_carryover": False,
-                    "episode_created_at": now,
-                    "episode_published_at": now,
-                },
-            ],
-        },
-    )
     report_dates = build_daily_report_dates_response(
         {
             "dates": [
@@ -246,10 +172,6 @@ def test_build_stats_and_report_responses():
         },
     )
 
-    assert stats.listening_streak == 5
-    assert profile_stats.played_episodes == 6
-    assert report.available is True
-    assert report.items[0].episode_title == "Episode"
     assert report_dates.dates[0].total_items == 1
 
 
@@ -267,8 +189,8 @@ def test_build_summary_and_playback_responses():
         },
     )
     playback = build_playback_state_response(
-        episode_id=9,
         payload={
+            "episode_id": 9,
             "progress": 33,
             "is_playing": True,
             "playback_rate": 1.25,
@@ -278,31 +200,9 @@ def test_build_summary_and_playback_responses():
             "remaining_time": 240,
         },
     )
-    existing_playback = build_existing_playback_state_response(
-        {
-            "episode_id": 9,
-            "current_position": 33,
-            "is_playing": True,
-            "playback_rate": 1.25,
-            "play_count": 4,
-            "last_updated_at": now,
-            "progress_percentage": 12.5,
-            "remaining_time": 240,
-        },
-    )
-    effective_rate = build_effective_playback_rate_response(
-        {
-            "global_playback_rate": 1.0,
-            "subscription_playback_rate": 1.25,
-            "effective_playback_rate": 1.25,
-            "source": "subscription",
-        },
-    )
 
     assert summary.word_count == 3
     assert playback.current_position == 33
-    assert existing_playback.episode_id == 9
-    assert effective_rate.source == "subscription"
 
 
 def test_build_summary_response_accepts_model_used_key():
@@ -391,7 +291,7 @@ def test_build_pending_and_model_responses():
     assert models.models[0].name == "default"
 
 
-def test_build_schedule_config_responses_from_dicts():
+def test_build_schedule_config_list_response():
     now = datetime.now(UTC)
     schedule_dict = {
         "id": 5,
@@ -404,9 +304,8 @@ def test_build_schedule_config_responses_from_dicts():
         "last_updated_at": now,
     }
 
-    single = build_schedule_config_response(schedule_dict)
     listing = build_schedule_config_list_response([schedule_dict])
 
-    assert single.id == 5
-    assert single.update_time == "08:30"
+    assert listing[0].id == 5
+    assert listing[0].update_time == "08:30"
     assert listing[0].title == "Podcast 5"

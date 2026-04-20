@@ -8,10 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.auth import create_admin_session
-from app.admin.csrf import generate_csrf_token, validate_csrf_token
 from app.admin.first_run import check_admin_exists
-from app.admin.security_settings import get_admin_2fa_enabled
-from app.admin.twofa import generate_qr_code, generate_totp_secret
 from app.core.security import get_password_hash, verify_password
 from app.domains.user.models import User, UserStatus
 
@@ -20,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class AdminSetupAuthService:
-    """Encapsulate admin setup/login/2FA state changes."""
+    """Encapsulate admin setup/login state changes."""
 
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -64,18 +61,8 @@ class AdminSetupAuthService:
         await self.db.commit()
         # No refresh needed - admin_user.id is auto-populated by SQLAlchemy after flush/commit
 
-        admin_user.totp_secret = generate_totp_secret()
-        await self.db.commit()
-        # No refresh needed - admin_user is already in session with updated values
         logger.info("Initial admin user created: %s", username)
         return admin_user
-
-    async def ensure_totp_secret(self, user: User) -> str:
-        if not user.totp_secret:
-            user.totp_secret = generate_totp_secret()
-            await self.db.commit()
-            # No refresh needed - user is already in session with updated values
-        return user.totp_secret
 
     async def verify_login_credentials(
         self,
@@ -89,33 +76,6 @@ class AdminSetupAuthService:
         if not verify_password(password, user.hashed_password):
             return None
         return user
-
-    async def get_admin_2fa_state(self) -> tuple[bool, str]:
-        return await get_admin_2fa_enabled(self.db)
-
-    async def disable_2fa(self, *, user: User) -> None:
-        user.is_2fa_enabled = False
-        user.totp_secret = None
-        await self.db.commit()
-
-    async def enable_2fa(self, *, user: User) -> None:
-        user.is_2fa_enabled = True
-        await self.db.commit()
-
-    def build_setup_redirect(self, user_id: int, *, client_ip: str) -> RedirectResponse:
-        response = RedirectResponse(
-            url="/api/v1/admin/2fa/setup",
-            status_code=status.HTTP_303_SEE_OTHER,
-        )
-        response.set_cookie(
-            key="admin_session",
-            value=create_admin_session(user_id, client_ip),
-            httponly=True,
-            secure=True,
-            samesite="lax",
-            max_age=30 * 60,
-        )
-        return response
 
     def build_session_redirect(
         self, user_id: int, *, url: str, client_ip: str
@@ -131,43 +91,18 @@ class AdminSetupAuthService:
         )
         return response
 
-    def build_2fa_challenge_response(
-        self,
-        *,
-        templates,
-        request: Request,
-        user_id: int,
-        username: str,
-        csrf_token: str,
-    ):
-        """Render the 2FA challenge page and persist the pending user id."""
-        response = self.build_template_response(
-            templates=templates,
-            template_name="2fa_verify.html",
-            request=request,
-            user=None,
-            username=username,
-            csrf_token=csrf_token,
+    def build_setup_redirect(self, user_id: int, *, client_ip: str) -> RedirectResponse:
+        response = RedirectResponse(
+            url="/api/v1/admin",
+            status_code=status.HTTP_303_SEE_OTHER,
         )
         response.set_cookie(
-            key="2fa_user_id",
-            value=str(user_id),
+            key="admin_session",
+            value=create_admin_session(user_id, client_ip),
             httponly=True,
             secure=True,
             samesite="lax",
-            max_age=5 * 60,
-        )
-        return response
-
-    @staticmethod
-    def build_csrf_cookie_response(response):
-        response.set_cookie(
-            key="csrf_token",
-            value=generate_csrf_token(),
-            httponly=True,
-            secure=True,
-            samesite="lax",
-            max_age=3600,
+            max_age=30 * 60,
         )
         return response
 
@@ -181,12 +116,13 @@ class AdminSetupAuthService:
         status_code: int = status.HTTP_200_OK,
         **context,
     ):
-        """Render a template response without mutating CSRF cookies."""
+        """Render a template response."""
         return templates.TemplateResponse(
             request,
             template_name,
             {
                 "request": request,
+                "csrf_token": "",  # Empty CSRF token for template compatibility
                 "messages": messages or [],
                 **context,
             },
@@ -203,36 +139,17 @@ class AdminSetupAuthService:
         status_code: int = status.HTTP_200_OK,
         **context,
     ):
-        """Render a template with a fresh CSRF token and matching cookie."""
-        csrf_token = generate_csrf_token()
-        response = templates.TemplateResponse(
-            request,
-            template_name,
-            {
-                "request": request,
-                "csrf_token": csrf_token,
-                "messages": messages or [],
-                **context,
-            },
+        """Render a template (same as build_template_response without CSRF)."""
+        return AdminSetupAuthService.build_template_response(
+            templates=templates,
+            template_name=template_name,
+            request=request,
+            messages=messages,
             status_code=status_code,
+            **context,
         )
-        response.set_cookie(
-            key="csrf_token",
-            value=csrf_token,
-            httponly=True,
-            secure=True,
-            samesite="lax",
-            max_age=3600,
-        )
-        return response
 
     @staticmethod
     def validate_csrf(request: Request, csrf_token: str) -> None:
-        validate_csrf_token(request, csrf_token)
-
-    @staticmethod
-    def build_2fa_qr_payload(user: User, secret: str) -> dict[str, str]:
-        return {
-            "secret": secret,
-            "qr_code": generate_qr_code(user.username or user.email, secret),
-        }
+        """CSRF validation is disabled."""
+        pass

@@ -641,40 +641,84 @@ class PodcastSubscriptionService:
             Dict with operation results
 
         """
-        success_count = 0
-        failed_count = 0
-        errors: list[dict[str, Any]] = []
-        deleted_subscription_ids: list[int] = []
+        from sqlalchemy import and_, select
+        from sqlalchemy import delete as sa_delete
 
-        for subscription_id in subscription_ids:
-            try:
-                removed = await self.remove_subscription(subscription_id)
-                if not removed:
-                    errors.append(
-                        {
-                            "subscription_id": subscription_id,
-                            "error": f"Subscription {subscription_id} not found or access denied",
-                        },
-                    )
-                    failed_count += 1
-                    continue
+        from app.domains.subscription.models import UserSubscription
 
-                success_count += 1
-                deleted_subscription_ids.append(subscription_id)
-                logger.info(
-                    f"User {self.user_id} bulk removed subscription {subscription_id} successfully",
-                )
+        # Batch validate: find which subscriptions belong to this user
+        valid_result = await self.db.execute(
+            select(Subscription.id)
+            .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
+            .where(
+                and_(
+                    Subscription.id.in_(subscription_ids),
+                    UserSubscription.user_id == self.user_id,
+                    UserSubscription.is_archived.is_(False),
+                ),
+            )
+        )
+        valid_ids = [row.id for row in valid_result.all()]
+        invalid_ids = set(subscription_ids) - set(valid_ids)
 
-            except Exception as e:
-                logger.error(f"Bulk remove subscription {subscription_id} failed: {e}")
-                errors.append({"subscription_id": subscription_id, "error": str(e)})
-                failed_count += 1
+        errors = [
+            {
+                "subscription_id": sid,
+                "error": f"Subscription {sid} not found or access denied",
+            }
+            for sid in invalid_ids
+        ]
+
+        if not valid_ids:
+            return {
+                "success_count": 0,
+                "failed_count": len(errors),
+                "errors": errors,
+                "deleted_subscription_ids": [],
+            }
+
+        # Batch delete user subscriptions
+        await self.db.execute(
+            sa_delete(UserSubscription).where(
+                and_(
+                    UserSubscription.user_id == self.user_id,
+                    UserSubscription.subscription_id.in_(valid_ids),
+                ),
+            )
+        )
+
+        # Find orphaned subscriptions (no remaining subscribers)
+        remaining_result = await self.db.execute(
+            select(UserSubscription.subscription_id)
+            .where(UserSubscription.subscription_id.in_(valid_ids))
+            .group_by(UserSubscription.subscription_id)
+        )
+        ids_with_subscribers = {row.subscription_id for row in remaining_result.all()}
+        orphaned_ids = set(valid_ids) - ids_with_subscribers
+
+        if orphaned_ids:
+            await self.db.execute(
+                sa_delete(Subscription).where(Subscription.id.in_(orphaned_ids))
+            )
+
+        await self.db.commit()
+
+        # Invalidate caches for all deleted subscriptions
+        for subscription_id in valid_ids:
+            await self._invalidate_subscription_related_caches(
+                subscription_id,
+                operation="remove_subscription",
+            )
+
+        logger.info(
+            f"User {self.user_id} bulk removed {len(valid_ids)} subscriptions",
+        )
 
         return {
-            "success_count": success_count,
-            "failed_count": failed_count,
+            "success_count": len(valid_ids),
+            "failed_count": len(errors),
             "errors": errors,
-            "deleted_subscription_ids": deleted_subscription_ids,
+            "deleted_subscription_ids": valid_ids,
         }
 
     # === Private helper methods ===

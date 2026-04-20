@@ -94,34 +94,6 @@ async def update_frequency_settings(
     )
 
 
-@router.get("/settings/api/security")
-@handle_admin_errors("get security settings")
-async def get_security_settings(
-    _: User = Depends(admin_required),
-    service: AdminSettingsService = Depends(get_admin_settings_service),
-):
-    """Get security settings as JSON."""
-    return json_payload(await service.get_security_settings())
-
-
-@router.post("/settings/api/security")
-@handle_admin_errors("update security settings")
-async def update_security_settings(
-    request: Request,
-    admin_2fa_enabled: bool = Body(..., embed=True),
-    user: User = Depends(admin_required),
-    service: AdminSettingsService = Depends(get_admin_settings_service),
-):
-    """Update security settings."""
-    return json_payload(
-        await service.save_security_settings(
-            request=request,
-            user=user,
-            admin_2fa_enabled=admin_2fa_enabled,
-        ),
-    )
-
-
 @router.get("/settings/api/storage/info")
 @handle_admin_errors("get storage information")
 async def get_storage_info(

@@ -49,10 +49,6 @@ class User(Base):
     default_playback_rate = Column(Float, nullable=False, default=1.0)
     api_key = Column(String(255), unique=True, nullable=True)
 
-    # 2FA fields
-    totp_secret = Column(String(32), nullable=True)  # Base32 encoded secret for TOTP
-    is_2fa_enabled = Column(Boolean, default=False)
-
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at = Column(
         DateTime(timezone=True),
