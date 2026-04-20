@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-// Import AppConfig and ApiConstants from the canonical config file
 import 'package:personal_ai_assistant/core/app/config/app_config.dart' as config;
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
 import 'package:personal_ai_assistant/core/network/token_refresh_service.dart';
 import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
@@ -17,7 +16,6 @@ typedef SavedServerBaseUrlLoader = Future<String?> Function();
 
 @immutable
 class DioClientInitOptions {
-
   const DioClientInitOptions({
     this.applySavedBaseUrlOnInit = false,
     this.initialServerBaseUrl,
@@ -28,145 +26,247 @@ class DioClientInitOptions {
   final SavedServerBaseUrlLoader? savedBaseUrlLoader;
 }
 
-/// Simplified HTTP client using Dio.
-///
-/// Features:
-/// - ETag-based caching (via dio_cache_interceptor)
-/// - Token refresh (via TokenRefreshService)
-/// - Automatic base URL management
-/// - Error handling with typed exceptions
-/// - Request cancellation support
-/// - Automatic retry on network errors
 class DioClient {
   static const int _maxRetries = 3;
 
   DioClient({DioClientInitOptions initOptions = const DioClientInitOptions()})
     : _initOptions = initOptions {
-    // Initialize with default/empty baseUrl first.
-    // The actual baseUrl is set by _initializeBaseUrl().
-    _dio = Dio(
-      BaseOptions(
-        headers: config.ApiConstants.headers,
-        connectTimeout: config.AppConfig.connectionTimeout,
-        receiveTimeout: config.AppConfig.receiveTimeout,
-        sendTimeout: config.AppConfig.sendTimeout,
-      ),
-    );
-
-    // Initialize token refresh service
+    _dio = Dio(BaseOptions(
+      headers: config.ApiConstants.headers,
+      connectTimeout: config.AppConfig.connectionTimeout,
+      receiveTimeout: config.AppConfig.receiveTimeout,
+      sendTimeout: config.AppConfig.sendTimeout,
+    ));
     _tokenRefreshService = TokenRefreshService(dio: _dio);
-
-    // Initialize cache interceptor
     _cacheOptions = CacheOptions(
       store: MemCacheStore(),
       policy: CachePolicy.refreshForceCache,
       maxStale: const Duration(hours: 1),
       hitCacheOnErrorCodes: [500],
     );
-    _dio.interceptors.add(DioCacheInterceptor(options: _cacheOptions));
-
-    // Add main interceptors
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: _onRequest,
-        onResponse: _onResponse,
-        onError: _onError,
-      ),
-    );
-
-    // Apply base URL synchronously before returning.
+    _dio.interceptors.addAll([
+      DioCacheInterceptor(options: _cacheOptions),
+      InterceptorsWrapper(onRequest: _onRequest, onError: _onError),
+    ]);
     _initializeBaseUrl(initialServerBaseUrl: _initOptions.initialServerBaseUrl);
-
     if (_initOptions.applySavedBaseUrlOnInit) {
       unawaited(initializeFromStorage());
     }
   }
+
   final DioClientInitOptions _initOptions;
   late final Dio _dio;
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   late final TokenRefreshService _tokenRefreshService;
   late final CacheOptions _cacheOptions;
-
-  // Request cancellation support
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final Map<String, CancelToken> _cancelTokens = {};
-
-  // In-memory token cache to avoid secure storage I/O on every request
-  String? _cachedAccessToken;
-
-  // Request deduplication: maps GET request keys to their in-flight futures (NW-M3)
   final Map<String, Future<Response>> _inFlightRequests = {};
-
-  // Storage key for custom backend server base URL
+  String? _cachedAccessToken;
   static const String _serverBaseUrlKey = 'server_base_url';
 
-  /// Initialize baseUrl from saved storage or default config
-  void _initializeBaseUrl({String? initialServerBaseUrl}) {
-    var savedBaseUrl =
-        initialServerBaseUrl ?? config.AppConfig.serverBaseUrl;
-
-    // Normalize URL: remove trailing slashes and API prefix
-    if (savedBaseUrl.isNotEmpty) {
-      savedBaseUrl = UrlNormalizer.normalize(savedBaseUrl);
-    }
-
-    // No trailing slash — Retrofit paths start with '/', so trailing slash
-    // would produce double slashes when Dio concatenates baseUrl + path.
-    final apiBaseUrl = savedBaseUrl.isNotEmpty
-        ? '$savedBaseUrl/api/v1'
-        : '${config.AppConfig.serverBaseUrl}/api/v1';
-
-    _dio.options.baseUrl = apiBaseUrl;
-    if (kDebugMode) {
-      logger.AppLogger.debug(
-        ' [DioClient] Initialized with baseUrl: $apiBaseUrl',
-      );
-    }
-  }
+  // --- Public API ---------------------------------------------------------
 
   Dio get dio => _dio;
-
-  /// Update the base URL dynamically
-  void updateBaseUrl(String newBaseUrl) {
-    _dio.options.baseUrl = newBaseUrl;
-    if (kDebugMode) {
-      logger.AppLogger.debug(' [DioClient] Base URL updated to: $newBaseUrl');
-    }
-  }
-
-  /// Get the current base URL
   String get currentBaseUrl => _dio.options.baseUrl;
 
-  /// Apply saved baseUrl from local storage
-  Future<void> initializeFromStorage() async {
-    await _applySavedBaseUrl();
+  void updateBaseUrl(String url) {
+    _dio.options.baseUrl = url;
+    _log('Base URL updated to: $url');
   }
 
-  Future<void> _applySavedBaseUrl() async {
+  Future<void> initializeFromStorage() async {
     try {
       final loader = _initOptions.savedBaseUrlLoader;
       final savedUrl = await (loader != null
           ? loader()
           : _loadSavedBaseUrlFromSharedPrefs());
       if (savedUrl != null && savedUrl.isNotEmpty) {
-        final normalizedUrl = UrlNormalizer.normalize(savedUrl);
-        // No trailing slash — Retrofit paths start with '/', concatenation
-        // produces the correct URL without double slashes.
-        updateBaseUrl('$normalizedUrl/api/v1');
-        if (kDebugMode) {
-          logger.AppLogger.debug(
-            ' [DioClient] Applied saved backend API baseUrl: $savedUrl',
-          );
-        }
+        updateBaseUrl('${UrlNormalizer.normalize(savedUrl)}/api/v1');
       }
     } catch (e) {
-      final message = e.toString();
-      if (message.contains('Binding has not yet been initialized')) {
-        return;
-      }
-      if (kDebugMode) {
-        logger.AppLogger.debug(' [DioClient] Failed to apply saved baseUrl: $e');
+      if (!e.toString().contains('Binding has not yet been initialized')) {
+        _log('Failed to apply saved baseUrl: $e');
       }
     }
+  }
+
+  // HTTP methods
+  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) =>
+      _dio.get(path, queryParameters: queryParameters);
+
+  Future<Response> getDeduplicated(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    final key = 'GET:$path:$queryParameters';
+    return _inFlightRequests.putIfAbsent(
+      key,
+      () => _dio
+          .get(path, queryParameters: queryParameters, options: options)
+          .whenComplete(() => _inFlightRequests.remove(key)),
+    );
+  }
+
+  Future<Response> post(String path, {dynamic data, bool invalidateCache = false}) =>
+      _dio.post(path, data: data, options: _cacheOpts(invalidateCache));
+
+  Future<Response> put(String path, {dynamic data, bool invalidateCache = true}) =>
+      _dio.put(path, data: data, options: _cacheOpts(invalidateCache));
+
+  Future<Response> delete(String path, {bool invalidateCache = true}) =>
+      _dio.delete(path, options: _cacheOpts(invalidateCache));
+
+  // Cache & token management
+  Future<void> clearCache() async {
+    await _cacheOptions.store!.clean();
+    _log('All caches cleared');
+  }
+  void clearETagCache() => clearCache();
+  Future<TokenRefreshResult> refreshSessionToken() =>
+      _tokenRefreshService.refreshToken();
+  void clearTokenCache() {
+    _cachedAccessToken = null;
+    _log('In-memory token cache cleared');
+  }
+  void setToken(String? token) {
+    _cachedAccessToken = token;
+    _log('Token cache ${token != null ? "updated" : "cleared"}');
+  }
+
+  // Request cancellation
+  CancelToken createCancelToken(String tag) {
+    cancelRequest(tag);
+    final token = CancelToken();
+    _cancelTokens[tag] = token;
+    return token;
+  }
+  void cancelRequest(String tag, [String? reason]) {
+    final token = _cancelTokens.remove(tag);
+    if (token != null && !token.isCancelled) {
+      token.cancel(reason ?? 'Request cancelled by client');
+    }
+  }
+  void cancelAllRequests([String? reason]) {
+    for (final t in _cancelTokens.values) {
+      if (!t.isCancelled) t.cancel(reason ?? 'All requests cancelled');
+    }
+    _cancelTokens.clear();
+  }
+  void removeCancelToken(String tag) => _cancelTokens.remove(tag);
+  bool isRequestCancelled(String tag) =>
+      _cancelTokens[tag]?.isCancelled ?? true;
+  void dispose() {
+    cancelAllRequests('DioClient disposed');
+    clearTokenCache();
+    _inFlightRequests.clear();
+    _dio.close(force: true);
+    logger.AppLogger.debug('[DioClient] Disposed');
+  }
+
+  // --- Interceptors -------------------------------------------------------
+
+  Future<void> _onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    _log('${options.method} ${options.baseUrl}${options.path}');
+    if (options.headers.containsKey('Authorization')) {
+      handler.next(options);
+      return;
+    }
+    var token = _cachedAccessToken;
+    if (token == null) {
+      try {
+        token = await _secureStorage.read(key: config.AppConstants.accessTokenKey);
+      } on PlatformException catch (e) {
+        logger.AppLogger.warning('[AUTH] read token failed: ${e.message}');
+      }
+      if (token != null) _cachedAccessToken = token;
+    }
+    if (token != null) options.headers['Authorization'] = 'Bearer $token';
+    handler.next(options);
+  }
+
+  Future<void> _onError(DioException err, ErrorInterceptorHandler handler) async {
+    _log('ERROR ${err.type} ${err.requestOptions.path}');
+    switch (err.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.connectionError:
+        final count = (err.requestOptions.extra['_retryCount'] as int? ?? 0) + 1;
+        if (count <= _maxRetries) {
+          try {
+            await Future.delayed(Duration(seconds: count));
+            final response = await _dio.fetch(err.requestOptions.copyWith(
+              extra: {...err.requestOptions.extra, '_retryCount': count},
+            ));
+            handler.resolve(response);
+            return;
+          } catch (_) { /* fall through */ }
+        }
+        handler.reject(DioException(
+          requestOptions: err.requestOptions,
+          error: const NetworkException('Connection timeout'),
+        ));
+      case DioExceptionType.badResponse:
+        final status = err.response?.statusCode;
+        if (status == 401) {
+          await _handle401(err, handler);
+        } else if (status == 403) {
+          handler.reject(DioException(
+            requestOptions: err.requestOptions,
+            response: err.response,
+            type: DioExceptionType.badResponse,
+            error: AuthException.fromDioError(err),
+          ));
+        } else {
+          handler.reject(DioException(
+            requestOptions: err.requestOptions,
+            response: err.response,
+            type: DioExceptionType.badResponse,
+            error: ServerException.fromDioError(err),
+          ));
+        }
+      default:
+        handler.reject(DioException(
+          requestOptions: err.requestOptions,
+          error: NetworkException.fromDioError(err),
+        ));
+    }
+  }
+
+  Future<void> _handle401(DioException err, ErrorInterceptorHandler handler) async {
+    try {
+      final response = await _tokenRefreshService.handle401(
+        err.requestOptions,
+        onTokenUpdated: (t) => _cachedAccessToken = t,
+      );
+      handler.resolve(response);
+    } on DioException catch (e) {
+      handler.reject(DioException(
+        requestOptions: e.requestOptions,
+        response: e.response ?? err.response,
+        type: DioExceptionType.badResponse,
+        error: AuthException.fromDioError(err),
+      ));
+    } catch (_) {
+      handler.reject(DioException(
+        requestOptions: err.requestOptions,
+        response: err.response,
+        error: const NetworkException('Session refresh temporarily unavailable.'),
+      ));
+    }
+  }
+
+  // --- Private helpers ----------------------------------------------------
+
+  void _initializeBaseUrl({String? initialServerBaseUrl}) {
+    final raw = initialServerBaseUrl ?? config.AppConfig.serverBaseUrl;
+    final normalized = raw.isNotEmpty ? UrlNormalizer.normalize(raw) : '';
+    final base = normalized.isNotEmpty
+        ? '$normalized/api/v1'
+        : '${config.AppConfig.serverBaseUrl}/api/v1';
+    _dio.options.baseUrl = base;
+    _log('Initialized with baseUrl: $base');
   }
 
   Future<String?> _loadSavedBaseUrlFromSharedPrefs() async {
@@ -174,512 +274,19 @@ class DioClient {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_serverBaseUrlKey);
     } catch (e) {
-      if (e.toString().contains('Binding has not yet been initialized')) {
-        return null;
-      }
+      if (e.toString().contains('Binding has not yet been initialized')) return null;
       rethrow;
     }
   }
 
-  /// Simple retry for transient network errors with fixed delay.
-  Future<Response> _retryWithBackoff(RequestOptions options, int attempt) async {
-    if (attempt >= _maxRetries) throw DioException(requestOptions: options);
-
-    final delay = Duration(seconds: attempt + 1);
-    await Future.delayed(delay);
-
-    return _dio.fetch(options);
-  }
-
-  Future<void> _onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) async {
-    if (kDebugMode) {
-      final fullUrl = '${_dio.options.baseUrl}${options.path}';
-      logger.AppLogger.debug(' [API REQUEST] ${options.method} $fullUrl');
-      if (options.data != null) {
-        logger.AppLogger.debug('   Data: ${options.data}');
-      }
-      if (options.queryParameters.isNotEmpty) {
-        logger.AppLogger.debug('   Query: ${options.queryParameters}');
-      }
-    }
-
-    // Only add token if not already set
-    if (!options.headers.containsKey('Authorization')) {
-      // Use in-memory cache first to avoid slow platform channel calls
-      var token = _cachedAccessToken;
-
-      if (token == null) {
-        // Cache miss: fall back to secure storage and cache the result
-        try {
-          token = await _secureStorage.read(
-            key: config.AppConstants.accessTokenKey,
-          );
-        } on PlatformException catch (e) {
-          logger.AppLogger.warning('[AUTH] read token failed: ${e.message}');
-        }
-        if (token != null) {
-          _cachedAccessToken = token;
-          if (kDebugMode) {
-            logger.AppLogger.debug(
-              '[AUTH] Token loaded from secure storage and cached',
-            );
-          }
-        }
-      } else {
-        if (kDebugMode) {
-          logger.AppLogger.debug(
-            '[AUTH] Token served from in-memory cache',
-          );
-        }
-      }
-
-      if (token != null) {
-        options.headers['Authorization'] = 'Bearer $token';
-        if (kDebugMode) {
-          logger.AppLogger.debug(
-            '[AUTH] Token added: ${token.substring(0, 20)}...',
-          );
-        }
-      } else {
-        if (kDebugMode) {
-          logger.AppLogger.debug(
-            '[AUTH] No token found - skipping auth, will return 401 if protected route',
-          );
-        }
-      }
-    }
-
-    handler.next(options);
-  }
-
-  void _onResponse(Response response, ResponseInterceptorHandler handler) {
-    // Debug subscriptions list response shape
-    if (kDebugMode) {
-      if (response.requestOptions.path == '/podcasts/subscriptions') {
-        final data = response.data;
-        if (data is Map) {
-          logger.AppLogger.debug(
-            '?? [Subscriptions Response] keys=${data.keys.toList()} '
-            'items=${(data['items'] as List?)?.length} '
-            'total=${data['total']}',
-          );
-        } else {
-          logger.AppLogger.debug(
-            '?? [Subscriptions Response] type=${data.runtimeType}',
-          );
-        }
-      }
-      // Debug: log AI summary related responses.
-      if (response.requestOptions.path.contains('/episodes/')) {
-        final data = response.data;
-        if (data is Map && data.containsKey('ai_summary')) {
-          logger.AppLogger.debug(
-            ' [API RESPONSE] Episode ${data['id']} has ai_summary: ${data['ai_summary'] != null ? "YES (${data['ai_summary'].length} chars)" : "NO"}',
-          );
-        }
-      }
-    }
-    handler.next(response);
-  }
-
-  Future<void> _onError(DioException error, ErrorInterceptorHandler handler) async {
-    if (kDebugMode) {
-      final errorUrl = '${error.requestOptions.baseUrl}${error.requestOptions.path}';
-      logger.AppLogger.debug('[API ERROR] ${error.requestOptions.method} $errorUrl');
-      logger.AppLogger.debug('   Type: ${error.type}');
-      logger.AppLogger.debug('   Message: ${error.message}');
-    }
-
-    switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-      case DioExceptionType.connectionError:
-        try {
-          final retryCount = (error.requestOptions.extra['_retryCount'] as int? ?? 0) + 1;
-          if (retryCount <= _maxRetries) {
-            final newOptions = error.requestOptions.copyWith(
-              extra: {...error.requestOptions.extra, '_retryCount': retryCount},
-            );
-            final response = await _retryWithBackoff(newOptions, retryCount - 1);
-            handler.resolve(response);
-            return;
-          }
-        } catch (_) {
-          // Fall through to reject
-        }
-        handler.reject(DioException(
-          requestOptions: error.requestOptions,
-          error: const NetworkException('Connection timeout'),
-        ));
-      case DioExceptionType.badResponse:
-        final statusCode = error.response?.statusCode;
-        if (statusCode == 401) {
-          await _handle401Error(error, handler);
-          return;
-        } else if (statusCode == 403) {
-          handler.reject(DioException(
-            requestOptions: error.requestOptions,
-            response: error.response,
-            type: DioExceptionType.badResponse,
-            error: AuthException.fromDioError(error),
-          ));
-        } else {
-          handler.reject(DioException(
-            requestOptions: error.requestOptions,
-            response: error.response,
-            type: DioExceptionType.badResponse,
-            error: ServerException.fromDioError(error),
-          ));
-        }
-      default:
-        handler.reject(DioException(
-          requestOptions: error.requestOptions,
-          error: NetworkException.fromDioError(error),
-        ));
-    }
-  }
-
-  Future<void> _handle401Error(
-    DioException error,
-    ErrorInterceptorHandler handler,
-  ) async {
-    if (kDebugMode) {
-      logger.AppLogger.debug(
-        '[AUTH] ?401 Error: ${error.requestOptions.method} ${error.requestOptions.path}',
-      );
-      logger.AppLogger.debug('   Response: ${error.response?.data}');
-    }
-
-    // Check if this is a refresh token request to avoid infinite loop
-    final isRefreshRequest = error.requestOptions.path.contains('/auth/refresh');
-
-    if (!isRefreshRequest) {
-      final refreshResult = await _tokenRefreshService.refreshToken();
-      final newAccessToken = refreshResult.accessToken;
-      if (refreshResult.success && newAccessToken != null) {
-        // Update in-memory cache with the refreshed token
-        _cachedAccessToken = newAccessToken;
-        try {
-          final response = await _retryRequest(
-            error.requestOptions,
-            newAccessToken,
-          );
-          if (kDebugMode) {
-            logger.AppLogger.debug(
-              '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=success',
-            );
-          }
-          handler.resolve(response);
-          return;
-        } on DioException catch (retryError) {
-          if (retryError.response?.statusCode == 401) {
-            if (kDebugMode) {
-              logger.AppLogger.debug(
-                '[AUTH] ?Retry still returns 401; treat as authorization/resource issue',
-              );
-              logger.AppLogger.debug(
-                '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=still_401',
-              );
-            }
-            handler.reject(retryError);
-            return;
-          }
-          if (kDebugMode) {
-            logger.AppLogger.debug(
-              '[AUTH]  Retry failed with status: ${retryError.response?.statusCode}',
-            );
-            logger.AppLogger.debug(
-              '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=failed_status_${retryError.response?.statusCode}',
-            );
-          }
-          handler.reject(retryError);
-          return;
-        } catch (e) {
-          if (kDebugMode) {
-            logger.AppLogger.debug('?Unexpected error during retry: $e');
-            logger.AppLogger.debug(
-              '[AUTH] refresh_reason=none should_clear_tokens=false retry_result=unexpected_error',
-            );
-          }
-          handler.reject(error);
-          return;
-        }
-      } else {
-        final reason =
-            refreshResult.reason ?? TokenRefreshFailureReason.unknownFailure;
-        final shouldClearTokens =
-            TokenRefreshService.shouldClearTokensForRefreshFailure(reason);
-        if (kDebugMode) {
-          logger.AppLogger.debug(
-            '[AUTH] refresh_reason=${reason.name} should_clear_tokens=$shouldClearTokens retry_result=not_attempted',
-          );
-        }
-
-        if (shouldClearTokens) {
-          if (kDebugMode) {
-            logger.AppLogger.debug(
-              '[AUTH] ?Token refresh failed due to invalid session, clearing tokens',
-            );
-          }
-          _cachedAccessToken = null;
-          await _tokenRefreshService.clearTokens();
-          handler.reject(
-            DioException(
-              requestOptions: error.requestOptions,
-              response: error.response,
-              type: DioExceptionType.badResponse,
-              error: AuthException.fromDioError(error),
-            ),
-          );
-          return;
-        }
-
-        if (kDebugMode) {
-          logger.AppLogger.debug(
-            '[AUTH]  Token refresh failed transiently; keeping tokens',
-          );
-        }
-        handler.reject(
-          DioException(
-            requestOptions: error.requestOptions,
-            response: error.response,
-            error: reason == TokenRefreshFailureReason.transientFailure
-                ? const NetworkException(
-                    'Session refresh temporarily unavailable. Please retry.',
-                  )
-                : const UnknownException(
-                    'Session refresh failed unexpectedly.',
-                  ),
-          ),
-        );
-        return;
-      }
-    }
-
-    handler.reject(
-      DioException(
-        requestOptions: error.requestOptions,
-        response: error.response,
-        type: DioExceptionType.badResponse,
-        error: AuthException.fromDioError(error),
-      ),
+  Options? _cacheOpts(bool invalidate) {
+    if (!invalidate) return null;
+    return Options(
+      extra: {'cacheOptions': _cacheOptions.copyWith(policy: CachePolicy.refresh)},
     );
   }
 
-  Future<Response> _retryRequest(RequestOptions options, String token) async {
-    final newHeaders = Map<String, dynamic>.from(options.headers);
-    newHeaders.removeWhere(
-      (key, value) => key.toLowerCase() == 'authorization',
-    );
-    newHeaders['Authorization'] = 'Bearer $token';
-
-    final newOptions = options.copyWith(headers: newHeaders);
-
-    if (kDebugMode) {
-      logger.AppLogger.debug(
-        '[AUTH]  Retrying ${options.method} ${options.path} with new token: ${token.substring(0, 20)}...',
-      );
-      logger.AppLogger.debug('   Query: ${newOptions.queryParameters}');
-      logger.AppLogger.debug('   Data: ${newOptions.data}');
-    }
-
-    try {
-      final response = await _dio.fetch(newOptions);
-      if (kDebugMode) {
-        logger.AppLogger.debug(
-          '[AUTH] ?Retry successful: ${response.statusCode}',
-        );
-      }
-      return response;
-    } catch (e) {
-      if (kDebugMode) {
-        logger.AppLogger.debug('[AUTH] ?Retry failed: $e');
-      }
-      rethrow;
-    }
-  }
-
-  // HTTP methods
-
-  /// GET request with automatic deduplication of concurrent identical requests.
-  ///
-  /// If an identical GET request is already in-flight, this method will wait
-  /// for its response instead of sending a duplicate request. (NW-M3)
-  Future<Response> getDeduplicated(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
-    final key = 'GET:$path:$queryParameters';
-    return _inFlightRequests.putIfAbsent(key, () =>
-      _dio.get(path, queryParameters: queryParameters, options: options)
-          .whenComplete(() => _inFlightRequests.remove(key)),
-    );
-  }
-
-  Future<Response> get(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-  }) async {
-    return _dio.get(path, queryParameters: queryParameters);
-  }
-
-  Future<Response> post(
-    String path, {
-    dynamic data,
-    bool invalidateCache = false,
-  }) async {
-    final options = Options();
-    if (invalidateCache) {
-      options.extra = {
-        ...(options.extra ?? const <String, dynamic>{}),
-        'cacheOptions': _cacheOptions.copyWith(policy: CachePolicy.refresh),
-      };
-    }
-    return _dio.post(path, data: data, options: options);
-  }
-
-  Future<Response> put(
-    String path, {
-    dynamic data,
-    bool invalidateCache = true,
-  }) async {
-    final options = Options();
-    if (invalidateCache) {
-      options.extra = {
-        ...(options.extra ?? const <String, dynamic>{}),
-        'cacheOptions': _cacheOptions.copyWith(policy: CachePolicy.refresh),
-      };
-    }
-    return _dio.put(path, data: data, options: options);
-  }
-
-  Future<Response> delete(String path, {bool invalidateCache = true}) async {
-    final options = Options();
-    if (invalidateCache) {
-      options.extra = {
-        ...(options.extra ?? const <String, dynamic>{}),
-        'cacheOptions': _cacheOptions.copyWith(policy: CachePolicy.refresh),
-      };
-    }
-    return _dio.delete(path, options: options);
-  }
-
-  // Cache management
-
-  /// Clear all caches
-  Future<void> clearCache() async {
-    await _cacheOptions.store!.clean();
-    if (kDebugMode) {
-      logger.AppLogger.debug('[DioClient] All caches cleared');
-    }
-  }
-
-  /// Clear ETag cache (same as clearCache for simplicity)
-  void clearETagCache() {
-    clearCache();
-  }
-
-  // Token management (delegates to TokenRefreshService)
-
-  /// Refresh the session token
-  Future<TokenRefreshResult> refreshSessionToken() {
-    return _tokenRefreshService.refreshToken();
-  }
-
-  /// Clear the in-memory access token cache.
-  ///
-  /// Should be called on logout to ensure the next request does not use
-  /// a stale cached token. The secure storage fallback is still available
-  /// for robustness, but the cache will be empty until a fresh token is
-  /// read or refreshed.
-  void clearTokenCache() {
-    _cachedAccessToken = null;
-    if (kDebugMode) {
-      logger.AppLogger.debug('[DioClient] In-memory token cache cleared');
-    }
-  }
-
-  /// Update the in-memory token cache with a new access token.
-  ///
-  /// Call this after login or when a token is saved externally so that the
-  /// next request uses the cached token instead of hitting SecureStorage
-  /// (which requires a platform-channel round-trip).
-  void setToken(String? token) {
-    _cachedAccessToken = token;
-    if (kDebugMode) {
-      logger.AppLogger.debug(
-        '[DioClient] In-memory token cache ${token != null ? "updated" : "cleared"}',
-      );
-    }
-  }
-
-  // Request cancellation support
-
-  /// Create a CancelToken for a tagged request
-  CancelToken createCancelToken(String tag) {
-    // Cancel any existing request with the same tag
-    cancelRequest(tag);
-    final token = CancelToken();
-    _cancelTokens[tag] = token;
-    return token;
-  }
-
-  /// Cancel a request by its tag
-  void cancelRequest(String tag, [String? reason]) {
-    final token = _cancelTokens.remove(tag);
-    if (token != null && !token.isCancelled) {
-      token.cancel(reason ?? 'Request cancelled by client');
-      if (kDebugMode) {
-        logger.AppLogger.debug('[DioClient] Cancelled request: $tag');
-      }
-    }
-  }
-
-  /// Cancel all pending requests
-  void cancelAllRequests([String? reason]) {
-    for (final entry in _cancelTokens.entries) {
-      if (!entry.value.isCancelled) {
-        entry.value.cancel(reason ?? 'All requests cancelled by client');
-      }
-    }
-    _cancelTokens.clear();
-    if (kDebugMode) {
-      logger.AppLogger.debug('[DioClient] Cancelled all pending requests');
-    }
-  }
-
-  /// Remove a completed request's token
-  void removeCancelToken(String tag) {
-    _cancelTokens.remove(tag);
-  }
-
-  /// Check if a request is cancelled
-  bool isRequestCancelled(String tag) {
-    return _cancelTokens[tag]?.isCancelled ?? true;
-  }
-
-  /// Release all resources held by this client.
-  ///
-  /// Cancels pending requests, clears caches, and releases in-flight
-  /// deduplicated request entries. Call from a Riverpod `ref.onDispose`
-  /// callback so that provider disposal does not leak resources.
-  void dispose() {
-    cancelAllRequests('DioClient disposed');
-    clearTokenCache();
-    _inFlightRequests.clear();
-    _dio.close(force: true);
-    logger.AppLogger.debug('[DioClient] Disposed — all resources released');
-  }
-
-  // Static factory method for ServiceLocator
-  static Dio createDio({
-    DioClientInitOptions initOptions = const DioClientInitOptions(),
-  }) {
-    return DioClient(initOptions: initOptions)._dio;
+  void _log(String message) {
+    if (kDebugMode) logger.AppLogger.debug('[DioClient] $message');
   }
 }
