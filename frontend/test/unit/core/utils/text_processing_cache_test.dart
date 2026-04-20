@@ -68,7 +68,7 @@ void main() {
     setUp(TextProcessingCache.clearAll);
 
     test('returns empty list for empty input', () {
-      expect(TextProcessingCache.getCachedSentences(''), []);
+      expect(TextProcessingCache.getCachedSentences(''), <String>[]);
     });
 
     test('splits English sentences by period', () {

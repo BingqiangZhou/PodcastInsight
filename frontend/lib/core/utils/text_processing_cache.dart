@@ -44,7 +44,7 @@ class TextProcessingCache {
     final cached = _sentenceCache[text];
     if (cached != null && DateTime.now().difference(cached.createdAt) < _entryTtl) {
       // Split on read -- stored as joined string for compact storage.
-      return _splitSentences(cached.value);
+      return cached.value.split('\x00');
     }
 
     final sentences = _splitSentences(text);
