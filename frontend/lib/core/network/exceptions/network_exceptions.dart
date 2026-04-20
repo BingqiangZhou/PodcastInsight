@@ -1,31 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:personal_ai_assistant/core/network/exceptions/exception_parser.dart';
 
-/// Categorizes network/HTTP errors for consistent UI localization.
-///
-/// Each code maps to a localized message in the UI layer (see
-/// `AsyncValueWidget._friendlyErrorMessage`). This avoids hardcoded
-/// English strings in the exception layer.
-enum NetworkErrorCode {
-  connectionTimeout,
-  sendTimeout,
-  receiveTimeout,
-  noConnection,
-  serverError,
-  authExpired,
-  accessDenied,
-  notFound,
-  conflict,
-  validation,
-  unknown,
-}
-
 abstract class AppException implements Exception {
-
-  const AppException(this.message, {this.statusCode, this.errorCode});
+  const AppException(this.message, {this.statusCode});
   final String message;
   final int? statusCode;
-  final NetworkErrorCode? errorCode;
 
   @override
   String toString() => message;
@@ -34,166 +13,74 @@ abstract class AppException implements Exception {
   String get userMessage {
     final trimmed = message.trim();
     if (trimmed.isNotEmpty) return trimmed;
-    return switch (errorCode) {
-      NetworkErrorCode.connectionTimeout ||
-      NetworkErrorCode.sendTimeout ||
-      NetworkErrorCode.receiveTimeout ||
-      NetworkErrorCode.noConnection =>
-        'Network error. Please check your connection and try again.',
-      NetworkErrorCode.serverError => 'Server error. Please try again later.',
-      NetworkErrorCode.authExpired => 'Session expired. Please login again.',
-      NetworkErrorCode.accessDenied =>
-        'You do not have permission to perform this action.',
-      NetworkErrorCode.notFound => 'The requested resource was not found.',
-      NetworkErrorCode.conflict => message,
-      NetworkErrorCode.validation => message,
-      NetworkErrorCode.unknown =>
-        'An unexpected error occurred. Please try again.',
-      null => 'An unexpected error occurred. Please try again.',
-    };
+    return 'An unexpected error occurred. Please try again.';
   }
 }
 
 class NetworkException extends AppException {
-  const NetworkException(super.message, {super.errorCode});
+  const NetworkException(super.message);
 
   static NetworkException fromDioError(DioException error) {
-    switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-        return const NetworkException(
-          'Connection timeout',
-          errorCode: NetworkErrorCode.connectionTimeout,
-        );
-      case DioExceptionType.sendTimeout:
-        return const NetworkException(
-          'Request timeout',
-          errorCode: NetworkErrorCode.sendTimeout,
-        );
-      case DioExceptionType.receiveTimeout:
-        return const NetworkException(
-          'Response timeout',
-          errorCode: NetworkErrorCode.receiveTimeout,
-        );
-      case DioExceptionType.connectionError:
-        return const NetworkException(
-          'No internet connection',
-          errorCode: NetworkErrorCode.noConnection,
-        );
-      case DioExceptionType.badResponse:
-        final message = extractErrorMessage(error, 'Server error');
-
-        return NetworkException(message);
-      default:
-        return NetworkException(
-          error.message ?? 'Network error occurred',
-        );
-    }
+    return switch (error.type) {
+      DioExceptionType.connectionTimeout =>
+        const NetworkException('Connection timeout'),
+      DioExceptionType.sendTimeout =>
+        const NetworkException('Request timeout'),
+      DioExceptionType.receiveTimeout =>
+        const NetworkException('Response timeout'),
+      DioExceptionType.connectionError =>
+        const NetworkException('No internet connection'),
+      _ => NetworkException(error.message ?? 'Network error occurred'),
+    };
   }
 }
 
-class ServerException extends AppException {
-  const ServerException(super.message, {super.statusCode});
+class AuthException extends AppException {
+  const AuthException(super.message, {super.statusCode});
 
-  static ServerException fromDioError(DioException error) {
-    final statusCode = error.response?.statusCode;
-    final message = extractErrorMessage(error, 'Server error');
-
-    return ServerException(message, statusCode: statusCode);
-  }
-}
-
-class AuthenticationException extends AppException {
-  const AuthenticationException(super.message)
-      : super(statusCode: 401, errorCode: NetworkErrorCode.authExpired);
-
-  static AuthenticationException fromDioError(DioException error) {
+  static AuthException fromDioError(DioException error) {
     final backendMessage = extractErrorMessage(error, '');
-
-    // Map known backend messages to user-friendly text
     if (backendMessage.contains('Could not validate credentials') ||
         backendMessage.contains('Invalid credentials') ||
         backendMessage.contains('Token has expired') ||
         backendMessage.contains('Invalid token')) {
-      return const AuthenticationException('Session expired. Please login again.');
+      return const AuthException('Session expired. Please login again.', statusCode: 401);
     }
-
-    return AuthenticationException(
+    return AuthException(
       backendMessage.isNotEmpty ? backendMessage : 'Authentication failed',
+      statusCode: error.response?.statusCode,
     );
   }
 }
 
-class AuthorizationException extends AppException {
-  const AuthorizationException(super.message)
-      : super(statusCode: 403, errorCode: NetworkErrorCode.accessDenied);
-
-  static AuthorizationException fromDioError(DioException error) {
-    final message = extractErrorMessage(error, 'Access denied');
-
-    return AuthorizationException(message);
-  }
-}
-
-class NotFoundException extends AppException {
-  const NotFoundException(super.message)
-      : super(statusCode: 404, errorCode: NetworkErrorCode.notFound);
-
-  static NotFoundException fromDioError(DioException error) {
-    final message = extractErrorMessage(error, 'Resource not found');
-
-    return NotFoundException(message);
-  }
-}
-
-class ConflictException extends AppException {
-  const ConflictException(super.message)
-      : super(statusCode: 409, errorCode: NetworkErrorCode.conflict);
-
-  static ConflictException fromDioError(DioException error) {
-    final message = extractErrorMessage(error, 'Resource conflict');
-
-    return ConflictException(message);
-  }
-}
-
-class ValidationException extends AppException {
-
-  const ValidationException(super.message, {this.fieldErrors})
-      : super(statusCode: 422, errorCode: NetworkErrorCode.validation);
+class ServerException extends AppException {
+  const ServerException(super.message, {super.statusCode, this.fieldErrors});
   final Map<String, dynamic>? fieldErrors;
 
-  static ValidationException fromDioError(DioException error) {
-    final data = error.response?.data;
-    final message = extractErrorMessage(error, 'Validation failed');
+  /// Convenience getter for compatibility
+  Map<String, dynamic>? get details => fieldErrors;
 
-    // Parse field errors from the errors array
-    final fieldErrors = <String, String>{};
-    if (data is Map && data['errors'] != null && data['errors'] is List) {
-      final errors = data['errors'] as List;
-      for (final error in errors) {
-        if (error is! Map) continue;
-
-        // Extract field name (remove "body -> " prefix)
-        var field = error['field']?.toString() ?? '';
-        if (field.startsWith('body -> ')) {
-          field = field.substring(7);
-        }
-
-        // Clean up the message (remove "Value error, " prefix)
-        var errorMsg = error['message']?.toString() ?? '';
-        if (errorMsg.startsWith('Value error, ')) {
-          errorMsg = errorMsg.substring(13);
-        }
-
-        fieldErrors[field] = errorMsg;
-      }
-    }
-
-    return ValidationException(message, fieldErrors: fieldErrors);
+  static ServerException fromDioError(DioException error) {
+    final statusCode = error.response?.statusCode;
+    final message = extractErrorMessage(error, 'Server error');
+    final fieldErrors = _parseFieldErrors(error);
+    return ServerException(message, statusCode: statusCode, fieldErrors: fieldErrors);
   }
 
-  // Getter for compatibility with existing code
-  Map<String, dynamic>? get details => fieldErrors;
+  static Map<String, String>? _parseFieldErrors(DioException error) {
+    final data = error.response?.data;
+    if (data is! Map || data['errors'] is! List) return null;
+    final fieldErrors = <String, String>{};
+    for (final e in (data['errors'] as List)) {
+      if (e is! Map) continue;
+      var field = e['field']?.toString() ?? '';
+      if (field.startsWith('body -> ')) field = field.substring(7);
+      var msg = e['message']?.toString() ?? '';
+      if (msg.startsWith('Value error, ')) msg = msg.substring(13);
+      fieldErrors[field] = msg;
+    }
+    return fieldErrors.isEmpty ? null : fieldErrors;
+  }
 }
 
 class UnknownException extends AppException {

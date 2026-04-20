@@ -383,46 +383,30 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     podcastGradientColors: AppColors.podcastGradientColors,
   );
 
-  /// Light theme extension for iOS (larger radii, no Material shadows)
-  static const lightIOS = AppThemeExtension(
-    contentMaxWidth: 1240,
-    sectionGap: 24,
+  /// Light theme extension for iOS (larger radii, no Material shadows).
+  /// Derived from [light] via copyWith.
+  static AppThemeExtension lightIOS() => light.copyWith(
     cardRadius: 16,
     buttonRadius: 14,
     navItemRadius: 12,
     itemRadius: 10,
-    sheetRadius: 20,
-    pillRadius: 999,
-    warmAccent: AppColors.accentWarm,
-    coralAccent: AppColors.accentCoral,
-    shadowXs: BoxShadow(color: Color(0x00000000)),
-    shadowSm: BoxShadow(color: Color(0x00000000)),
-    shadowMd: BoxShadow(color: Color(0x00000000)),
-    shadowLg: BoxShadow(color: Color(0x00000000)),
-    chartColors: AppColors.chartColors,
-    aiPrimary: Color(0xFF5856D6),
-    podcastGradientColors: AppColors.podcastGradientColors,
+    shadowXs: const BoxShadow(color: Color(0x00000000)),
+    shadowSm: const BoxShadow(color: Color(0x00000000)),
+    shadowMd: const BoxShadow(color: Color(0x00000000)),
+    shadowLg: const BoxShadow(color: Color(0x00000000)),
   );
 
-  /// Dark theme extension for iOS (larger radii, no Material shadows)
-  static const darkIOS = AppThemeExtension(
-    contentMaxWidth: 1240,
-    sectionGap: 24,
+  /// Dark theme extension for iOS (larger radii, no Material shadows).
+  /// Derived from [dark] via copyWith.
+  static AppThemeExtension darkIOS() => dark.copyWith(
     cardRadius: 16,
     buttonRadius: 14,
     navItemRadius: 12,
     itemRadius: 10,
-    sheetRadius: 20,
-    pillRadius: 999,
-    warmAccent: AppColors.accentWarmDark,
-    coralAccent: AppColors.accentCoralLight,
-    shadowXs: BoxShadow(color: Color(0x00000000)),
-    shadowSm: BoxShadow(color: Color(0x00000000)),
-    shadowMd: BoxShadow(color: Color(0x00000000)),
-    shadowLg: BoxShadow(color: Color(0x00000000)),
-    chartColors: AppColors.chartColors,
-    aiPrimary: Color(0xFFA5B4FC),
-    podcastGradientColors: AppColors.podcastGradientColors,
+    shadowXs: const BoxShadow(color: Color(0x00000000)),
+    shadowSm: const BoxShadow(color: Color(0x00000000)),
+    shadowMd: const BoxShadow(color: Color(0x00000000)),
+    shadowLg: const BoxShadow(color: Color(0x00000000)),
   );
 
   /// Light theme with gradient (non-const, for runtime use)

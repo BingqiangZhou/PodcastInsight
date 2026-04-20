@@ -371,123 +371,45 @@ class DioClient {
 
   Future<void> _onError(DioException error, ErrorInterceptorHandler handler) async {
     if (kDebugMode) {
-      final errorUrl =
-          '${error.requestOptions.baseUrl}${error.requestOptions.path}';
-      logger.AppLogger.debug(
-        '[API ERROR] ${error.requestOptions.method} $errorUrl',
-      );
+      final errorUrl = '${error.requestOptions.baseUrl}${error.requestOptions.path}';
+      logger.AppLogger.debug('[API ERROR] ${error.requestOptions.method} $errorUrl');
       logger.AppLogger.debug('   Type: ${error.type}');
       logger.AppLogger.debug('   Message: ${error.message}');
     }
-
-    // Retry logic is handled by RetryInterceptor (added in constructor).
-    // This handler only classifies errors.
 
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        if (kDebugMode) {
-          logger.AppLogger.debug('    Timeout Error');
-        }
-        handler.reject(
-          DioException(
-            requestOptions: error.requestOptions,
-            error: const NetworkException('Connection timeout'),
-          ),
-        );
+        handler.reject(DioException(
+          requestOptions: error.requestOptions,
+          error: const NetworkException('Connection timeout'),
+        ));
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
-        if (statusCode != null) {
-          if (statusCode == 401) {
-            await _handle401Error(error, handler);
-            return;
-          } else if (statusCode == 403) {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                type: DioExceptionType.badResponse,
-                error: AuthorizationException.fromDioError(error),
-              ),
-            );
-          } else if (statusCode == 404) {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                type: DioExceptionType.badResponse,
-                error: NotFoundException.fromDioError(error),
-              ),
-            );
-          } else if (statusCode == 409) {
-            if (kDebugMode) {
-              logger.AppLogger.debug('=== Dio Client 409 Error ===');
-              logger.AppLogger.debug('Response data: ${error.response?.data}');
-            }
-            final conflictError = ConflictException.fromDioError(error);
-            if (kDebugMode) {
-              logger.AppLogger.debug(
-                'ConflictException message: ${conflictError.message}',
-              );
-              logger.AppLogger.debug('============================');
-            }
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                type: DioExceptionType.badResponse,
-                error: conflictError,
-              ),
-            );
-          } else if (statusCode == 422) {
-            if (kDebugMode) {
-              logger.AppLogger.debug('=== Dio Client 422 Error ===');
-              logger.AppLogger.debug('Response data: ${error.response?.data}');
-            }
-            final validationError = ValidationException.fromDioError(error);
-            if (kDebugMode) {
-              logger.AppLogger.debug(
-                'ValidationException message: ${validationError.message}',
-              );
-              logger.AppLogger.debug(
-                'ValidationException fieldErrors: ${validationError.fieldErrors}',
-              );
-              logger.AppLogger.debug('============================');
-            }
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                type: DioExceptionType.badResponse,
-                error: validationError,
-              ),
-            );
-          } else {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                type: DioExceptionType.badResponse,
-                error: ServerException.fromDioError(error),
-              ),
-            );
-          }
+        if (statusCode == 401) {
+          await _handle401Error(error, handler);
+          return;
+        } else if (statusCode == 403) {
+          handler.reject(DioException(
+            requestOptions: error.requestOptions,
+            response: error.response,
+            type: DioExceptionType.badResponse,
+            error: AuthException.fromDioError(error),
+          ));
         } else {
-          handler.reject(
-            DioException(
-              requestOptions: error.requestOptions,
-              error: const UnknownException('Unknown error occurred'),
-            ),
-          );
+          handler.reject(DioException(
+            requestOptions: error.requestOptions,
+            response: error.response,
+            type: DioExceptionType.badResponse,
+            error: ServerException.fromDioError(error),
+          ));
         }
       default:
-        handler.reject(
-          DioException(
-            requestOptions: error.requestOptions,
-            error: NetworkException.fromDioError(error),
-          ),
-        );
+        handler.reject(DioException(
+          requestOptions: error.requestOptions,
+          error: NetworkException.fromDioError(error),
+        ));
     }
   }
 
@@ -580,7 +502,7 @@ class DioClient {
               requestOptions: error.requestOptions,
               response: error.response,
               type: DioExceptionType.badResponse,
-              error: AuthenticationException.fromDioError(error),
+              error: AuthException.fromDioError(error),
             ),
           );
           return;
@@ -613,7 +535,7 @@ class DioClient {
         requestOptions: error.requestOptions,
         response: error.response,
         type: DioExceptionType.badResponse,
-        error: AuthenticationException.fromDioError(error),
+        error: AuthException.fromDioError(error),
       ),
     );
   }

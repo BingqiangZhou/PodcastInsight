@@ -216,7 +216,7 @@ class AuthNotifier extends Notifier<AuthState> {
             isAuthenticated: true,
             isLoading: false,
           );
-        } on AuthenticationException {
+        } on AuthException {
           // For authentication errors, clear state and let router handle redirect
           // Don't show error message, just navigate to login
           _handleAuthError();
@@ -362,7 +362,7 @@ class AuthNotifier extends Notifier<AuthState> {
       logger.AppLogger.debug('Error message: ${error.message}');
       logger.AppLogger.debug('Error statusCode: ${error.statusCode}');
 
-      if (error is ValidationException) {
+      if (error is ServerException && error.fieldErrors != null) {
         logger.AppLogger.debug('Field errors: ${error.fieldErrors}');
         logger.AppLogger.debug('Error details: ${error.details}');
       }
@@ -444,22 +444,10 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Map<String, String>? _getFieldErrors(AppException error) {
-    if (error is ValidationException) {
-      logger.AppLogger.debug('=== _getFieldErrors Debug ===');
-      logger.AppLogger.debug('error.fieldErrors: ${error.fieldErrors}');
-      logger.AppLogger.debug('error.details: ${error.details}');
-      logger.AppLogger.debug('=============================');
-
-      // Try fieldErrors first (from our updated code)
+    if (error is ServerException) {
       final fieldErrors = error.fieldErrors;
       if (fieldErrors != null && fieldErrors.isNotEmpty) {
         return Map<String, String>.from(fieldErrors);
-      }
-
-      // Fall back to details (for backward compatibility)
-      final details = error.details;
-      if (details != null && details.isNotEmpty) {
-        return Map<String, String>.from(details);
       }
     }
     return null;
