@@ -7,8 +7,10 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.podcast.models import Subscription
+from app.domains.podcast.repositories.subscription_repository import (
+    SubscriptionRepository,
+)
 from app.domains.podcast.services.subscription_service import PodcastSubscriptionService
-from app.domains.podcast.repositories.subscription_repository import SubscriptionRepository
 
 
 @pytest.fixture

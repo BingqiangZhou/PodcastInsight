@@ -12,6 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import get_db_session_dependency, get_redis_client, get_token_user_id
 from app.core.redis import PodcastRedis
 from app.domains.podcast.conversation_service import ConversationService
+from app.domains.podcast.repositories.subscription_repository import (
+    SubscriptionRepository,
+)
 from app.domains.podcast.services.daily_report_service import DailyReportService
 from app.domains.podcast.services.episode_service import PodcastEpisodeService
 from app.domains.podcast.services.highlight_service import HighlightService
@@ -28,7 +31,6 @@ from app.domains.podcast.services.task_orchestration_service import (
 from app.domains.podcast.services.transcription_workflow_service import (
     TranscriptionWorkflowService,
 )
-from app.domains.podcast.repositories.subscription_repository import SubscriptionRepository
 
 
 # Cached repository classes (populated on first call)

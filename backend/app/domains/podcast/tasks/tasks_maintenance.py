@@ -48,7 +48,7 @@ async def process_opml_subscription_episodes_handler(
 def cleanup_old_playback_states(self):
     try:
         return run_async(_cleanup_old_playback_states_async())
-    except Exception as exc:
+    except Exception:
         raise
 
 
@@ -61,7 +61,7 @@ async def _cleanup_old_playback_states_async():
 def cleanup_old_transcription_temp_files(self, days: int = 7):
     try:
         return run_async(_cleanup_old_transcription_temp_files_async(days=days))
-    except Exception as exc:
+    except Exception:
         raise
 
 
@@ -74,7 +74,7 @@ async def _cleanup_old_transcription_temp_files_async(days: int):
 def auto_cleanup_cache_files():
     try:
         return run_async(_auto_cleanup_cache_files_async())
-    except Exception as exc:
+    except Exception:
         raise
 
 

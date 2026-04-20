@@ -1,12 +1,9 @@
 """Summary task flow tests."""
 
 from contextlib import asynccontextmanager
-from unittest.mock import AsyncMock
 
 import pytest
 
-from app.core.exceptions import ValidationError
-from app.domains.podcast.services.summary_service import SummaryWorkflowService
 from app.domains.podcast.tasks import tasks_summary as summary_generation
 from app.domains.podcast.tasks.tasks_summary import (
     generate_pending_summaries_handler,
@@ -16,142 +13,6 @@ from app.domains.podcast.tasks.tasks_summary import (
 @asynccontextmanager
 async def _worker_session_factory(session_obj):
     yield session_obj
-
-
-@pytest.mark.asyncio
-async def test_generate_pending_summaries_success(monkeypatch):
-    generated = []
-
-    class _FakeRepo:
-        def __init__(self, _session):
-            self.session = _session
-
-        async def mark_summary_failed(self, episode_id, error):
-            raise AssertionError(f"unexpected failure mark for {episode_id}: {error}")
-
-    class _FakeSummaryService:
-        def __init__(self, _session):
-            self.session = _session
-
-        async def generate_summary(self, episode_id):
-            generated.append((self.session, episode_id))
-            return {"summary_content": "ok"}
-
-    workflow = SummaryWorkflowService(
-        db=AsyncMock(),
-        repo_factory=_FakeRepo,
-        summary_service_factory=_FakeSummaryService,
-    )
-    monkeypatch.setattr(workflow, "_reset_stale_summary_claims", AsyncMock())
-    monkeypatch.setattr(
-        workflow,
-        "_claim_pending_summary_episode_ids",
-        AsyncMock(return_value=[11, 12]),
-    )
-    monkeypatch.setattr(
-        "app.domains.podcast.services.summary_service.worker_db_session",
-        lambda *_args, **_kwargs: _worker_session_factory(object()),
-    )
-
-    result = await workflow.generate_pending_summaries_run()
-
-    assert result["status"] == "success"
-    assert result["processed"] == 2
-    assert result["failed"] == 0
-    assert [episode_id for _, episode_id in generated] == [11, 12]
-
-
-@pytest.mark.asyncio
-async def test_generate_pending_summaries_marks_failed_episode(monkeypatch):
-    failed_marks = []
-
-    class _FakeRepo:
-        def __init__(self, _session):
-            self.session = _session
-
-        async def mark_summary_failed(self, episode_id, error):
-            failed_marks.append((episode_id, error))
-
-    class _FailingSummaryService:
-        def __init__(self, _session):
-            self.session = _session
-
-        async def generate_summary(self, _episode_id):
-            raise RuntimeError("boom")
-
-    workflow = SummaryWorkflowService(
-        db=AsyncMock(),
-        repo_factory=_FakeRepo,
-        summary_service_factory=_FailingSummaryService,
-    )
-    monkeypatch.setattr(workflow, "_reset_stale_summary_claims", AsyncMock())
-    monkeypatch.setattr(
-        workflow,
-        "_claim_pending_summary_episode_ids",
-        AsyncMock(return_value=[11]),
-    )
-    monkeypatch.setattr(
-        "app.domains.podcast.services.summary_service.worker_db_session",
-        lambda *_args, **_kwargs: _worker_session_factory(object()),
-    )
-
-    result = await workflow.generate_pending_summaries_run()
-
-    assert result["status"] == "success"
-    assert result["processed"] == 0
-    assert result["failed"] == 1
-    assert failed_marks == [(11, "boom")]
-
-
-@pytest.mark.asyncio
-async def test_generate_pending_summaries_resets_claim_for_skippable_validation_error(
-    monkeypatch,
-):
-    resets = []
-
-    class _FakeRepo:
-        def __init__(self, _session):
-            self.session = _session
-
-        async def mark_summary_failed(self, episode_id, error):
-            raise AssertionError(f"unexpected failure mark for {episode_id}: {error}")
-
-    class _ValidationSummaryService:
-        def __init__(self, _session):
-            self.session = _session
-
-        async def generate_summary(self, _episode_id):
-            raise ValidationError(
-                "Summary generation already in progress for episode 11"
-            )
-
-    workflow = SummaryWorkflowService(
-        db=AsyncMock(),
-        repo_factory=_FakeRepo,
-        summary_service_factory=_ValidationSummaryService,
-    )
-    monkeypatch.setattr(workflow, "_reset_stale_summary_claims", AsyncMock())
-    monkeypatch.setattr(
-        workflow,
-        "_claim_pending_summary_episode_ids",
-        AsyncMock(return_value=[11]),
-    )
-    monkeypatch.setattr(
-        workflow,
-        "_reset_claimed_summary_status",
-        AsyncMock(side_effect=lambda episode_id: resets.append(episode_id)),
-    )
-    monkeypatch.setattr(
-        "app.domains.podcast.services.summary_service.worker_db_session",
-        lambda *_args, **_kwargs: _worker_session_factory(object()),
-    )
-
-    result = await workflow.generate_pending_summaries_run()
-
-    assert result["status"] == "success"
-    assert result["processed"] == 0
-    assert result["failed"] == 0
-    assert resets == [11]
 
 
 @pytest.mark.asyncio

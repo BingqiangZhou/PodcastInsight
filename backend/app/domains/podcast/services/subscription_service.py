@@ -18,7 +18,9 @@ from app.core.redis import (
 from app.domains.podcast.integration.secure_rss_parser import SecureRSSParser
 from app.domains.podcast.models import PodcastEpisode, Subscription
 from app.domains.podcast.repositories import PodcastSubscriptionRepository
-from app.domains.podcast.repositories.subscription_repository import SubscriptionRepository
+from app.domains.podcast.repositories.subscription_repository import (
+    SubscriptionRepository,
+)
 
 
 # ── Subscription metadata helpers (merged from subscription_metadata.py) ──

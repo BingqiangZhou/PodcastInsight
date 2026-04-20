@@ -14,11 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ValidationError
 from app.domains.ai.models import ModelType
 from app.domains.ai.repositories import AIModelConfigRepository
+from app.domains.podcast.ai_key_resolver import resolve_api_key_with_fallback
 from app.domains.podcast.transcription import (
     PodcastTranscriptionService,
     SiliconFlowTranscriber,
 )
-from app.domains.podcast.ai_key_resolver import resolve_api_key_with_fallback
 from app.domains.podcast.transcription_state import get_transcription_state_manager
 
 

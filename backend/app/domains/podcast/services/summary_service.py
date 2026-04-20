@@ -23,8 +23,8 @@ from app.domains.podcast.models import (
     PodcastEpisodeTranscript,
     TranscriptionTask,
 )
-from app.domains.podcast.repositories import PodcastSummaryRepository
 from app.domains.podcast.parsers.feed_parser import strip_html_tags
+from app.domains.podcast.repositories import PodcastSummaryRepository
 
 
 logger = logging.getLogger(__name__)
