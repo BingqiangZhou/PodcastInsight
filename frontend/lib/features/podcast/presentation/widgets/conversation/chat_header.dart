@@ -9,7 +9,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/summary_providers.dart';
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
 
 /// Header bar for the conversation chat widget.
 ///
