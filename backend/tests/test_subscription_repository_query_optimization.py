@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.domains.subscription.repositories import SubscriptionRepository
+from app.domains.podcast.repositories.subscription_repository import SubscriptionRepository
 
 
 def _build_execute_rows_result(rows):

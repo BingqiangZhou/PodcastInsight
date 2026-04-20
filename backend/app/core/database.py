@@ -118,7 +118,6 @@ def register_orm_models() -> None:
         "app.admin.models",
         "app.domains.ai.models",
         "app.domains.podcast.models",
-        "app.domains.subscription.models",
     ):
         import_module(module)
 

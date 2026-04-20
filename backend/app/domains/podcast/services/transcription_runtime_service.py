@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ValidationError
 from app.domains.ai.models import ModelType
 from app.domains.ai.repositories import AIModelConfigRepository
-from app.domains.media.transcription import (
+from app.domains.podcast.transcription import (
     PodcastTranscriptionService,
     SiliconFlowTranscriber,
 )

@@ -6,12 +6,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import aiohttp
 import pytest
 
-from app.domains.subscription.parsers.feed_parser import (
+from app.domains.podcast.parsers.feed_parser import (
     FeedParser,
     parse_feed_bytes,
     parse_feed_url,
 )
-from app.domains.subscription.parsers.feed_schemas import (
+from app.domains.podcast.parsers.feed_schemas import (
     FeedEntry,
     FeedInfo,
     FeedParseOptions,

@@ -1,4 +1,4 @@
-"""Subscription domain repository."""
+"""Subscription repository (moved from domains/subscription)."""
 
 from __future__ import annotations
 
@@ -9,12 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.interfaces.settings_provider_impl import DatabaseSettingsProvider
-from app.domains.subscription.models import (
+from app.domains.podcast.models import (
     Subscription,
     SubscriptionCategory,
     SubscriptionCategoryMapping,
     SubscriptionItem,
     SubscriptionStatus,
+    UpdateFrequency,
     UserSubscription,
 )
 from app.shared.repository_helpers import resolve_window_total
@@ -304,8 +305,6 @@ class SubscriptionRepository:
         user_id: int,
         sub_data: SubscriptionCreate,
     ) -> Subscription:
-        from app.domains.subscription.models import UpdateFrequency
-
         update_frequency = UpdateFrequency.HOURLY.value
         update_time = None
         update_day_of_week = None

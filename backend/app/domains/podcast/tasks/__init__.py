@@ -10,7 +10,6 @@ from app.domains.podcast.tasks.tasks_maintenance import (
     auto_cleanup_cache_files,
     cleanup_old_playback_states,
     cleanup_old_transcription_temp_files,
-    log_periodic_task_statistics,
     process_opml_subscription_episodes,
 )
 from app.domains.podcast.tasks.tasks_subscription import refresh_all_podcast_feeds
@@ -35,7 +34,6 @@ __all__ = [
     "generate_daily_podcast_reports",
     "generate_episode_summary",
     "generate_pending_summaries",
-    "log_periodic_task_statistics",
     "process_audio_transcription",
     "process_opml_subscription_episodes",
     "process_pending_transcriptions",

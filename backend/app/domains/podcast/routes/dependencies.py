@@ -28,7 +28,7 @@ from app.domains.podcast.services.task_orchestration_service import (
 from app.domains.podcast.services.transcription_workflow_service import (
     TranscriptionWorkflowService,
 )
-from app.domains.subscription.api.dependencies import get_subscription_repository
+from app.domains.podcast.repositories.subscription_repository import SubscriptionRepository
 
 
 # Cached repository classes (populated on first call)
@@ -128,6 +128,13 @@ def get_podcast_parser(
     from app.domains.podcast.integration.secure_rss_parser import SecureRSSParser
 
     return SecureRSSParser(user_id)
+
+
+def get_subscription_repository(
+    db: AsyncSession = Depends(get_db_session_dependency),
+) -> SubscriptionRepository:
+    """Provide the generic subscription repository."""
+    return SubscriptionRepository(db)
 
 
 def get_podcast_subscription_service(

@@ -8,7 +8,6 @@ Usage:
 """
 
 import asyncio
-import hashlib
 import logging
 import threading
 from contextlib import suppress

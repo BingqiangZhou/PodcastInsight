@@ -7,7 +7,7 @@ from app.admin.services.subscriptions_service import (
     SUBSCRIPTION_TEST_PREVIEW_LIMIT,
     AdminSubscriptionsService,
 )
-from app.domains.subscription.parsers.feed_schemas import (
+from app.domains.podcast.parsers.feed_schemas import (
     FeedEntry,
     FeedInfo,
     FeedParseResult,

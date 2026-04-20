@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.domains.media.transcription import PodcastTranscriptionService
+from app.domains.podcast.transcription import PodcastTranscriptionService
 from app.domains.podcast.models import TranscriptionStatus
 
 

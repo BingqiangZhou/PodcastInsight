@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from app.domains.media.transcription import (
+from app.domains.podcast.transcription import (
     AudioChunk,
     SiliconFlowTranscriber,
     build_chunk_info,

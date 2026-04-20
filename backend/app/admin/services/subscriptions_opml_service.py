@@ -16,7 +16,6 @@ from app.domains.podcast.services.subscription_service import PodcastSubscriptio
 from app.domains.podcast.services.task_orchestration_service import (
     PodcastTaskOrchestrationService,
 )
-from app.domains.subscription.services import SubscriptionService
 from app.shared.schemas import SubscriptionCreate
 
 
@@ -37,9 +36,43 @@ class AdminSubscriptionsOpmlService:
         return self._task_orchestration_service_factory(self.db)
 
     async def export_subscriptions_opml(self, *, request, user_id) -> tuple[str, str]:
-        service = SubscriptionService(self.db, user_id=user_id)
-        opml_content = await service.generate_opml_content(user_id=None)
+        opml_content = await self._generate_opml_content()
         return opml_content, "stella.opml"
+
+    async def _generate_opml_content(self) -> str:
+        """Generate OPML XML content from all active subscriptions."""
+        stmt = (
+            select(Subscription)
+            .join(UserSubscription, UserSubscription.subscription_id == Subscription.id)
+            .where(
+                and_(
+                    UserSubscription.is_archived.is_(False),
+                    Subscription.source_type == "podcast-rss",
+                ),
+            )
+            .order_by(Subscription.title)
+        )
+        result = await self.db.execute(stmt)
+        subscriptions = result.scalars().all()
+
+        lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<opml version="1.0">',
+            "  <head>",
+            "    <title>Stella Subscriptions</title>",
+            "  </head>",
+            "  <body>",
+        ]
+        for sub in subscriptions:
+            title = html.escape(sub.title or "", quote=True)
+            url = html.escape(sub.source_url or "", quote=True)
+            desc = html.escape(sub.description or "", quote=True)
+            lines.append(
+                f'    <outline type="rss" text="{title}" title="{title}" '
+                f'xmlUrl="{url}" description="{desc}" />'
+            )
+        lines.extend(["  </body>", "</opml>"])
+        return "\n".join(lines)
 
     async def import_subscriptions_opml(
         self,
