@@ -29,14 +29,14 @@ async def test_toggle_apikey_delegates_and_returns_json_payload():
     response = await toggle_apikey(
         key_id=3,
         request=_build_request(),
-        user=admin_user,
+        user_id=admin_user.id,
         service=service,
     )
 
     assert response.status_code == 200
     service.toggle_apikey.assert_awaited_once_with(
         request=ANY,
-        user=admin_user,
+        user_id=admin_user.id,
         key_id=3,
     )
 
@@ -51,7 +51,7 @@ async def test_delete_apikey_raises_not_found_when_service_returns_none():
         await delete_apikey(
             key_id=9,
             request=_build_request(),
-            user=admin_user,
+            user_id=admin_user.id,
             service=service,
         )
 
@@ -67,7 +67,7 @@ async def test_export_apikeys_json_returns_json_payload_for_validation_errors():
 
     response = await export_apikeys_json(
         request=_build_request(),
-        user=admin_user,
+        user_id=admin_user.id,
         service=service,
         export_req=ExportRequest(mode="encrypted", export_password=None),
     )
@@ -75,7 +75,7 @@ async def test_export_apikeys_json_returns_json_payload_for_validation_errors():
     assert response.status_code == 400
     service.export_json.assert_awaited_once_with(
         request=ANY,
-        user=admin_user,
+        user_id=admin_user.id,
         mode="encrypted",
         export_password=None,
     )
@@ -89,13 +89,13 @@ async def test_import_apikeys_json_returns_service_status_code():
 
     response = await import_apikeys_json(
         request=_build_request(),
-        user=admin_user,
+        user_id=admin_user.id,
         service=service,
     )
 
     assert response.status_code == 202
     service.import_json.assert_awaited_once_with(
         request=ANY,
-        user=admin_user,
+        user_id=admin_user.id,
         raw_body=b'{"file":"{}"}',
     )

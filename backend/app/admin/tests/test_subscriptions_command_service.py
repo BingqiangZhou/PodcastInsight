@@ -41,7 +41,7 @@ async def test_update_frequency_uses_bulk_update(monkeypatch):
     service = AdminSubscriptionsService(db)
     result = await service.update_frequency(
         request=SimpleNamespace(),
-        user=SimpleNamespace(id=1, username="admin"),
+        user_id=1,
         update_frequency="DAILY",
         update_time="09:30",
         update_day=None,
@@ -68,7 +68,7 @@ async def test_test_subscription_url_returns_preview_and_total_counts(monkeypatc
     close = AsyncMock(return_value=None)
     fake_parser = SimpleNamespace(parse_feed=parse_feed, close=close)
     monkeypatch.setattr(
-        "app.domains.subscription.parsers.feed_parser.FeedParser",
+        "app.domains.podcast.parsers.feed_parser.FeedParser",
         lambda config: fake_parser,
     )
 

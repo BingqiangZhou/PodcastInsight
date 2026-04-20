@@ -34,8 +34,12 @@ class _SequenceSession:
 
 
 @asynccontextmanager
-async def _fake_worker_db_session(_application_name: str):
+async def _fake_session_ctx():
     yield AsyncMock()
+
+
+def _fake_session_factory():
+    return _fake_session_ctx()
 
 
 def _build_feed(*, published_at: datetime) -> SimpleNamespace:
@@ -106,6 +110,10 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_success() -> None:
             "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
             return_value=parser,
         ),
+        patch(
+            "app.domains.podcast.services.task_orchestration_service.get_async_session_factory",
+            return_value=_fake_session_factory,
+        ),
     ):
         result = await PodcastTaskOrchestrationService(
             session
@@ -147,6 +155,10 @@ async def test_refresh_all_podcast_feeds_closes_parser_after_exception() -> None
         patch(
             "app.domains.podcast.services.task_orchestration_service.SecureRSSParser",
             return_value=parser,
+        ),
+        patch(
+            "app.domains.podcast.services.task_orchestration_service.get_async_session_factory",
+            return_value=_fake_session_factory,
         ),
     ):
         result = await PodcastTaskOrchestrationService(

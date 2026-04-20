@@ -243,7 +243,7 @@ class TestFeedParser:
 
         expected = FeedParseResult(feed_info=FeedInfo(title="Test Feed"), entries=[])
         with patch(
-            "app.domains.subscription.parsers.feed_parser.asyncio.to_thread",
+            "app.domains.podcast.parsers.feed_parser.asyncio.to_thread",
             new=AsyncMock(return_value=expected),
         ) as mock_to_thread:
             result = await parser.parse_feed("https://example.com/feed.xml")

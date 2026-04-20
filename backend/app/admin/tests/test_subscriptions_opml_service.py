@@ -66,7 +66,7 @@ async def test_import_opml_queues_episode_processing_via_orchestration_service()
     ):
         payload, status_code = await service.import_subscriptions_opml(
             request=request,
-            user=user,
+            user_id=user.id,
             opml_content="<opml></opml>",
         )
 

@@ -1,4 +1,3 @@
-from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
@@ -113,7 +112,7 @@ async def test_save_audio_settings_validates_persists_and_audits():
 
     payload = await service.save_audio_settings(
         request=object(),
-        user=SimpleNamespace(id=7, username="admin"),
+        user_id=7,
         chunk_size_mb=12,
         max_concurrent_threads=3,
     )
@@ -134,7 +133,7 @@ async def test_save_frequency_settings_returns_compatible_success_message():
 
     payload = await service.save_frequency_settings(
         request=object(),
-        user=SimpleNamespace(id=8, username="root"),
+        user_id=8,
         update_frequency="DAILY",
         update_time="09:15",
         update_day=None,
@@ -160,7 +159,7 @@ async def test_save_cleanup_config_skips_audit_when_update_fails():
 
     payload = await service.save_cleanup_config(
         request=object(),
-        user=SimpleNamespace(id=9, username="ops"),
+        user_id=9,
         enabled=False,
     )
 
@@ -183,7 +182,7 @@ async def test_run_cleanup_logs_cleanup_summary():
 
     payload = await service.run_cleanup(
         request=object(),
-        user=SimpleNamespace(id=10, username="maint"),
+        user_id=10,
         keep_days=2,
     )
 
