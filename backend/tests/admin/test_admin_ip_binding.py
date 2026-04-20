@@ -1,140 +1,110 @@
-"""Tests for admin session IP binding security."""
+"""Tests for admin API key authentication."""
 
-import inspect
+from __future__ import annotations
+
+from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-from app.admin.auth import (
-    SESSION_TIMEOUT,
-    _get_serializer,
-    create_admin_session,
-)
+from app.admin.auth import AdminAuthRequired
 
 
-class TestCreateAdminSessionIncludesIP:
-    """Verify create_admin_session embeds client_ip in the signed payload."""
+class TestAdminApiKeyAuth:
+    @pytest.mark.asyncio
+    async def test_valid_api_key_via_x_api_key_header(self):
+        """Test X-API-Key header with valid key."""
+        admin_auth = AdminAuthRequired()
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = "admin-key-123"
+        mock_request.headers.get.side_effect = lambda k, default=None: {
+            "Authorization": None,
+            "X-API-Key": "admin-key-123",
+        }.get(k, default)
 
-    def test_session_contains_client_ip(self) -> None:
-        token = create_admin_session(user_id=1, client_ip="192.168.1.100")
-        data = _get_serializer().loads(token, max_age=SESSION_TIMEOUT)
-        assert data["client_ip"] == "192.168.1.100"
-        assert data["user_id"] == 1
-
-    def test_session_different_ips_produce_different_tokens(self) -> None:
-        token_a = create_admin_session(user_id=1, client_ip="10.0.0.1")
-        token_b = create_admin_session(user_id=1, client_ip="10.0.0.2")
-        assert token_a != token_b
-
-    def test_session_preserves_all_fields(self) -> None:
-        token = create_admin_session(user_id=42, client_ip="::1")
-        data = _get_serializer().loads(token, max_age=SESSION_TIMEOUT)
-        assert data["user_id"] == 42
-        assert data["client_ip"] == "::1"
-        assert "created_at" in data
-
-
-class TestIPValidationLogic:
-    """Verify the IP mismatch detection in AdminAuthRequired."""
+        with patch("app.admin.auth.get_settings") as mock_settings:
+            mock_settings.return_value.API_KEY = "admin-key-123"
+            result = await admin_auth.__call__(mock_request, None)
+            assert result == 1
 
     @pytest.mark.asyncio
-    async def test_ip_mismatch_raises_401(self) -> None:
-        """A token bound to one IP should be rejected when presented from a different IP."""
-        from unittest.mock import AsyncMock, MagicMock
-
-        from app.admin.auth import AdminAuthRequired
-
-        # Build a valid session token bound to 10.0.0.1
-        token = create_admin_session(user_id=1, client_ip="10.0.0.1")
-
-        # Fake request coming from a different IP
+    async def test_valid_api_key_via_bearer_header(self):
+        """Test Authorization Bearer header with valid key."""
+        admin_auth = AdminAuthRequired()
         mock_request = MagicMock()
-        mock_request.client.host = "10.0.0.99"
-        mock_request.cookies = {"admin_session": token}
+        mock_request.headers.get.side_effect = lambda k, default=None: {
+            "Authorization": "Bearer admin-key-123",
+            "X-API-Key": None,
+        }.get(k, default)
 
-        # Mock DB session that should never be reached (IP check comes first)
-        mock_db = AsyncMock()
-
-        dep = AdminAuthRequired()
-
-        with pytest.raises(Exception) as exc_info:
-            await dep.__call__(request=mock_request, admin_session=token, db=mock_db)
-
-        # The raised exception should be an HTTPException with 401
-        assert exc_info.value.status_code == 401
-        assert "IP mismatch" in exc_info.value.detail
+        with patch("app.admin.auth.get_settings") as mock_settings:
+            mock_settings.return_value.API_KEY = "admin-key-123"
+            result = await admin_auth.__call__(mock_request, None)
+            assert result == 1
 
     @pytest.mark.asyncio
-    async def test_ip_match_passes_validation(self) -> None:
-        """A token presented from the same IP should pass the IP check."""
-        from unittest.mock import AsyncMock, MagicMock, patch
-
-        from app.admin.auth import AdminAuthRequired
-        from app.domains.user.models import User
-
-        token = create_admin_session(user_id=1, client_ip="10.0.0.1")
-
+    async def test_valid_api_key_via_cookie(self):
+        """Test admin_session cookie with valid key."""
+        admin_auth = AdminAuthRequired()
         mock_request = MagicMock()
-        mock_request.client.host = "10.0.0.1"
+        mock_request.headers.get.side_effect = lambda k, default=None: {
+            "Authorization": None,
+            "X-API-Key": None,
+        }.get(k, default)
 
-        # Build a mock user for the DB lookup
-        mock_user = MagicMock(spec=User)
-        mock_user.is_active = True
-
-        mock_repo = AsyncMock()
-        mock_repo.get_by_id.return_value = mock_user
-
-        mock_db = AsyncMock()
-
-        dep = AdminAuthRequired()
-
-        with patch("app.admin.auth.UserRepository", return_value=mock_repo):
-            result = await dep.__call__(
-                request=mock_request, admin_session=token, db=mock_db
-            )
-
-        assert result == mock_user
-
-
-class TestNoInternalErrorLeak:
-    """Verify error responses do not expose internal exception details."""
-
-    def test_generic_exception_uses_generic_message(self) -> None:
-        """Static analysis: the catch-all handler should not embed the exception in detail."""
-        from app.admin import auth as auth_module
-
-        source = inspect.getsource(auth_module)
-        # The old code had: detail=f"Authentication error: {err}"
-        # The new code should use: detail="Authentication failed"
-        assert 'f"Authentication error:' not in source
-        assert "Authentication failed" in source
+        with patch("app.admin.auth.get_settings") as mock_settings:
+            mock_settings.return_value.API_KEY = "admin-key-123"
+            result = await admin_auth.__call__(mock_request, "admin-key-123")
+            assert result == 1
 
     @pytest.mark.asyncio
-    async def test_unexpected_error_returns_generic_message(self) -> None:
-        """When an unexpected exception occurs, only a generic message is returned."""
-        from unittest.mock import AsyncMock, MagicMock, patch
+    async def test_invalid_api_key_returns_401(self):
+        """Test invalid API key raises 401."""
+        from fastapi import HTTPException
 
-        from app.admin.auth import AdminAuthRequired
-
-        token = create_admin_session(user_id=1, client_ip="10.0.0.1")
-
+        admin_auth = AdminAuthRequired()
         mock_request = MagicMock()
-        mock_request.client.host = "10.0.0.1"
+        mock_request.headers.get.side_effect = lambda k, default=None: {
+            "Authorization": None,
+            "X-API-Key": "wrong-key",
+        }.get(k, default)
 
-        # Make loads() raise an unexpected error
-        mock_db = AsyncMock()
+        with patch("app.admin.auth.get_settings") as mock_settings:
+            mock_settings.return_value.API_KEY = "correct-key"
+            with pytest.raises(HTTPException) as exc_info:
+                await admin_auth.__call__(mock_request, None)
+            assert exc_info.value.status_code == 401
 
-        dep = AdminAuthRequired()
+    @pytest.mark.asyncio
+    async def test_no_key_returns_401_when_configured(self):
+        """Test missing API key raises 401 when API_KEY is configured."""
+        from fastapi import HTTPException
 
-        with (
-            patch(
-                "app.admin.auth._get_serializer",
-                side_effect=RuntimeError("database connection pool exhausted"),
-            ),
-            pytest.raises(Exception) as exc_info,
-        ):
-            await dep.__call__(request=mock_request, admin_session=token, db=mock_db)
+        admin_auth = AdminAuthRequired()
+        mock_request = MagicMock()
+        mock_request.headers.get.side_effect = lambda k, default=None: {
+            "Authorization": None,
+            "X-API-Key": None,
+        }.get(k, default)
 
-        assert exc_info.value.status_code == 500
-        # Must NOT contain the internal error message
-        assert "database connection pool exhausted" not in exc_info.value.detail
-        assert exc_info.value.detail == "Authentication failed"
+        with patch("app.admin.auth.get_settings") as mock_settings:
+            mock_settings.return_value.API_KEY = "configured-key"
+            with pytest.raises(HTTPException) as exc_info:
+                await admin_auth.__call__(mock_request, None)
+            assert exc_info.value.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_no_key_allowed_when_empty(self):
+        """Test requests allowed when API_KEY is empty (development mode)."""
+        admin_auth = AdminAuthRequired()
+        mock_request = MagicMock()
+        mock_request.headers.get.side_effect = lambda k, default=None: {
+            "Authorization": None,
+            "X-API-Key": None,
+        }.get(k, default)
+
+        with patch("app.admin.auth.get_settings") as mock_settings:
+            mock_settings.return_value.API_KEY = ""
+            result = await admin_auth.__call__(mock_request, None)
+            assert result == 1
