@@ -7,7 +7,6 @@ import 'package:personal_ai_assistant/core/utils/app_logger.dart' as logger;
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state_models.dart';
 import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/base/deduplicating_notifier.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 
 final podcastFeedProvider =
@@ -15,13 +14,39 @@ final podcastFeedProvider =
       PodcastFeedNotifier.new,
     );
 
-class PodcastFeedNotifier extends Notifier<PodcastFeedState>
-    with DeduplicatingNotifier<PodcastFeedState> {
+class PodcastFeedNotifier extends Notifier<PodcastFeedState> {
   PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
+
+  Future<void>? _inFlightRequest;
 
   @override
   PodcastFeedState build() {
     return const PodcastFeedState();
+  }
+
+  /// Runs [action] with deduplication.
+  ///
+  /// If a previous call is still in-flight, this returns immediately
+  /// without running [action] again. Once [action] completes, the
+  /// in-flight reference is cleared.
+  Future<void> deduplicate(Future<void> Function() action) async {
+    final existing = _inFlightRequest;
+    if (existing != null) return existing;
+
+    final future = action();
+    _inFlightRequest = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_inFlightRequest, future)) {
+        _inFlightRequest = null;
+      }
+    }
+  }
+
+  /// Resets the in-flight dedup state.
+  void resetDedup() {
+    _inFlightRequest = null;
   }
 
   String _extractReadableErrorMessage(Object error) {

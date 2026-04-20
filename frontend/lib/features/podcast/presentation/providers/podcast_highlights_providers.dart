@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/cache_constants.dart';
 import 'package:personal_ai_assistant/core/network/exceptions/network_exceptions.dart';
@@ -8,7 +9,6 @@ import 'package:personal_ai_assistant/core/utils/time_formatter.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highlight_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/repositories/podcast_repository.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/base/cached_async_notifier.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_core_providers.dart';
 import 'package:riverpod/src/providers/future_provider.dart';
 
@@ -251,13 +251,98 @@ class HighlightsNotifier extends AsyncNotifier<HighlightsListResponse?> {
 }
 
 /// 高光可用日期 Notifier
-class HighlightDatesNotifier
-    extends CachedAsyncNotifier<HighlightDatesResponse?> {
+class HighlightDatesNotifier extends AsyncNotifier<HighlightDatesResponse?> {
   PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
+
+  // Cache and deduplication state
+  static const Duration _cacheDuration = CacheConstants.defaultListCacheDuration;
+  DateTime? _lastFetchTime;
+  Future<HighlightDatesResponse?>? _inFlightRequest;
+  bool _isDisposed = false;
+  bool _onDisposeWired = false;
 
   @override
   FutureOr<HighlightDatesResponse?> build() {
     return load();
+  }
+
+  /// Whether the currently held data is still within the cache window.
+  bool get isFresh {
+    final fetchTime = _lastFetchTime;
+    if (fetchTime == null) return false;
+    return clock.now().difference(fetchTime) < _cacheDuration;
+  }
+
+  /// Executes [fetcher] with cache-aware deduplication.
+  Future<HighlightDatesResponse?> runWithCache({
+    required Future<HighlightDatesResponse> Function() fetcher,
+    bool forceRefresh = false,
+    void Function(Object error, StackTrace stackTrace)? onError,
+  }) async {
+    if (!_onDisposeWired) {
+      _onDisposeWired = true;
+      ref.onDispose(markDisposed);
+    }
+    final previousData = state.value;
+
+    if (!forceRefresh && previousData != null && isFresh) {
+      return previousData;
+    }
+
+    final inFlight = _inFlightRequest;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    if (previousData == null) {
+      state = const AsyncValue.loading();
+    }
+
+    final request = () async {
+      try {
+        final data = await fetcher();
+        _lastFetchTime = clock.now();
+        if (!_isDisposed) {
+          state = AsyncValue.data(data);
+        }
+        return data;
+      } catch (error, stackTrace) {
+        if (onError != null) {
+          onError(error, stackTrace);
+        }
+        if (previousData == null) {
+          if (!_isDisposed) {
+            state = AsyncValue.error(error, stackTrace);
+          }
+        } else {
+          if (!_isDisposed) {
+            state = AsyncValue.error(error, stackTrace);
+          }
+          Future.microtask(() {
+            if (!_isDisposed) {
+              state = AsyncValue.data(previousData);
+            }
+          });
+        }
+        return previousData;
+      } finally {
+        _inFlightRequest = null;
+      }
+    }();
+
+    _inFlightRequest = request;
+    return request;
+  }
+
+  /// Resets the cache state.
+  void resetCache() {
+    _lastFetchTime = null;
+    _inFlightRequest = null;
+  }
+
+  /// Mark the notifier as disposed to prevent state updates after disposal.
+  void markDisposed() {
+    _isDisposed = true;
   }
 
   Future<HighlightDatesResponse?> load({
@@ -298,13 +383,98 @@ class HighlightDatesNotifier
 }
 
 /// 高光统计 Notifier
-class HighlightStatsNotifier
-    extends CachedAsyncNotifier<HighlightStatsResponse?> {
+class HighlightStatsNotifier extends AsyncNotifier<HighlightStatsResponse?> {
   PodcastRepository get _repository => ref.read(podcastRepositoryProvider);
+
+  // Cache and deduplication state
+  static const Duration _cacheDuration = CacheConstants.defaultListCacheDuration;
+  DateTime? _lastFetchTime;
+  Future<HighlightStatsResponse?>? _inFlightRequest;
+  bool _isDisposed = false;
+  bool _onDisposeWired = false;
 
   @override
   FutureOr<HighlightStatsResponse?> build() {
     return load();
+  }
+
+  /// Whether the currently held data is still within the cache window.
+  bool get isFresh {
+    final fetchTime = _lastFetchTime;
+    if (fetchTime == null) return false;
+    return clock.now().difference(fetchTime) < _cacheDuration;
+  }
+
+  /// Executes [fetcher] with cache-aware deduplication.
+  Future<HighlightStatsResponse?> runWithCache({
+    required Future<HighlightStatsResponse> Function() fetcher,
+    bool forceRefresh = false,
+    void Function(Object error, StackTrace stackTrace)? onError,
+  }) async {
+    if (!_onDisposeWired) {
+      _onDisposeWired = true;
+      ref.onDispose(markDisposed);
+    }
+    final previousData = state.value;
+
+    if (!forceRefresh && previousData != null && isFresh) {
+      return previousData;
+    }
+
+    final inFlight = _inFlightRequest;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    if (previousData == null) {
+      state = const AsyncValue.loading();
+    }
+
+    final request = () async {
+      try {
+        final data = await fetcher();
+        _lastFetchTime = clock.now();
+        if (!_isDisposed) {
+          state = AsyncValue.data(data);
+        }
+        return data;
+      } catch (error, stackTrace) {
+        if (onError != null) {
+          onError(error, stackTrace);
+        }
+        if (previousData == null) {
+          if (!_isDisposed) {
+            state = AsyncValue.error(error, stackTrace);
+          }
+        } else {
+          if (!_isDisposed) {
+            state = AsyncValue.error(error, stackTrace);
+          }
+          Future.microtask(() {
+            if (!_isDisposed) {
+              state = AsyncValue.data(previousData);
+            }
+          });
+        }
+        return previousData;
+      } finally {
+        _inFlightRequest = null;
+      }
+    }();
+
+    _inFlightRequest = request;
+    return request;
+  }
+
+  /// Resets the cache state.
+  void resetCache() {
+    _lastFetchTime = null;
+    _inFlightRequest = null;
+  }
+
+  /// Mark the notifier as disposed to prevent state updates after disposal.
+  void markDisposed() {
+    _isDisposed = true;
   }
 
   Future<HighlightStatsResponse?> load({
