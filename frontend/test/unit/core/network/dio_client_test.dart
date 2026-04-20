@@ -9,61 +9,14 @@ void main() {
   // as part of the P2.1 API response unification (backend now returns
   // standardized PaginatedResponse, so frontend normalization is no longer needed).
 
-  group('RetryOptions', () {
-    test('defaults are correct', () {
-      const options = RetryOptions();
-      expect(options.maxRetries, 3);
-      expect(options.initialDelay, const Duration(seconds: 1));
-      expect(options.backoffMultiplier, 2.0);
-    });
-
-    test('getDelay returns initial delay for first attempt', () {
-      const options = RetryOptions(initialDelay: Duration(seconds: 2));
-      expect(options.getDelay(0), const Duration(seconds: 2));
-    });
-
-    test('getDelay doubles for second attempt with multiplier 2.0', () {
-      const options = RetryOptions(
-        
-      );
-      expect(options.getDelay(1), const Duration(seconds: 2));
-      expect(options.getDelay(2), const Duration(seconds: 4));
-    });
-
-    test('getDelay with custom multiplier', () {
-      const options = RetryOptions(
-        initialDelay: Duration(milliseconds: 500),
-        backoffMultiplier: 3,
-      );
-      expect(options.getDelay(0), const Duration(milliseconds: 500));
-      expect(options.getDelay(1), const Duration(milliseconds: 1500));
-      expect(options.getDelay(2), const Duration(milliseconds: 4500));
-    });
-
-    test('equality works', () {
-      const a = RetryOptions();
-      const b = RetryOptions();
-      expect(a, equals(b));
-      expect(a.hashCode, equals(b.hashCode));
-    });
-
-    test('inequality works', () {
-      const a = RetryOptions();
-      const b = RetryOptions(maxRetries: 5);
-      expect(a, isNot(equals(b)));
-    });
-  });
-
-  group('_shouldRetry behavior', () {
-    /// We test the retry behavior indirectly by verifying the _shouldRetry
-    /// logic through Dio error classification. Since _shouldRetry is private,
+  group('Retry behavior', () {
+    /// We test the retry behavior indirectly by verifying the retry
+    /// logic through Dio error classification. Since retry is now inline,
     /// we verify the documented retry behavior:
-    /// - Timeout errors: retryable
-    /// - Connection errors: retryable
-    /// - 5xx errors: retryable
-    /// - 429: retryable
-    /// - 4xx (except 429): not retryable
-    /// - Cancel: not retryable
+    /// - Timeout errors: retryable (up to 3 times)
+    /// - Connection errors: retryable (up to 3 times)
+    /// - 401: not retryable (handled by token refresh flow)
+    /// - 4xx/5xx: not retryable (handled by server exceptions)
 
     test('timeout errors should be retryable per spec', () {
       // Verify classification via error type
@@ -74,23 +27,12 @@ void main() {
       expect(timeoutError.type, DioExceptionType.connectionTimeout);
     });
 
-    test('5xx errors should be retryable per spec', () {
-      final serverError = DioException(
-        response: Response(statusCode: 503, requestOptions: RequestOptions()),
+    test('connection errors should be retryable per spec', () {
+      final connectionError = DioException(
+        type: DioExceptionType.connectionError,
         requestOptions: RequestOptions(path: '/test'),
-        type: DioExceptionType.badResponse,
       );
-      expect(serverError.response?.statusCode, 503);
-      expect(serverError.type, DioExceptionType.badResponse);
-    });
-
-    test('429 should be retryable per spec', () {
-      final rateLimitError = DioException(
-        response: Response(statusCode: 429, requestOptions: RequestOptions()),
-        requestOptions: RequestOptions(path: '/test'),
-        type: DioExceptionType.badResponse,
-      );
-      expect(rateLimitError.response?.statusCode, 429);
+      expect(connectionError.type, DioExceptionType.connectionError);
     });
 
     test('401 should not trigger retry per spec (handled by 401 flow)', () {
@@ -104,18 +46,13 @@ void main() {
   });
 
   group('DioClient request deduplication', () {
-    test('concurrent identical requests share a single Completer', () async {
-      final inFlight = <String, Completer<Response>>{};
+    test('concurrent identical requests share a single Future', () async {
+      final inFlight = <String, Future<Response>>{};
       const key = 'GET:/items:null';
       var actualFetchCount = 0;
 
       Future<Response> deduplicatedGet(String path) async {
-        if (inFlight.containsKey(key)) {
-          return inFlight[key]!.future;
-        }
-        final completer = Completer<Response>();
-        inFlight[key] = completer;
-        try {
+        return inFlight.putIfAbsent(key, () async {
           actualFetchCount++;
           // Simulate network delay
           await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -124,14 +61,8 @@ void main() {
             data: {'items': [1, 2, 3]},
             statusCode: 200,
           );
-          completer.complete(response);
           return response;
-        } catch (e) {
-          completer.completeError(e);
-          rethrow;
-        } finally {
-          inFlight.remove(key);
-        }
+        }).whenComplete(() => inFlight.remove(key));
       }
 
       // Fire 3 concurrent requests
@@ -149,30 +80,21 @@ void main() {
       expect(actualFetchCount, 1);
     });
 
-    test('different paths create separate Completers', () async {
-      final inFlight = <String, Completer<Response>>{};
+    test('different paths create separate Futures', () async {
+      final inFlight = <String, Future<Response>>{};
       var actualFetchCount = 0;
 
       Future<Response> deduplicatedGet(String path, {Map<String, dynamic>? qp}) async {
         final key = 'GET:$path:$qp';
-        if (inFlight.containsKey(key)) {
-          return inFlight[key]!.future;
-        }
-        final completer = Completer<Response>();
-        inFlight[key] = completer;
-        try {
+        return inFlight.putIfAbsent(key, () async {
           actualFetchCount++;
           await Future<void>.delayed(const Duration(milliseconds: 5));
-          final response = Response(
+          return Response(
             requestOptions: RequestOptions(path: path),
             data: {'ok': true},
             statusCode: 200,
           );
-          completer.complete(response);
-          return response;
-        } finally {
-          inFlight.remove(key);
-        }
+        }).whenComplete(() => inFlight.remove(key));
       }
 
       await Future.wait([
@@ -183,30 +105,21 @@ void main() {
       expect(actualFetchCount, 2);
     });
 
-    test('different query parameters create separate Completers', () async {
-      final inFlight = <String, Completer<Response>>{};
+    test('different query parameters create separate Futures', () async {
+      final inFlight = <String, Future<Response>>{};
       var actualFetchCount = 0;
 
       Future<Response> deduplicatedGet(String path, {Map<String, dynamic>? qp}) async {
         final key = 'GET:$path:$qp';
-        if (inFlight.containsKey(key)) {
-          return inFlight[key]!.future;
-        }
-        final completer = Completer<Response>();
-        inFlight[key] = completer;
-        try {
+        return inFlight.putIfAbsent(key, () async {
           actualFetchCount++;
           await Future<void>.delayed(const Duration(milliseconds: 5));
-          final response = Response(
+          return Response(
             requestOptions: RequestOptions(path: path),
             data: {'ok': true},
             statusCode: 200,
           );
-          completer.complete(response);
-          return response;
-        } finally {
-          inFlight.remove(key);
-        }
+        }).whenComplete(() => inFlight.remove(key));
       }
 
       await Future.wait([
@@ -218,32 +131,19 @@ void main() {
     });
 
     test('error propagates to all waiting callers', () async {
-      final inFlight = <String, Completer<Response>>{};
+      final inFlight = <String, Future<Response>>{};
       const key = 'GET:/items:null';
       var actualFetchCount = 0;
 
       Future<Response> deduplicatedGet(String path) async {
-        if (inFlight.containsKey(key)) {
-          return inFlight[key]!.future;
-        }
-        final completer = Completer<Response>();
-        inFlight[key] = completer;
-        try {
+        return inFlight.putIfAbsent(key, () async {
           actualFetchCount++;
           await Future<void>.delayed(const Duration(milliseconds: 10));
-          completer.completeError(
-            DioException(
-              requestOptions: RequestOptions(path: path),
-              error: 'Network error',
-            ),
-          );
           throw DioException(
             requestOptions: RequestOptions(path: path),
             error: 'Network error',
           );
-        } finally {
-          inFlight.remove(key);
-        }
+        }).whenComplete(() => inFlight.remove(key));
       }
 
       var errorCount = 0;
@@ -258,40 +158,31 @@ void main() {
             throw e;
           }),
         ].map((f) => f.catchError((Object e) {
-              return Response(
-                requestOptions: RequestOptions(path: '/items'),
-                statusCode: 500,
-              );
-            })),
+            return Response(
+              requestOptions: RequestOptions(path: '/items'),
+              statusCode: 500,
+            );
+          })),
       );
 
       expect(actualFetchCount, 1);
       expect(errorCount, 2);
     });
 
-    test('sequential requests each create their own Completer', () async {
-      final inFlight = <String, Completer<Response>>{};
+    test('sequential requests each create their own Future', () async {
+      final inFlight = <String, Future<Response>>{};
       const key = 'GET:/items:null';
       var actualFetchCount = 0;
 
       Future<Response> deduplicatedGet(String path) async {
-        if (inFlight.containsKey(key)) {
-          return inFlight[key]!.future;
-        }
-        final completer = Completer<Response>();
-        inFlight[key] = completer;
-        try {
+        return inFlight.putIfAbsent(key, () async {
           actualFetchCount++;
-          final response = Response(
+          return Response(
             requestOptions: RequestOptions(path: path),
             data: {'count': actualFetchCount},
             statusCode: 200,
           );
-          completer.complete(response);
-          return response;
-        } finally {
-          inFlight.remove(key);
-        }
+        }).whenComplete(() => inFlight.remove(key));
       }
 
       // Sequential (not concurrent) — each resolves before the next starts

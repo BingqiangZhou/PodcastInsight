@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
-import 'package:personal_ai_assistant/core/utils/resource_cleanup_mixin.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
@@ -35,8 +34,7 @@ class ConversationChatWidget extends ConsumerStatefulWidget {
 }
 
 class ConversationChatWidgetState
-    extends ConsumerState<ConversationChatWidget>
-    with ResourceCleanupMixin {
+    extends ConsumerState<ConversationChatWidget> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
@@ -141,7 +139,6 @@ class ConversationChatWidgetState
   void _scheduleScrollToBottom(Duration delay) {
     _pendingScrollTimer?.cancel();
     _pendingScrollTimer = Timer(delay, _scrollToBottom);
-    registerTimer(_pendingScrollTimer!);
   }
 
   void _scrollToBottom() {
