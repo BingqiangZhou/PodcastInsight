@@ -16,10 +16,8 @@ import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/custom_adaptive_navigation.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/constants/podcast_ui_constants.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart'
-    as search;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart';
 
 enum _CacheCategory { images, audio, other }
 
@@ -328,9 +326,9 @@ class _ProfileCacheManagementPageState
       dioClient.clearETagCache();
       await ref.read(appCacheServiceProvider).clearAll();
       ref.read(podcastDiscoverProvider.notifier).clearRuntimeCache();
-      ref.read(search.iTunesSearchServiceProvider).clearCache();
+      ref.read(iTunesSearchServiceProvider).clearCache();
 
-      ref.invalidate(search.podcastSearchProvider);
+      ref.invalidate(podcastSearchProvider);
       ref.invalidate(podcastDiscoverProvider);
       ref.invalidate(podcastFeedProvider);
       ref.invalidate(podcastSubscriptionProvider);

@@ -8,8 +8,7 @@ import 'package:personal_ai_assistant/core/localization/app_localizations_extens
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart';
 
 /// Search input widget for discover page with country selector.
 ///
@@ -23,7 +22,7 @@ class DiscoverSearchInput extends ConsumerStatefulWidget {
     required this.onClearSearch,
     required this.onCountryTap,
     super.key,
-    this.searchMode = search.PodcastSearchMode.podcasts,
+    this.searchMode = PodcastSearchMode.podcasts,
     this.isDense = false,
   });
 
@@ -32,7 +31,7 @@ class DiscoverSearchInput extends ConsumerStatefulWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onClearSearch;
   final VoidCallback onCountryTap;
-  final search.PodcastSearchMode searchMode;
+  final PodcastSearchMode searchMode;
   final bool isDense;
 
   @override
@@ -79,7 +78,7 @@ class _DiscoverSearchInputState extends ConsumerState<DiscoverSearchInput> {
     final scheme = theme.colorScheme;
     final extension = appThemeOf(context);
     final hintLabel =
-        widget.searchMode == search.PodcastSearchMode.episodes
+        widget.searchMode == PodcastSearchMode.episodes
             ? l10n.podcast_search_section_episodes
             : l10n.podcast_search_section_podcasts;
     final isZh =

@@ -10,11 +10,8 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_state
 import 'package:personal_ai_assistant/features/podcast/data/models/profile_stats_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_feed_page.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart'
-    as search;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_page.dart';
 
 void main() {
@@ -58,9 +55,9 @@ void main() {
               const PodcastDiscoverState(country: PodcastCountry.china),
             ),
           ),
-          search.podcastSearchProvider.overrideWith(
+          podcastSearchProvider.overrideWith(
             () =>
-                _FixedPodcastSearchNotifier(const search.PodcastSearchState()),
+                _FixedPodcastSearchNotifier(const PodcastSearchState()),
           ),
           podcastSubscriptionProvider.overrideWith(
             () => _FixedPodcastSubscriptionNotifier(
@@ -167,13 +164,13 @@ class _FixedPodcastDiscoverNotifier extends PodcastDiscoverNotifier {
   Future<void> loadMoreCurrentTab() async {}
 }
 
-class _FixedPodcastSearchNotifier extends search.PodcastSearchNotifier {
+class _FixedPodcastSearchNotifier extends PodcastSearchNotifier {
   _FixedPodcastSearchNotifier(this._state);
 
-  final search.PodcastSearchState _state;
+  final PodcastSearchState _state;
 
   @override
-  search.PodcastSearchState build() => _state;
+  PodcastSearchState build() => _state;
 
   @override
   void searchPodcasts(String query) {}
@@ -182,7 +179,7 @@ class _FixedPodcastSearchNotifier extends search.PodcastSearchNotifier {
   void searchEpisodes(String query) {}
 
   @override
-  void setSearchMode(search.PodcastSearchMode mode) {
+  void setSearchMode(PodcastSearchMode mode) {
     state = state.copyWith(searchMode: mode);
   }
 

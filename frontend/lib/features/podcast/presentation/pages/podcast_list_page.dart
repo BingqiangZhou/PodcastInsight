@@ -14,10 +14,8 @@ import 'package:personal_ai_assistant/core/widgets/app_shells.dart';
 import 'package:personal_ai_assistant/core/widgets/linear_section_header.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/country_selector_dropdown.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover/discover_charts_list.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/sections/discover_interaction_handler.dart';
@@ -77,10 +75,10 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     }
   }
 
-  void _handleDiscoverTabSelected(search.PodcastSearchMode mode) {
-    ref.read(search.podcastSearchProvider.notifier).setSearchMode(mode);
+  void _handleDiscoverTabSelected(PodcastSearchMode mode) {
+    ref.read(podcastSearchProvider.notifier).setSearchMode(mode);
     ref.read(podcastDiscoverProvider.notifier).setTab(
-          mode == search.PodcastSearchMode.podcasts
+          mode == PodcastSearchMode.podcasts
               ? PodcastDiscoverTab.podcasts
               : PodcastDiscoverTab.episodes,
         );
@@ -95,16 +93,16 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
   void _onSearchChanged(String query) {
     if (query.trim().isEmpty) {
       _searchDebounce?.cancel();
-      ref.read(search.podcastSearchProvider.notifier).clearSearch();
+      ref.read(podcastSearchProvider.notifier).clearSearch();
       return;
     }
     _searchDebounce?.cancel();
     _searchDebounce = DebounceTimer(
       AppDurations.debounceMedium,
       () {
-        final notifier = ref.read(search.podcastSearchProvider.notifier);
-        final mode = ref.read(search.podcastSearchProvider).searchMode;
-        mode == search.PodcastSearchMode.episodes
+        final notifier = ref.read(podcastSearchProvider.notifier);
+        final mode = ref.read(podcastSearchProvider).searchMode;
+        mode == PodcastSearchMode.episodes
             ? notifier.searchEpisodes(query)
             : notifier.searchPodcasts(query);
       },
@@ -113,7 +111,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
 
   void _clearSearch() {
     _searchController.clear();
-    ref.read(search.podcastSearchProvider.notifier).clearSearch();
+    ref.read(podcastSearchProvider.notifier).clearSearch();
     _searchFocusNode.requestFocus();
   }
 
@@ -139,7 +137,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
     setState(() => _subscribingShowIds.add(itunesId));
 
     try {
-      final searchService = ref.read(search.iTunesSearchServiceProvider);
+      final searchService = ref.read(iTunesSearchServiceProvider);
       final lookup = await searchService.lookupPodcast(
         itunesId: itunesId,
         country: country,
@@ -181,8 +179,8 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
               onCountryChanged: (country) {
                 _resetDiscoverListScroll();
                 ref.read(podcastDiscoverProvider.notifier).onCountryChanged(country);
-                if (ref.read(search.podcastSearchProvider).currentQuery.isNotEmpty) {
-                  ref.read(search.podcastSearchProvider.notifier).retrySearch();
+                if (ref.read(podcastSearchProvider).currentQuery.isNotEmpty) {
+                  ref.read(podcastSearchProvider.notifier).retrySearch();
                 }
                 Navigator.of(sheetContext).pop();
               },
@@ -196,7 +194,7 @@ class _PodcastListPageState extends ConsumerState<PodcastListPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final searchState = ref.watch(search.podcastSearchProvider);
+    final searchState = ref.watch(podcastSearchProvider);
     final discoverState = ref.watch(podcastDiscoverProvider);
     const isDense = true;
     final hasSearched = searchState.hasSearched;

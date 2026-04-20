@@ -12,10 +12,8 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subsc
 import 'package:personal_ai_assistant/features/podcast/data/services/apple_podcast_rss_service.dart';
 import 'package:personal_ai_assistant/features/podcast/data/services/itunes_search_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/pages/podcast_list_page.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart'
-    as search;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Shared mocks
@@ -346,23 +344,23 @@ class DelayedSubscriptionNotifier extends PodcastSubscriptionNotifier {
 }
 
 /// Search notifier that just returns its initial state.
-class PassthroughPodcastSearchNotifier extends search.PodcastSearchNotifier {
+class PassthroughPodcastSearchNotifier extends PodcastSearchNotifier {
   PassthroughPodcastSearchNotifier(this._initial);
 
-  final search.PodcastSearchState _initial;
+  final PodcastSearchState _initial;
 
   @override
-  search.PodcastSearchState build() => _initial;
+  PodcastSearchState build() => _initial;
 }
 
 /// Search notifier that overrides search/clear with real state mutations.
-class InteractivePodcastSearchNotifier extends search.PodcastSearchNotifier {
+class InteractivePodcastSearchNotifier extends PodcastSearchNotifier {
   InteractivePodcastSearchNotifier(this._initialState);
 
-  final search.PodcastSearchState _initialState;
+  final PodcastSearchState _initialState;
 
   @override
-  search.PodcastSearchState build() => _initialState;
+  PodcastSearchState build() => _initialState;
 
   @override
   void searchPodcasts(String query) {
@@ -382,7 +380,7 @@ class InteractivePodcastSearchNotifier extends search.PodcastSearchNotifier {
 
   @override
   void clearSearch() {
-    state = search.PodcastSearchState(searchMode: state.searchMode);
+    state = PodcastSearchState(searchMode: state.searchMode);
   }
 }
 

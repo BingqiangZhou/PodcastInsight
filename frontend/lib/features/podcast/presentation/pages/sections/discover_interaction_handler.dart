@@ -8,9 +8,8 @@ import 'package:personal_ai_assistant/features/podcast/data/models/itunes_episod
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_discover_chart_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_episode_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_search_model.dart' show PodcastSearchResult;
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/country_selector_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover_episode_detail_sheet.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/discover_show_episodes_sheet.dart';
 
@@ -111,7 +110,7 @@ class DiscoverInteractionHandler {
   ) async {
     final l10n = context.l10n;
     final country = ref.read(countrySelectorProvider).selectedCountry;
-    final searchService = ref.read(search.iTunesSearchServiceProvider);
+    final searchService = ref.read(iTunesSearchServiceProvider);
     final showId = item.itunesId ?? searchService.extractShowIdFromApplePodcastUrl(item.url);
     if (showId == null) {
       showErrorNotice(context, l10n.podcast_failed_load_episodes);
@@ -222,7 +221,7 @@ class DiscoverInteractionHandler {
   ) async {
     final l10n = context.l10n;
     final country = ref.read(countrySelectorProvider).selectedCountry;
-    final searchService = ref.read(search.iTunesSearchServiceProvider);
+    final searchService = ref.read(iTunesSearchServiceProvider);
     final showId = searchService.extractShowIdFromApplePodcastUrl(item.url);
     final episodeTrackId =
         searchService.extractEpisodeIdFromApplePodcastUrl(item.url) ?? item.itunesId;
@@ -256,7 +255,7 @@ class DiscoverInteractionHandler {
   ) async {
     if (episode.resolvedAudioUrl?.isNotEmpty == true) return episode;
     final country = ref.read(countrySelectorProvider).selectedCountry;
-    final searchService = ref.read(search.iTunesSearchServiceProvider);
+    final searchService = ref.read(iTunesSearchServiceProvider);
     try {
       return await searchService.findEpisodeInLookup(
         showId: episode.collectionId,

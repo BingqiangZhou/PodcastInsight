@@ -8,11 +8,10 @@ import 'package:personal_ai_assistant/core/services/app_cache_service.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_daily_report_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_discover_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_episodes_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_feed_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_highlights_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart' as search;
+import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_search_provider.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_stats_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_subscription_providers.dart';
 
@@ -92,7 +91,7 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
 
     // 5. Clear podcast caches (was podcastServerConfigListenerProvider)
     ref.read(podcastDiscoverProvider.notifier).clearRuntimeCache();
-    ref.read(search.iTunesSearchServiceProvider).clearCache();
+    ref.read(iTunesSearchServiceProvider).clearCache();
     ref.read(profileStatsProvider.notifier).reset();
     ref.read(playbackHistoryLiteProvider.notifier).reset();
     ref.invalidate(podcastFeedProvider);
@@ -106,7 +105,7 @@ class ServerConfigNotifier extends Notifier<ServerConfigState> {
     ref.invalidate(dailyReportDatesProvider);
     ref.invalidate(highlightsProvider);
     ref.invalidate(highlightDatesProvider);
-    ref.invalidate(search.podcastSearchProvider);
+    ref.invalidate(podcastSearchProvider);
   }
 
   /// Update server base URL and apply to DioClient
