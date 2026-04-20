@@ -102,7 +102,7 @@ class TranscriptionStateManager:
 
     # === Redis Cache Access (convenience methods) ===
 
-    async def cache_get(self, key: str) -> str | None:
+    async def get(self, key: str) -> str | None:
         """Get value from Redis cache
 
         Args:
@@ -112,9 +112,9 @@ class TranscriptionStateManager:
             Value if found, None otherwise
 
         """
-        return await self.redis.cache_get(key)
+        return await self.redis.get(key)
 
-    async def cache_set(self, key: str, value: str, ttl: int = 3600) -> None:
+    async def set(self, key: str, value: str, ttl: int = 3600) -> None:
         """Set value in Redis cache
 
         Args:
@@ -123,7 +123,7 @@ class TranscriptionStateManager:
             ttl: Time to live in seconds (default 1 hour)
 
         """
-        await self.redis.cache_set(key, value, ttl=ttl)
+        await self.redis.set(key, value, ttl=ttl)
 
     @staticmethod
     def _build_lock_owner_value(task_id: int) -> str:
@@ -161,13 +161,13 @@ class TranscriptionStateManager:
         episode_id: int,
     ) -> tuple[int | None, str | None, str | None]:
         lock_key = self._task_lock_key(episode_id)
-        lock_value = await self.redis.cache_get(lock_key)
+        lock_value = await self.redis.get(lock_key)
         owner_task_id = self._parse_lock_owner_task_id(lock_value)
         if owner_task_id is not None:
             return owner_task_id, "task_lock", lock_value
 
         legacy_key = self._legacy_task_lock_value_key(episode_id)
-        legacy_value = await self.redis.cache_get(legacy_key)
+        legacy_value = await self.redis.get(legacy_key)
         legacy_owner = self._parse_legacy_owner_task_id(legacy_value)
         if legacy_owner is not None:
             return legacy_owner, "legacy_lock_value", lock_value
@@ -372,7 +372,7 @@ class TranscriptionStateManager:
 
         """
         key = TranscriptionStateKeys.EPISODE_TASK.format(episode_id=episode_id)
-        await self.redis.cache_set(key, str(task_id), ttl=ttl_seconds)
+        await self.redis.set(key, str(task_id), ttl=ttl_seconds)
         logger.debug(f"Mapped episode {episode_id} to task {task_id}")
 
     async def get_episode_task(self, episode_id: int) -> int | None:
@@ -386,7 +386,7 @@ class TranscriptionStateManager:
 
         """
         key = TranscriptionStateKeys.EPISODE_TASK.format(episode_id=episode_id)
-        task_id_str = await self.redis.cache_get(key)
+        task_id_str = await self.redis.get(key)
         return int(task_id_str) if task_id_str else None
 
     async def clear_episode_task(self, episode_id: int) -> None:
@@ -397,7 +397,7 @@ class TranscriptionStateManager:
 
         """
         key = TranscriptionStateKeys.EPISODE_TASK.format(episode_id=episode_id)
-        await self.redis.cache_delete(key)
+        await self.redis.delete(key)
         logger.debug(f"Cleared episode {episode_id} task mapping")
 
     # === Progress Caching ===
@@ -436,7 +436,7 @@ class TranscriptionStateManager:
             "updated_at": datetime.now(UTC).isoformat(),
         }
 
-        await self.redis.cache_set(
+        await self.redis.set(
             key, orjson.dumps(progress_data).decode("utf-8"), ttl=ttl_seconds
         )
         if status in {"pending", "in_progress"}:
@@ -471,7 +471,7 @@ class TranscriptionStateManager:
 
         """
         key = TranscriptionStateKeys.TASK_PROGRESS.format(task_id=task_id)
-        data = await self.redis.cache_get(key)
+        data = await self.redis.get(key)
 
         if data:
             try:
@@ -489,12 +489,12 @@ class TranscriptionStateManager:
         """
         # Clear progress data
         progress_key = TranscriptionStateKeys.TASK_PROGRESS.format(task_id=task_id)
-        await self.redis.cache_delete(progress_key)
+        await self.redis.delete(progress_key)
         await self.redis.sorted_set_remove(self._active_task_index_key(), str(task_id))
 
         # Clear status data
         status_key = TranscriptionStateKeys.TASK_STATUS.format(task_id=task_id)
-        await self.redis.cache_delete(status_key)
+        await self.redis.delete(status_key)
 
         logger.debug(f"Cleared progress cache for task {task_id}")
 
@@ -524,7 +524,7 @@ class TranscriptionStateManager:
             "updated_at": datetime.now(UTC).isoformat(),
         }
 
-        await self.redis.cache_set(
+        await self.redis.set(
             key, orjson.dumps(status_data).decode("utf-8"), ttl=ttl_seconds
         )
 
@@ -539,7 +539,7 @@ class TranscriptionStateManager:
 
         """
         key = TranscriptionStateKeys.TASK_STATUS.format(task_id=task_id)
-        data = await self.redis.cache_get(key)
+        data = await self.redis.get(key)
 
         if data:
             try:

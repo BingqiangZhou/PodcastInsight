@@ -11,8 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.redis import (
     PodcastRedis,
     get_shared_redis,
-    safe_cache_get,
-    safe_cache_write,
 )
 from app.domains.podcast.models import PodcastEpisode
 from app.domains.podcast.repositories import PodcastSearchRepository
@@ -68,23 +66,6 @@ class PodcastSearchService:
             Tuple of (results list, total count)
 
         """
-        # Try cache first
-        cached = await safe_cache_get(
-            lambda: self.redis.get_search_results(query, search_in, page, size),
-            log_warning=logger.warning,
-            error_message=(
-                "Search cache read failed (continuing without cache) "
-                f"user={self.user_id} query={query}"
-            ),
-        )
-
-        if cached:
-            logger.info(f"Cache HIT for search: {query}")
-            return (
-                list(cached["results"]),
-                cached["total"],
-            )
-
         logger.info(f"Cache MISS for search: {query}, querying database")
 
         episodes, total = await self.repo.search_episodes(
@@ -108,25 +89,6 @@ class PodcastSearchService:
         # Add relevance scores
         for i, ep in enumerate(episodes):
             results[i]["relevance_score"] = getattr(ep, "relevance_score", 1.0)
-
-        # Cache results
-        await safe_cache_write(
-            lambda: self.redis.set_search_results(
-                query,
-                search_in,
-                page,
-                size,
-                {
-                    "results": results,
-                    "total": total,
-                },
-            ),
-            log_warning=logger.warning,
-            error_message=(
-                "Search cache write failed (results already returned) "
-                f"user={self.user_id} query={query}"
-            ),
-        )
 
         return results, total
 

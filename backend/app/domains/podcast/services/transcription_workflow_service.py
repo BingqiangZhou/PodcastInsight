@@ -10,8 +10,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.cache_ttl import CacheTTL
-from app.core.redis import PodcastRedis, get_shared_redis
+from app.core.redis import CacheTTL, PodcastRedis, get_shared_redis
 from app.domains.podcast.models import (
     PodcastEpisode,
     TranscriptionStatus,

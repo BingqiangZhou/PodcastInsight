@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.orm import joinedload
 
-from app.core.cache_ttl import CacheTTL
+from app.core.redis import CacheTTL
 from app.domains.podcast.models import PodcastEpisode, PodcastPlaybackState
 from app.domains.podcast.repositories.base import _get_subscription_models
 from app.shared.repository_helpers import resolve_window_total
@@ -168,7 +168,7 @@ class PodcastFeedRepositoryMixin:
 
     async def _get_feed_total_count(self, user_id: int) -> int:
         cache_key = self._feed_count_cache_key(user_id)
-        cached_total = await self.redis.cache_get(cache_key)
+        cached_total = await self.redis.get(cache_key)
         if cached_total is not None:
             try:
                 return int(cached_total)
@@ -185,7 +185,7 @@ class PodcastFeedRepositoryMixin:
         )
         total_result = await self.db.execute(count_query)
         total = int(total_result.scalar() or 0)
-        await self.redis.cache_set(cache_key, str(total), ttl=CacheTTL.minutes(2))
+        await self.redis.set(cache_key, str(total), ttl=120)
         return total
 
     def _build_feed_lightweight_base_query(self, user_id: int):

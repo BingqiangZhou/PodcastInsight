@@ -14,9 +14,6 @@ from app.core.exceptions import SubscriptionNotFoundError
 from app.core.redis import (
     PodcastRedis,
     get_shared_redis,
-    safe_cache_get,
-    safe_cache_invalidate,
-    safe_cache_write,
 )
 from app.domains.podcast.integration.secure_rss_parser import SecureRSSParser
 from app.domains.podcast.models import PodcastEpisode
@@ -174,14 +171,12 @@ class PodcastSubscriptionService:
             episodes_data=episodes_payload,
         )
 
-        await safe_cache_invalidate(
-            lambda: self.redis.invalidate_subscription_list(self.user_id),
-            log_warning=logger.warning,
-            error_message=(
-                "Cache invalidation skipped: "
-                f"op=add cache=subscription_list user_id={self.user_id}"
-            ),
-        )
+        try:
+            await self.redis.delete_pattern(f"podcast:subscription:list:{self.user_id}:*")
+        except Exception as e:
+            logger.warning(
+                f"Cache invalidation skipped: op=add cache=subscription_list user_id={self.user_id}: {e}"
+            )
 
         logger.info(
             f"User {self.user_id} added podcast: {feed.title}, {len(new_episodes)} new episodes",
@@ -205,24 +200,6 @@ class PodcastSubscriptionService:
             Tuple of (subscriptions list, total count)
 
         """
-        cache_filters = self._build_subscription_cache_filters(filters)
-        cached = await safe_cache_get(
-            lambda: self.redis.get_subscription_list(
-                self.user_id,
-                page,
-                size,
-                filters=cache_filters,
-            ),
-            log_warning=logger.warning,
-            error_message="Redis cache read failed for subscription list, falling back to DB",
-        )
-        if (
-            isinstance(cached, dict)
-            and isinstance(cached.get("subscriptions"), list)
-            and isinstance(cached.get("total"), int)
-        ):
-            return cached["subscriptions"], cached["total"]
-
         (
             subscriptions,
             total,
@@ -326,18 +303,6 @@ class PodcastSubscriptionService:
                     "updated_at": sub.updated_at,
                 },
             )
-
-        await safe_cache_write(
-            lambda: self.redis.set_subscription_list(
-                self.user_id,
-                page,
-                size,
-                {"subscriptions": results, "total": total},
-                filters=cache_filters,
-            ),
-            log_warning=logger.warning,
-            error_message="Redis cache write failed for subscription list, skipping",
-        )
 
         return results, total
 
@@ -789,21 +754,19 @@ class PodcastSubscriptionService:
         operation: str,
     ) -> None:
         """Invalidate caches without failing the business operation."""
-        await safe_cache_invalidate(
-            lambda: self.redis.invalidate_episode_list(subscription_id),
-            log_warning=logger.warning,
-            error_message=(
-                "Cache invalidation skipped: "
+        try:
+            await self.redis.delete_pattern(f"podcast:episodes:list:{subscription_id}:*")
+        except Exception as e:
+            logger.warning(
+                f"Cache invalidation skipped: "
                 f"op={operation} cache=episode_list user_id={self.user_id} "
-                f"subscription_id={subscription_id}"
-            ),
-        )
-        await safe_cache_invalidate(
-            lambda: self.redis.invalidate_subscription_list(self.user_id),
-            log_warning=logger.warning,
-            error_message=(
-                "Cache invalidation skipped: "
+                f"subscription_id={subscription_id}: {e}"
+            )
+        try:
+            await self.redis.delete_pattern(f"podcast:subscription:list:{self.user_id}:*")
+        except Exception as e:
+            logger.warning(
+                f"Cache invalidation skipped: "
                 f"op={operation} cache=subscription_list user_id={self.user_id} "
-                f"subscription_id={subscription_id}"
-            ),
-        )
+                f"subscription_id={subscription_id}: {e}"
+            )

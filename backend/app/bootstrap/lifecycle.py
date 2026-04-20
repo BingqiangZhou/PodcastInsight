@@ -139,13 +139,13 @@ async def application_lifespan(app: FastAPI):
         )
     )
 
-    startup_lock_token: str | None = None
+    startup_lock_acquired = False
     try:
-        startup_lock_token = await get_shared_redis().acquire_owned_lock(
+        startup_lock_acquired = await get_shared_redis().acquire_lock(
             "startup:reset-stale-transcription-tasks",
             expire=300,
         )
-        if startup_lock_token:
+        if startup_lock_acquired:
             session_factory = get_async_session_factory()
             async with session_factory() as session:
                 workflow = TranscriptionWorkflowService(session)
@@ -171,10 +171,9 @@ async def application_lifespan(app: FastAPI):
     try:
         yield
     finally:
-        if startup_lock_token:
-            await get_shared_redis().release_owned_lock(
+        if startup_lock_acquired:
+            await get_shared_redis().release_lock(
                 "startup:reset-stale-transcription-tasks",
-                startup_lock_token,
             )
         # Shutdown order: DB first (stops new queries),
         # then HTTP (in-flight requests complete),

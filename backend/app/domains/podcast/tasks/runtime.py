@@ -86,9 +86,9 @@ async def single_instance_task_lock(
 ) -> AsyncIterator[bool]:
     """Guard a periodic task so only one worker instance runs it at a time."""
     redis = get_shared_redis()
-    token = await redis.acquire_owned_lock(lock_name, expire=ttl_seconds)
+    acquired = await redis.acquire_lock(lock_name, expire=ttl_seconds)
     try:
-        yield token is not None
+        yield acquired
     finally:
-        if token is not None:
-            await redis.release_owned_lock(lock_name, token)
+        if acquired:
+            await redis.release_lock(lock_name)

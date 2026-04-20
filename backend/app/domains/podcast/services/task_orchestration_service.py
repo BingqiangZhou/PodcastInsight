@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.admin.storage_service import StorageCleanupService
-from app.core.cache_ttl import CacheTTL
+from app.core.redis import CacheTTL
 from app.core.config import settings
 from app.core.database import worker_db_session  # noqa: F401
 from app.core.datetime_utils import ensure_timezone_aware_fetch_time

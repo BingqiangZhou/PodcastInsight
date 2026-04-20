@@ -266,16 +266,13 @@ class PodcastSummaryGenerationService:
             )
             await self._update_episode_summary(episode_id, summary_result)
             # Invalidate episode detail cache so next fetch picks up new summary
-            from app.core.redis import safe_cache_invalidate
-
-            await safe_cache_invalidate(
-                lambda: self.redis.invalidate_episode_detail(episode_id),
-                log_warning=logger.warning,
-                error_message=(
+            try:
+                await self.redis.delete_pattern(f"podcast:episode:detail:{episode_id}:*")
+            except Exception as e:
+                logger.warning(
                     f"Cache invalidation skipped: op=generate_summary "
-                    f"cache=episode_detail episode_id={episode_id}"
-                ),
-            )
+                    f"cache=episode_detail episode_id={episode_id}: {e}"
+                )
             return summary_result
         finally:
             await self.redis.release_lock(lock_name)
