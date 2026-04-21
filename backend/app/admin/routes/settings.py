@@ -7,7 +7,7 @@ from app.admin.auth import admin_required
 from app.admin.dependencies import get_admin_settings_service
 from app.admin.routes._shared import get_templates, json_payload, render_admin_template
 from app.admin.services import AdminSettingsService
-from app.http.decorators import handle_admin_errors
+from app.http.decorators import handle_errors
 
 
 router = APIRouter()
@@ -15,7 +15,7 @@ templates = get_templates()
 
 
 @router.get("/settings", response_class=HTMLResponse)
-@handle_admin_errors("load settings page")
+@handle_errors("load settings page")
 async def settings_page(
     request: Request,
     user_id: int = Depends(admin_required),
@@ -31,7 +31,7 @@ async def settings_page(
 
 
 @router.get("/settings/api/audio")
-@handle_admin_errors("get audio settings")
+@handle_errors("get audio settings")
 async def get_audio_settings(
     _: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
@@ -41,7 +41,7 @@ async def get_audio_settings(
 
 
 @router.post("/settings/api/audio")
-@handle_admin_errors("update audio settings")
+@handle_errors("update audio settings")
 async def update_audio_settings(
     request: Request,
     chunk_size_mb: int = Body(..., embed=True),
@@ -61,7 +61,7 @@ async def update_audio_settings(
 
 
 @router.get("/settings/frequency")
-@handle_admin_errors("get frequency settings")
+@handle_errors("get frequency settings")
 async def get_frequency_settings(
     _: Request,
     ___: int = Depends(admin_required),
@@ -72,7 +72,7 @@ async def get_frequency_settings(
 
 
 @router.post("/settings/frequency")
-@handle_admin_errors("update frequency settings")
+@handle_errors("update frequency settings")
 async def update_frequency_settings(
     request: Request,
     update_frequency: str = Body(..., embed=True),
@@ -94,7 +94,7 @@ async def update_frequency_settings(
 
 
 @router.get("/settings/api/storage/info")
-@handle_admin_errors("get storage information")
+@handle_errors("get storage information")
 async def get_storage_info(
     _: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
@@ -104,7 +104,7 @@ async def get_storage_info(
 
 
 @router.get("/settings/api/storage/cleanup/config")
-@handle_admin_errors("get cleanup configuration")
+@handle_errors("get cleanup configuration")
 async def get_cleanup_config(
     _: int = Depends(admin_required),
     service: AdminSettingsService = Depends(get_admin_settings_service),
@@ -114,7 +114,7 @@ async def get_cleanup_config(
 
 
 @router.post("/settings/api/storage/cleanup/config")
-@handle_admin_errors("update cleanup configuration")
+@handle_errors("update cleanup configuration")
 async def update_cleanup_config(
     request: Request,
     enabled: bool = Body(..., embed=True),
@@ -132,7 +132,7 @@ async def update_cleanup_config(
 
 
 @router.post("/settings/api/storage/cleanup/execute")
-@handle_admin_errors("execute cleanup")
+@handle_errors("execute cleanup")
 async def execute_cleanup(
     request: Request,
     keep_days: int = Body(1, embed=True),
