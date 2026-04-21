@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_ai_assistant/core/constants/app_durations.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/services/adaptive_share.dart';
 import 'package:personal_ai_assistant/core/widgets/app_dialog_helper.dart';
 import 'package:personal_ai_assistant/core/widgets/top_floating_notice.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_conversation_model.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_playback_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/services/content_image_share_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conversation/chat_empty_state.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conversation/chat_header.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conversation/chat_input_area.dart';
@@ -225,48 +225,26 @@ class ConversationChatWidgetState
         .toList();
   }
 
-  List<ShareConversationItem> _buildShareConversationItems(
-    List<PodcastConversationMessage> messages,
-  ) {
+  String _buildShareText(List<PodcastConversationMessage> messages) {
     final l10n = context.l10n;
-    return messages
-        .map(
-          (message) => ShareConversationItem(
-            roleLabel: message.isUser
-                ? l10n.podcast_conversation_user
-                : l10n.podcast_conversation_assistant,
-            content: message.content.trim(),
-            isUser: message.isUser,
-          ),
-        )
-        .where((item) => item.content.isNotEmpty)
-        .toList();
+    final buffer = StringBuffer();
+    for (final message in messages) {
+      final roleLabel = message.isUser
+          ? l10n.podcast_conversation_user
+          : l10n.podcast_conversation_assistant;
+      final content = message.content.trim();
+      if (content.isNotEmpty) {
+        buffer.writeln('$roleLabel: $content');
+        buffer.writeln();
+      }
+    }
+    return buffer.toString().trim();
   }
 
   Future<void> _shareConversationMessagesAsImage(
     List<PodcastConversationMessage> messages,
   ) async {
-    final l10n = context.l10n;
-    final conversationItems = _buildShareConversationItems(messages);
-    final plainText = formatShareConversationItems(conversationItems);
-    try {
-      await ContentImageShareService.shareAsImage(
-        context,
-        ShareImagePayload(
-          episodeTitle: widget.episodeTitle,
-          contentType: ShareContentType.chat,
-          content: plainText,
-          sourceLabel: l10n.podcast_tab_chat,
-          renderMode: ShareImageRenderMode.conversation,
-          conversationItems: conversationItems,
-        ),
-      );
-    } on ContentImageShareException catch (e) {
-      if (!mounted) {
-        return;
-      }
-      showTopFloatingNotice(context, message: e.message, isError: true);
-    }
+    await AdaptiveShare.shareText(_buildShareText(messages));
   }
 
   Future<void> _shareAllChatAsImage(ConversationState state) async {

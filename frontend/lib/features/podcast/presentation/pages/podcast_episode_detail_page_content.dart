@@ -137,49 +137,14 @@ extension _PodcastEpisodeDetailPageContent on _PodcastEpisodeDetailPageState {
     String episodeTitle,
     String fullSummaryMarkdown,
   ) async {
-    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
-    final markdownSelection = await extractMarkdownSelectionAsync(
-      markdown: fullSummaryMarkdown,
-      selectedText: _selectedSummaryText,
-    );
-    if (!mounted) {
-      return;
-    }
-    try {
-      await ContentImageShareService.shareAsImage(
-        context,
-        ShareImagePayload(
-          episodeTitle: episodeTitle,
-          contentType: ShareContentType.summary,
-          content: markdownSelection,
-          sourceLabel: l10n.podcast_filter_with_summary,
-          renderMode: ShareImageRenderMode.markdown,
-        ),
-      );
-    } on ContentImageShareException catch (e) {
-      _showShareErrorNotice(e.message);
-    }
+    await AdaptiveShare.shareText(_selectedSummaryText);
   }
 
   Future<void> _shareAllSummaryAsImage(
     String episodeTitle,
     String summary,
   ) async {
-    final l10n = AppLocalizations.of(context) ?? AppLocalizationsEn();
-    try {
-      await ContentImageShareService.shareAsImage(
-        context,
-        ShareImagePayload(
-          episodeTitle: episodeTitle,
-          contentType: ShareContentType.summary,
-          content: summary,
-          sourceLabel: l10n.podcast_filter_with_summary,
-          renderMode: ShareImageRenderMode.markdown,
-        ),
-      );
-    } on ContentImageShareException catch (e) {
-      _showShareErrorNotice(e.message);
-    }
+    await AdaptiveShare.shareText(summary);
   }
 
   Widget _buildAiSummarySection(

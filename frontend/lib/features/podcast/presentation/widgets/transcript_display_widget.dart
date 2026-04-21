@@ -10,6 +10,7 @@ import 'package:personal_ai_assistant/core/constants/app_spacing.dart';
 import 'package:personal_ai_assistant/core/platform/platform_helper.dart';
 import 'package:personal_ai_assistant/core/constants/app_radius.dart';
 import 'package:personal_ai_assistant/core/localization/app_localizations_extension.dart';
+import 'package:personal_ai_assistant/core/services/adaptive_share.dart';
 import 'package:personal_ai_assistant/core/theme/app_colors.dart';
 import 'package:personal_ai_assistant/core/theme/app_theme.dart';
 import 'package:personal_ai_assistant/core/widgets/adaptive/adaptive.dart';
@@ -20,7 +21,6 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_highl
 import 'package:personal_ai_assistant/features/podcast/data/models/podcast_transcription_model.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_highlights_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/services/content_image_share_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_card.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/highlight_detail_sheet.dart';
 import 'package:personal_ai_assistant/shared/widgets/empty_state_widget.dart';
@@ -196,43 +196,11 @@ class TranscriptDisplayWidgetState
   }
 
   Future<void> _shareSelectedTranscriptAsImage() async {
-    final l10n = context.l10n;
-    try {
-      await ContentImageShareService.shareAsImage(
-        context,
-        ShareImagePayload(
-          episodeTitle: widget.episodeTitle,
-          contentType: ShareContentType.transcript,
-          content: _lastSelectedTranscriptText,
-          sourceLabel: l10n.podcast_tab_transcript,
-        ),
-      );
-    } on ContentImageShareException catch (e) {
-      if (!mounted) {
-        return;
-      }
-      showTopFloatingNotice(context, message: e.message, isError: true);
-    }
+    await AdaptiveShare.shareText(_lastSelectedTranscriptText);
   }
 
   Future<void> _shareSelectedTranscriptSegmentsAsImage() async {
-    final l10n = context.l10n;
-    try {
-      await ContentImageShareService.shareAsImage(
-        context,
-        ShareImagePayload(
-          episodeTitle: widget.episodeTitle,
-          contentType: ShareContentType.transcript,
-          content: _buildSelectedTranscriptContent(),
-          sourceLabel: l10n.podcast_tab_transcript,
-        ),
-      );
-    } on ContentImageShareException catch (e) {
-      if (!mounted) {
-        return;
-      }
-      showTopFloatingNotice(context, message: e.message, isError: true);
-    }
+    await AdaptiveShare.shareText(_buildSelectedTranscriptContent());
   }
 
   @override

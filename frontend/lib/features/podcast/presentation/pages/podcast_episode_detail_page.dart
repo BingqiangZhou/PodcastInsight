@@ -31,7 +31,6 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_playback_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
-import 'package:personal_ai_assistant/features/podcast/presentation/services/content_image_share_service.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/ai_summary_control_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conversation_chat_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_image_widget.dart';
