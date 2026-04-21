@@ -7,6 +7,7 @@ X-API-Key header. User ID is hardcoded to 1.
 from __future__ import annotations
 
 import logging
+import secrets
 from collections.abc import AsyncGenerator
 
 from fastapi import HTTPException, Request, status
@@ -58,7 +59,7 @@ async def require_api_key(request: Request) -> int:
             detail="Authentication required",
         )
 
-    if api_key != settings.API_KEY:
+    if not secrets.compare_digest(api_key, settings.API_KEY):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",

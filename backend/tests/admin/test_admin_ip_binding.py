@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.admin.auth import AdminAuthRequired
+from app.admin.auth import AdminAuthRequired, _compute_session_hash
 
 
 class TestAdminApiKeyAuth:
@@ -43,7 +43,7 @@ class TestAdminApiKeyAuth:
 
     @pytest.mark.asyncio
     async def test_valid_api_key_via_cookie(self):
-        """Test admin_session cookie with valid key."""
+        """Test admin_session cookie with valid HMAC hash."""
         admin_auth = AdminAuthRequired()
         mock_request = MagicMock()
         mock_request.headers.get.side_effect = lambda k, default=None: {
@@ -53,7 +53,9 @@ class TestAdminApiKeyAuth:
 
         with patch("app.admin.auth.get_settings") as mock_settings:
             mock_settings.return_value.API_KEY = "admin-key-123"
-            result = await admin_auth.__call__(mock_request, "admin-key-123")
+            mock_settings.return_value.SECRET_KEY = "test-secret"
+            session_hash = _compute_session_hash("admin-key-123")
+            result = await admin_auth.__call__(mock_request, session_hash)
             assert result == 1
 
     @pytest.mark.asyncio

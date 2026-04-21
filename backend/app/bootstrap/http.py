@@ -5,11 +5,15 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.core.config import get_settings
 from app.core.database import check_db_readiness
 from app.core.exceptions import setup_exception_handlers
 from app.core.middleware import RequestLoggingMiddleware
+from app.core.rate_limit import limiter
 from app.core.redis import get_shared_redis
 from app.http.errors import register_admin_http_exception_handler
 
@@ -20,6 +24,11 @@ logger = logging.getLogger(__name__)
 def configure_middlewares(app: FastAPI) -> None:
     """Register middleware stack."""
     settings = get_settings()
+
+    # Rate limiting
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
 
     app.add_middleware(RequestLoggingMiddleware, slow_threshold=5.0)
     logger.debug("Request logging middleware enabled")

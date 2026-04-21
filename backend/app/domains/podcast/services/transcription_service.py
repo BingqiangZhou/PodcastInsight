@@ -789,8 +789,8 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
 
             if status_value in {"failed", "cancelled"}:
                 temp_episode_dir = os.path.join(self.temp_dir, f"episode_{episode_id}")
-                has_temp_files = os.path.exists(
-                    temp_episode_dir
+                has_temp_files = await asyncio.to_thread(
+                    os.path.exists, temp_episode_dir
                 ) and await asyncio.to_thread(
                     _directory_has_files,
                     temp_episode_dir,
@@ -1042,9 +1042,9 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
         from app.domains.podcast.models import TranscriptionTask
 
         temp_dir = getattr(settings, "TRANSCRIPTION_TEMP_DIR", "./temp/transcription")
-        temp_dir_abs = os.path.abspath(temp_dir)
+        temp_dir_abs = await asyncio.to_thread(os.path.abspath, temp_dir)
 
-        if not os.path.exists(temp_dir_abs):
+        if not await asyncio.to_thread(os.path.exists, temp_dir_abs):
             return {"cleaned": 0, "freed_bytes": 0}
 
         stale_threshold = datetime.now(UTC) - timedelta(days=days)
@@ -1066,7 +1066,7 @@ class PodcastTranscriptionRuntimeService(PodcastTranscriptionService):
         freed_bytes = 0
         for episode_id in episode_ids_to_cleanup:
             temp_episode_dir = os.path.join(temp_dir_abs, f"episode_{episode_id}")
-            if not os.path.exists(temp_episode_dir):
+            if not await asyncio.to_thread(os.path.exists, temp_episode_dir):
                 continue
 
             dir_size = await asyncio.to_thread(_directory_size_bytes, temp_episode_dir)

@@ -1,12 +1,15 @@
 """Admin login/logout routes (API key mode)."""
 
 import logging
+import secrets
 
 from fastapi import APIRouter, Form, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
+from app.admin.auth import _compute_session_hash
 from app.admin.routes._shared import get_templates
 from app.core.config import get_settings
+from app.core.rate_limit import limiter
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +33,7 @@ async def login_page(request: Request, error: str = None):
 
 
 @router.post("/login")
+@limiter.limit("5/minute")
 async def login(
     request: Request,
     api_key: str = Form(...),
@@ -38,13 +42,12 @@ async def login(
     settings = get_settings()
 
     if not settings.API_KEY:
-        # No API key configured — redirect directly to admin
         response = RedirectResponse(
             url="/api/v1/admin", status_code=status.HTTP_303_SEE_OTHER
         )
         return response
 
-    if api_key != settings.API_KEY:
+    if not secrets.compare_digest(api_key, settings.API_KEY):
         from app.admin.services.setup_auth_service import AdminSetupAuthService
 
         return AdminSetupAuthService.build_template_response(
@@ -60,7 +63,7 @@ async def login(
     )
     response.set_cookie(
         key="admin_session",
-        value=api_key,
+        value=_compute_session_hash(api_key),
         httponly=True,
         secure=True,
         samesite="lax",

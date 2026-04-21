@@ -12,6 +12,22 @@ from fastapi import HTTPException, status
 logger = logging.getLogger(__name__)
 
 
+async def _exists(path: str) -> bool:
+    return await asyncio.to_thread(os.path.exists, path)
+
+
+async def _getsize(path: str) -> int:
+    return await asyncio.to_thread(os.path.getsize, path)
+
+
+async def _makedirs(path: str, exist_ok: bool = True) -> None:
+    await asyncio.to_thread(os.makedirs, path, exist_ok)
+
+
+async def _remove(path: str) -> None:
+    await asyncio.to_thread(os.remove, path)
+
+
 class AudioConverter:
     """Convert audio files to MP3."""
 
@@ -35,15 +51,15 @@ class AudioConverter:
         start_time = time.time()
 
         try:
-            if not os.path.exists(input_path):
+            if not await _exists(input_path):
                 raise FileNotFoundError(f"Input file not found: {input_path}")
 
-            input_size = os.path.getsize(input_path)
+            input_size = await _getsize(input_path)
             logger.info(
                 f"[CONVERT] Starting conversion: {input_path} ({input_size / 1024 / 1024:.2f} MB) -> {output_path}",
             )
 
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            await _makedirs(os.path.dirname(output_path))
 
             # FFmpeg
             ffmpeg_proc = (
@@ -93,14 +109,14 @@ class AudioConverter:
                 )
 
             # Verify output file was created
-            if not os.path.exists(output_path):
+            if not await _exists(output_path):
                 raise RuntimeError(
                     f"FFmpeg completed successfully but output file not found: {output_path}",
                 )
 
-            output_size = os.path.getsize(output_path)
+            output_size = await _getsize(output_path)
             if output_size == 0:
-                os.remove(output_path)
+                await _remove(output_path)
                 raise RuntimeError(f"FFmpeg created empty output file: {output_path}")
 
             if progress_callback:
@@ -117,15 +133,17 @@ class AudioConverter:
             return output_path, duration
 
         except Exception as e:
+            input_exists = await _exists(input_path)
+            output_exists = await _exists(output_path)
             logger.error(
                 f"[CONVERT] Audio conversion failed: {type(e).__name__}: {e!s}",
             )
             logger.error(
-                f"[CONVERT] Input: {input_path} (exists: {os.path.exists(input_path)}), Output: {output_path} (exists: {os.path.exists(output_path)})",
+                f"[CONVERT] Input: {input_path} (exists: {input_exists}), Output: {output_path} (exists: {output_exists})",
             )
-            if os.path.exists(output_path):
+            if output_exists:
                 try:
-                    os.remove(output_path)
+                    await _remove(output_path)
                     logger.debug(
                         f"[CONVERT] Removed partial output file: {output_path}",
                     )
