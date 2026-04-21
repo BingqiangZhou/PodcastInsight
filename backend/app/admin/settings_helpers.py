@@ -1,4 +1,4 @@
-"""Shared helpers for system settings persistence."""
+"""Helpers for system settings persistence."""
 
 from typing import Any
 

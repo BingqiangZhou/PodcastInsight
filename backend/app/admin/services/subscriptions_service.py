@@ -22,7 +22,7 @@ from app.domains.podcast.models import (
     UpdateFrequency,
     UserSubscription,
 )
-from app.shared.settings_helpers import persist_setting
+from app.admin.settings_helpers import persist_setting
 
 
 logger = logging.getLogger(__name__)
