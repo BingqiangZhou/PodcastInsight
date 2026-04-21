@@ -170,7 +170,6 @@ void main() {
 
       // Verify all required elements
       expect(find.text('Backend API URL'), findsOneWidget);
-      expect(find.text('Local Server'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
       expect(find.text('Save'), findsOneWidget);
     });
@@ -199,7 +198,7 @@ void main() {
 
       // Verify Chinese text
       expect(find.text('后端 API 服务器配置'), findsOneWidget);
-      expect(find.text('本地服务器'), findsOneWidget);
+      expect(find.text('未验证'), findsOneWidget);
     });
 
     testWidgets('server config dialog has URL input field', (tester) async {

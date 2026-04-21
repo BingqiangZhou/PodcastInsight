@@ -155,12 +155,13 @@ void main() {
 
       // Verify all required elements are present
       expect(find.text('Backend API URL'), findsOneWidget);
-      expect(find.text('Local Server'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
       expect(find.text('Save'), findsOneWidget);
     });
 
     testWidgets('local server button is present', (tester) async {
+      // Removed: local server auto-fill button was simplified away
+      // Verify the URL input field exists instead
       SharedPreferences.setMockInitialValues({});
 
       await tester.pumpWidget(
@@ -180,8 +181,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Verify local server button
-      expect(find.text('Local Server'), findsOneWidget);
+      // Verify URL input field exists
+      expect(find.byType(TextField), findsOneWidget);
     });
 
     testWidgets('has URL input field', (tester) async {
@@ -269,6 +270,7 @@ void main() {
     });
 
     testWidgets('history list is not shown when empty', (tester) async {
+      // Removed: server URL history feature was simplified away
       SharedPreferences.setMockInitialValues({});
 
       await tester.pumpWidget(
@@ -383,7 +385,6 @@ void main() {
 
       // Verify English text
       expect(find.text('Backend API Server Configuration'), findsOneWidget);
-      expect(find.text('Local Server'), findsOneWidget);
       expect(find.text('Unverified'), findsOneWidget);
     });
 
@@ -410,7 +411,6 @@ void main() {
 
       // Verify Chinese text
       expect(find.text('后端 API 服务器配置'), findsOneWidget);
-      expect(find.text('本地服务器'), findsOneWidget);
       expect(find.text('未验证'), findsOneWidget);
     });
 
