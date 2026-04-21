@@ -14,8 +14,8 @@ from app.domains.podcast.models import (
     UpdateFrequency,
     UserSubscription,
 )
-from app.shared.repository_helpers import resolve_window_total
 from app.domains.podcast.schemas import SubscriptionCreate, SubscriptionUpdate
+from app.shared.repository_helpers import resolve_window_total
 
 
 class SubscriptionRepository:

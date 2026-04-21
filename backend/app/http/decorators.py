@@ -8,6 +8,7 @@ from typing import TypeVar
 
 from fastapi import HTTPException, status
 
+
 logger = logging.getLogger(__name__)
 
 F = TypeVar("F", bound=Callable)

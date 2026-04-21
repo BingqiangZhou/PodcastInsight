@@ -16,13 +16,13 @@ from fastapi import HTTPException
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.admin.settings_helpers import persist_setting
 from app.domains.podcast.models import (
     Subscription,
     SubscriptionStatus,
     UpdateFrequency,
     UserSubscription,
 )
-from app.admin.settings_helpers import persist_setting
 
 
 logger = logging.getLogger(__name__)

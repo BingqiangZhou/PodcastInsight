@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.ai_client import AIClientService
 from app.core.exceptions import ValidationError
 from app.core.http_client import get_shared_http_session
+from app.core.utils import calculate_backoff
 from app.domains.ai.model_testing import (
     test_text_generation_model,
     test_transcription_model,
@@ -27,7 +28,6 @@ from app.domains.ai.models import AIModelConfig, ModelType
 from app.domains.ai.repositories import AIModelConfigRepository
 from app.domains.ai.schemas import APIKeyValidationResponse, ModelTestResponse
 from app.domains.podcast.ai_key_resolver import resolve_api_key_with_fallback
-from app.core.utils import calculate_backoff
 
 from .model_config_service import AIModelSecurityService
 

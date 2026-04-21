@@ -5,7 +5,7 @@ including timezone management, formatting, and conversions.
 日期时间工具函数
 """
 
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
 
 def remove_timezone(dt: datetime | None) -> datetime | None:

@@ -7,6 +7,7 @@ from fastapi import Cookie, HTTPException, Request, status
 from app.core.auth import _extract_api_key
 from app.core.config import get_settings
 
+
 logger = logging.getLogger(__name__)
 
 
