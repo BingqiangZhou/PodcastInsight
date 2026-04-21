@@ -87,11 +87,15 @@ try:
 
     @worker_process_shutdown.connect
     def _on_worker_process_shutdown(**kwargs):  # type: ignore[misc]
-        """Dispose DB engines when a Celery worker child process shuts down."""
+        """Dispose DB engines and close the worker event loop on shutdown."""
         try:
-            from app.core.database import close_db
+            from app.domains.podcast.tasks.runtime import _worker_loop
 
-            asyncio.run(close_db())
+            if _worker_loop is not None and not _worker_loop.is_closed():
+                from app.core.database import close_db
+
+                _worker_loop.run_until_complete(close_db())
+                _worker_loop.close()
         except Exception:
             _logger.warning(
                 "Failed to dispose worker DB engines during shutdown", exc_info=True

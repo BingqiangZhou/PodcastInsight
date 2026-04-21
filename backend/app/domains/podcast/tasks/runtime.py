@@ -17,6 +17,21 @@ from app.core.database import (
     register_orm_models,
 )
 
+# Persistent event loop for the worker process lifetime.
+# asyncio.run() creates (and closes) a new loop on every call, which breaks
+# SQLAlchemy async connection pools — pooled asyncpg connections are bound to
+# the loop where they were created, so a fresh loop can't reuse them.
+_worker_loop: asyncio.AbstractEventLoop | None = None
+
+
+def _get_worker_loop() -> asyncio.AbstractEventLoop:
+    """Return a long-lived event loop for this Celery worker process."""
+    global _worker_loop
+    if _worker_loop is None or _worker_loop.is_closed():
+        _worker_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(_worker_loop)
+    return _worker_loop
+
 
 def ensure_orm_models_registered() -> None:
     """Register ORM models when the worker runtime first needs them."""
@@ -33,5 +48,10 @@ async def worker_session(application_name: str) -> AsyncIterator[AsyncSession]:
 
 
 def run_async(coro):
-    """Run async code from sync Celery workers safely."""
-    return asyncio.run(coro)
+    """Run async code from sync Celery workers safely.
+
+    Uses a persistent event loop instead of asyncio.run() so that
+    SQLAlchemy async connection pool entries remain valid across tasks.
+    """
+    loop = _get_worker_loop()
+    return loop.run_until_complete(coro)
