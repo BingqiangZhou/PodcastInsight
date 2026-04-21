@@ -43,6 +43,12 @@ done
 echo "✅ Permission setup complete"
 echo ""
 
+# Auto-run database migrations
+echo "📦 Running database migrations..."
+alembic upgrade head
+echo "✅ Migrations complete"
+echo ""
+
 # Get app user's home directory
 APP_HOME=$(getent passwd "$APP_USER" | cut -d: -f6)
 
