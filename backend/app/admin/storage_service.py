@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.models import SystemSettings
 from app.core.config import settings
+from app.core.display_utils import format_bytes
 
 
 logger = logging.getLogger(__name__)
@@ -75,11 +76,11 @@ class StorageCleanupService:
             usage = shutil.disk_usage(path)
             return {
                 "free": usage.free,
-                "free_human": self._format_bytes(usage.free),
+                "free_human": format_bytes(usage.free),
                 "total": usage.total,
-                "total_human": self._format_bytes(usage.total),
+                "total_human": format_bytes(usage.total),
                 "used": usage.used,
-                "used_human": self._format_bytes(usage.used),
+                "used_human": format_bytes(usage.used),
                 "usage_percent": round((usage.used / usage.total) * 100, 2)
                 if usage.total > 0
                 else 0,
@@ -95,22 +96,6 @@ class StorageCleanupService:
                 "used_human": "未知",
                 "usage_percent": 0,
             }
-
-    def _format_bytes(self, bytes_size: int) -> str:
-        """格式化字节大小为人类可读格式
-
-        Args:
-            bytes_size: 字节大小
-
-        Returns:
-            格式化后的字符串 (例如: "1.5 GB")
-
-        """
-        for unit in ["B", "KB", "MB", "GB", "TB"]:
-            if bytes_size < 1024.0:
-                return f"{bytes_size:.1f} {unit}"
-            bytes_size /= 1024.0
-        return f"{bytes_size:.1f} PB"
 
     async def get_storage_info(self) -> dict:
         """获取存储信息
@@ -140,14 +125,14 @@ class StorageCleanupService:
             "storage": {
                 "file_count": storage_count,
                 "total_size": storage_size,
-                "total_size_human": self._format_bytes(storage_size),
+                "total_size_human": format_bytes(storage_size),
                 "path": storage_path,
                 "last_updated": datetime.now(UTC).isoformat(),
             },
             "temp": {
                 "file_count": temp_count,
                 "total_size": temp_size,
-                "total_size_human": self._format_bytes(temp_size),
+                "total_size_human": format_bytes(temp_size),
                 "path": temp_path,
                 "last_updated": datetime.now(UTC).isoformat(),
             },
@@ -155,8 +140,8 @@ class StorageCleanupService:
         }
 
         logger.info(
-            f"📊 存储信息: Storage={storage_count}文件/{self._format_bytes(storage_size)}, "
-            f"Temp={temp_count}文件/{self._format_bytes(temp_size)}, "
+            f"📊 存储信息: Storage={storage_count}文件/{format_bytes(storage_size)}, "
+            f"Temp={temp_count}文件/{format_bytes(temp_size)}, "
             f"磁盘剩余={disk_info['free_human']}",
         )
 
@@ -289,7 +274,7 @@ class StorageCleanupService:
                             logger.debug(
                                 f"删除文件: {file_path} "
                                 f"(修改时间: {file_mtime.strftime('%Y-%m-%d %H:%M:%S')}, "
-                                f"大小: {self._format_bytes(file_size)})",
+                                f"大小: {format_bytes(file_size)})",
                             )
 
                     except PermissionError as e:
@@ -312,7 +297,7 @@ class StorageCleanupService:
 
             logger.info(
                 f"✅ 目录清理完成: {directory_path} - "
-                f"删除 {deleted_count} 个文件, 释放 {self._format_bytes(freed_space)}",
+                f"删除 {deleted_count} 个文件, 释放 {format_bytes(freed_space)}",
             )
 
         except Exception as e:
@@ -321,7 +306,7 @@ class StorageCleanupService:
         return {
             "deleted_count": deleted_count,
             "freed_space": freed_space,
-            "freed_space_human": self._format_bytes(freed_space),
+            "freed_space_human": format_bytes(freed_space),
         }
 
     async def execute_cleanup(self, keep_days: int = 1) -> dict:
@@ -358,14 +343,14 @@ class StorageCleanupService:
         logger.info("-" * 70)
         logger.info("📊 清理统计:")
         logger.info(
-            f"  Storage 目录: {storage_result['deleted_count']} 文件, {self._format_bytes(storage_result['freed_space'])}"
+            f"  Storage 目录: {storage_result['deleted_count']} 文件, {format_bytes(storage_result['freed_space'])}"
         )
         logger.info(
-            f"  Temp 目录: {temp_result['deleted_count']} 文件, {self._format_bytes(temp_result['freed_space'])}"
+            f"  Temp 目录: {temp_result['deleted_count']} 文件, {format_bytes(temp_result['freed_space'])}"
         )
         logger.info("-" * 70)
         logger.info(
-            f"✅ 清理完成: 总计删除 {total_deleted} 个文件, 释放 {self._format_bytes(total_freed)} 空间"
+            f"✅ 清理完成: 总计删除 {total_deleted} 个文件, 释放 {format_bytes(total_freed)} 空间"
         )
         logger.info("=" * 70)
 
@@ -379,7 +364,7 @@ class StorageCleanupService:
             "total": {
                 "deleted_count": total_deleted,
                 "freed_space": total_freed,
-                "freed_space_human": self._format_bytes(total_freed),
+                "freed_space_human": format_bytes(total_freed),
             },
         }
 
