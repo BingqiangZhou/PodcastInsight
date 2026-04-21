@@ -10,6 +10,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/co
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/conversation_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/conversation_chat_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/transcript_display_widget.dart';
+import '../../../../helpers/podcast_episode_detail_helper.dart';
 
 void main() {
   testWidgets('Conversation chat shows share-all entry when messages exist', (
@@ -23,10 +24,10 @@ void main() {
           ).overrideWith(_ConversationWithMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(_EmptySessionListNotifier.new),
+          ).overrideWith(EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(_NullSessionIdNotifier.new),
+          ).overrideWith(NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -62,10 +63,10 @@ void main() {
           ).overrideWith(_ConversationWithMixedMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(_EmptySessionListNotifier.new),
+          ).overrideWith(EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(_NullSessionIdNotifier.new),
+          ).overrideWith(NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -105,10 +106,10 @@ void main() {
             ).overrideWith(_ConversationWithMessagesNotifier.new),
             sessionListProvider(
               1,
-            ).overrideWith(_EmptySessionListNotifier.new),
+            ).overrideWith(EmptySessionListNotifier.new),
             currentSessionIdProvider(
               1,
-            ).overrideWith(_NullSessionIdNotifier.new),
+            ).overrideWith(NullSessionIdNotifier.new),
             availableModelsProvider.overrideWith(
               (ref) async => <SummaryModelInfo>[],
             ),
@@ -161,10 +162,10 @@ void main() {
           ).overrideWith(_ConversationWithMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(_EmptySessionListNotifier.new),
+          ).overrideWith(EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(_NullSessionIdNotifier.new),
+          ).overrideWith(NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -210,10 +211,10 @@ void main() {
           ).overrideWith(_ConversationWithMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(_EmptySessionListNotifier.new),
+          ).overrideWith(EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(_NullSessionIdNotifier.new),
+          ).overrideWith(NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -268,10 +269,10 @@ void main() {
             ).overrideWith(_ConversationWithMessagesNotifier.new),
             sessionListProvider(
               1,
-            ).overrideWith(_EmptySessionListNotifier.new),
+            ).overrideWith(EmptySessionListNotifier.new),
             currentSessionIdProvider(
               1,
-            ).overrideWith(_NullSessionIdNotifier.new),
+            ).overrideWith(NullSessionIdNotifier.new),
             availableModelsProvider.overrideWith(
               (ref) async => _longNameModels,
             ),
@@ -310,10 +311,10 @@ void main() {
           ).overrideWith(_ConversationWithMessagesNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(_EmptySessionListNotifier.new),
+          ).overrideWith(EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(_NullSessionIdNotifier.new),
+          ).overrideWith(NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -362,10 +363,10 @@ void main() {
           ).overrideWith(_ConversationWithUserMessageNotifier.new),
           sessionListProvider(
             1,
-          ).overrideWith(_EmptySessionListNotifier.new),
+          ).overrideWith(EmptySessionListNotifier.new),
           currentSessionIdProvider(
             1,
-          ).overrideWith(_NullSessionIdNotifier.new),
+          ).overrideWith(NullSessionIdNotifier.new),
           availableModelsProvider.overrideWith(
             (ref) async => <SummaryModelInfo>[],
           ),
@@ -518,16 +519,3 @@ class _ConversationWithUserMessageNotifier extends ConversationNotifier {
   }
 }
 
-class _EmptySessionListNotifier extends SessionListNotifier {
-  _EmptySessionListNotifier() : super(1);
-
-  @override
-  Future<List<ConversationSession>> build() async => [];
-}
-
-class _NullSessionIdNotifier extends SessionIdNotifier {
-  _NullSessionIdNotifier() : super(1);
-
-  @override
-  int? build() => null;
-}

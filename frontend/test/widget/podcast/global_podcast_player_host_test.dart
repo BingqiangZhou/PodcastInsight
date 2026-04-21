@@ -11,6 +11,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/constants/po
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_playback_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/global_podcast_player_host.dart';
+import '../../helpers/podcast_episode_detail_helper.dart';
 
 void main() {
   group('GlobalPodcastPlayerHost', () {
@@ -274,17 +275,6 @@ class _TestAudioPlayerNotifier extends AudioPlayerNotifier {
 
   @override
   AudioPlayerState build() => _initialState;
-}
-
-class TestPodcastPlayerUiNotifier extends PodcastPlayerUiNotifier {
-  TestPodcastPlayerUiNotifier([
-    this._initialState = const PodcastPlayerUiState(),
-  ]);
-
-  final PodcastPlayerUiState _initialState;
-
-  @override
-  PodcastPlayerUiState build() => _initialState;
 }
 
 PodcastEpisodeModel _episode() {

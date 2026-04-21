@@ -13,6 +13,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_bottom_player_widget.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/podcast_queue_sheet.dart';
+import '../../helpers/podcast_episode_detail_helper.dart';
 
 void main() {
   group('PodcastBottomPlayerWidget', () {
@@ -885,17 +886,6 @@ class TestAudioPlayerNotifier extends AudioPlayerNotifier {
     resolvePlaybackRateSelectionCalls += 1;
     return playbackRateSelectionFuture ?? playbackRateSelection;
   }
-}
-
-class TestPodcastPlayerUiNotifier extends PodcastPlayerUiNotifier {
-  TestPodcastPlayerUiNotifier([
-    this._initialState = const PodcastPlayerUiState(),
-  ]);
-
-  final PodcastPlayerUiState _initialState;
-
-  @override
-  PodcastPlayerUiState build() => _initialState;
 }
 
 class TestPodcastQueueController extends PodcastQueueController {

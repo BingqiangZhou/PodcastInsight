@@ -10,6 +10,7 @@ import 'package:personal_ai_assistant/core/router/app_router.dart';
 import 'package:personal_ai_assistant/core/storage/local_storage_service.dart';
 import 'package:personal_ai_assistant/features/auth/domain/models/user.dart';
 import '../../../../helpers/mock_local_storage_service.dart';
+import '../../../../helpers/podcast_episode_detail_helper.dart';
 import 'package:personal_ai_assistant/features/auth/presentation/providers/auth_provider.dart';
 import 'package:personal_ai_assistant/features/home/presentation/pages/home_page.dart';
 import 'package:personal_ai_assistant/features/podcast/data/models/audio_player_state_model.dart';
@@ -498,17 +499,6 @@ class TestAudioPlayerNotifier extends AudioPlayerNotifier {
   }
 }
 
-class TestPodcastPlayerUiNotifier extends PodcastPlayerUiNotifier {
-  TestPodcastPlayerUiNotifier([
-    this._initialState = const PodcastPlayerUiState(),
-  ]);
-
-  final PodcastPlayerUiState _initialState;
-
-  @override
-  PodcastPlayerUiState build() => _initialState;
-}
-
 class TestPodcastFeedNotifier extends PodcastFeedNotifier {
   TestPodcastFeedNotifier([this._initialState = const PodcastFeedState()]);
 
@@ -606,12 +596,5 @@ PodcastEpisodeModel _episode() {
   );
 }
 
-class TestCurrentRouteNotifier extends CurrentRouteNotifier {
-  TestCurrentRouteNotifier(this._route);
 
-  final String _route;
-
-  @override
-  String build() => _route;
-}
 

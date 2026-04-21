@@ -29,6 +29,7 @@ import 'package:personal_ai_assistant/features/podcast/presentation/providers/po
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_cache_management_page.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../helpers/podcast_list_page_helper.dart';
 
 class _TestAuthNotifier extends AuthNotifier {
   @override
@@ -125,28 +126,6 @@ class _ThrowingPodcastRepository extends PodcastRepository {
   Future<ProfileStatsModel> getProfileStats() async {
     throw Exception('profile stats failed');
   }
-}
-
-class _TestPodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
-  @override
-  PodcastSubscriptionState build() {
-    return const PodcastSubscriptionState(total: 5);
-  }
-
-  @override
-  Future<void> loadSubscriptions({
-    int page = 1,
-    int size = 10,
-    int? categoryId,
-    String? status,
-    bool forceRefresh = false,
-  }) async {}
-
-  @override
-  Future<void> loadMoreSubscriptions({int? categoryId, String? status}) async {}
-
-  @override
-  Future<void> refreshSubscriptions({int? categoryId, String? status}) async {}
 }
 
 class _MockDioClient extends Mock implements DioClient {}
@@ -248,7 +227,7 @@ void main() {
               () => _FixedProfileStatsNotifier(_profileStatsWithDailyReport),
             ),
             podcastSubscriptionProvider.overrideWith(
-              _TestPodcastSubscriptionNotifier.new,
+              () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
             ),
             dailyReportDatesProvider.overrideWith(
               () => _FixedDailyReportDatesNotifier(
@@ -303,7 +282,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_profileStatsWithDailyReport),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -342,7 +321,7 @@ void main() {
               () => _FixedProfileStatsNotifier(_profileStatsWithDailyReport),
             ),
             podcastSubscriptionProvider.overrideWith(
-              _TestPodcastSubscriptionNotifier.new,
+              () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
             ),
             dailyReportDatesProvider.overrideWith(
               () => _FixedDailyReportDatesNotifier(
@@ -393,7 +372,7 @@ void main() {
               () => _FixedProfileStatsNotifier(_profileStatsWithDailyReport),
             ),
             podcastSubscriptionProvider.overrideWith(
-              _TestPodcastSubscriptionNotifier.new,
+              () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
             ),
             dailyReportDatesProvider.overrideWith(
               () => _FixedDailyReportDatesNotifier(
@@ -457,7 +436,7 @@ void main() {
               () => _FixedProfileStatsNotifier(_profileStatsWithDailyReport),
             ),
             podcastSubscriptionProvider.overrideWith(
-              _TestPodcastSubscriptionNotifier.new,
+              () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
             ),
             dailyReportDatesProvider.overrideWith(
               () => _FixedDailyReportDatesNotifier(
@@ -521,7 +500,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -560,7 +539,7 @@ void main() {
             () => _PendingProfileStatsNotifier(pending),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -593,7 +572,7 @@ void main() {
             () => _FixedProfileStatsNotifier(null),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -626,7 +605,7 @@ void main() {
             _ThrowingPodcastRepository(),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -688,7 +667,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -764,7 +743,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -802,7 +781,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -858,7 +837,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -1008,7 +987,7 @@ void main() {
             LocalStorageServiceImpl(prefs),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -1054,7 +1033,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -1098,7 +1077,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -1142,7 +1121,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(
@@ -1185,7 +1164,7 @@ void main() {
             () => _FixedProfileStatsNotifier(_defaultProfileStats),
           ),
           podcastSubscriptionProvider.overrideWith(
-            _TestPodcastSubscriptionNotifier.new,
+            () => TestPodcastSubscriptionNotifier(const PodcastSubscriptionState(total: 5)),
           ),
           dailyReportDatesProvider.overrideWith(
             () => _FixedDailyReportDatesNotifier(

@@ -8,30 +8,7 @@ import 'package:personal_ai_assistant/features/podcast/data/models/podcast_subsc
 import 'package:personal_ai_assistant/features/podcast/presentation/providers/podcast_providers.dart';
 import 'package:personal_ai_assistant/features/podcast/presentation/widgets/add_podcast_dialog.dart';
 import 'package:personal_ai_assistant/features/profile/presentation/pages/profile_subscriptions_page.dart';
-
-class _TestPodcastSubscriptionNotifier extends PodcastSubscriptionNotifier {
-  _TestPodcastSubscriptionNotifier(this._initial);
-
-  final PodcastSubscriptionState _initial;
-
-  @override
-  PodcastSubscriptionState build() => _initial;
-
-  @override
-  Future<void> loadSubscriptions({
-    int page = 1,
-    int size = 10,
-    int? categoryId,
-    String? status,
-    bool forceRefresh = false,
-  }) async {}
-
-  @override
-  Future<void> loadMoreSubscriptions({int? categoryId, String? status}) async {}
-
-  @override
-  Future<void> refreshSubscriptions({int? categoryId, String? status}) async {}
-}
+import '../../../../helpers/podcast_list_page_helper.dart';
 
 void main() {
   testWidgets('shows bare loading state without content GlassPanel', (
@@ -41,7 +18,7 @@ void main() {
       ProviderScope(
         overrides: [
           podcastSubscriptionProvider.overrideWith(
-            () => _TestPodcastSubscriptionNotifier(
+            () => TestPodcastSubscriptionNotifier(
               const PodcastSubscriptionState(
                 hasMore: false,
                 isLoading: true,
@@ -74,7 +51,7 @@ void main() {
       ProviderScope(
         overrides: [
           podcastSubscriptionProvider.overrideWith(
-            () => _TestPodcastSubscriptionNotifier(
+            () => TestPodcastSubscriptionNotifier(
               const PodcastSubscriptionState(
                 hasMore: false,
               ),
@@ -114,7 +91,7 @@ void main() {
       ProviderScope(
         overrides: [
           podcastSubscriptionProvider.overrideWith(
-            () => _TestPodcastSubscriptionNotifier(
+            () => TestPodcastSubscriptionNotifier(
               PodcastSubscriptionState(
                 subscriptions: [subscription],
                 total: 1,
@@ -147,7 +124,7 @@ void main() {
       ProviderScope(
         overrides: [
           podcastSubscriptionProvider.overrideWith(
-            () => _TestPodcastSubscriptionNotifier(
+            () => TestPodcastSubscriptionNotifier(
               const PodcastSubscriptionState(
                 hasMore: false,
               ),
