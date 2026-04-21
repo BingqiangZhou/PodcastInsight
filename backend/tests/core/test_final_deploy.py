@@ -50,14 +50,14 @@ def test_repository_contract() -> None:
 
 
 def test_specialized_service_contracts() -> None:
-    from app.domains.podcast.services.episode_service import PodcastEpisodeService
-    from app.domains.podcast.services.playback_service import PodcastPlaybackService
-    from app.domains.podcast.services.episode_service import (
-        PodcastSubscriptionService,
-    )
     from app.domains.podcast.services.content_service import (
         PodcastSummaryGenerationService,
     )
+    from app.domains.podcast.services.episode_service import (
+        PodcastEpisodeService,
+        PodcastSubscriptionService,
+    )
+    from app.domains.podcast.services.playback_service import PodcastPlaybackService
 
     assert hasattr(PodcastSubscriptionService, "add_subscription")
     assert hasattr(PodcastEpisodeService, "get_episode_with_summary")

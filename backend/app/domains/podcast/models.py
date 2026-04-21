@@ -38,8 +38,7 @@ class PodcastEpisode(Base):
 
     Design notes:
     - Uses foreign key to Subscription rather than inheritance
-    - Reuses some SubscriptionItem fields but independently manages
-      podcast-specific audio/summary fields
+    - Independently manages podcast-specific audio/summary fields
     - Maintains compatibility with existing schemas while avoiding
       complex SQLAlchemy inheritance configuration
     """
@@ -359,14 +358,6 @@ class Subscription(Base):
     user_subscriptions = relationship(
         "UserSubscription", back_populates="subscription", cascade="all, delete-orphan"
     )
-    items = relationship(
-        "SubscriptionItem", back_populates="subscription", cascade="all, delete-orphan"
-    )
-    categories = relationship(
-        "SubscriptionCategory",
-        secondary="subscription_category_mappings",
-        back_populates="subscriptions",
-    )
     podcast_episodes = relationship(
         "PodcastEpisode",
         back_populates="subscription",
@@ -552,90 +543,6 @@ class UserSubscription(Base):
 
         # If the scheduled time has arrived or passed, we should update
         return datetime.now(UTC) >= next_possible
-
-
-class SubscriptionItem(Base):
-    """Individual items from subscriptions."""
-
-    __tablename__ = "subscription_items"
-
-    id = Column(Integer, primary_key=True)
-    subscription_id = Column(
-        Integer, ForeignKey("subscriptions.id", ondelete="CASCADE"), nullable=False
-    )
-    external_id = Column(String(255), nullable=True)
-    title = Column(String(500), nullable=False)
-    content = Column(Text, nullable=True)
-    summary = Column(Text, nullable=True)
-    author = Column(String(255), nullable=True)
-    source_url = Column(String(500), nullable=True)
-    image_url = Column(String(500), nullable=True)
-    tags = Column(JSON, nullable=True, default=list)
-    metadata_json = Column("metadata", JSON, nullable=True, default=dict)
-    published_at = Column(DateTime(timezone=True), nullable=True)
-    read_at = Column(DateTime(timezone=True), nullable=True)
-    bookmarked = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
-    updated_at = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(UTC),
-        onupdate=lambda: datetime.now(UTC),
-    )
-
-    subscription = relationship("Subscription", back_populates="items")
-
-    __table_args__ = (
-        Index("idx_subscription_external", "subscription_id", "external_id"),
-        Index("idx_published_at", "published_at"),
-        Index("idx_read_at", "read_at"),
-        Index("idx_bookmarked", "bookmarked"),
-    )
-
-
-class SubscriptionCategory(Base):
-    """Categories for organizing subscriptions.
-
-    user_id is nullable to allow shared/system categories.
-    If user_id is NULL, the category can be used by any user.
-    """
-
-    __tablename__ = "subscription_categories"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    name = Column(String(100), nullable=False)
-    description = Column(Text, nullable=True)
-    color = Column(String(7), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
-    updated_at = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(UTC),
-        onupdate=lambda: datetime.now(UTC),
-    )
-
-    subscriptions = relationship(
-        "Subscription",
-        secondary="subscription_category_mappings",
-        back_populates="categories",
-    )
-
-    __table_args__ = (Index("idx_user_category", "user_id", "name"),)
-
-
-class SubscriptionCategoryMapping(Base):
-    """Many-to-many mapping between subscriptions and categories."""
-
-    __tablename__ = "subscription_category_mappings"
-
-    subscription_id = Column(
-        Integer, ForeignKey("subscriptions.id", ondelete="CASCADE"), primary_key=True
-    )
-    category_id = Column(
-        Integer,
-        ForeignKey("subscription_categories.id", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
 
 # ---------------------------------------------------------------------------
@@ -1202,9 +1109,6 @@ __all__ = [
     "UpdateFrequency",
     "Subscription",
     "UserSubscription",
-    "SubscriptionItem",
-    "SubscriptionCategory",
-    "SubscriptionCategoryMapping",
     # Media domain (merged)
     "PodcastEpisodeTranscript",
     "TranscriptionStatus",

@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.core.auth import get_token_user_id
+from app.core.auth import require_api_key
 from app.core.config import settings
 from app.core.exceptions import (
     EpisodeNotFoundError,
@@ -24,13 +24,10 @@ from app.domains.podcast.routes.episode_route_common import (
 )
 from app.domains.podcast.routes.response_assemblers import (
     build_episode_list_response,
-    build_existing_playback_state_response,
     build_feed_response,
-    build_pending_summaries_response,
     build_playback_history_list_response,
     build_playback_state_response,
     build_summary_models_response,
-    build_summary_start_response,
 )
 from app.domains.podcast.schemas import (
     PlaybackRateApplyRequest,
@@ -294,7 +291,7 @@ async def generate_summary(
                 request.custom_prompt,
             )
 
-        return build_summary_start_response(
+        return PodcastSummaryStartResponse(
             episode_id=episode_id,
             summary_status=accepted["summary_status"],
             accepted_at=accepted.get("accepted_at", datetime.now(UTC)),
@@ -373,7 +370,7 @@ async def get_playback_state(
         playback = await service.get_playback_state(episode_id)
         if not playback:
             raise HTTPException(status_code=404, detail="Playback record not found")
-        return build_existing_playback_state_response(playback)
+        return PodcastPlaybackStateResponse(**playback)
     except EpisodeNotFoundError:
         raise HTTPException(status_code=404, detail="Episode not found") from None
 
@@ -435,11 +432,11 @@ async def apply_playback_rate_preference(
     summary="List pending summaries",
 )
 async def get_pending_summaries(
-    user_id: int = Depends(get_token_user_id),
+    user_id: int = Depends(require_api_key),
     summary_workflow: SummaryWorkflowService = Depends(get_summary_workflow_service),
 ):
     pending = await summary_workflow.list_pending_summaries_for_user(user_id)
-    return build_pending_summaries_response(pending)
+    return PodcastSummaryPendingResponse(count=len(pending), episodes=pending)
 
 
 @router.get(

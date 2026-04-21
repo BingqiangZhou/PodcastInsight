@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from app.shared.time_utils import (
+from app.core.datetime_utils import (
     format_bytes,
     format_number,
     format_uptime,

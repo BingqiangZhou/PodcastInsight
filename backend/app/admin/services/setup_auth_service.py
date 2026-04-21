@@ -27,23 +27,3 @@ class AdminSetupAuthService:
             },
             status_code=status_code,
         )
-
-    @staticmethod
-    def build_csrf_template_response(
-        *,
-        templates,
-        template_name: str,
-        request: Request,
-        messages: list[dict] | None = None,
-        status_code: int = status.HTTP_200_OK,
-        **context,
-    ):
-        """Render a template (same as build_template_response without CSRF)."""
-        return AdminSetupAuthService.build_template_response(
-            templates=templates,
-            template_name=template_name,
-            request=request,
-            messages=messages,
-            status_code=status_code,
-            **context,
-        )

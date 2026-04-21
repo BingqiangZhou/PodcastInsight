@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.core.redis import PodcastRedis
+from app.core.redis import RedisCache
 
 
 class _FakeRedisClient:
@@ -32,7 +32,7 @@ class _FakeRedisClient:
 
 @pytest.mark.asyncio
 async def test_cache_get_skips_ping_within_health_check_interval(monkeypatch):
-    redis = PodcastRedis()
+    redis = RedisCache()
     client = _FakeRedisClient()
     monkeypatch.setattr(redis, "_build_client", lambda: client)
 
@@ -63,7 +63,7 @@ async def test_get_client_reconnects_when_periodic_ping_fails(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_client_rebuilds_client_when_event_loop_token_changes(monkeypatch):
-    redis = PodcastRedis()
+    redis = RedisCache()
     first_client = _FakeRedisClient()
     second_client = _FakeRedisClient()
     built_clients = iter([first_client, second_client])
@@ -80,7 +80,7 @@ async def test_get_client_rebuilds_client_when_event_loop_token_changes(monkeypa
 
 @pytest.mark.asyncio
 async def test_acquire_lock_accepts_custom_value():
-    redis = PodcastRedis()
+    redis = RedisCache()
     client = _FakeRedisClient()
     redis._get_client = AsyncMock(return_value=client)
 

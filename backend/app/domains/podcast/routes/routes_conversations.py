@@ -7,13 +7,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.core.exceptions import EpisodeNotFoundError
 
-from app.core.auth import get_token_user_id
+from app.core.auth import require_api_key
 from app.domains.podcast.routes.dependencies import (
     get_conversation_service,
     get_podcast_episode_service,
 )
 from app.domains.podcast.routes.response_assemblers import (
-    build_conversation_clear_response,
     build_conversation_history_response,
     build_conversation_session_list_response,
 )
@@ -46,7 +45,7 @@ logger = logging.getLogger(__name__)
 async def list_conversation_sessions(
     episode_id: int,
     episode_service: PodcastEpisodeService = Depends(get_podcast_episode_service),
-    user_id: int = Depends(get_token_user_id),
+    user_id: int = Depends(require_api_key),
     conversation_service: ConversationService = Depends(get_conversation_service),
 ):
     try:
@@ -84,7 +83,7 @@ async def create_conversation_session(
     episode_id: int,
     request: ConversationSessionCreateRequest,
     episode_service: PodcastEpisodeService = Depends(get_podcast_episode_service),
-    user_id: int = Depends(get_token_user_id),
+    user_id: int = Depends(require_api_key),
     conversation_service: ConversationService = Depends(get_conversation_service),
 ):
     try:
@@ -121,7 +120,7 @@ async def create_conversation_session(
 async def delete_conversation_session(
     episode_id: int,
     session_id: int,
-    user_id: int = Depends(get_token_user_id),
+    user_id: int = Depends(require_api_key),
     conversation_service: ConversationService = Depends(get_conversation_service),
 ):
     try:
@@ -130,7 +129,7 @@ async def delete_conversation_session(
             user_id=user_id,
         )
 
-        return build_conversation_clear_response(
+        return PodcastConversationClearResponse(
             episode_id=episode_id,
             session_id=session_id,
             deleted_count=deleted_count,
@@ -159,7 +158,7 @@ async def get_conversation_history(
     session_id: int | None = Query(None, description="Session ID to filter by"),
     limit: int = Query(50, ge=1, le=200, description="Number of messages"),
     episode_service: PodcastEpisodeService = Depends(get_podcast_episode_service),
-    user_id: int = Depends(get_token_user_id),
+    user_id: int = Depends(require_api_key),
     conversation_service: ConversationService = Depends(get_conversation_service),
 ):
     try:
@@ -207,7 +206,7 @@ async def send_conversation_message(
     episode_id: int,
     request: PodcastConversationSendRequest,
     episode_service: PodcastEpisodeService = Depends(get_podcast_episode_service),
-    user_id: int = Depends(get_token_user_id),
+    user_id: int = Depends(require_api_key),
     conversation_service: ConversationService = Depends(get_conversation_service),
 ):
     try:
@@ -249,7 +248,7 @@ async def clear_conversation_history(
     episode_id: int,
     session_id: int | None = Query(None, description="Session ID to clear"),
     episode_service: PodcastEpisodeService = Depends(get_podcast_episode_service),
-    user_id: int = Depends(get_token_user_id),
+    user_id: int = Depends(require_api_key),
     conversation_service: ConversationService = Depends(get_conversation_service),
 ):
     try:
@@ -266,7 +265,7 @@ async def clear_conversation_history(
             session_id=session_id,
         )
 
-        return build_conversation_clear_response(
+        return PodcastConversationClearResponse(
             episode_id=episode_id,
             session_id=session_id,
             deleted_count=deleted_count,

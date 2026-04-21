@@ -25,7 +25,7 @@ from app.core.exceptions import (
     SubscriptionNotFoundError,
 )
 from app.core.interfaces.settings_provider_impl import DatabaseSettingsProvider
-from app.core.redis import PodcastRedis, get_shared_redis
+from app.core.redis import RedisCache, get_shared_redis
 from app.domains.podcast.models import (
     EpisodeHighlight,
     PodcastDailyReport,
@@ -90,7 +90,7 @@ class PodcastRepository:
     def __init__(
         self,
         db: AsyncSession,
-        redis: PodcastRedis | None = None,
+        redis: RedisCache | None = None,
         settings_provider: DatabaseSettingsProvider | None = None,
     ):
         self.db = db

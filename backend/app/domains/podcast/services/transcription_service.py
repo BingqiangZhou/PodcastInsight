@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import ValidationError
-from app.core.redis import CacheTTL, PodcastRedis, get_shared_redis
+from app.core.redis import CacheTTL, RedisCache, get_shared_redis
 from app.domains.ai.models import ModelType
 from app.domains.ai.repositories import AIModelConfigRepository
 from app.domains.podcast.ai_key_resolver import resolve_api_key_with_fallback
@@ -247,7 +247,7 @@ class TranscriptionWorkflowService:
             [],
             Awaitable[Any],
         ] = get_transcription_state_manager,
-        redis_factory: Callable[[], PodcastRedis] = get_shared_redis,
+        redis_factory: Callable[[], RedisCache] = get_shared_redis,
         claim_dispatched: Callable[[AsyncSession, int], Awaitable[bool]] | None = None,
         clear_dispatched: Callable[[int], Awaitable[None]] | None = None,
     ):

@@ -8,7 +8,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import EpisodeNotFoundError
-from app.core.redis import PodcastRedis, get_shared_redis
+from app.core.redis import RedisCache, get_shared_redis
 from app.domains.podcast.models import PodcastEpisode, PodcastPlaybackState
 from app.domains.podcast.repositories import (
     PodcastPlaybackRepository,
@@ -35,7 +35,7 @@ class PodcastPlaybackService:
         user_id: int,
         *,
         repo: PodcastPlaybackRepository | None = None,
-        redis: PodcastRedis | None = None,
+        redis: RedisCache | None = None,
     ):
         """Initialize playback service.
 

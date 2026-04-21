@@ -29,7 +29,7 @@ def get_or_generate_secret_key() -> str:
     new_key = secrets.token_urlsafe(48)
     _logger.critical(
         "SECRET_KEY not found in env/file — generated a new key. "
-        "All existing JWT tokens and encrypted data (API keys) are now INVALID. "
+        "All existing encrypted data (API keys) is now INVALID. "
         "Set SECRET_KEY explicitly to prevent this in production."
     )
     try:

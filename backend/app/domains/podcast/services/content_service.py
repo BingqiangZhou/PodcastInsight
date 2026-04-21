@@ -36,7 +36,7 @@ from app.domains.podcast.models import (
     UserSubscription,
 )
 from app.domains.podcast.parsers.feed_parser import strip_html_tags
-from app.domains.podcast.repositories import PodcastSummaryRepository
+from app.domains.podcast.repositories import PodcastRepository
 
 
 logger = logging.getLogger(__name__)
@@ -384,8 +384,8 @@ class SummaryWorkflowService:
         self,
         db: AsyncSession,
         *,
-        repo_factory: Callable[[AsyncSession], PodcastSummaryRepository] = (
-            PodcastSummaryRepository
+        repo_factory: Callable[[AsyncSession], PodcastRepository] = (
+            PodcastRepository
         ),
         summary_service_factory: Callable[
             [AsyncSession],

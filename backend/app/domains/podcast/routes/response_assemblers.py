@@ -10,7 +10,6 @@ from app.domains.podcast.schemas import (
     DailyReportDateItem,
     HighlightListResponse,
     HighlightResponse,
-    PodcastConversationClearResponse,
     PodcastConversationHistoryResponse,
     PodcastConversationMessage,
     PodcastDailyReportDatesResponse,
@@ -24,10 +23,7 @@ from app.domains.podcast.schemas import (
     PodcastPlaybackStateResponse,
     PodcastQueueItemResponse,
     PodcastQueueResponse,
-    PodcastSummaryPendingResponse,
     PodcastSummaryResponse,
-    PodcastSummaryStartResponse,
-    ScheduleConfigResponse,
     SummaryModelInfo,
     SummaryModelsResponse,
 )
@@ -117,20 +113,6 @@ def build_conversation_history_response(
     )
 
 
-def build_conversation_clear_response(
-    *,
-    episode_id: int,
-    session_id: int | None,
-    deleted_count: int,
-) -> PodcastConversationClearResponse:
-    """Build the conversation clear response."""
-    return PodcastConversationClearResponse(
-        episode_id=episode_id,
-        session_id=session_id,
-        deleted_count=deleted_count,
-    )
-
-
 def build_daily_report_dates_response(
     payload: dict[str, Any],
 ) -> PodcastDailyReportDatesResponse:
@@ -169,22 +151,6 @@ def build_summary_response(
     )
 
 
-def build_summary_start_response(
-    *,
-    episode_id: int,
-    summary_status: str,
-    accepted_at,
-    message: str,
-) -> PodcastSummaryStartResponse:
-    """Build the async summary queue acknowledgement response."""
-    return PodcastSummaryStartResponse(
-        episode_id=episode_id,
-        summary_status=summary_status,
-        accepted_at=accepted_at,
-        message=message,
-    )
-
-
 def build_playback_state_response(
     *,
     payload: dict[str, Any],
@@ -206,13 +172,6 @@ def build_playback_state_response(
     )
 
 
-def build_existing_playback_state_response(
-    payload: dict[str, Any],
-) -> PodcastPlaybackStateResponse:
-    """Build playback state response from an already-shaped payload."""
-    return PodcastPlaybackStateResponse(**payload)
-
-
 def build_queue_response(payload: dict[str, Any]) -> PodcastQueueResponse:
     """Build the queue snapshot response."""
     return PodcastQueueResponse(
@@ -221,13 +180,6 @@ def build_queue_response(payload: dict[str, Any]) -> PodcastQueueResponse:
         updated_at=payload.get("updated_at"),
         items=[PodcastQueueItemResponse(**item) for item in payload.get("items", [])],
     )
-
-
-def build_schedule_config_list_response(
-    payloads: list[dict[str, Any]],
-) -> list[ScheduleConfigResponse]:
-    """Build a list of subscription schedule responses."""
-    return [ScheduleConfigResponse(**payload) for payload in payloads]
 
 
 def build_pending_transcriptions_response(
@@ -241,13 +193,6 @@ def build_pending_transcriptions_response(
         ],
         total=payload["total"],
     )
-
-
-def build_pending_summaries_response(
-    episodes: list[dict[str, Any]],
-) -> PodcastSummaryPendingResponse:
-    """Build the pending summaries response."""
-    return PodcastSummaryPendingResponse(count=len(episodes), episodes=episodes)
 
 
 def build_summary_models_response(
@@ -282,5 +227,3 @@ def build_highlight_list_response(payload: dict[str, Any]) -> HighlightListRespo
         size=size,
         pages=pages,
     )
-
-

@@ -13,8 +13,6 @@ SKIP_LOGGING_PATHS = {
     "/health",
     "/api/v1/health",
     "/api/v1/health/ready",
-    "/metrics",
-    "/metrics/summary",
     "/docs",
     "/redoc",
     "/openapi.json",

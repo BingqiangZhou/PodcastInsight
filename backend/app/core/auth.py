@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncGenerator
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
@@ -86,20 +86,3 @@ async def get_redis_client():
 def get_settings_dependency() -> Settings:
     """Provide cached application settings."""
     return get_settings()
-
-
-# ── Compatibility aliases ────────────────────────────────────────────────────
-# These provide backward compatibility during incremental migration.
-
-
-async def get_token_user_id(user_id: int = Depends(require_api_key)) -> int:
-    """Resolve the current user ID for podcast routes.
-
-    Renamed conceptually to get_current_user_id, but keeps the old name
-    so existing route signatures don't break during migration.
-    """
-    return user_id
-
-
-# Alias for clarity in new code
-get_current_user_id = get_token_user_id

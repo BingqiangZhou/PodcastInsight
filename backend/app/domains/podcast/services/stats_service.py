@@ -10,7 +10,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.redis import (
-    PodcastRedis,
+    RedisCache,
     get_shared_redis,
 )
 from app.domains.podcast.repositories import PodcastStatsRepository
@@ -29,7 +29,7 @@ class PodcastStatsService:
         user_id: int,
         *,
         repo: PodcastStatsRepository | None = None,
-        redis: PodcastRedis | None = None,
+        redis: RedisCache | None = None,
         playback_service: PodcastPlaybackService | None = None,
     ):
         self.db = db

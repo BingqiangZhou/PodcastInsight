@@ -66,8 +66,8 @@ class ConflictError(BaseCustomError):
         super().__init__(message, 409, "CONFLICT", **kwargs)
 
 
-class CustomValidationError(BaseCustomError):
-    """Service-layer validation (named to avoid Pydantic's ValidationError)."""
+class ValidationError(BaseCustomError):
+    """Service-layer validation error."""
 
     def __init__(self, message: str = "Validation failed", **kwargs):
         super().__init__(message, 400, "VALIDATION_ERROR", **kwargs)
@@ -79,7 +79,7 @@ class InternalServerError(BaseCustomError):
 
 
 # Backward compatibility alias
-ValidationError = CustomValidationError
+CustomValidationError = ValidationError
 
 
 class DatabaseError(BaseCustomError):

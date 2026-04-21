@@ -5,13 +5,13 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.domains.podcast.tasks.task_orchestration import (
-    PodcastTaskOrchestrationService,
-)
 from app.domains.podcast.services.transcription_service import (
     TranscriptionWorkflowService,
 )
 from app.domains.podcast.tasks import tasks_transcription as transcription
+from app.domains.podcast.tasks.task_orchestration import (
+    PodcastTaskOrchestrationService,
+)
 from app.domains.podcast.tasks.tasks_transcription import (
     process_audio_transcription_handler,
 )

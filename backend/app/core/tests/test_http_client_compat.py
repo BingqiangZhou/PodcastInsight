@@ -8,13 +8,13 @@ from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
 from app.core.auth import get_redis_client
-from app.core.redis import AppCache
+from app.core.redis import RedisCache
 
 
 def test_redis_dependency_can_be_overridden(monkeypatch):
     """Verify that get_redis_client can be overridden via dependency_overrides."""
 
-    class FakeRedis(AppCache):
+    class FakeRedis(RedisCache):
         pass
 
     fake_instance = FakeRedis()
@@ -22,7 +22,7 @@ def test_redis_dependency_can_be_overridden(monkeypatch):
     app = FastAPI()
 
     @app.get("/ping")
-    async def ping(_: AppCache = Depends(get_redis_client)):
+    async def ping(_: RedisCache = Depends(get_redis_client)):
         return {"status": "ok"}
 
     app.dependency_overrides[get_redis_client] = lambda: fake_instance

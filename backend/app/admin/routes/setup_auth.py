@@ -21,7 +21,7 @@ async def login_page(request: Request, error: str = None):
     messages = [{"type": "error", "text": error}] if error else []
     from app.admin.services.setup_auth_service import AdminSetupAuthService
 
-    return AdminSetupAuthService.build_csrf_template_response(
+    return AdminSetupAuthService.build_template_response(
         templates=templates,
         template_name="login.html",
         request=request,
@@ -47,7 +47,7 @@ async def login(
     if api_key != settings.API_KEY:
         from app.admin.services.setup_auth_service import AdminSetupAuthService
 
-        return AdminSetupAuthService.build_csrf_template_response(
+        return AdminSetupAuthService.build_template_response(
             templates=templates,
             template_name="login.html",
             request=request,

@@ -1,19 +1,21 @@
 from datetime import UTC, datetime
 
 from app.domains.podcast.routes.response_assemblers import (
-    build_conversation_clear_response,
     build_conversation_history_response,
     build_conversation_session_list_response,
     build_daily_report_dates_response,
     build_episode_list_response,
     build_feed_response,
-    build_pending_summaries_response,
     build_playback_history_list_response,
     build_playback_state_response,
     build_queue_response,
-    build_schedule_config_list_response,
     build_summary_models_response,
     build_summary_response,
+)
+from app.domains.podcast.schemas import (
+    PodcastConversationClearResponse,
+    PodcastSummaryPendingResponse,
+    ScheduleConfigResponse,
 )
 
 
@@ -109,7 +111,7 @@ def test_build_playback_history_list_response_uses_lightweight_items():
 
     assert response.total == 1
     assert response.pages == 1
-    assert response.episodes[0].playback_position == 45
+    assert response.items[0].playback_position == 45
 
 
 def test_build_conversation_responses_wrap_payloads():
@@ -140,14 +142,14 @@ def test_build_conversation_responses_wrap_payloads():
             },
         ],
     )
-    clear = build_conversation_clear_response(
+    clear = PodcastConversationClearResponse(
         episode_id=9,
         session_id=3,
         deleted_count=4,
     )
 
     assert session_list.total == 1
-    assert session_list.sessions[0].message_count == 2
+    assert session_list.items[0].message_count == 2
     assert history.total == 1
     assert history.messages[0].content == "Hello"
     assert clear.deleted_count == 4
@@ -172,7 +174,7 @@ def test_build_report_dates_response():
         },
     )
 
-    assert report_dates.dates[0].total_items == 1
+    assert report_dates.items[0].total_items == 1
 
 
 def test_build_summary_and_playback_responses():
@@ -267,11 +269,12 @@ def test_build_playback_and_queue_responses_from_dicts():
 
 
 def test_build_pending_and_model_responses():
-    pending = build_pending_summaries_response(
-        [
-            {"id": 1, "title": "Episode 1"},
-            {"id": 2, "title": "Episode 2"},
-        ]
+    pending_episodes = [
+        {"id": 1, "title": "Episode 1"},
+        {"id": 2, "title": "Episode 2"},
+    ]
+    pending = PodcastSummaryPendingResponse(
+        count=len(pending_episodes), episodes=pending_episodes
     )
     models = build_summary_models_response(
         [
@@ -304,7 +307,7 @@ def test_build_schedule_config_list_response():
         "last_updated_at": now,
     }
 
-    listing = build_schedule_config_list_response([schedule_dict])
+    listing = [ScheduleConfigResponse(**schedule_dict)]
 
     assert listing[0].id == 5
     assert listing[0].update_time == "08:30"

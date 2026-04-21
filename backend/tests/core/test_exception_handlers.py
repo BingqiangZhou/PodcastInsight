@@ -9,12 +9,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.exceptions import (
     BadRequestError,
     ConflictError,
-    CustomValidationError,
     DatabaseError,
     ExternalServiceError,
     ForbiddenError,
     NotFoundError,
     UnauthorizedError,
+    ValidationError,
     setup_exception_handlers,
 )
 
@@ -84,11 +84,11 @@ def app_custom_exceptions() -> FastAPI:
 
     @app.get("/validation")
     async def raise_validation():
-        raise CustomValidationError("Field is required")
+        raise ValidationError("Field is required")
 
     @app.get("/validation-default")
     async def raise_validation_default():
-        raise CustomValidationError()
+        raise ValidationError()
 
     @app.get("/database")
     async def raise_database():

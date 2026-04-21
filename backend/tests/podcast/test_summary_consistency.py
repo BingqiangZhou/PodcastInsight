@@ -10,12 +10,12 @@ from app.core.ai_client import looks_like_html_error_page
 from app.domains.ai.services import TextGenerationService
 from app.domains.podcast.routes.routes_episodes import generate_summary
 from app.domains.podcast.schemas import PodcastSummaryRequest
-from app.domains.podcast.services.episode_service import PodcastEpisodeService
-from app.domains.podcast.services.search_service import PodcastSearchService
 from app.domains.podcast.services.content_service import (
     PodcastSummaryGenerationService,
     SummaryWorkflowService,
 )
+from app.domains.podcast.services.episode_service import PodcastEpisodeService
+from app.domains.podcast.services.search_service import PodcastSearchService
 
 
 class _ScalarResult:

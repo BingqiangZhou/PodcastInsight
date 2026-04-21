@@ -9,7 +9,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.redis import (
-    PodcastRedis,
+    RedisCache,
     get_shared_redis,
 )
 from app.domains.podcast.models import PodcastEpisode
@@ -33,7 +33,7 @@ class PodcastSearchService:
         user_id: int,
         *,
         repo: PodcastSearchRepository | None = None,
-        redis: PodcastRedis | None = None,
+        redis: RedisCache | None = None,
     ):
         """Initialize search service.
 

@@ -16,11 +16,11 @@ from fastapi.responses import RedirectResponse
 from app.core.exceptions import (
     BadRequestError,
     ConflictError,
-    CustomValidationError,
     ForbiddenError,
     InternalServerError,
     NotFoundError,
     UnauthorizedError,
+    ValidationError,
 )
 
 
@@ -40,7 +40,7 @@ def raise_validation_error(
     reason: str,
 ) -> None:
     """Raise standardized 400 Bad Request validation error."""
-    raise CustomValidationError(f"Invalid {field_name}: {reason}")
+    raise ValidationError(f"Invalid {field_name}: {reason}")
 
 
 def raise_unauthorized(message: str = "Unauthorized") -> None:
@@ -107,7 +107,7 @@ def register_admin_http_exception_handler(app: FastAPI) -> None:
 
         if exc.status_code == status.HTTP_307_TEMPORARY_REDIRECT:
             return RedirectResponse(
-                url=exc.headers.get("Location", "/api/v1/admin/2fa/setup"),
+                url=exc.headers.get("Location", "/api/v1/admin/login"),
                 status_code=status.HTTP_303_SEE_OTHER,
             )
 

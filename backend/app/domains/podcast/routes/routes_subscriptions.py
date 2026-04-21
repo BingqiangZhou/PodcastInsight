@@ -6,14 +6,11 @@ All endpoints here are mounted under:
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 
-from app.core.auth import get_token_user_id
+from app.core.auth import require_api_key
 from app.core.exceptions import SubscriptionNotFoundError
 from app.domains.podcast.routes.dependencies import (
     get_podcast_schedule_service,
     get_podcast_subscription_service,
-)
-from app.domains.podcast.routes.response_assemblers import (
-    build_schedule_config_list_response,
 )
 from app.domains.podcast.schemas import (
     PodcastSearchFilter,
@@ -44,7 +41,7 @@ router = APIRouter()
 async def add_subscription(
     subscription_data: PodcastSubscriptionCreate,
     service: PodcastSubscriptionService = Depends(get_podcast_subscription_service),
-    user_id: int = Depends(get_token_user_id),
+    user_id: int = Depends(require_api_key),
 ):
     try:
         subscription, new_episodes = await service.add_subscription(
@@ -271,7 +268,7 @@ async def get_all_subscription_schedules(
     service: PodcastScheduleService = Depends(get_podcast_schedule_service),
 ):
     rows = await service.get_all_subscription_schedules()
-    return build_schedule_config_list_response(rows)
+    return [ScheduleConfigResponse(**row) for row in rows]
 
 
 @router.post(
@@ -291,4 +288,4 @@ async def batch_update_subscription_schedules(
         update_day_of_week=schedule_data.update_day_of_week,
         fetch_interval=schedule_data.fetch_interval,
     )
-    return build_schedule_config_list_response(rows)
+    return [ScheduleConfigResponse(**row) for row in rows]

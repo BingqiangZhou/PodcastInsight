@@ -272,11 +272,6 @@ class RedisCache:
         return await client.zremrangebyscore(key, min_score, max_score)
 
 
-# Backward-compatible aliases
-AppCache = RedisCache
-PodcastRedis = RedisCache
-
-
 # ── Module-level singleton ──────────────────────────────────────────────────
 
 _shared_redis: RedisCache | None = None
@@ -308,9 +303,7 @@ async def close_shared_redis() -> None:
 
 
 __all__ = [
-    "AppCache",
     "CacheTTL",
-    "PodcastRedis",
     "RedisCache",
     "close_shared_redis",
     "get_redis",

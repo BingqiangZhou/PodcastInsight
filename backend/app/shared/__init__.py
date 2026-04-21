@@ -1,20 +1,9 @@
-"""Shared components used across domains.
-
-This package currently exposes only actively used shared modules:
-- schemas
-"""
+"""Shared components used across domains."""
 
 from .schemas import (
     APIResponse,
     BaseSchema,
-    ConversationBase,
-    ConversationCreate,
-    ConversationResponse,
-    ConversationUpdate,
     ErrorResponse,
-    MessageBase,
-    MessageCreate,
-    MessageResponse,
     PaginatedResponse,
     PaginationParams,
     SubscriptionBase,
@@ -28,14 +17,7 @@ from .schemas import (
 __all__ = [
     "APIResponse",
     "BaseSchema",
-    "ConversationBase",
-    "ConversationCreate",
-    "ConversationResponse",
-    "ConversationUpdate",
     "ErrorResponse",
-    "MessageBase",
-    "MessageCreate",
-    "MessageResponse",
     "PaginatedResponse",
     "PaginationParams",
     "SubscriptionBase",

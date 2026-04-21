@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import SubscriptionNotFoundError
-from app.core.redis import PodcastRedis, get_shared_redis
+from app.core.redis import RedisCache, get_shared_redis
 from app.core.utils import filter_thinking_content
 from app.domains.podcast.integration.secure_rss_parser import SecureRSSParser
 from app.domains.podcast.models import PodcastEpisode, Subscription, TranscriptionTask
@@ -59,7 +59,7 @@ class PodcastEpisodeService:
         user_id: int,
         *,
         repo: PodcastEpisodeRepository | None = None,
-        redis: PodcastRedis | None = None,
+        redis: RedisCache | None = None,
     ):
         """Initialize episode service.
 
@@ -581,7 +581,7 @@ class PodcastSubscriptionService:
         user_id: int,
         *,
         repo: PodcastSubscriptionRepository | None = None,
-        redis: PodcastRedis | None = None,
+        redis: RedisCache | None = None,
         parser: SecureRSSParser | None = None,
         subscription_repo: SubscriptionRepository | None = None,
     ):
