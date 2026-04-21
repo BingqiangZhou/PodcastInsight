@@ -4,6 +4,50 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [0.52.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.51.1...v0.52.0) - 2026-04-21 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.52.0))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(frontend)* Remove unused meta and flutter_lints dependencies ([dce54a2](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dce54a2ee63c2773b600a13ec6e77fba86d79b0e))
+- Clean up unused test fixtures and simplify test helpers ([344dbc1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/344dbc161e41e5364679bff974fada3c26976fb7))
+
+### 🎨 Styling
+
+- *(backend)* Fix import ordering after round 3 simplification ([a9b07db](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a9b07db284b729ea835ea5ffcb92b3a84dfc5633))
+
+### 🐛 Bug Fixes
+
+- *(frontend)* Remove leftover kCompactHeaderPanelPadding constant ([0724a7a](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/0724a7a19aa8a323083760b9a964c52522c805b5))
+- *(backend)* Harden security — timing-safe auth, rate limiting, cookie protection, blocking I/O ([7c2471f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7c2471f85e2522de6a6a39590d32e496a6d20acd))
+
+### 📚 Documentation
+
+- Add backend round 3 simplification design spec ([fcadff1](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/fcadff16ace84e4ce723b4495186e56b84386ea5))
+
+### 🚜 Refactor
+
+- *(frontend)* Remove unused offline infrastructure ([db77d9f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/db77d9f6262d4e1c9d6c0cb7f19937c785eaa0f6))
+- *(test)* Unify mocking library from mockito to mocktail ([e821f95](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e821f95c99503a3be15d21b1073fd9b7898e6335))
+- *(frontend)* Remove unused ResponsiveHelpers class ([99122cf](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/99122cf5c829a76ac240b54f742c813ddf704fd4))
+- *(podcast)* Replace image sharing with text sharing ([bb055cb](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bb055cb268b21751e523079c8ac20e4a3f93def9))
+- *(frontend)* Simplify breakpoints constants and extensions ([4dec2c0](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4dec2c0f2e3fb086cfd3e13c925ae5e8da6b7027))
+- *(frontend)* Merge ResponsiveDialogHelper into app_dialog_helper ([6558d27](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6558d2782db8f053b48338547b85cce6ea8c01c9))
+- *(frontend)* Remove deprecated CompactHeaderPanel widget ([ce10f9f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ce10f9f86f7772b26b5cdb7e91a8793b339ba1c6))
+- *(frontend)* Simplify server config dialog (719→479 lines) ([54c1028](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/54c1028777dc729dbf4079e19593ab2e948710df))
+- *(frontend)* Remove unused NotificationService and AdaptiveListSection, clean AppColors ([9c42b01](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9c42b01d1eeced903c3499e096c94bfdf9100244))
+- *(test)* Consolidate MockLocalStorageService and MockAudioPlayerNotifier ([a346403](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a346403de31e55b756a995ec700e8e62497e6e37))
+- *(frontend)* Simplify architecture across 4 modules ([bf50ece](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/bf50ece36fe9b257ccd019f2cfd1573011819486))
+- *(backend)* Round 2 simplification — fix bugs, remove aliases, clean dead code ([d18e407](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/d18e407573d8e26848eddb577f50bd227d4429d5))
+- *(backend)* Move DatabaseSettingsProvider to admin, delete core/interfaces/ ([8775d01](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/8775d0104b072389bceb5fb4a845be86d904cfe9))
+- *(backend)* Delete dead schemas, move Subscription schemas to podcast domain ([1767d5c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/1767d5c4fab94ae222506e9eb02f19e8e4ff6476))
+- *(backend)* Unify handle_api_errors and handle_admin_errors into handle_errors ([f1e2eef](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/f1e2eefab5813d9c9d1ba3ced6f8c4e87369c561))
+- *(backend)* Remove orphaned config fields FRONTEND_URL, MAX_FILE_SIZE, UPLOAD_DIR ([db8aaed](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/db8aaed1a087b0372c30a3f9532f4e7271403daa))
+- *(backend)* Reuse _extract_api_key in admin auth to eliminate duplication ([daf9f59](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/daf9f59a1886aebf562a1d75bd24cf715bbcfdc6))
+- *(backend)* Move settings_helpers from shared/ to admin/ to fix dependency inversion ([27fe268](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/27fe268ef90d53e11b4c0ebbb7b780a7186affda))
+- *(backend)* Extract display utilities from datetime_utils, consolidate format_bytes ([afb7126](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/afb7126cc443d00714f103b2428df7b045ee5d51))
+
+
+
 ## [0.51.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.51.0...v0.51.1) - 2026-04-21 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.51.1))
 
 ### 🐛 Bug Fixes

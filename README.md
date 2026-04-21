@@ -1,6 +1,6 @@
 # Personal AI Assistant
 
-[![Version](https://img.shields.io/badge/version-0.51.1-blue)](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.51.1)
+[![Version](https://img.shields.io/badge/version-0.52.0-blue)](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.52.0)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/)
 [![Dart](https://img.shields.io/badge/dart-3.8+-cyan)](https://dart.dev/)
@@ -8,7 +8,7 @@
 
 一个可扩展的私人 AI 助手，集成了播客订阅、音频播放和 AI 功能。旨在通过本地化部署和 AI 能力，打造个人化的信息处理中心。
 
-**当前版本: [v0.51.1](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.51.1)** (2026-04-21)
+**当前版本: [v0.52.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v0.52.0)** (2026-04-21)
 
 ## 更新日志
 
