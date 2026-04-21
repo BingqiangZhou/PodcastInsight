@@ -9,7 +9,7 @@ from typing import Any
 import aiofiles
 import aiohttp
 
-from app.shared.retry_utils import calculate_backoff
+from app.core.utils import calculate_backoff
 
 from .models import AudioChunk
 

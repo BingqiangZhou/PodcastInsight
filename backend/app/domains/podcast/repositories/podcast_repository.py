@@ -24,7 +24,7 @@ from app.core.exceptions import (
     QueueLimitExceededError,
     SubscriptionNotFoundError,
 )
-from app.core.interfaces.settings_provider_impl import DatabaseSettingsProvider
+from app.admin.settings_provider import DatabaseSettingsProvider
 from app.core.redis import RedisCache, get_shared_redis
 from app.domains.podcast.models import (
     EpisodeHighlight,

@@ -27,7 +27,7 @@ from app.domains.ai.models import AIModelConfig, ModelType
 from app.domains.ai.repositories import AIModelConfigRepository
 from app.domains.ai.schemas import APIKeyValidationResponse, ModelTestResponse
 from app.domains.podcast.ai_key_resolver import resolve_api_key_with_fallback
-from app.shared.retry_utils import calculate_backoff
+from app.core.utils import calculate_backoff
 
 from .model_config_service import AIModelSecurityService
 

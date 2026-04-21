@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from app.admin.services.subscriptions_opml_service import AdminSubscriptionsOpmlService
-from app.shared.schemas import SubscriptionCreate
+from app.domains.podcast.schemas import SubscriptionCreate
 
 
 class _FakeTaskOrchestrationService:

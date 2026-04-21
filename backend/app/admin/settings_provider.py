@@ -1,9 +1,4 @@
-"""Database-backed SettingsProvider implementation.
-
-This is the concrete implementation that reads from the admin domain's
-SystemSettings table.  It is the *only* place outside the admin domain
-that imports from ``app.admin.models`` for settings purposes.
-"""
+"""Database-backed settings provider for reading system settings."""
 
 from typing import Any
 
@@ -17,7 +12,6 @@ class DatabaseSettingsProvider:
     """Read system settings from the ``system_settings`` table."""
 
     async def get_setting(self, db: AsyncSession, key: str) -> dict[str, Any] | None:
-        """Return the full JSON value for *key*, or ``None`` if absent."""
         result = await db.execute(
             select(SystemSettings).where(SystemSettings.key == key),
         )
@@ -32,7 +26,6 @@ class DatabaseSettingsProvider:
         key: str,
         default: Any = None,
     ) -> Any:
-        """Return a specific nested value or *default* when the key is missing."""
         data = await self.get_setting(db, key)
         if data is None:
             return default

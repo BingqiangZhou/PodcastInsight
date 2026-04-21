@@ -13,6 +13,32 @@ PodcastBaseSchema = BaseSchema
 PodcastTimestampedSchema = TimestampedSchema
 
 
+# === Generic Subscription schemas (moved from shared/) ===
+
+
+class SubscriptionBase(BaseSchema):
+    title: str
+    description: str | None = None
+    source_type: str
+    source_url: str
+    image_url: str | None = None
+    config: dict[str, Any] | None = {}
+    fetch_interval: int = 3600
+
+
+class SubscriptionCreate(SubscriptionBase):
+    pass
+
+
+class SubscriptionUpdate(BaseSchema):
+    title: str | None = None
+    description: str | None = None
+    image_url: str | None = None
+    config: dict[str, Any] | None = None
+    fetch_interval: int | None = None
+    is_active: bool | None = None
+
+
 # === Subscription相关 ===
 
 

@@ -5,11 +5,7 @@ including timezone management, formatting, and conversions.
 日期时间工具函数
 """
 
-import logging
 from datetime import UTC, datetime, timezone
-
-
-logger = logging.getLogger(__name__)
 
 
 def remove_timezone(dt: datetime | None) -> datetime | None:
@@ -42,142 +38,6 @@ def remove_timezone(dt: datetime | None) -> datetime | None:
     return dt
 
 
-def ensure_timezone_aware(
-    dt: datetime | None,
-    tz: timezone = UTC,
-) -> datetime | None:
-    """Ensure a datetime object is timezone-aware.
-
-    Args:
-        dt: Datetime object
-        tz: Timezone to use (default: UTC)
-
-    Returns:
-        Timezone-aware datetime object, or None if input is None
-
-    """
-    if dt is None:
-        return None
-
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=tz)
-
-    return dt
-
-
-def to_isoformat(dt: datetime | None) -> str | None:
-    """Convert datetime to ISO format string, handling None gracefully.
-
-    Args:
-        dt: Datetime object
-
-    Returns:
-        ISO format string, or None if input is None
-
-    """
-    if dt is None:
-        return None
-
-    return dt.isoformat()
-
-
-def parse_isoformat(dt_str: str | None) -> datetime | None:
-    """Parse ISO format string to datetime, handling None gracefully.
-
-    Args:
-        dt_str: ISO format datetime string
-
-    Returns:
-        Datetime object, or None if input is None or invalid
-
-    """
-    if dt_str is None:
-        return None
-
-    try:
-        return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
-    except (ValueError, AttributeError) as e:
-        logger.warning(f"Failed to parse datetime string '{dt_str}': {e}")
-        return None
-
-
-def format_datetime(
-    dt: datetime | None,
-    format_str: str = "%Y-%m-%d %H:%M:%S",
-) -> str | None:
-    """Format datetime to string using specified format.
-
-    Args:
-        dt: Datetime object
-        format_str: strftime format string
-
-    Returns:
-        Formatted string, or None if input is None
-
-    """
-    if dt is None:
-        return None
-
-    return dt.strftime(format_str)
-
-
-def get_current_timestamp() -> datetime:
-    """Get current timestamp as timezone-aware datetime.
-
-    Returns:
-        Current datetime in UTC
-
-    """
-    return datetime.now(UTC)
-
-
-def calculate_age(dt: datetime) -> float | None:
-    """Calculate the age of a datetime in seconds.
-
-    Args:
-        dt: Datetime object (should be in the past)
-
-    Returns:
-        Age in seconds, or None if dt is None or in the future
-
-    """
-    if dt is None:
-        return None
-
-    now = get_current_timestamp()
-    delta = now - dt
-
-    # Handle timezone-aware datetimes
-    if dt.tzinfo is None:
-        dt = ensure_timezone_aware(dt)
-    if now.tzinfo is None:
-        now = ensure_timezone_aware(now)
-
-    # Only return positive ages
-    if delta.total_seconds() < 0:
-        return None
-
-    return delta.total_seconds()
-
-
-def is_expired(dt: datetime, max_age_seconds: float) -> bool:
-    """Check if a datetime is expired based on max age.
-
-    Args:
-        dt: Datetime to check
-        max_age_seconds: Maximum allowed age in seconds
-
-    Returns:
-        True if datetime is older than max_age, False otherwise
-
-    """
-    age = calculate_age(dt)
-    if age is None:
-        return False
-
-    return age > max_age_seconds
-
-
 def sanitize_published_date(published_at: datetime | None) -> datetime | None:
     """Sanitize podcast episode published date by removing timezone.
 
@@ -197,19 +57,6 @@ def sanitize_published_date(published_at: datetime | None) -> datetime | None:
 
     """
     return remove_timezone(published_at)
-
-
-def bulk_remove_timezone(dates: list[datetime | None]) -> list[datetime | None]:
-    """Remove timezone from multiple datetime objects.
-
-    Args:
-        dates: List of datetime objects
-
-    Returns:
-        List of datetime objects without timezone
-
-    """
-    return [remove_timezone(dt) for dt in dates]
 
 
 def ensure_timezone_aware_fetch_time(fetch_time: datetime | None) -> datetime | None:
@@ -256,6 +103,7 @@ def ensure_timezone_aware_fetch_time(fetch_time: datetime | None) -> datetime | 
     return fetch_time.replace(tzinfo=UTC)
 
 
+# Display utilities — will be moved to core/display_utils.py in Phase 3
 def to_local_timezone(
     dt: datetime | None,
     format_str: str = "%Y-%m-%d %H:%M:%S",

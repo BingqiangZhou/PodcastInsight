@@ -4,7 +4,6 @@ Handles datetime serialization, ensuring timestamps include timezone info.
 """
 
 from datetime import UTC, datetime
-from json import JSONEncoder
 from typing import Any
 
 import orjson
@@ -28,24 +27,3 @@ class CustomJSONResponse(JSONResponse):
 
     def render(self, content: Any) -> bytes:
         return orjson.dumps(content, default=_default_serializer)
-
-
-class CustomJSONEncoder(JSONEncoder):
-    """Custom JSON encoder (kept for backward compatibility).
-
-    - datetime objects are serialized to timezone-aware ISO 8601 format
-    - Other types use default encoding
-    """
-
-    def default(self, obj: Any) -> Any:
-        # Handle datetime objects
-        if isinstance(obj, datetime):
-            # If datetime is naive (no timezone info), assume UTC
-            if obj.tzinfo is None:
-                # Add UTC timezone info
-                obj = obj.replace(tzinfo=UTC)
-            # Serialize to ISO format (includes timezone, e.g. +00:00)
-            return obj.isoformat()
-
-        # Delegate to parent for other types
-        return super().default(obj)

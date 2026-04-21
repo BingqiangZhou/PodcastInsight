@@ -16,7 +16,7 @@ from app.domains.podcast.services.episode_service import PodcastSubscriptionServ
 from app.domains.podcast.tasks.task_orchestration import (
     PodcastTaskOrchestrationService,
 )
-from app.shared.schemas import SubscriptionCreate
+from app.domains.podcast.schemas import SubscriptionCreate
 
 
 class AdminSubscriptionsOpmlService:

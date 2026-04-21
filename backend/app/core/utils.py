@@ -4,6 +4,7 @@
 
 import html
 import logging
+import random
 import re
 
 
@@ -98,3 +99,10 @@ def filter_thinking_content(text: str) -> str:
         )
 
     return cleaned
+
+
+def calculate_backoff(attempt: int, base_delay: float = 1.0) -> float:
+    """Calculate backoff time with jitter for retry attempts."""
+    backoff = base_delay * (2**attempt)
+    jitter = random.uniform(0, 0.5 * backoff)
+    return backoff + jitter

@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.interfaces.settings_provider_impl import DatabaseSettingsProvider
+from app.admin.settings_provider import DatabaseSettingsProvider
 from app.domains.podcast.models import (
     Subscription,
     SubscriptionStatus,
