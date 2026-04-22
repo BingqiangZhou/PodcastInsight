@@ -75,11 +75,11 @@ class Episode(Base):
     audio_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     duration: Mapped[int | None] = mapped_column(Integer, nullable=True)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    transcript_status: Mapped[ProcessingStatus] = mapped_column(
-        Enum(ProcessingStatus), nullable=False, default=ProcessingStatus.PENDING
+    transcript_status: Mapped[ProcessingStatus | None] = mapped_column(
+        Enum(ProcessingStatus), nullable=True, default=None
     )
-    summary_status: Mapped[ProcessingStatus] = mapped_column(
-        Enum(ProcessingStatus), nullable=False, default=ProcessingStatus.PENDING
+    summary_status: Mapped[ProcessingStatus | None] = mapped_column(
+        Enum(ProcessingStatus), nullable=True, default=None
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

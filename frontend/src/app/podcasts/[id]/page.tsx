@@ -24,7 +24,7 @@ export default function PodcastDetailPage({
 }) {
   const { id } = use(params);
   const { data: podcast, isLoading } = usePodcast(id);
-  const { data: episodes } = useEpisodes({ podcast_id: id, per_page: 50 });
+  const { data: episodes } = useEpisodes({ podcast_id: id, page_size: 50 });
   const trackMut = useTrackPodcast();
   const untrackMut = useUntrackPodcast();
 

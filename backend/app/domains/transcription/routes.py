@@ -1,14 +1,14 @@
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.domains.podcast.models import ProcessingStatus
 from app.domains.podcast.repository import EpisodeRepository
 from app.domains.podcast.schemas import SyncResponse
-from app.domains.transcription.schemas import TranscribeRequest, TranscriptDetail, TranscriptResponse
+from app.domains.transcription.schemas import TranscriptDetail
 from app.domains.transcription.service import TranscriptionService
 
 router = APIRouter(tags=["transcription"])
@@ -18,11 +18,9 @@ logger = logging.getLogger(__name__)
 @router.post("/episodes/{episode_id}/transcribe", response_model=SyncResponse)
 async def transcribe_episode(
     episode_id: UUID,
-    request: TranscribeRequest | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> SyncResponse:
-    """Trigger transcription for an episode."""
-    # Verify episode exists
+    """Transcribe an episode. Runs inline (no Celery required)."""
     episode_repo = EpisodeRepository(db)
     episode = await episode_repo.get(episode_id)
     if episode is None:
@@ -31,28 +29,20 @@ async def transcribe_episode(
     if not episode.audio_url:
         raise HTTPException(status_code=400, detail="Episode has no audio URL")
 
-    # Check if already processing or completed
     if episode.transcript_status == ProcessingStatus.PROCESSING:
-        raise HTTPException(status_code=409, detail="Transcription already in progress")
+        raise HTTPException(
+            status_code=409, detail="Transcription already in progress"
+        )
 
-    from app.core.celery_app import celery_app
-
-    task_kwargs = {"episode_id": str(episode_id)}
-    if request and request.language:
-        task_kwargs["language"] = request.language
-    if request and request.model:
-        task_kwargs["model"] = request.model
-
-    task = celery_app.send_task(
-        "app.domains.transcription.tasks.transcribe_episode_task",
-        args=[str(episode_id)],
-    )
-    logger.info(f"Triggered transcription task for episode {episode_id}: {task.id}")
-
-    return SyncResponse(
-        message="Transcription triggered",
-        task_id=task.id,
-    )
+    service = TranscriptionService(db)
+    try:
+        await service.transcribe_episode(episode_id)
+        await db.commit()
+        return SyncResponse(message="Transcription complete", task_id=None)
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Inline transcription failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/episodes/{episode_id}/transcript", response_model=TranscriptDetail)
@@ -85,15 +75,12 @@ async def retry_transcription(
             detail="Can only retry failed transcriptions",
         )
 
-    from app.core.celery_app import celery_app
-
-    task = celery_app.send_task(
-        "app.domains.transcription.tasks.transcribe_episode_task",
-        args=[str(episode_id)],
-    )
-    logger.info(f"Retrying transcription for episode {episode_id}: {task.id}")
-
-    return SyncResponse(
-        message="Transcription retry triggered",
-        task_id=task.id,
-    )
+    service = TranscriptionService(db)
+    try:
+        await service.transcribe_episode(episode_id)
+        await db.commit()
+        return SyncResponse(message="Transcription retry complete", task_id=None)
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Transcription retry failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

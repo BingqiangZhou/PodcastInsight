@@ -38,3 +38,9 @@ htmlcov/
 
 # Docker
 docker/nginx/ssl/
+
+# Backend data (whisper models, audio files)
+backend/data/
+
+# Generated
+frontend/next-env.d.ts

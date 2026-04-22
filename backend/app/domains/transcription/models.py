@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -17,6 +18,7 @@ class Transcript(Base):
         ForeignKey("episodes.id", ondelete="CASCADE"), unique=True, nullable=False
     )
     content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    segments: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     language: Mapped[str | None] = mapped_column(String(10), nullable=True)
     duration: Mapped[int | None] = mapped_column(Integer, nullable=True)
     word_count: Mapped[int | None] = mapped_column(Integer, nullable=True)

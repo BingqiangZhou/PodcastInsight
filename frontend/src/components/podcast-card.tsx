@@ -24,7 +24,7 @@ export function PodcastCard({
   isToggling,
 }: PodcastCardProps) {
   return (
-    <Card className="group flex flex-col overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="group card-hover-lift flex flex-col overflow-hidden">
       <Link href={`/podcasts/${podcast.id}`} className="block">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
@@ -35,7 +35,7 @@ export function PodcastCard({
                   src={podcast.logo_url}
                   alt={podcast.name}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-200 group-hover:scale-105"
                   sizes="64px"
                 />
               ) : (
@@ -47,7 +47,7 @@ export function PodcastCard({
 
             {/* Info */}
             <div className="min-w-0 flex-1">
-              <h3 className="truncate text-sm font-semibold group-hover:text-primary">
+              <h3 className="truncate text-sm font-semibold group-hover:text-primary transition-colors">
                 {podcast.name}
               </h3>
               {podcast.author && (
@@ -70,7 +70,7 @@ export function PodcastCard({
         </CardContent>
       </Link>
 
-      <CardFooter className="border-t px-4 py-2">
+      <CardFooter className="mt-auto border-t px-4 py-2">
         <Button
           variant={podcast.is_tracked ? 'secondary' : 'outline'}
           size="sm"

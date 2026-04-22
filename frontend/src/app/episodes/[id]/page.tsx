@@ -8,9 +8,8 @@ import {
   FileText,
   Sparkles,
   Loader2,
-  Play,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/status-badge';
 import { TranscriptViewer } from '@/components/transcript-viewer';
@@ -62,7 +61,7 @@ export default function EpisodeDetailPage({
 
   const handleTranscribe = () => {
     transcribeMut.mutate(id, {
-      onSuccess: () => toast.success('转录任务已提交'),
+      onSuccess: () => toast.success('转录完成'),
       onError: (err) => toast.error(`转录失败: ${err.message}`),
     });
   };
@@ -97,7 +96,7 @@ export default function EpisodeDetailPage({
       )}
 
       {/* Episode Info */}
-      <Card>
+      <Card className="animate-fade-in-up">
         <CardContent className="p-6">
           <h1 className="text-xl font-bold">{episode.title}</h1>
           {episode.description && (
@@ -169,7 +168,7 @@ export default function EpisodeDetailPage({
       {/* Transcript */}
       {transcript && <TranscriptViewer transcript={transcript} />}
       {isTranscribing && !transcript && (
-        <Card>
+        <Card className="animate-fade-in">
           <CardContent className="flex items-center justify-center gap-2 py-10 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             正在转录中，请稍候...
@@ -180,7 +179,7 @@ export default function EpisodeDetailPage({
       {/* Summary */}
       {summary && <SummaryCard summary={summary} />}
       {isSummarizing && !summary && (
-        <Card>
+        <Card className="animate-fade-in">
           <CardContent className="flex items-center justify-center gap-2 py-10 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             正在生成总结，请稍候...

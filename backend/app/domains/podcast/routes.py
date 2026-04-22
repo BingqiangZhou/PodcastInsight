@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.domains.podcast.models import ProcessingStatus
 from app.domains.podcast.schemas import (
+    EpisodeDetail,
     EpisodeListResponse,
     PodcastDetail,
     PodcastListResponse,
@@ -98,6 +100,37 @@ async def sync_episodes(
         await db.rollback()
         logger.error(f"Episode sync failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/episodes", response_model=EpisodeListResponse)
+async def list_episodes(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    podcast_id: UUID | None = Query(None),
+    transcript_status: ProcessingStatus | None = Query(None),
+    summary_status: ProcessingStatus | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> EpisodeListResponse:
+    service = EpisodeService(db)
+    return await service.list_episodes(
+        page=page,
+        page_size=page_size,
+        podcast_id=podcast_id,
+        transcript_status=transcript_status,
+        summary_status=summary_status,
+    )
+
+
+@router.get("/episodes/{episode_id}", response_model=EpisodeDetail)
+async def get_episode(
+    episode_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> EpisodeDetail:
+    service = EpisodeService(db)
+    episode = await service.get_episode(episode_id)
+    if episode is None:
+        raise HTTPException(status_code=404, detail="Episode not found")
+    return episode
 
 
 @router.get("/podcasts/{podcast_id}/episodes", response_model=EpisodeListResponse)

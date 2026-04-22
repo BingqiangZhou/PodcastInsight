@@ -8,24 +8,17 @@
  */
 
 export {
-  // Podcast queries
   usePodcasts,
   usePodcast,
   useRankings,
   useTrackPodcast,
   useUntrackPodcast,
-
-  // Episode queries
   useEpisodes,
   useEpisode,
   useTranscribeEpisode,
   useSummarizeEpisode,
-
-  // Transcript & Summary queries
   useTranscript,
   useSummary,
-
-  // Settings queries
   useProviders,
   useCreateProvider,
   useUpdateProvider,
@@ -34,11 +27,7 @@ export {
   useCreateModel,
   useUpdateModel,
   useDeleteModel,
-
-  // Sync queries
   useSyncRankings,
   useSyncEpisodes,
-
-  // Dashboard queries
   useDashboardStats,
 } from './api';

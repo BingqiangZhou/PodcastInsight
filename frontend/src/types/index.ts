@@ -58,6 +58,12 @@ export interface Episode {
   podcast?: Podcast;
 }
 
+export interface TranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+}
+
 export interface Transcript {
   id: string;
   episode_id: string;
@@ -65,6 +71,7 @@ export interface Transcript {
   language: string | null;
   word_count: number | null;
   model_used: string | null;
+  segments: TranscriptSegment[] | null;
   created_at: string;
 }
 
@@ -108,8 +115,8 @@ export interface PaginatedResponse<T> {
   items: T[];
   total: number;
   page: number;
-  per_page: number;
-  pages: number;
+  page_size: number;
+  total_pages: number;
 }
 
 export interface ApiError {
@@ -121,7 +128,7 @@ export interface ApiError {
 
 export interface PodcastListParams {
   page?: number;
-  per_page?: number;
+  page_size?: number;
   search?: string;
   category?: string;
   is_tracked?: boolean;
@@ -129,7 +136,7 @@ export interface PodcastListParams {
 
 export interface EpisodeListParams {
   page?: number;
-  per_page?: number;
+  page_size?: number;
   search?: string;
   podcast_id?: string;
   transcript_status?: TranscriptStatus;

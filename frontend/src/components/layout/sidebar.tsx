@@ -7,8 +7,11 @@ import {
   Podcast,
   Settings,
   Radio,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSidebar } from './sidebar-context';
 
 const navItems = [
   {
@@ -30,17 +33,40 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { collapsed, toggle } = useSidebar();
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r bg-sidebar-background text-sidebar-foreground">
+    <aside
+      className={cn(
+        'flex h-screen flex-col border-r bg-sidebar-background text-sidebar-foreground transition-[width] duration-200',
+        collapsed ? 'w-16' : 'w-60'
+      )}
+    >
       {/* Logo / Branding */}
-      <div className="flex h-14 items-center gap-2 border-b px-4">
-        <Radio className="h-6 w-6 text-sidebar-primary" />
-        <span className="text-lg font-bold tracking-tight">PodDigest</span>
+      <div className="flex h-14 items-center justify-between border-b px-3">
+        <div className="flex items-center gap-2 overflow-hidden">
+          <Radio className="h-6 w-6 shrink-0 text-sidebar-primary" />
+          {!collapsed && (
+            <span className="text-lg font-bold tracking-tight whitespace-nowrap">
+              PodDigest
+            </span>
+          )}
+        </div>
+        <button
+          onClick={toggle}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+          aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
+        >
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-2 py-4">
         {navItems.map((item) => {
           const isActive =
             item.href === '/'
@@ -51,25 +77,29 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              title={collapsed ? item.label : undefined}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center rounded-md text-sm font-medium transition-colors',
+                collapsed
+                  ? 'justify-center px-0 py-2'
+                  : 'gap-3 px-3 py-2',
                 isActive
                   ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                   : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
               )}
             >
-              <item.icon className="h-4 w-4" />
-              {item.label}
+              <item.icon className="h-4 w-4 shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
       {/* Footer */}
-      <div className="border-t px-4 py-3">
-        <p className="text-xs text-muted-foreground">
-          PodDigest v1.0
-        </p>
+      <div className="border-t px-3 py-3">
+        {!collapsed && (
+          <p className="text-xs text-muted-foreground">PodDigest v1.0</p>
+        )}
       </div>
     </aside>
   );

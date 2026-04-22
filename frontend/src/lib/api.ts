@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import type {
   Podcast,
-  PodcastRanking,
   Episode,
   Transcript,
   Summary,
@@ -61,7 +60,7 @@ async function listPodcasts(
 ): Promise<PaginatedResponse<Podcast>> {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.set("page", String(params.page));
-  if (params?.per_page) searchParams.set("per_page", String(params.per_page));
+  if (params?.page_size) searchParams.set("page_size", String(params.page_size));
   if (params?.search) searchParams.set("search", params.search);
   if (params?.category) searchParams.set("category", params.category);
   if (params?.is_tracked !== undefined)
@@ -74,23 +73,12 @@ async function getPodcast(id: string): Promise<Podcast> {
   return fetcher(`/podcasts/${id}`);
 }
 
-async function getRankings(
-  page?: number,
-  perPage?: number
-): Promise<PaginatedResponse<Podcast>> {
-  const params = new URLSearchParams();
-  if (page) params.set("page", String(page));
-  if (perPage) params.set("per_page", String(perPage));
-  const qs = params.toString();
-  return fetcher(`/podcasts/rankings${qs ? `?${qs}` : ""}`);
-}
-
-async function trackPodcast(id: string): Promise<Podcast> {
+async function trackPodcast(id: string): Promise<{ id: string; is_tracked: boolean }> {
   return fetcher(`/podcasts/${id}/track`, { method: "POST" });
 }
 
-async function untrackPodcast(id: string): Promise<Podcast> {
-  return fetcher(`/podcasts/${id}/track`, { method: "DELETE" });
+async function untrackPodcast(id: string): Promise<{ id: string; is_tracked: boolean }> {
+  return fetcher(`/podcasts/${id}/track`, { method: "POST" });
 }
 
 // ===== Episode API =====
@@ -98,11 +86,16 @@ async function untrackPodcast(id: string): Promise<Podcast> {
 async function listEpisodes(
   params?: EpisodeListParams
 ): Promise<PaginatedResponse<Episode>> {
+  if (params?.podcast_id) {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set("page", String(params.page));
+    if (params?.page_size) searchParams.set("page_size", String(params.page_size));
+    const qs = searchParams.toString();
+    return fetcher(`/podcasts/${params.podcast_id}/episodes${qs ? `?${qs}` : ""}`);
+  }
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.set("page", String(params.page));
-  if (params?.per_page) searchParams.set("per_page", String(params.per_page));
-  if (params?.search) searchParams.set("search", params.search);
-  if (params?.podcast_id) searchParams.set("podcast_id", params.podcast_id);
+  if (params?.page_size) searchParams.set("page_size", String(params.page_size));
   if (params?.transcript_status)
     searchParams.set("transcript_status", params.transcript_status);
   if (params?.summary_status)
@@ -137,7 +130,7 @@ async function getSummary(episodeId: string): Promise<Summary> {
 
 // ===== Settings API =====
 
-async function listProviders(): Promise<AIProvider[]> {
+async function listProviders(): Promise<PaginatedResponse<AIProvider>> {
   return fetcher("/settings/providers");
 }
 
@@ -199,23 +192,23 @@ async function deleteModel(
 // ===== Sync API =====
 
 async function syncRankings(): Promise<SyncResponse> {
-  return fetcher("/sync/rankings", { method: "POST" });
+  return fetcher("/podcasts/sync", { method: "POST" });
 }
 
 async function syncEpisodes(): Promise<SyncResponse> {
-  return fetcher("/sync/episodes", { method: "POST" });
+  return fetcher("/episodes/sync", { method: "POST" });
 }
 
 // ===== Dashboard API (composite) =====
 
 async function getDashboardStats(): Promise<DashboardStats> {
   const [podcastsData, trackedData, episodesData] = await Promise.all([
-    fetcher<PaginatedResponse<Podcast>>("/podcasts?per_page=1"),
-    fetcher<PaginatedResponse<Podcast>>("/podcasts?is_tracked=true&per_page=1"),
-    fetcher<PaginatedResponse<Episode>>("/episodes?per_page=1"),
+    fetcher<PaginatedResponse<Podcast>>("/podcasts?page_size=1"),
+    fetcher<PaginatedResponse<Podcast>>("/podcasts?is_tracked=true&page_size=1"),
+    fetcher<PaginatedResponse<Episode>>("/episodes?page_size=1"),
   ]);
   const transcribedData = await fetcher<PaginatedResponse<Episode>>(
-    "/episodes?transcript_status=completed&per_page=1"
+    "/episodes?transcript_status=completed&page_size=1"
   );
   return {
     total_podcasts: podcastsData.total,
@@ -244,10 +237,10 @@ export function usePodcast(id: string) {
   });
 }
 
-export function useRankings(page?: number, perPage?: number) {
+export function useRankings(page?: number, pageSize?: number) {
   return useQuery({
-    queryKey: ["rankings", page, perPage],
-    queryFn: () => getRankings(page, perPage),
+    queryKey: ["rankings", page, pageSize],
+    queryFn: () => listPodcasts({ page, page_size: pageSize }),
   });
 }
 
@@ -258,6 +251,8 @@ export function useTrackPodcast() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["podcasts"] });
       queryClient.invalidateQueries({ queryKey: ["podcast"] });
+      queryClient.invalidateQueries({ queryKey: ["rankings"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
   });
 }
@@ -269,6 +264,8 @@ export function useUntrackPodcast() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["podcasts"] });
       queryClient.invalidateQueries({ queryKey: ["podcast"] });
+      queryClient.invalidateQueries({ queryKey: ["rankings"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
   });
 }

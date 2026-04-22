@@ -22,11 +22,17 @@ class Settings(BaseSettings):
 
     ENCRYPTION_KEY: str = ""
 
-    WHISPER_MODEL: str = "whisper-1"
+    WHISPER_MODEL_SIZE: str = "large-v3-turbo"
+    WHISPER_DEVICE: str = "cuda"
+    WHISPER_COMPUTE_TYPE: str = "float16"
+    WHISPER_BATCH_SIZE: int = 8
+    WHISPER_MODEL_DIR: str = "data/whisper_models"
+    AUDIO_STORAGE_DIR: str = "data/audio"
+    AUDIO_CLEANUP_AGE_HOURS: int = 24
 
     XYZRANK_API_URL: str = "https://xyzrank.com/api/podcasts"
 
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:8000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:8000"]
 
 
 @lru_cache

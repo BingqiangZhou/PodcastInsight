@@ -42,7 +42,7 @@ export default function PodcastsPage() {
 
   const { data, isLoading } = usePodcasts({
     page,
-    per_page: perPage,
+    page_size: perPage,
     search: search || undefined,
     category: category && category !== '全部' ? category : undefined,
   });
@@ -135,13 +135,14 @@ export default function PodcastsPage() {
         </div>
       ) : data?.items.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {data.items.map((podcast) => (
-            <PodcastCard
-              key={podcast.id}
-              podcast={podcast}
-              onTrackToggle={handleTrackToggle}
-              isToggling={trackMut.isPending || untrackMut.isPending}
-            />
+          {data.items.map((podcast, i) => (
+            <div key={podcast.id} className={`animate-fade-in-up stagger-${Math.min(i % 8 + 1, 8)}`}>
+              <PodcastCard
+                podcast={podcast}
+                onTrackToggle={handleTrackToggle}
+                isToggling={trackMut.isPending || untrackMut.isPending}
+              />
+            </div>
           ))}
         </div>
       ) : (
@@ -151,7 +152,7 @@ export default function PodcastsPage() {
       )}
 
       {/* Pagination */}
-      {data && data.pages > 1 && (
+      {data && data.total_pages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <Button
             variant="outline"
@@ -162,13 +163,13 @@ export default function PodcastsPage() {
             上一页
           </Button>
           <span className="text-sm text-muted-foreground">
-            第 {page} / {data.pages} 页
+            第 {page} / {data.total_pages} 页
           </span>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage((p) => Math.min(data.pages, p + 1))}
-            disabled={page >= data.pages}
+            onClick={() => setPage((p) => Math.min(data.total_pages, p + 1))}
+            disabled={page >= data.total_pages}
           >
             下一页
           </Button>

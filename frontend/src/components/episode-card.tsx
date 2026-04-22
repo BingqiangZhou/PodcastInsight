@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Clock, Calendar } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/status-badge';
 import { cn, formatDate, formatDuration } from '@/lib/utils';
 import type { Episode } from '@/types';
@@ -22,7 +21,7 @@ export function EpisodeCard({ episode, showPodcastName = false }: EpisodeCardPro
       >
         {/* Episode info */}
         <div className="min-w-0 flex-1">
-          <h4 className="truncate text-sm font-medium hover:text-primary">
+          <h4 className="truncate text-sm font-medium group-hover:text-primary">
             {episode.title}
           </h4>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">

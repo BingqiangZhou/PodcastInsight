@@ -111,9 +111,9 @@ export default function SettingsPage() {
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : providers?.length ? (
+      ) : providers?.items.length ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {providers.map((provider) => (
+          {providers.items.map((provider) => (
             <Card key={provider.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">

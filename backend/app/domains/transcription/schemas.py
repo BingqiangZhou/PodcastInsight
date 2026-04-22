@@ -29,12 +29,14 @@ class TranscriptResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class TranscriptSegment(BaseModel):
+    start: float
+    end: float
+    text: str
+
+
 class TranscriptDetail(TranscriptResponse):
     content: str | None = None
+    segments: list[TranscriptSegment] | None = None
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class TranscribeRequest(BaseModel):
-    language: str | None = None
-    model: str | None = None

@@ -78,8 +78,8 @@ class EpisodeBase(BaseModel):
 class EpisodeResponse(EpisodeBase):
     id: UUID
     podcast_id: UUID
-    transcript_status: ProcessingStatus
-    summary_status: ProcessingStatus
+    transcript_status: ProcessingStatus | None = None
+    summary_status: ProcessingStatus | None = None
     created_at: datetime
     updated_at: datetime
 

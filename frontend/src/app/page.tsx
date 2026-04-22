@@ -28,7 +28,7 @@ import { toast } from 'sonner';
 export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: rankings } = useRankings(1, 6);
-  const { data: recentEpisodes } = useEpisodes({ per_page: 5, page: 1 });
+  const { data: recentEpisodes } = useEpisodes({ page_size: 5, page: 1 });
   const syncRankings = useSyncRankings();
   const syncEpisodes = useSyncEpisodes();
   const trackMut = useTrackPodcast();
@@ -121,13 +121,13 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {statCards.map((stat) => (
-          <Card key={stat.title}>
+        {statCards.map((stat, i) => (
+          <Card key={stat.title} className={`animate-fade-in-up stagger-${i + 1}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground">{stat.title}</p>
-                  <p className="mt-1 text-2xl font-bold">
+                  <p className="mt-1 text-2xl font-bold tabular-nums">
                     {statsLoading ? (
                       <span className="text-muted-foreground">--</span>
                     ) : (
@@ -145,7 +145,7 @@ export default function DashboardPage() {
       {/* Two-column layout */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Top Rankings */}
-        <Card>
+        <Card className="animate-fade-in-up stagger-5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base">热门播客排行</CardTitle>
             <Link href="/podcasts">
@@ -178,7 +178,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Episodes */}
-        <Card>
+        <Card className="animate-fade-in-up stagger-6">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base">最新剧集</CardTitle>
           </CardHeader>

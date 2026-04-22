@@ -29,10 +29,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database tables created/verified")
 
+    # Clean up old audio files on startup
+    from app.core.whisper import cleanup_old_audio_files
+    removed = cleanup_old_audio_files()
+    if removed:
+        logger.info(f"Startup audio cleanup: removed {removed} old files")
+
     yield
 
     # Shutdown
     logger.info("Shutting down...")
+    from app.core.whisper import unload_whisper_model
+    unload_whisper_model()
     await close_redis()
     await engine.dispose()
     logger.info("Shutdown complete")
