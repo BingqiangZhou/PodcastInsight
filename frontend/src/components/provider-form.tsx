@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -43,13 +43,6 @@ const DEFAULT_URLS: Record<string, string> = {
   custom: '',
 };
 
-interface FormValues {
-  provider_name: string;
-  base_url: string;
-  api_key: string;
-  is_default: boolean;
-}
-
 export function ProviderForm({
   open,
   onOpenChange,
@@ -60,49 +53,49 @@ export function ProviderForm({
   const isEditing = !!provider;
 
   const [providerType, setProviderType] = useState(
-    provider?.provider_name ?? ''
+    provider?.provider_type ?? ''
   );
+  const [name, setName] = useState(provider?.name ?? '');
+  const [baseUrl, setBaseUrl] = useState(provider?.base_url ?? '');
+  const [apiKey, setApiKey] = useState('');
+  const [isActive, setIsActive] = useState(provider?.is_active ?? true);
 
-  const defaultValues: FormValues = provider
-    ? {
-        provider_name: provider.provider_name,
-        base_url: provider.base_url,
-        api_key: '', // Never pre-fill API key
-        is_default: provider.is_default,
-      }
-    : {
-        provider_name: '',
-        base_url: '',
-        api_key: '',
-        is_default: false,
-      };
-
-  const [form, setForm] = useState<FormValues>(defaultValues);
+  // Reset form when dialog opens or provider changes
+  useEffect(() => {
+    if (open) {
+      setProviderType(provider?.provider_type ?? '');
+      setName(provider?.name ?? '');
+      setBaseUrl(provider?.base_url ?? '');
+      setApiKey('');
+      setIsActive(provider?.is_active ?? true);
+    }
+  }, [open, provider]);
 
   const handleProviderTypeChange = (value: string) => {
     setProviderType(value);
-    setForm((prev) => ({
-      ...prev,
-      provider_name: value,
-      base_url: DEFAULT_URLS[value] ?? prev.base_url,
-    }));
+    if (!isEditing) {
+      setName(value);
+      setBaseUrl(DEFAULT_URLS[value] ?? '');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEditing && provider) {
+    if (isEditing) {
       const data: UpdateProviderRequest = {};
-      if (form.provider_name) data.provider_name = form.provider_name;
-      if (form.base_url) data.base_url = form.base_url;
-      if (form.api_key) data.api_key = form.api_key;
-      data.is_default = form.is_default;
+      if (name) data.name = name;
+      if (providerType) data.provider_type = providerType;
+      if (baseUrl) data.base_url = baseUrl;
+      if (apiKey) data.api_key = apiKey;
+      data.is_active = isActive;
       onSubmit(data);
     } else {
       onSubmit({
-        provider_name: form.provider_name,
-        base_url: form.base_url,
-        api_key: form.api_key,
-        is_default: form.is_default,
+        name: name || providerType,
+        provider_type: providerType,
+        base_url: baseUrl,
+        api_key: apiKey,
+        is_active: isActive,
       });
     }
   };
@@ -142,14 +135,23 @@ export function ProviderForm({
             </Select>
           </div>
 
+          {/* Name */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">名称</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="例如: My OpenAI"
+              required
+            />
+          </div>
+
           {/* Base URL */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Base URL</label>
             <Input
-              value={form.base_url}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, base_url: e.target.value }))
-              }
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
               placeholder="https://api.openai.com/v1"
               required
             />
@@ -165,28 +167,24 @@ export function ProviderForm({
             </label>
             <Input
               type="password"
-              value={form.api_key}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, api_key: e.target.value }))
-              }
-              placeholder={isEditing ? 'sk-...' : 'sk-...'}
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="sk-..."
               required={!isEditing}
             />
           </div>
 
-          {/* Default toggle */}
+          {/* Active toggle */}
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              id="is_default"
-              checked={form.is_default}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, is_default: e.target.checked }))
-              }
+              id="is_active"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
               className="h-4 w-4 rounded border-input"
             />
-            <label htmlFor="is_default" className="text-sm">
-              设为默认提供商
+            <label htmlFor="is_active" className="text-sm">
+              启用此提供商
             </label>
           </div>
 

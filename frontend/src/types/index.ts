@@ -90,10 +90,10 @@ export interface Summary {
 
 export interface AIProvider {
   id: string;
-  provider_name: string;
+  name: string;
+  provider_type: string;
   base_url: string;
-  encrypted_api_key: string;
-  is_default: boolean;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   models?: AIModel[];
@@ -144,17 +144,19 @@ export interface EpisodeListParams {
 }
 
 export interface CreateProviderRequest {
-  provider_name: string;
+  name: string;
+  provider_type: string;
   base_url: string;
   api_key: string;
-  is_default?: boolean;
+  is_active?: boolean;
 }
 
 export interface UpdateProviderRequest {
-  provider_name?: string;
+  name?: string;
+  provider_type?: string;
   base_url?: string;
   api_key?: string;
-  is_default?: boolean;
+  is_active?: boolean;
 }
 
 export interface CreateModelRequest {

@@ -78,7 +78,7 @@ async function trackPodcast(id: string): Promise<{ id: string; is_tracked: boole
 }
 
 async function untrackPodcast(id: string): Promise<{ id: string; is_tracked: boolean }> {
-  return fetcher(`/podcasts/${id}/track`, { method: "POST" });
+  return fetcher(`/podcasts/${id}/track`, { method: "DELETE" });
 }
 
 // ===== Episode API =====
@@ -163,9 +163,9 @@ async function createModel(
   providerId: string,
   data: CreateModelRequest
 ): Promise<AIModel> {
-  return fetcher(`/settings/providers/${providerId}/models`, {
+  return fetcher("/settings/models", {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify({ ...data, provider_id: providerId }),
   });
 }
 
@@ -174,7 +174,7 @@ async function updateModel(
   modelId: string,
   data: UpdateModelRequest
 ): Promise<AIModel> {
-  return fetcher(`/settings/providers/${providerId}/models/${modelId}`, {
+  return fetcher(`/settings/models/${modelId}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
@@ -184,7 +184,7 @@ async function deleteModel(
   providerId: string,
   modelId: string
 ): Promise<void> {
-  await fetcher(`/settings/providers/${providerId}/models/${modelId}`, {
+  await fetcher(`/settings/models/${modelId}`, {
     method: "DELETE",
   });
 }

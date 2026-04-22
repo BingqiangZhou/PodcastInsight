@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { Suspense, useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { RefreshCw, SlidersHorizontal, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { SearchBar } from '@/components/search-bar';
 import { PodcastCard } from '@/components/podcast-card';
+import { PodcastCardSkeleton } from '@/components/skeletons';
 import {
   usePodcasts,
   useTrackPodcast,
@@ -35,6 +37,38 @@ const CATEGORIES = [
 ];
 
 export default function PodcastsPage() {
+  return (
+    <Suspense
+      fallback={<PodcastsPageSkeleton />}
+    >
+      <PodcastsContent />
+    </Suspense>
+  );
+}
+
+function PodcastsPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="h-7 w-28 animate-pulse rounded bg-primary/10" />
+          <div className="mt-1 h-4 w-44 animate-pulse rounded bg-primary/10" />
+        </div>
+        <div className="h-9 w-24 animate-pulse rounded-md bg-primary/10" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <PodcastCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PodcastsContent() {
+  const searchParams = useSearchParams();
+  const initialTracked = searchParams.get('is_tracked');
+
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -45,6 +79,7 @@ export default function PodcastsPage() {
     page_size: perPage,
     search: search || undefined,
     category: category && category !== '全部' ? category : undefined,
+    is_tracked: initialTracked === 'true' ? true : undefined,
   });
 
   const trackMut = useTrackPodcast();
@@ -76,8 +111,8 @@ export default function PodcastsPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">播客列表</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">播客列表</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             浏览和追踪你感兴趣的播客
           </p>
         </div>
@@ -100,7 +135,7 @@ export default function PodcastsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3">
         <SearchBar
           placeholder="搜索播客..."
           onSearch={(val) => {
@@ -108,10 +143,11 @@ export default function PodcastsPage() {
             setPage(1);
           }}
         />
+        <div className="h-6 w-px bg-border hidden sm:block" />
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
           <Select value={category || '全部'} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[130px] h-9">
               <SelectValue placeholder="分类筛选" />
             </SelectTrigger>
             <SelectContent>
@@ -123,15 +159,17 @@ export default function PodcastsPage() {
             </SelectContent>
           </Select>
         </div>
-        <span className="text-sm text-muted-foreground">
-          共 {data?.total ?? 0} 个播客
+        <span className="ml-auto text-sm tabular-nums text-muted-foreground">
+          {data?.total ?? 0} 个播客
         </span>
       </div>
 
       {/* Podcast Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <PodcastCardSkeleton key={i} />
+          ))}
         </div>
       ) : data?.items.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -146,14 +184,25 @@ export default function PodcastsPage() {
           ))}
         </div>
       ) : (
-        <div className="py-20 text-center">
-          <p className="text-muted-foreground">未找到播客</p>
+        <div className="flex flex-col items-center justify-center py-20">
+          <Search className="h-12 w-12 text-muted-foreground/30" />
+          <p className="mt-4 text-sm text-muted-foreground">未找到匹配的播客</p>
+          {(search || category) && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => { setSearch(''); setCategory(''); setPage(1); }}
+            >
+              清除筛选条件
+            </Button>
+          )}
         </div>
       )}
 
       {/* Pagination */}
       {data && data.total_pages > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-3">
           <Button
             variant="outline"
             size="sm"
@@ -162,8 +211,8 @@ export default function PodcastsPage() {
           >
             上一页
           </Button>
-          <span className="text-sm text-muted-foreground">
-            第 {page} / {data.total_pages} 页
+          <span className="min-w-[80px] text-center text-sm tabular-nums text-muted-foreground">
+            {page} / {data.total_pages}
           </span>
           <Button
             variant="outline"

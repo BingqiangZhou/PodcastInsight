@@ -225,10 +225,14 @@ class EpisodeService:
             detail.podcast_logo_url = episode.podcast.logo_url
         return detail
 
-    async def sync_episodes(self) -> dict:
+    async def sync_episodes(self, podcast_id: UUID | None = None) -> dict:
         """Parse RSS feeds for tracked podcasts and create new episodes."""
         podcast_repo = PodcastRepository(self.session)
-        tracked_podcasts = await podcast_repo.get_tracked(limit=1000)
+        if podcast_id:
+            podcast = await podcast_repo.get(podcast_id)
+            tracked_podcasts = [podcast] if podcast else []
+        else:
+            tracked_podcasts = await podcast_repo.get_tracked(limit=1000)
 
         total_created = 0
         total_updated = 0

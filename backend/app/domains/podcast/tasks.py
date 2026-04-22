@@ -38,26 +38,23 @@ def sync_episodes_task(self, podcast_id: str | None = None) -> dict:
     After syncing, automatically dispatch transcription tasks for new episodes.
 
     Args:
-        podcast_id: If provided, sync only this podcast. Otherwise sync all tracked.
+        podcast_id: If provided, sync only this podcast via sync_podcast_episodes_task.
+                     Otherwise sync all tracked.
     """
+    if podcast_id:
+        result = sync_podcast_episodes_task.delay(podcast_id)
+        return {"task_id": result.id, "podcast_id": podcast_id}
+
     import asyncio
-    from app.domains.podcast.service import EpisodeService, PodcastService
+    from app.domains.podcast.service import EpisodeService
 
     async def _run() -> dict:
         async with async_session_factory() as session:
             try:
-                if podcast_id:
-                    # Sync episodes for a specific podcast
-                    service = PodcastService(session)
-                    result = await service.sync_rankings()
-                    await session.commit()
-                    return result
-                else:
-                    # Sync all tracked podcasts
-                    service = EpisodeService(session)
-                    result = await service.sync_episodes()
-                    await session.commit()
-                    return result
+                service = EpisodeService(session)
+                result = await service.sync_episodes()
+                await session.commit()
+                return result
             except Exception:
                 await session.rollback()
                 raise
@@ -86,20 +83,13 @@ def sync_podcast_episodes_task(self, podcast_id: str) -> dict:
     import asyncio
     from uuid import UUID
 
-    from app.domains.podcast.repository import PodcastRepository
     from app.domains.podcast.service import EpisodeService
 
     async def _run() -> dict:
         async with async_session_factory() as session:
             try:
-                # First ensure podcast is synced
-                podcast_repo = PodcastRepository(session)
-                podcast = await podcast_repo.get(UUID(podcast_id))
-                if podcast is None:
-                    return {"error": "Podcast not found"}
-
                 service = EpisodeService(session)
-                result = await service.sync_episodes()
+                result = await service.sync_episodes(podcast_id=UUID(podcast_id))
                 await session.commit()
                 return result
             except Exception:
