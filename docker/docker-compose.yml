@@ -40,7 +40,7 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
+    image: ghcr.io/bingqiangzhou/podcast-insight/backend:1.0.0
     container_name: podcastinsight-backend
     depends_on:
       postgres:
@@ -69,7 +69,7 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
+    image: ghcr.io/bingqiangzhou/podcast-insight/backend:1.0.0
     container_name: podcastinsight-celery-worker
     depends_on:
       redis:
@@ -96,7 +96,7 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
+    image: ghcr.io/bingqiangzhou/podcast-insight/backend:1.0.0
     container_name: podcastinsight-celery-beat
     depends_on:
       redis:
@@ -121,7 +121,7 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
-    image: ghcr.io/bingqiangzhou/podcast-insight/frontend:${VERSION:-latest}
+    image: ghcr.io/bingqiangzhou/podcast-insight/frontend:1.0.0
     container_name: podcastinsight-frontend
     depends_on:
       - backend

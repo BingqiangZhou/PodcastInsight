@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file.
 
 
 
-## [1.0.0](https://github.com/BingqiangZhou/Personal-AI-Assistant/compare/v0.52.0...v1.0.0) - 2026-04-22 ([📥](https://github.com/BingqiangZhou/Personal-AI-Assistant/releases/tag/v1.0.0))
+## [1.0.0](https://github.com/BingqiangZhou/PodcastInsight/compare/v0.52.0...v1.0.0) - 2026-04-22 ([📥](https://github.com/BingqiangZhou/PodcastInsight/releases/tag/v1.0.0))
+
+> **Highlights**: PodcastInsight v1.0.0 正式发布 — 从播客排行榜监控到 AI 摘要生成的全栈知识管理平台。
+>
+> 本次发布完成了项目的全面重建和品牌重塑：后端采用 FastAPI + PostgreSQL + Celery DDD 架构，前端升级至 Next.js 16 + React 19 + shadcn/ui，实现播客排行榜同步、RSS 单集监控、faster-whisper 本地 GPU 转写、多 LLM 提供商 AI 摘要等核心功能。项目从 PodDigest/personal-ai-assistant 正式更名为 **PodcastInsight**，统一了产品名、仓库名和 Docker 镜像名。
 
 ### ⚙️ Miscellaneous Tasks
 
 - Add README and uv.lock ([185191d](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/185191dfe1e37f3bd985d3a21507c47ada5e0bbf))
 - Restore v0 .claude config (agents, commands, skills) ([04c9243](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/04c9243113f0a5b64cfea00eece47d623ca7697d))
+- Restore git-cliff config and release workflow for v1 ([01a84e9](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/01a84e985b39152600f62564b78d6ce1c0a39992))
 
 ### 🐛 Bug Fixes
 
@@ -17,15 +22,34 @@ All notable changes to this project will be documented in this file.
 - *(backend)* Manage worker event loop and database connections on shutdown ([c934a21](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/c934a2110f093e5ea7451b28f7a1a8cb257117d6))
 - *(backend)* Adapt sync_rankings to xyzrank.com API format and enable inline sync ([49f7a5e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/49f7a5e05efc74035277c4b6cddffa3fe801c780))
 
+### 📚 Documentation
+
+- Add release process enhancement design spec ([a209669](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/a209669dc65f446ab025d2183b4ef1b7e2069858))
+- Add release process enhancement implementation plan ([27d29a0](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/27d29a0f1c16f15b47f44cbb56b71d637c9c417a))
+- Add episode detail page redesign spec ([dc4f18e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/dc4f18e6b58fbdec3e791b918c1abf7d051bbe43))
+- Add episode detail page implementation plan ([10d09c4](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/10d09c40de19db32036176730b82b61cc453201b))
+- Update README for v1.0.0 release ([ca211ea](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ca211ea88a9db125519fe5f4e65edd9f4277e29a))
+
 ### 🚀 Features
 
 - *(backend)* Auto-run database migrations on container startup ([0199446](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/019944639e6ae479229b301c4ed63a0ba1f5ceff))
 - *(backend)* Add automated episode pipeline (sync → transcribe → summarize) ([6c7d458](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/6c7d458260d1500b6810e13d03616cc9d59fb046))
 - Upgrade Next.js 16, add sidebar collapse, fix CORS and API bugs ([aff5c31](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/aff5c31d330cf4558f0f7a76fa9a0d18b88ee0d8))
+- *(docker)* Add GHCR image directives for backend and frontend services ([e0ba1d5](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/e0ba1d5ebf91f813109c990d58b2f8ae991b882c))
+- *(commands)* Enhance release command with highlights and docker version sync ([6093235](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/60932357c608cbbe487fda209371999e02d0dc45))
+- *(ci)* Multi-arch builds, conditional latest tag, upgrade guide in release workflow ([3a89404](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/3a894047bfd4c407ddff38dbb759ecd32277d081))
+- *(frontend)* Rewrite audio player as fixed bottom card ([06d393e](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/06d393e0b76c4dda111dd1aed14155393f0f0e56))
+- *(frontend)* Restructure episode detail page with tab system ([ea7f6c8](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/ea7f6c8222b913db2a4bcabd80c598d37ecedd28))
+- *(frontend)* Rewrite transcript viewer and summary card as tab content ([4f43f2c](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/4f43f2ce55d97b5718b5a364b80ce8b942aedc04))
+- *(frontend)* Change audio player to right-side expandable drawer ([02a63b7](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/02a63b7334407b7e55488809914a164e1895c64d))
+- *(frontend)* Improve player button visibility and drawer UI ([025efdf](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/025efdf3ba6319bdc97aefebf84beb4a0ac8b173))
+- V1.0.0 release — complete UI redesign and bug fixes ([7f4219f](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/7f4219ff631ff4fce56f22b5dbc6610a4bd971e1))
 
 ### 🚜 Refactor
 
-- Replace entire codebase with podcast-insight v1 ([9e07337](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9e073370c4fb9d12a0952b432f0c238395204829))
+- Replace entire codebase with personal-ai-assistant v1 ([9e07337](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9e073370c4fb9d12a0952b432f0c238395204829))
+- Migrate .claude config from Flutter to Next.js/React ([449e216](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/449e216197f810ce6f085f5726871ecc78dddbd4))
+- Rename project from PodDigest/personal-ai-assistant to PodcastInsight ([42c3074](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/42c30749454d5a0e926e33f3a92a7a4b84223b69))
 
 
 
