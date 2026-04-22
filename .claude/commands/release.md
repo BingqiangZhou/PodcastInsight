@@ -48,12 +48,12 @@ example: /release 1.1.0
 
 1. 在 `backend`、`celery-worker`、`celery-beat` 服务中，将 `image` 行的 `${VERSION:-latest}` 替换为具体版本号：
    ```
-   image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:<版本号>
+   image: ghcr.io/bingqiangzhou/podcast-insight/backend:<版本号>
    ```
 
 2. 在 `frontend` 服务中，同样替换：
    ```
-   image: ghcr.io/bingqiangzhou/personal-ai-assistant/frontend:<版本号>
+   image: ghcr.io/bingqiangzhou/podcast-insight/frontend:<版本号>
    ```
 
 注意：仅更新本项目构建的 4 个服务。postgres、redis、nginx 使用第三方镜像，不做修改。
@@ -93,7 +93,7 @@ chore(release): update version to <版本号> and generate changelog
 - Highlights: 用户输入或自动提取
 - backend 版本: 1.0.0 -> 1.1.0
 - frontend 版本: 1.0.0 -> 1.1.0
-- docker-compose backend image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:1.1.0
-- docker-compose frontend image: ghcr.io/bingqiangzhou/personal-ai-assistant/frontend:1.1.0
+- docker-compose backend image: ghcr.io/bingqiangzhou/podcast-insight/backend:1.1.0
+- docker-compose frontend image: ghcr.io/bingqiangzhou/podcast-insight/frontend:1.1.0
 - Tag: v1.1.0
 - Commit message: `chore(release): update version to 1.1.0 and generate changelog`

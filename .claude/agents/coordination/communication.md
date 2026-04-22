@@ -128,7 +128,7 @@ cross_functional_teams:
   "from": "backend_developer",
   "to": ["architect", "test_engineer"],
   "timestamp": "2024-01-15T10:30:00Z",
-  "project": "personal-ai-assistant",
+  "project": "podcast-insight",
   "component": "user_service",
   "status": {
     "state": "in_progress",

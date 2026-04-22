@@ -65,14 +65,14 @@ backend:
   build:
     context: ../backend
     dockerfile: Dockerfile
-  image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
+  image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
   ...
 
 frontend:
   build:
     context: ../frontend
     dockerfile: Dockerfile
-  image: ghcr.io/bingqiangzhou/personal-ai-assistant/frontend:${VERSION:-latest}
+  image: ghcr.io/bingqiangzhou/podcast-insight/frontend:${VERSION:-latest}
   ...
 ```
 

@@ -10,10 +10,10 @@ class Settings(BaseSettings):
         case_sensitive=True,
     )
 
-    APP_NAME: str = "PodDigest"
+    APP_NAME: str = "PodcastInsight"
     DEBUG: bool = False
 
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/poddigest"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/podcastinsight"
 
     REDIS_URL: str = "redis://localhost:6379/0"
 

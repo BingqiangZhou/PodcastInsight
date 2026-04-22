@@ -33,7 +33,7 @@ author: "Development Team"
 ## Shared Knowledge
 
 ### Project Overview
-This configuration serves as the foundation for all PodDigest subagents, providing shared capabilities, constraints, and behavioral guidelines.
+This configuration serves as the foundation for all PodcastInsight subagents, providing shared capabilities, constraints, and behavioral guidelines.
 
 ### Core Principles
 1. **Quality First**: Never compromise on quality for speed

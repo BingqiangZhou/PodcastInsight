@@ -16,8 +16,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'PodDigest - 播客知识中心',
-  description: '播客排名监控、转录与AI总结平台',
+  title: 'PodcastInsight - 播客洞察平台',
+  description: '播客排名监控、转录与AI洞察平台',
 };
 
 export default function RootLayout({

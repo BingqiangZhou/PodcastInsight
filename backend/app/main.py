@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="Podcast Knowledge Hub — ranking, transcription, and AI summarization",
+    description="Podcast Insight Platform — ranking, transcription, and AI summarization",
     version="1.0.0",
     lifespan=lifespan,
 )

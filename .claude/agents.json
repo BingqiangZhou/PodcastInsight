@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "project": "personal-ai-assistant",
+  "project": "podcast-insight",
   "language_policy": {
     "mode": "bilingual",
     "primary_languages": ["en", "zh"],

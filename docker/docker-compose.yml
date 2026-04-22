@@ -4,11 +4,11 @@ services:
   # ── PostgreSQL ──────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
-    container_name: poddigest-postgres
+    container_name: podcastinsight-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-poddigest}
+      POSTGRES_DB: ${POSTGRES_DB:-podcastinsight}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -23,7 +23,7 @@ services:
   # ── Redis ───────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: poddigest-redis
+    container_name: podcastinsight-redis
     volumes:
       - redis_data:/data
     ports:
@@ -40,17 +40,17 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
-    container_name: poddigest-backend
+    image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
+    container_name: podcastinsight-backend
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      APP_NAME: ${APP_NAME:-PodDigest}
+      APP_NAME: ${APP_NAME:-PodcastInsight}
       DEBUG: ${DEBUG:-false}
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-poddigest}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-podcastinsight}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -69,17 +69,17 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
-    container_name: poddigest-celery-worker
+    image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
+    container_name: podcastinsight-celery-worker
     depends_on:
       redis:
         condition: service_healthy
       postgres:
         condition: service_healthy
     environment:
-      APP_NAME: ${APP_NAME:-PodDigest}
+      APP_NAME: ${APP_NAME:-PodcastInsight}
       DEBUG: ${DEBUG:-false}
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-poddigest}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-podcastinsight}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -96,15 +96,15 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
-    container_name: poddigest-celery-beat
+    image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
+    container_name: podcastinsight-celery-beat
     depends_on:
       redis:
         condition: service_healthy
     environment:
-      APP_NAME: ${APP_NAME:-PodDigest}
+      APP_NAME: ${APP_NAME:-PodcastInsight}
       DEBUG: ${DEBUG:-false}
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-poddigest}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-podcastinsight}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -121,8 +121,8 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
-    image: ghcr.io/bingqiangzhou/personal-ai-assistant/frontend:${VERSION:-latest}
-    container_name: poddigest-frontend
+    image: ghcr.io/bingqiangzhou/podcast-insight/frontend:${VERSION:-latest}
+    container_name: podcastinsight-frontend
     depends_on:
       - backend
     environment:
@@ -134,7 +134,7 @@ services:
   # ── Nginx Reverse Proxy (production only) ──────────────────────────────
   nginx:
     image: nginx:alpine
-    container_name: poddigest-nginx
+    container_name: podcastinsight-nginx
     profiles:
       - production
     volumes:

@@ -1,6 +1,6 @@
-# PodDigest — Podcast Knowledge Hub
+# PodcastInsight — Podcast Insight Platform
 
-Podcast ranking monitor + transcription + AI summarization web platform.
+Podcast ranking monitor + transcription + AI insight platform.
 
 ## Tech Stack
 - **Backend**: FastAPI (Python 3.11+) — managed with `uv`

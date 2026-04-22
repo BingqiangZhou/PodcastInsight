@@ -370,16 +370,16 @@ echo "Deploying hotfix for bug $BUG_ID, version $VERSION"
 git checkout -b hotfix/$BUG_ID-$VERSION
 
 # 2. 构建hotfix版本
-docker build -t personal-ai-assistant:$VERSION-hotfix .
+docker build -t podcast-insight:$VERSION-hotfix .
 
 # 3. 标记和推送
-docker tag personal-ai-assistant:$VERSION-hotfix \
-  registry/personal-ai-assistant:$VERSION-hotfix
-docker push registry/personal-ai-assistant:$VERSION-hotfix
+docker tag podcast-insight:$VERSION-hotfix \
+  registry/podcast-insight:$VERSION-hotfix
+docker push registry/podcast-insight:$VERSION-hotfix
 
 # 4. 部署到生产环境
 kubectl set image deployment/app \
-  app=registry/personal-ai-assistant:$VERSION-hotfix
+  app=registry/podcast-insight:$VERSION-hotfix
 
 # 5. 验证部署
 kubectl rollout status deployment/app

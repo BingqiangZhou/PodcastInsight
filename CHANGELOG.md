@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🚜 Refactor
 
-- Replace entire codebase with personal-ai-assistant v1 ([9e07337](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9e073370c4fb9d12a0952b432f0c238395204829))
+- Replace entire codebase with podcast-insight v1 ([9e07337](https://github.com/BingqiangZhou/Personal-AI-Assistant/commit/9e073370c4fb9d12a0952b432f0c238395204829))
 
 
 

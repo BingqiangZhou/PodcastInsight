@@ -58,7 +58,7 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
           </div>
           {!collapsed && (
             <span className="font-display text-base font-bold tracking-tight text-sidebar-foreground whitespace-nowrap">
-              PodDigest
+              PodcastInsight
             </span>
           )}
         </Link>
@@ -141,7 +141,7 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
         {!collapsed && (
           <div className="px-3 pt-1">
             <p className="text-[11px] text-sidebar-foreground/30">
-              PodDigest v1.0
+              PodcastInsight v1.0
             </p>
           </div>
         )}

@@ -1,14 +1,14 @@
 ---
 name: "Domain Context"
-description: "Domain-specific context for all agents in the PodDigest project"
+description: "Domain-specific context for all agents in the PodcastInsight project"
 version: "1.1.0"
 ---
 
-# PodDigest — Domain Context
+# PodcastInsight — Domain Context
 
 ## Domain Overview
 
-PodDigest is organized into four core domains following Domain-Driven Design principles. Each domain represents a distinct business area with its own models, rules, and boundaries.
+PodcastInsight is organized into four core domains following Domain-Driven Design principles. Each domain represents a distinct business area with its own models, rules, and boundaries.
 
 ## 1. Podcast Domain
 

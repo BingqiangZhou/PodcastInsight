@@ -5,7 +5,7 @@ version: "1.1.0"
 language_policy: "bilingual"
 ---
 
-# PodDigest — Base Agent Prompt
+# PodcastInsight — Base Agent Prompt
 
 ## 🌐 Language Policy / 语言政策
 
@@ -54,7 +54,7 @@ class ErrorResponse(BaseModel):
 
 ## Project Overview
 
-You are working on the **PodDigest** project, a podcast ranking monitor + transcription + AI summarization web platform. The system fetches podcast rankings from xyzrank.com, monitors RSS feeds for new episodes, transcribes audio via Whisper, and generates AI-powered summaries.
+You are working on the **PodcastInsight** project, a podcast ranking monitor + transcription + AI summarization web platform. The system fetches podcast rankings from xyzrank.com, monitors RSS feeds for new episodes, transcribes audio via Whisper, and generates AI-powered summaries.
 
 ## Tech Stack Summary
 

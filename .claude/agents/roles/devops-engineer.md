@@ -45,7 +45,7 @@ services:
       - backend
 
   backend:
-    image: personal-ai-assistant:latest
+    image: podcast-insight:latest
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
@@ -100,9 +100,9 @@ networks:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: personal-ai-assistant-backend
+  name: podcast-insight-backend
   labels:
-    app: personal-ai-assistant
+    app: podcast-insight
     component: backend
 spec:
   replicas: 3
@@ -113,17 +113,17 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: personal-ai-assistant
+      app: podcast-insight
       component: backend
   template:
     metadata:
       labels:
-        app: personal-ai-assistant
+        app: podcast-insight
         component: backend
     spec:
       containers:
       - name: backend
-        image: personal-ai-assistant:latest
+        image: podcast-insight:latest
         ports:
         - containerPort: 8000
         env:
@@ -160,10 +160,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: personal-ai-assistant-backend-service
+  name: podcast-insight-backend-service
 spec:
   selector:
-    app: personal-ai-assistant
+    app: podcast-insight
     component: backend
   ports:
   - protocol: TCP
@@ -183,7 +183,7 @@ rule_files:
   - "alert_rules.yml"
 
 scrape_configs:
-  - job_name: 'personal-ai-assistant'
+  - job_name: 'podcast-insight'
     static_configs:
       - targets: ['backend:8000']
     metrics_path: '/metrics'
@@ -349,13 +349,13 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "personal-ai-assistant-vpc"
+    Name = "podcast-insight-vpc"
   }
 }
 
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
-  name = "personal-ai-assistant"
+  name = "podcast-insight"
 
   setting {
     name  = "containerInsights"
@@ -365,7 +365,7 @@ resource "aws_ecs_cluster" "main" {
 
 # Application Load Balancer
 resource "aws_lb" "main" {
-  name               = "personal-ai-assistant-alb"
+  name               = "podcast-insight-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -374,13 +374,13 @@ resource "aws_lb" "main" {
   enable_deletion_protection = false
 
   tags = {
-    Name = "personal-ai-assistant-alb"
+    Name = "podcast-insight-alb"
   }
 }
 
 # RDS Database
 resource "aws_db_instance" "postgres" {
-  identifier     = "personal-ai-assistant-db"
+  identifier     = "podcast-insight-db"
   engine         = "postgres"
   engine_version = "15.3"
   instance_class = "db.t3.micro"
@@ -403,18 +403,18 @@ resource "aws_db_instance" "postgres" {
   skip_final_snapshot = true
 
   tags = {
-    Name = "personal-ai-assistant-db"
+    Name = "podcast-insight-db"
   }
 }
 
 # ElastiCache Redis
 resource "aws_elasticache_subnet_group" "main" {
-  name       = "personal-ai-assistant-cache-subnet"
+  name       = "podcast-insight-cache-subnet"
   subnet_ids = aws_subnet.private[*].id
 }
 
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id           = "personal-ai-assistant-redis"
+  cluster_id           = "podcast-insight-redis"
   engine               = "redis"
   node_type            = "cache.t3.micro"
   num_cache_nodes      = 1
@@ -424,7 +424,7 @@ resource "aws_elasticache_cluster" "redis" {
   security_group_ids   = [aws_security_group.redis.id]
 
   tags = {
-    Name = "personal-ai-assistant-redis"
+    Name = "podcast-insight-redis"
   }
 }
 ```
@@ -435,7 +435,7 @@ resource "aws_elasticache_cluster" "redis" {
 replicaCount: 3
 
 image:
-  repository: ghcr.io/your-org/personal-ai-assistant
+  repository: ghcr.io/your-org/podcast-insight
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -450,14 +450,14 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: api.personal-ai-assistant.com
+    - host: api.podcast-insight.com
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: personal-ai-assistant-tls
+    - secretName: podcast-insight-tls
       hosts:
-        - api.personal-ai-assistant.com
+        - api.podcast-insight.com
 
 resources:
   limits:
@@ -511,7 +511,7 @@ dashboards:
     disableDeletion: false
     updateIntervalSeconds: 10
     options:
-      path: /var/lib/grafana/dashboards/personal-ai-assistant.json
+      path: /var/lib/grafana/dashboards/podcast-insight.json
 ```
 
 ## Security and Compliance
@@ -536,7 +536,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: 'ghcr.io/your-org/personal-ai-assistant:latest'
+        image-ref: 'ghcr.io/your-org/podcast-insight:latest'
         format: 'sarif'
         output: 'trivy-results.sarif'
 
@@ -565,7 +565,7 @@ apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
   name: app-secrets
-  namespace: personal-ai-assistant
+  namespace: podcast-insight
 spec:
   encryptedData:
     database-url: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
@@ -580,11 +580,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: personal-ai-assistant-network-policy
+  name: podcast-insight-network-policy
 spec:
   podSelector:
     matchLabels:
-      app: personal-ai-assistant
+      app: podcast-insight
   policyTypes:
   - Ingress
   - Egress
@@ -629,10 +629,10 @@ kubectl exec -it deployment/postgres -- pg_dump \
 
 # Upload to S3
 aws s3 cp backup-$(date +%Y%m%d-%H%M%S).sql.gz \
-  s3://personal-ai-assistant-backups/database/
+  s3://podcast-insight-backups/database/
 
 # Clean old backups (keep last 30 days)
-aws s3 ls s3://personal-ai-assistant-backups/database/ \
+aws s3 ls s3://podcast-insight-backups/database/ \
   | while read -r line; do
       createDate=$(echo "$line" | awk '{print $1" "$2}')
       createDate=$(date -d "$createDate" +%s)
@@ -640,7 +640,7 @@ aws s3 ls s3://personal-ai-assistant-backups/database/ \
       if [[ $createDate -lt $olderThan ]]; then
         fileName=$(echo "$line" | awk '{print $4}')
         if [[ $fileName != "" ]]; then
-          aws s3 rm s3://personal-ai-assistant-backups/database/$fileName
+          aws s3 rm s3://podcast-insight-backups/database/$fileName
         fi
       fi
     done
@@ -658,7 +658,7 @@ if [ -z "$BACKUP_FILE" ]; then
 fi
 
 # Download backup from S3
-aws s3 cp s3://personal-ai-assistant-backups/database/$BACKUP_FILE .
+aws s3 cp s3://podcast-insight-backups/database/$BACKUP_FILE .
 
 # Extract and restore
 gunzip -c $BACKUP_FILE | kubectl exec -i deployment/postgres -- \
@@ -705,12 +705,12 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: personal-ai-assistant-hpa
+  name: podcast-insight-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: personal-ai-assistant-backend
+    name: podcast-insight-backend
   minReplicas: 2
   maxReplicas: 20
   metrics:
@@ -734,7 +734,7 @@ spec:
 ```yaml
 # monitoring/alert_rules.yml
 groups:
-- name: personal-ai-assistant
+- name: podcast-insight
   rules:
   - alert: HighErrorRate
     expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
@@ -944,7 +944,7 @@ metadata:
 spec:
   selector:
     namespaces:
-      - personal-ai-assistant
+      - podcast-insight
   mode: one
   action: pod-failure
   duration: "30s"

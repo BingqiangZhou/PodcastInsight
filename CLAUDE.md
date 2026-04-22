@@ -1,4 +1,4 @@
-# PodDigest — Podcast Knowledge Hub v1.0
+# PodcastInsight — Podcast Insight Platform v1.0
 
 Podcast ranking monitor + transcription + AI summarization web platform.
 Backend: Python/FastAPI/PostgreSQL/Redis/Celery. Frontend: Next.js/React/TailwindCSS/shadcn-ui.
@@ -6,7 +6,7 @@ Backend: Python/FastAPI/PostgreSQL/Redis/Celery. Frontend: Next.js/React/Tailwin
 ## Architecture Overview
 
 ```
-podcast-hub/
+podcast-insight/
 ├── backend/              # Python FastAPI backend (DDD layout)
 │   ├── app/
 │   │   ├── main.py       # FastAPI app + lifespan

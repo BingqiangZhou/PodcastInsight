@@ -1,7 +1,7 @@
 [project]
-name = "poddigest-backend"
+name = "podcastinsight-backend"
 version = "1.0.0"
-description = "PodDigest - Podcast Knowledge Hub Backend"
+description = "PodcastInsight - Podcast Insight Platform Backend"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",

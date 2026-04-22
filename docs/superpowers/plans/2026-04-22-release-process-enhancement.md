@@ -25,28 +25,28 @@ backend:
   build:
     context: ../backend
     dockerfile: Dockerfile
-  image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
+  image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
 
 # celery-worker service (after build block, before container_name)
 celery-worker:
   build:
     context: ../backend
     dockerfile: Dockerfile
-  image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
+  image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
 
 # celery-beat service (after build block, before container_name)
 celery-beat:
   build:
     context: ../backend
     dockerfile: Dockerfile
-  image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
+  image: ghcr.io/bingqiangzhou/podcast-insight/backend:${VERSION:-latest}
 
 # frontend service (after build block, before container_name)
 frontend:
   build:
     context: ../frontend
     dockerfile: Dockerfile
-  image: ghcr.io/bingqiangzhou/personal-ai-assistant/frontend:${VERSION:-latest}
+  image: ghcr.io/bingqiangzhou/podcast-insight/frontend:${VERSION:-latest}
 ```
 
 Key points:
@@ -133,12 +133,12 @@ example: /release 1.1.0
 
 1. 在 `backend`、`celery-worker`、`celery-beat` 服务中，将 `image` 行的 `${VERSION:-latest}` 替换为具体版本号：
    ```
-   image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:<版本号>
+   image: ghcr.io/bingqiangzhou/podcast-insight/backend:<版本号>
    ```
 
 2. 在 `frontend` 服务中，同样替换：
    ```
-   image: ghcr.io/bingqiangzhou/personal-ai-assistant/frontend:<版本号>
+   image: ghcr.io/bingqiangzhou/podcast-insight/frontend:<版本号>
    ```
 
 注意：仅更新本项目构建的 4 个服务。postgres、redis、nginx 使用第三方镜像，不做修改。
@@ -178,8 +178,8 @@ chore(release): update version to <版本号> and generate changelog
 - Highlights: 用户输入或自动提取
 - backend 版本: 1.0.0 -> 1.1.0
 - frontend 版本: 1.0.0 -> 1.1.0
-- docker-compose backend image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:1.1.0
-- docker-compose frontend image: ghcr.io/bingqiangzhou/personal-ai-assistant/frontend:1.1.0
+- docker-compose backend image: ghcr.io/bingqiangzhou/podcast-insight/backend:1.1.0
+- docker-compose frontend image: ghcr.io/bingqiangzhou/podcast-insight/frontend:1.1.0
 - Tag: v1.1.0
 - Commit message: `chore(release): update version to 1.1.0 and generate changelog`
 ```
@@ -212,7 +212,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 Replace the entire content of `.github/workflows/release.yml` with:
 
 ```yaml
-# PodDigest - Release Workflow
+# PodcastInsight - Release Workflow
 # Triggered by pushing tags matching pattern v*.*.* (e.g., v1.0.0)
 # Builds multi-arch Docker images (amd64 + arm64) and creates GitHub Release with changelog
 
@@ -414,7 +414,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.prepare-release.outputs.version }}
-          name: PodDigest v${{ needs.prepare-release.outputs.version }}
+          name: PodcastInsight v${{ needs.prepare-release.outputs.version }}
           body_path: changelog.md
           draft: false
           prerelease: ${{ needs.prepare-release.outputs.is_prerelease }}
