@@ -40,6 +40,7 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
+    image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
     container_name: poddigest-backend
     depends_on:
       postgres:
@@ -68,6 +69,7 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
+    image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
     container_name: poddigest-celery-worker
     depends_on:
       redis:
@@ -94,6 +96,7 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
+    image: ghcr.io/bingqiangzhou/personal-ai-assistant/backend:${VERSION:-latest}
     container_name: poddigest-celery-beat
     depends_on:
       redis:
@@ -118,6 +121,7 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+    image: ghcr.io/bingqiangzhou/personal-ai-assistant/frontend:${VERSION:-latest}
     container_name: poddigest-frontend
     depends_on:
       - backend
