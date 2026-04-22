@@ -1,0 +1,58 @@
+{
+  "version": "1.0.0",
+  "project": "personal-ai-assistant",
+  "language_policy": {
+    "mode": "bilingual",
+    "primary_languages": ["en", "zh"],
+    "default_language": "en",
+    "user_language_detection": "auto",
+    "response_language_matching": true,
+    "documentation_bilingual": true,
+    "error_messages_bilingual": true
+  },
+  "workflows": {
+    "product-driven-development": {
+      "path": ".claude/agents/workflows/product-driven-development.md",
+      "description": "Product-driven 4-stage workflow with PM as core driver",
+      "default_workflow": true
+    },
+    "feature-development": {
+      "path": ".claude/agents/workflows/feature-development.md",
+      "description": "End-to-end feature development workflow"
+    },
+    "bug-fix": {
+      "path": ".claude/agents/workflows/bug-fix.md",
+      "description": "Bug triage and resolution workflow"
+    },
+    "architecture-review": {
+      "path": ".claude/agents/workflows/architecture-review.md",
+      "description": "Architecture design and review workflow"
+    }
+  },
+  "prompts": {
+    "base-prompt": {
+      "path": ".claude/agents/prompts/base-prompt.md",
+      "description": "Shared knowledge base and project context"
+    },
+    "domain-context": {
+      "path": ".claude/agents/prompts/domain-context.md",
+      "description": "Domain-specific context for all agents"
+    }
+  },
+  "coordination": {
+    "task-board": {
+      "path": ".claude/agents/coordination/task-board.md",
+      "description": "Task tracking and assignment system"
+    },
+    "communication": {
+      "path": ".claude/agents/coordination/communication.md",
+      "description": "Inter-agent communication protocols"
+    }
+  },
+  "settings": {
+    "default_timeout": 30,
+    "max_concurrent_agents": 7,
+    "auto_assign_tasks": true,
+    "track_metrics": true
+  }
+}
