@@ -53,8 +53,12 @@ def unload_whisper_model() -> None:
     logger.info("faster-whisper model unloaded.")
 
 
-def cleanup_old_audio_files() -> int:
+def cleanup_old_audio_files(active_episode_ids: set[str] | None = None) -> int:
     """Remove audio files older than AUDIO_CLEANUP_AGE_HOURS.
+
+    Args:
+        active_episode_ids: Set of episode IDs whose audio files should NOT
+            be deleted (e.g. episodes currently being transcribed).
 
     Returns:
         Number of files removed.
@@ -64,6 +68,7 @@ def cleanup_old_audio_files() -> int:
     if not audio_dir.exists():
         return 0
 
+    protected = active_episode_ids or set()
     now = datetime.now(timezone.utc)
     max_age_seconds = settings.AUDIO_CLEANUP_AGE_HOURS * 3600
     removed = 0
@@ -71,6 +76,13 @@ def cleanup_old_audio_files() -> int:
     for file_path in audio_dir.iterdir():
         if not file_path.is_file():
             continue
+
+        # Skip files belonging to episodes with active transcriptions
+        episode_id = file_path.stem
+        if episode_id in protected:
+            logger.debug(f"Skipping audio file for active transcription: {file_path.name}")
+            continue
+
         file_mtime = datetime.fromtimestamp(
             file_path.stat().st_mtime, tz=timezone.utc
         )

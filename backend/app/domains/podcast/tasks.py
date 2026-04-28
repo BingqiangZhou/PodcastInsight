@@ -10,6 +10,37 @@ from app.core.database import async_session_factory
 logger = logging.getLogger(__name__)
 
 
+async def _get_episode_priorities(episode_ids: list[str]) -> dict[str, int]:
+    """Fetch podcast priority for each episode's parent podcast.
+
+    Returns a mapping of episode_id -> priority (0-9).
+    """
+    if not episode_ids:
+        return {}
+    from app.domains.podcast.models import Episode, Podcast
+
+    async with async_session_factory() as session:
+        stmt = (
+            select(Episode.id, Podcast.priority)
+            .join(Podcast, Episode.podcast_id == Podcast.id)
+            .where(Episode.id.in_([UUID(eid) for eid in episode_ids]))
+        )
+        res = await session.execute(stmt)
+        return {str(row[0]): row[1] for row in res.all()}
+
+
+def dispatch_transcription_tasks(episode_ids: list[str], priorities: dict[str, int]) -> None:
+    """Dispatch transcription tasks for new episodes with priority awareness."""
+    for episode_id in episode_ids:
+        priority = priorities.get(episode_id, 0)
+        celery_app.send_task(
+            "app.domains.transcription.tasks.transcribe_episode_task",
+            args=[episode_id],
+            priority=priority,
+        )
+        logger.info(f"Dispatched transcription task for episode {episode_id} (priority={priority})")
+
+
 @celery_app.task(name="app.domains.podcast.tasks.sync_rankings_task", bind=True, max_retries=3)
 def sync_rankings_task(self) -> dict:
     """Celery task: sync podcast rankings from xyzrank.com API."""
@@ -70,32 +101,9 @@ def sync_episodes_task(self, podcast_id: str | None = None) -> dict:
 
     # Dispatch transcription tasks for new episodes with priority
     new_episode_ids = result.get("new_episode_ids", [])
-
-    # Fetch priorities for podcasts in a separate session
     if new_episode_ids:
-        async def _get_priorities():
-            async with async_session_factory() as session:
-                from app.domains.podcast.models import Episode, Podcast
-                stmt = (
-                    select(Episode.id, Podcast.priority)
-                    .join(Podcast, Episode.podcast_id == Podcast.id)
-                    .where(Episode.id.in_([UUID(eid) for eid in new_episode_ids]))
-                )
-                res = await session.execute(stmt)
-                return {str(row[0]): row[1] for row in res.all()}
-
-        priorities = asyncio.run(_get_priorities())
-    else:
-        priorities = {}
-
-    for episode_id in new_episode_ids:
-        priority = priorities.get(episode_id, 0)
-        celery_app.send_task(
-            "app.domains.transcription.tasks.transcribe_episode_task",
-            args=[episode_id],
-            priority=priority,
-        )
-        logger.info(f"Dispatched transcription task for episode {episode_id} (priority={priority})")
+        priorities = asyncio.run(_get_episode_priorities(new_episode_ids))
+        dispatch_transcription_tasks(new_episode_ids, priorities)
 
     return result
 

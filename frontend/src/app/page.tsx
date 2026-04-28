@@ -11,6 +11,9 @@ import {
   CheckCircle,
   Clock,
   BarChart3,
+  AlertTriangle,
+  Loader2,
+  Hourglass,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -260,6 +263,69 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pipeline Flow View */}
+      {productionStats?.pipeline && (() => {
+        const p = productionStats.pipeline;
+        const totalFailed = p.transcription_failed + p.summary_failed;
+        return (
+          <div className="space-y-4">
+            {/* Failed Tasks Alert */}
+            {totalFailed > 0 && (
+              <Link href="/episodes?transcript_status=failed">
+                <Card className="border-0 shadow-sm bg-red-50 dark:bg-red-950/30 border-l-4 border-l-red-500 cursor-pointer hover:shadow-md transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10">
+                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+                          {totalFailed} 个任务需要关注
+                        </p>
+                        <p className="text-xs text-red-600/70 dark:text-red-400/70">
+                          {p.transcription_failed > 0 && `${p.transcription_failed} 个转录失败`}
+                          {p.transcription_failed > 0 && p.summary_failed > 0 && '，'}
+                          {p.summary_failed > 0 && `${p.summary_failed} 个总结失败`}
+                          {' — 点击查看详情'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+
+            {/* Pipeline Flow */}
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              生产流水线
+            </h2>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {[
+                { label: '待转录', value: p.transcription_pending, icon: Hourglass, accent: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+                { label: '转录中', value: p.transcription_processing, icon: Loader2, accent: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+                { label: '待总结', value: p.summary_pending, icon: Hourglass, accent: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+                { label: '总结中', value: p.summary_processing, icon: Loader2, accent: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' },
+              ].map((stage) => (
+                <Card key={stage.label} className="border-0 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">{stage.label}</p>
+                        <p className="mt-1 text-2xl font-bold tabular-nums">{stage.value}</p>
+                      </div>
+                      <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg', stage.accent)}>
+                        <stage.icon className={cn('h-4 w-4', stage.label.includes('中') && 'animate-spin')} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Production Stats */}
       <div className="space-y-4">

@@ -242,4 +242,16 @@ export interface ProductionStats {
   avg_transcription_duration_sec: number | null;
   avg_summary_duration_sec: number | null;
   last_7_days: ProductionDayTrend[];
+  pipeline: PipelineStats;
+}
+
+export interface PipelineStats {
+  transcription_pending: number;
+  transcription_processing: number;
+  transcription_completed: number;
+  transcription_failed: number;
+  summary_pending: number;
+  summary_processing: number;
+  summary_completed: number;
+  summary_failed: number;
 }

@@ -120,16 +120,14 @@ async def sync_episodes(
         result = await service.sync_episodes()
         await db.commit()
 
-        # Dispatch transcription tasks for new episodes (matching Celery beat behavior)
+        # Dispatch transcription tasks for new episodes with priority
         new_episode_ids = result.get("new_episode_ids", [])
         if new_episode_ids:
-            from app.core.celery_app import celery_app
+            import asyncio
+            from app.domains.podcast.tasks import _get_episode_priorities, dispatch_transcription_tasks
 
-            for episode_id in new_episode_ids:
-                celery_app.send_task(
-                    "app.domains.transcription.tasks.transcribe_episode_task",
-                    args=[episode_id],
-                )
+            priorities = await _get_episode_priorities(new_episode_ids)
+            dispatch_transcription_tasks(new_episode_ids, priorities)
             logger.info(f"Dispatched transcription for {len(new_episode_ids)} new episodes")
 
         return {"message": "Episode sync complete", **result}

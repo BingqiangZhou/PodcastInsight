@@ -15,6 +15,14 @@ from app.domains.summary.repository import SummaryRepository
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+# Concurrency limiter for LLM API calls to avoid hitting rate limits
+_SUMMARY_SEMAPHORE: int | None = None
+
+
+def _get_summary_semaphore() -> int:
+    """Get the max concurrent LLM API calls from settings."""
+    return getattr(settings, "SUMMARY_CONCURRENCY_LIMIT", 4)
+
 DEFAULT_SUMMARY_PROMPT = """You are an expert podcast summarizer. Given the following transcript of a podcast episode, generate a comprehensive summary.
 
 Please provide:
@@ -65,6 +73,9 @@ class SummaryService:
     ) -> dict:
         """Generate a summary from transcript text using configured LLM.
 
+        Uses an asyncio.Semaphore to limit concurrent LLM API calls
+        and avoid hitting provider rate limits.
+
         Args:
             transcript: The transcript text.
             provider_config: Provider configuration with api_key, base_url, model.
@@ -73,6 +84,24 @@ class SummaryService:
         Returns:
             Dict with 'content', 'key_topics', 'highlights'.
         """
+        import asyncio
+
+        global _SUMMARY_SEMAPHORE
+        if _SUMMARY_SEMAPHORE is None:
+            _SUMMARY_SEMAPHORE = asyncio.Semaphore(_get_summary_semaphore())
+
+        async with _SUMMARY_SEMAPHORE:
+            return await self._do_generate_summary(
+                transcript, provider_config, prompt_template
+            )
+
+    async def _do_generate_summary(
+        self,
+        transcript: str,
+        provider_config: dict | None = None,
+        prompt_template: str | None = None,
+    ) -> dict:
+        """Internal: make the actual LLM API call."""
         base_url = (provider_config or {}).get("base_url", "https://api.openai.com/v1")
         api_key = (provider_config or {}).get("api_key", "")
         model = (provider_config or {}).get("model", "gpt-4o-mini")

@@ -191,6 +191,28 @@ class PodcastService:
                 "summarized": sum_count or 0,
             })
 
+        # Pipeline stage counts for the production flow view
+        trans_pending = await self.session.scalar(
+            select(func.count()).select_from(Episode).where(
+                Episode.transcript_status == ProcessingStatus.PENDING
+            )
+        )
+        trans_processing = await self.session.scalar(
+            select(func.count()).select_from(Episode).where(
+                Episode.transcript_status == ProcessingStatus.PROCESSING
+            )
+        )
+        sum_pending = await self.session.scalar(
+            select(func.count()).select_from(Episode).where(
+                Episode.summary_status == ProcessingStatus.PENDING
+            )
+        )
+        sum_processing = await self.session.scalar(
+            select(func.count()).select_from(Episode).where(
+                Episode.summary_status == ProcessingStatus.PROCESSING
+            )
+        )
+
         return {
             "total_episodes": total_episodes or 0,
             "transcribed": transcribed or 0,
@@ -200,6 +222,16 @@ class PodcastService:
             "avg_transcription_duration_sec": round(avg_trans_duration, 1) if avg_trans_duration else None,
             "avg_summary_duration_sec": round(avg_sum_duration, 1) if avg_sum_duration else None,
             "last_7_days": trend,
+            "pipeline": {
+                "transcription_pending": trans_pending or 0,
+                "transcription_processing": trans_processing or 0,
+                "transcription_completed": transcribed or 0,
+                "transcription_failed": trans_failed or 0,
+                "summary_pending": sum_pending or 0,
+                "summary_processing": sum_processing or 0,
+                "summary_completed": summarized or 0,
+                "summary_failed": sum_failed or 0,
+            },
         }
 
     async def sync_rankings(self) -> dict:
@@ -207,6 +239,7 @@ class PodcastService:
         fetched_count = 0
         updated_count = 0
         created_count = 0
+        synced_podcast_ids: list = []
 
         async with aiohttp.ClientSession() as http_session:
             for offset in range(0, 1000, 50):
@@ -215,11 +248,11 @@ class PodcastService:
                     async with http_session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                         if resp.status != 200:
                             logger.warning(f"xyzrank API returned status {resp.status} at offset {offset}")
-                            break
+                            continue
                         data = await resp.json()
                 except Exception as e:
                     logger.error(f"Error fetching xyzrank API at offset {offset}: {e}")
-                    break
+                    continue
 
                 # API returns {"items": [...], "total": N}
                 items = data.get("items", []) if isinstance(data, dict) else data
@@ -254,24 +287,27 @@ class PodcastService:
 
                     if existing:
                         await self.repo.update(existing.id, podcast_data)
+                        synced_podcast_ids.append(existing.id)
                         updated_count += 1
                     else:
                         podcast_data["xyzrank_id"] = xyzrank_id
-                        await self.repo.create(podcast_data)
+                        new_podcast = await self.repo.create(podcast_data)
+                        synced_podcast_ids.append(new_podcast.id)
                         created_count += 1
 
                     fetched_count += 1
 
-        # Record ranking history
-        podcasts = await self.repo.get_multi(limit=10000)
-        for podcast in podcasts:
-            await self.history_repo.create(
-                {
-                    "podcast_id": podcast.id,
-                    "rank": podcast.rank,
-                    "avg_play_count": podcast.avg_play_count,
-                }
-            )
+        # Record ranking history only for podcasts fetched in this sync
+        for podcast_id in synced_podcast_ids:
+            podcast = await self.repo.get(podcast_id)
+            if podcast:
+                await self.history_repo.create(
+                    {
+                        "podcast_id": podcast.id,
+                        "rank": podcast.rank,
+                        "avg_play_count": podcast.avg_play_count,
+                    }
+                )
 
         await self.session.flush()
         logger.info(
